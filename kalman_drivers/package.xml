@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>kalman_drivers</name>
+  <version>0.0.0</version>
+  <description>drivers for the physical hardware; Only to be run separately from the simulation on a physical robot.</description>
+  <maintainer email="63957587+rayferric@users.noreply.github.com">rayferric</maintainer>
+  <license>MIT</license>
+
+  <exec_depend>ros2launch</exec_depend>
+  <exec_depend>realsense2_camera</exec_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

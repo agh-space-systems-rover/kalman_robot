@@ -1,0 +1,3 @@
+[submodule "unity_sim"]
+	path = unity_sim
+	url = git@github.com:agh-space-systems-rover/unity_sim.git

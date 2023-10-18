@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>kalman_bringup</name>
+  <version>0.0.0</version>
+  <description>Launch files for the rover and the ground station.</description>
+  <maintainer email="63957587+rayferric@users.noreply.github.com">rayferric</maintainer>
+  <license>MIT</license>
+
+  <exec_depend>ros2launch</exec_depend>
+  <exec_depend>rviz_imu_plugin</exec_depend>
+
+  <exec_depend>kalman_drivers</exec_depend>
+  <exec_depend>kalman_description</exec_depend>
+  <exec_depend>kalman_slam</exec_depend>
+  <exec_depend>kalman_nav2</exec_depend>
+  <exec_depend>unity_sim</exec_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

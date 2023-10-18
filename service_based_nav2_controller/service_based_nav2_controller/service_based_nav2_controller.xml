@@ -1,0 +1,7 @@
+<library path="service_based_nav2_controller">
+  <class type="service_based_nav2_controller::ServiceBasedNav2Controller" base_class_type="nav2_core::Controller">
+    <description>
+      This controller delegates velocity command generation to an external ROS service.
+    </description>
+  </class>
+</library>

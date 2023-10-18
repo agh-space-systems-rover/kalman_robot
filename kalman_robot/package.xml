@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+    <name>kalman_robot</name>
+    <version>0.0.0</version>
+    <description>a meta-package that depends on all other `kalman_` packages</description>
+    <maintainer email="63957587+rayferric@users.noreply.github.com">rayferric</maintainer>
+    <license>MIT</license>
+
+    <buildtool_depend>ament_cmake</buildtool_depend>
+
+    <depend>kalman_bringup</depend>
+    <depend>kalman_description</depend>
+    <depend>kalman_drivers</depend>
+    <depend>kalman_interfaces</depend>
+    <depend>kalman_nav2</depend>
+    <depend>kalman_slam</depend>
+    <depend>kalman_wheel_controller</depend>
+
+    <export>
+        <build_type>ament_cmake</build_type>
+    </export>
+</package>
