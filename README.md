@@ -8,14 +8,12 @@ ROS 2 Kalman robot software stack
 
 - [rtabmap_sync](https://github.com/introlab/rtabmap_ros) built with `-DRTABMAP_SYNC_MULTI_RGBD=ON`
 
-**BEFORE YOU CLONE SUBMODULES,** please note that [the Unity simulation](https://github.com/agh-space-systems-rover/unity_sim) repository is included as a submodule in this project, so you will probably have to install **Git LFS** for the submodule to be cloned successfully. If you will want to run the simulation, please follow its README for instructions on how to setup everything properly.
-
 ## Getting Started
 
 ```bash
-ros2 launch kalman kalman.launch.py
-# ros2 launch kalman kalman.launch.py unity_sim:=true # to also start the simulation
-# ros2 launch kalman kalman.launch.py drivers:=true # to also start the physical drivers
+ros2 launch kalman_bringup kalman.launch.py
+# ros2 launch kalman_bringup kalman.launch.py unity_sim:=true # to also start the simulation
+# ros2 launch kalman_bringup kalman.launch.py drivers:=true # to also start the physical drivers
 ```
 
 Please also note that physical drivers cannot be run along the simulation as they both provide a homogeneous interface to the (simulated or physical) hardware using the same ROS 2 topics.
@@ -36,34 +34,6 @@ Kalman's software stack is composed of multiple packages that are meant to be bu
 
 - `service_based_nav2_controller` - a `FollowPath` controller plugin for Nav2 that uses a service to compute velocity commands
 - `unity_sim` - a Unity-based simulation environment that can seamlessly replace the physical hardware of AGH Space Systems' robots
-
-## Design Sheet
-
-A **WORK-IN-PROGRESS** summary of the design decisions (to be) made in this project:
-
-### Build Variants
-
-There exist three different build targets implemented as "meta" packages (`rover`, `station`, `full`) that do not contain any code
-
-- `rover` is meant to be installed on the rover where physical hardware is available.
-- `station` is to be installed on the ground station unit.
-- `full` target should only be built on a developer's PC and it includes the two above packages plus virtual hardware modules managed by the simulator.
-
-There are overlaps between the packages needed by each of the three build variants and this is why their sources are stored as a flat `src` directory of packages instead of dividing them into folders.
-
-###  Source Packaging
-
-The main repository of our project includes all our packages as Git submodules. I can already see how this design forces us to download all packages despite only needing a few of them to be built for the specific target. One good thing about submodules is that we can create tags in the main repository to be able to later return to specific point in time.
-
-###  Launch Files
-
-Each build target exposes launch files specific to the platform.
-
-- `rover` exposes one launch file for every competition type (i.e. autonomous navigation, science, extreme delivery, etc.).
-- `station` would only contain a single launch file that starts the station with RF and should work with all operation modes of the rover.
-- `full` provides a similar set of launch files, but each one of them relies on the simulator to provide the hardware interface and boot up the ground station without RF communication.
-
-Launch files from previous contests are consistently replaced by the new ones. The old ones end up archived in the Git index.
 
 ## Known Issues; TODOs
 
