@@ -4,6 +4,8 @@ Note: This package is configured for Python and C++ - for future rewrite in C++.
 
 ## Description
 
+Package that provides modules and nodes for handling serial communication with a Kalman rover and is a bridge between UART and ROS.
+
 ## Modules
 
 ### `lightweight_serial_driver`
@@ -40,12 +42,52 @@ class UartMsg:
     argv: List[UInt8]
 ```
 
-## Usage
-
 ## Nodes
+
+### `uart_ros_bridge`
+
+#### Description
+
+Simple node handling serial communication - publishing received UART messages to ROS topics (`/kalman_rover/uart2ros/{id}`) and sending UART messages from ROS topic (`/kalman_rover/ros2uart`). Messages should be of type `UInt8MultiArray` and contain the following data:
+
+-   `cmd` - command id
+-   `argc` - number of arguments
+-   `argv` - list of arguments
+
+#### Usage
+
+Run as a ROS node.
+
+#### Parameters
+
+-   `/serial_port` - serial port name
+-   `/baud_rate` - baud rate
+-   `/ascii_mode` - if true, messages are sent as ASCII strings (default: false)
+
+#### Topics
+
+-   `/kalman_rover/uart2ros/{id}` - UART messages received from serial
+-   `/kalman_rover/ros2uart` - UART messages to be sent to serial
 
 ## Uses
 
-## Parameters
+-   `pyserial`
 
 ## Package structure
+
+```
+    kalman_base
+    ├── CMakeLists.txt              # compiler instructions
+    ├── package.xml                 # package metadata
+    ├── README.md                   # this file
+    ├── kalman_base                 # Python modules
+    |   ├── __init__.py             # init file - empty
+    |   └── lightweight_serial_driver.py
+    ├── scripts                     # Python nodes
+    │   └── uart_ros_bridge.py
+    ├── src                         # C++ source code
+    |   └── main.cpp                # main file - empty for now
+    └── include                     # C++ headers
+        └── kalman_base             # C++ headers
+            └── main.hpp            # main header - empty for now
+```

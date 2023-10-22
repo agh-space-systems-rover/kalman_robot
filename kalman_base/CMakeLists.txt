@@ -37,10 +37,10 @@ include_directories(include)
 ament_python_install_package(${PROJECT_NAME})
 
 # Install Python executables
-# install(PROGRAMS
-#   scripts/kalman_base.py
-#   # ADD MORE SCRIPTS HERE
-#   DESTINATION lib/${PROJECT_NAME})
+install(PROGRAMS
+  scripts/uart_ros_bridge.py
+  # ADD MORE SCRIPTS HERE
+  DESTINATION lib/${PROJECT_NAME})
 
 
 if(BUILD_TESTING)
