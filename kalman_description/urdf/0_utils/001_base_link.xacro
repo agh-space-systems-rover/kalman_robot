@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="platform">
+
+    <xacro:macro name="base_link" params="name">
+
+        <link name="${name}"></link>
+        
+    </xacro:macro>
+
+</robot>

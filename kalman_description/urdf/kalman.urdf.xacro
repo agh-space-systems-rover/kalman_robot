@@ -5,13 +5,52 @@ The description defines all the TF nodes that are children of base_link. -->
 
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="kalman">
     <xacro:include filename="$(find realsense2_description)/urdf/_d455.urdf.xacro" />
+
+    <xacro:include filename="$(find kalman_description)/urdf/1_body/101_differential_rod.xacro"/>
+    <xacro:include filename="$(find kalman_description)/urdf/1_body/102_main_body.xacro"/>
+    <xacro:include filename="$(find kalman_description)/urdf/2_suspension/200A_suspension_side.xacro"/>
+
+    <xacro:include filename="$(find kalman_description)/urdf/0_utils/000_utils.xacro"/>
   
-    <link name="base_link" />
-    
+    <link name="base_link" >
+            <xacro:cylinder_inertial radius="0.4" length="0.5" mass="10">
+                <origin xyz="0.0 0.0 0.0" rpy="1.57075 0 0" />
+            </xacro:cylinder_inertial>
+    </link>
+
+    <link name="base_footprint" />
+    <joint name="base_footprint_joint" type="fixed">
+        <origin xyz="-0.09 0 0"/>
+        <parent link="base_link"/>
+        <child link="base_footprint"/>
+    </joint>
+
+    <link name="frame_front" />
+    <joint name="frame_front_joint" type="fixed">
+        <origin xyz="0.26 0 0"/>
+        <parent link="base_link"/>
+        <child link="frame_front"/>
+    </joint>
+
+    <link name="frame_back_right" />
+    <joint name="frame_back_right_joint" type="fixed">
+        <origin xyz="-0.535 -0.2 0"/>
+        <parent link="base_link"/>
+        <child link="frame_back_right"/>
+    </joint>
+
+    <link name="frame_back_left" />
+    <joint name="frame_back_left_joint" type="fixed">
+        <origin xyz="-0.535 0.2 0"/>
+        <parent link="base_link"/>
+        <child link="frame_back_left"/>
+    </joint>
+    <!-- TODO dodać maszty -->
+
     <!-- IMU -->
     <link name="imu_link" />
     <joint name="imu_joint" type="fixed">
-        <origin xyz="0.3 0 -0.01"/>
+        <origin xyz="0.3 0 -0.01"/> <!-- FIXME -->
         <parent link="base_link"/>
         <child link="imu_link"/>
     </joint>
@@ -25,7 +64,7 @@ The description defines all the TF nodes that are children of base_link. -->
     </joint>
 
     <!-- RealSense -->
-    <xacro:sensor_d455 name="d455_front" parent="base_link" use_nominal_extrinsics="true">
+    <!-- <xacro:sensor_d455 name="d455_front" parent="base_link" use_nominal_extrinsics="true">
         <origin xyz="0.32 0.115 0.21" rpy="0 0 0" />
     </xacro:sensor_d455>
     <xacro:sensor_d455 name="d455_back" parent="base_link" use_nominal_extrinsics="true">
@@ -36,5 +75,11 @@ The description defines all the TF nodes that are children of base_link. -->
     </xacro:sensor_d455>
     <xacro:sensor_d455 name="d455_right" parent="base_link" use_nominal_extrinsics="true">
         <origin xyz="-0.33 -0.225 0.33" rpy="0 0 -1.57" />
-    </xacro:sensor_d455>
+    </xacro:sensor_d455> -->
+
+
+    <xacro:differential_rod name="differential_rod" parent="base_link" rpy="0 0 0" xyz="0 0 0"/>
+    <xacro:main_body name="main_body" parent="differential_rod" rpy="0 0 0" xyz="0 0 0"/>
+    <xacro:suspension_side side_name="l" side_value="1"/>
+    <xacro:suspension_side side_name="r" side_value="-1"/>
 </robot>

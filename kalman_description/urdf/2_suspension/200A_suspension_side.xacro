@@ -1,0 +1,68 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="platform">
+
+    <xacro:include filename="$(find kalman_description)/urdf/2_suspension/201_rocker.xacro"/>
+    <xacro:include filename="$(find kalman_description)/urdf/2_suspension/202_propulsion_module.xacro"/>
+    <xacro:include filename="$(find kalman_description)/urdf/2_suspension/203_wheel.xacro"/>
+
+    <xacro:macro name="suspension_side" params="side_name side_value">
+
+        <xacro:rocker name="rocker_${side_name}" parent="differential_rod" side_name="${side_name}"
+            rpy="0 0 0"
+            xyz="0 ${side_value * 0.354} 0"
+            axis="0 1 0"
+            effort="100"
+            velocity="1"
+            low_limit="-1.57075"
+            high_limit="1.57075"
+            friction="10"
+            damping="100"
+        />
+
+        <xacro:propulsion_module name="propulsion_module_f${side_name}" parent="rocker_${side_name}" side_name="${side_name}"
+            rpy="0 0 0"
+            xyz="0.335 0 -0.26675"
+            axis="0 0 1"
+            effort="1000"
+            velocity="1"
+            low_limit="-1.57075"
+            high_limit="1.57075"
+            friction="10"
+            damping="100"
+        />
+
+        <xacro:propulsion_module name="propulsion_module_b${side_name}" parent="rocker_${side_name}" side_name="${side_name}"
+            rpy="0 0 0"
+            xyz="-0.51 0 -0.26675"
+            axis="0 0 1"
+            effort="1000"
+            velocity="1"
+            low_limit="-1.57075"
+            high_limit="1.57075"
+            friction="10"
+            damping="100"
+        />
+
+        <xacro:wheel name="wheel_f${side_name}" parent="propulsion_module_f${side_name}" side_name="${side_name}"
+            rpy="0 0 0"
+            xyz="0 0 0"
+            axis="0 1 0"
+            effort="1000"
+            velocity="10"
+            friction="10"
+            damping="100"
+        />
+
+        <xacro:wheel name="wheel_b${side_name}" parent="propulsion_module_b${side_name}" side_name="${side_name}"
+            rpy="0 0 0"
+            xyz="0 0 0"
+            axis="0 1 0"
+            effort="1000"
+            velocity="10"
+            friction="10"
+            damping="100"
+        />
+
+    </xacro:macro>
+
+</robot>
