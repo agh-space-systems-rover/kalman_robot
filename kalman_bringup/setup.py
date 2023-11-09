@@ -24,10 +24,6 @@ setup(
             glob.glob(os.path.join("launch", "*launch.[pxy][yma]*")),
         ),
         (
-            "share/" + package_name + "/param",
-            glob.glob(os.path.join("param", "*")),
-        ),
-        (
             "share/" + package_name + "/rviz",
             glob.glob(os.path.join("rviz", "*")),
         ),
