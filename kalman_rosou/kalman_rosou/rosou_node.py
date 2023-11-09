@@ -23,9 +23,9 @@ from kalman_rosou.utils import (
 )
 
 
-class BigAutonomyTranslator(Node):
+class Rosou(Node):
     def __init__(self):
-        super().__init__("Rosou")  # type: ignore
+        super().__init__("rosou")  # type: ignore
         self.ros2uart_publisher = self.create_publisher(
             UInt8MultiArray, "ros2uart", 10
         )
@@ -140,7 +140,7 @@ class BigAutonomyTranslator(Node):
     def _import_messages(self) -> None:
         self.message_modules = {}
         for config in chain(self.configs_rover, self.configs_station):
-            module_name: str = config["message_type"].split("/")[0]
+            module_name: str = '.'.join(config["message_type"].split("/")[:-1])
             if module_name not in self.message_modules:
                 self.message_modules[module_name] = [
                     importlib.import_module(module_name + ".msg")
@@ -152,6 +152,9 @@ class BigAutonomyTranslator(Node):
         for module in self.message_modules[module_name]:
             if hasattr(module, msg_type_name):
                 return getattr(module, msg_type_name)
+        raise RuntimeError(
+            f"Message type {config['message_type']} not found in module {module_name}"
+        )
 
     def receive(self, msg: UInt8MultiArray) -> None:
         frame_id: int = msg.data[2]
@@ -207,10 +210,10 @@ class BigAutonomyTranslator(Node):
 def main(args=None):
     rclpy.init(args=args)
 
-    bat = BigAutonomyTranslator()
+    rosou = Rosou()
 
-    rclpy.spin(bat)
-    bat.destroy_node()
+    rclpy.spin(rosou)
+    rosou.destroy_node()
     rclpy.shutdown()
 
 
