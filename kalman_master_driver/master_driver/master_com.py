@@ -68,7 +68,6 @@ class MasterCom(Node):
             self.pubs[msg.cmd].publish(ros_msg)
 
     def ros_to_master(self, ros_msg: UInt8MultiArray) -> None:
-        self.get_logger().info(f"Sending ros_to_master frame: {hex(ros_msg.data[0])}")
         self.driver.write_msg(ros_msg)
         self.driver.tick()
 
