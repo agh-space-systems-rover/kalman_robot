@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(kalman_base)
+project(kalman_master_driver)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -18,30 +18,26 @@ find_package(rclpy REQUIRED)
 include_directories(include)
 
 # Create Cpp executable
-# add_executable(kalman_base src/kalman_base.cpp)
-# ament_target_dependencies(kalman_base rclcpp)
+# add_executable(example_tgt src/example.cpp)
+# ament_target_dependencies(example_tgt rclcpp)
 
 ## FOR ANOTHER FILES, CREATE NEW EXECUTABLES AND DEPENDENCIES HERE
 
 # Install Cpp executable
 # install(TARGETS 
-#   kalman_base
+#   example_tgt
 #   # ADD MORE EXECUTABLES HERE
 #   DESTINATION lib/${PROJECT_NAME})
 
-
-
-
-
 # Install Python modules
-ament_python_install_package(${PROJECT_NAME})
+ament_python_install_package(master_driver)
 
 # Install Python executables
 install(PROGRAMS
-  scripts/uart_ros_bridge.py
+  exec/master_com
   # ADD MORE SCRIPTS HERE
-  DESTINATION lib/${PROJECT_NAME})
-
+  DESTINATION lib/${PROJECT_NAME}
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
