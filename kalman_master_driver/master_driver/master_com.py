@@ -57,7 +57,7 @@ class MasterCom(Node):
         for msg in msgs:
             if not msg.cmd in self.pubs:
                 self.pubs[msg.cmd] = self.create_publisher(
-                    UInt8MultiArray, "/master_com/master_to_ros" + hex(msg.cmd), 10
+                    UInt8MultiArray, "/master_com/master_to_ros/" + hex(msg.cmd), 10
                 )
 
             ros_msg = UInt8MultiArray()

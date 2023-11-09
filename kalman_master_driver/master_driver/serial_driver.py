@@ -97,7 +97,7 @@ class SerialDriver:
         """
         msg = String(data=f"malformed packets in last {self.malformed_packets_timer_time} seconds: {self.malformed_packets}")
         self.baudrate_debug_pub.publish(msg)
-        self.malformed_packets_pub.publish(self.malformed_packets)
+        self.malformed_packets_pub.publish(Int16(data=self.malformed_packets))
         self.malformed_packets = 0
 
     def log_data_speed(self) -> None:
