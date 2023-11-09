@@ -26,8 +26,8 @@ from kalman_rosou.utils import (
 class Rosou(Node):
     def __init__(self):
         super().__init__("rosou")  # type: ignore
-        self.ros2uart_publisher = self.create_publisher(
-            UInt8MultiArray, "ros2uart", 10
+        self.ros_to_master_pub = self.create_publisher(
+            UInt8MultiArray, "/master_com/ros_to_master", 10
         )
 
         self.declare_parameter("is_station", False)
@@ -44,7 +44,7 @@ class Rosou(Node):
         if self.is_station():
             self.create_subscription(
                 UInt8MultiArray,
-                "uart2ros/_129",
+                "/master_com/master_to_ros/0x81",
                 self.receive,
                 10
             )
@@ -71,7 +71,7 @@ class Rosou(Node):
 
         else:  # rover
             self.create_subscription(
-                UInt8MultiArray, "uart2ros/_128", lambda msg: self.receive(msg), 10
+                UInt8MultiArray, "/master_com/master_to_ros/0x80", lambda msg: self.receive(msg), 10
             )
 
             max_idx = 0
@@ -201,7 +201,7 @@ class Rosou(Node):
         frame = UInt8MultiArray()
         frame.data = frame_header + tuple(bytearray(data.getvalue()))
 
-        self.ros2uart_publisher.publish(frame)
+        self.ros_to_master_pub.publish(frame)
 
     def is_station(self) -> bool:
         return self.get_parameter("is_station").get_parameter_value().bool_value
