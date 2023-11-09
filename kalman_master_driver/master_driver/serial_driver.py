@@ -95,7 +95,7 @@ class SerialDriver:
         Returns:
             None
         """
-        msg = f"malformed packets in last {self.malformed_packets_timer_time} seconds: {self.malformed_packets}"
+        msg = String(data=f"malformed packets in last {self.malformed_packets_timer_time} seconds: {self.malformed_packets}")
         self.baudrate_debug_pub.publish(msg)
         self.malformed_packets_pub.publish(self.malformed_packets)
         self.malformed_packets = 0
@@ -108,9 +108,9 @@ class SerialDriver:
         Returns:
             None
         """
-        self.baudrate_debug_pub.publish(f"data TX {self.bitrate_tx}")
-        self.baudrate_debug_pub.publish(f"data RX {self.bitrate_rx}")
-        self.baudrate_debug_pub.publish(f"correct data RX {self.correct_bitrate_rx}")
+        self.baudrate_debug_pub.publish(String(data=f"data TX {self.bitrate_tx}"))
+        self.baudrate_debug_pub.publish(String(data=f"data RX {self.bitrate_rx}"))
+        self.baudrate_debug_pub.publish(String(data=f"correct data RX {self.correct_bitrate_rx}"))
         self.bitrate_tx = 0
         self.bitrate_rx = 0
         self.correct_bitrate_rx = 0

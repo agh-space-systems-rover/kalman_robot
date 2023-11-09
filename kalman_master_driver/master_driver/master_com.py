@@ -53,8 +53,7 @@ class MasterCom(Node):
         self.create_timer(1.0 / frequency, self.master_to_ros)
 
     def master_to_ros(self) -> None:
-        self.driver.tick()
-        msgs: List[SerialMsg] = self.driver.readAllMsgs()
+        msgs: List[SerialMsg] = self.driver.read_all_msgs()
         for msg in msgs:
             if not msg.cmd in self.pubs:
                 self.pubs[msg.cmd] = self.create_publisher(
@@ -70,7 +69,7 @@ class MasterCom(Node):
 
     def ros_to_master(self, ros_msg: UInt8MultiArray) -> None:
         self.get_logger().info(f"Sending ros_to_master frame: {hex(ros_msg.data[0])}")
-        self.driver.writeMsg(ros_msg)
+        self.driver.write_msg(ros_msg)
         self.driver.tick()
 
 
