@@ -68,11 +68,11 @@ class SerialDriver:
         )
 
         self.baudrate_debug_pub = node.create_publisher(
-            String, "/kalman_rover/baudrate_debug", 10
+            String, "/master_com/baudrate_debug", 10
         )
         self.malformed_packets_pub = node.create_publisher(
             Int16,
-            f"/kalman_rover/malformed_packets_last_{self.malformed_packets_timer_time}_secs",
+            f"/master_com/malformed_packets_last_{self.malformed_packets_timer_time}_secs",
             10,
         )
         self.bitrate_tx = 0
