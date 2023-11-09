@@ -31,7 +31,8 @@ def generate_launch_description():
                         / "realsense.yaml"
                     ),
                 }.items(),
-            ) for camera_name, serial_no in [("d455_front", "_043422251512")]
+            ) for camera_name, serial_no in [("d455_front", "_043422251512"), ("d455_back", "_231622302908"), ("d455_right", "_231122300896")]
+            # TODO: Add the fourth camera here.
         ] + [
             Node(
                 package="image_transport",
