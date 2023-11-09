@@ -38,7 +38,7 @@
     },
     {
       "topic": "/fiducials/tag_positions/gps",
-      "message_type": "bat_interfaces/GpsTagArray",
+      "message_type": "kalman_interfaces/GpsTagArray",
       "message_part_serialized": "msg",
       "max_frequency": 1
     },
