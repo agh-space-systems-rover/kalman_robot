@@ -1,0 +1,112 @@
+{
+  "rover": [
+    {
+      "topic": "/imu/data",
+      "message_type": "sensor_msgs/Imu",
+      "message_part_serialized": "msg.orientation",
+      "max_frequency": 1
+    },
+    {
+      "topic": "/odometry/filtered",
+      "message_type": "nav_msgs/Odometry",
+      "message_part_serialized": "msg.pose.pose.position",
+      "max_frequency": 1
+    },
+    {
+      "topic": "/gs_rover_map_pose",
+      "message_type": "geometry_msgs/Pose",
+      "message_part_serialized": "msg.position",
+      "max_frequency": 1
+    },
+    {
+      "topic": "/gps/squashed",
+      "message_type": "geometry_msgs/Vector3",
+      "message_part_serialized": "msg",
+      "max_frequency": 1
+    },
+    {
+      "topic": "/move_base/status",
+      "message_type": "actionlib_msgs/GoalStatusArray",
+      "message_part_serialized": "msg",
+      "max_frequency": 1
+    },
+    {
+      "topic": "/ueuos/state",
+      "message_type": "std_msgs/UInt8",
+      "message_part_serialized": "msg",
+      "max_frequency": 1
+    },
+    {
+      "topic": "/fiducials/tag_positions/gps",
+      "message_type": "kalman_interfaces/GpsTagArray",
+      "message_part_serialized": "msg",
+      "max_frequency": 1
+    },
+    {
+      "topic": "/access_point/webpage",
+      "message_type": "std_msgs/String",
+      "message_part_serialized": "msg",
+      "max_frequency": 1
+    },
+    {
+      "topic": "/access_point/status",
+      "message_type": "std_msgs/String",
+      "message_part_serialized": "msg",
+      "max_frequency": 1
+    },
+    {
+      "topic": "/kalman_rover/ble_beacon_signal",
+      "message_type": "std_msgs/Float32",
+      "message_part_serialized": "msg",
+      "max_frequency": 1
+    },
+    {
+      "topic": "/panel_vis",
+      "message_type": "visualization_msgs/Marker",
+      "message_part_serialized": "msg",
+      "max_frequency": 1
+    }
+  ],
+  "station": [
+    {
+      "topic": "/access_point/connect",
+      "message_type": "std_msgs/String",
+      "message_part_serialized": "msg",
+      "max_frequency": 1
+    },
+    {
+      "topic": "/access_point/transfer",
+      "message_type": "std_msgs/String",
+      "message_part_serialized": "msg",
+      "max_frequency": 1
+    },
+    {
+      "topic": "/panorama_trigger",
+      "message_type": "std_msgs/Empty",
+      "message_part_serialized": "msg",
+      "max_frequency": 1
+    }
+  ],
+  "rover_services": [
+    {
+      "name": "/move_base/clear_costmaps",
+      "type": "std_srvs/Empty"
+    },
+    {
+      "name": "/configurations/path_following/max_velocity",
+      "type": "kalman_rover_uart/intSrv"
+    },
+    {
+      "name": "/ueuos/set_state",
+      "type": "ueuos/State"
+    },
+    {
+      "name": "/waypoints/get",
+      "type": "supervisor/GetWaypoints"
+    },
+    {
+      "name": "/waypoints/set",
+      "type": "supervisor/SetWaypoints"
+    }
+  ]
+}
