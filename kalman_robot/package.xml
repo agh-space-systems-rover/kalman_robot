@@ -14,6 +14,8 @@
     <depend>kalman_drivers</depend>
     <depend>kalman_interfaces</depend>
     <depend>kalman_nav2</depend>
+    <depend>kalman_rosou</depend>
+    <depend>kalman_rosou_interfaces</depend>
     <depend>kalman_slam</depend>
     <depend>kalman_wheel_controller</depend>
 

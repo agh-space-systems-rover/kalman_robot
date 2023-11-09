@@ -1,0 +1,2 @@
+bool[] data
+bool half
