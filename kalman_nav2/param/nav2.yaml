@@ -65,7 +65,7 @@ local_costmap:
 
 behavior_server:
   ros__parameters:
-    # ENabled plugins are used by the behavior trees.
+    # Enabled plugins are used by the behavior trees.
     behavior_plugins: ["spin", "backup"]
     spin:
       plugin: "nav2_behaviors/Spin"
@@ -145,7 +145,7 @@ planner_server:
     planner_plugins: ["GridBased"]
     GridBased:
       plugin: "nav2_navfn_planner/NavfnPlanner"
-      tolerance: 5.0 # Plan path to a point max meters from goal.
+      tolerance: 5.0 # Plan path to a point max meters from goal; Navfn will loop (2 * tolerance / grid resolution)^2 = 10000 times
       use_astar: True # Use A* or Dijkstra's?
       allow_unknown: True # Plan in unknown space?
     # GridBased:
