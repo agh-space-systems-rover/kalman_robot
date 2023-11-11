@@ -6,6 +6,7 @@ from geometry_msgs.msg import Twist
 from rclpy.action import ActionServer, CancelResponse, GoalResponse , ActionClient # Added Nav2 Classes
 from action_msgs.msg import GoalStatus
 from example_interfaces.action import Fibonacci
+from nav2_msgs.action import NavigateToPose
 import numpy as np
 
 #import actionlib
@@ -36,7 +37,7 @@ class MoveBase:
 
     def __init__(self):
         self.__transformer = Transformer()
-        self._action_client = ActionClient(self, Fibonacci, "Fibonacci_Action")  # added ROS2 ActionClient
+        self._action_client = ActionClient(self, NavigateToPose, "move_base -> action_client")  # added ROS2 ActionClient
         #self.__client = actionlib.SimpleActionClient("move_base", MoveBaseAction)
         self.__costmap_client = dynamic_reconfigure.client.Client(
             "/move_base/global_costmap/obstacles"
@@ -67,13 +68,12 @@ class MoveBase:
 
         node.get_logger().info("Waiting for action server... ")
         self._action_client.wait_for_server()
-        goal_msg = Fibonacci.Goal()
-        order = self.__convert_goal(frame_id, position)
-        goal_msg.order = order
+        goal_msg = NavigateToPose.Goal()
+        goal_msg.pose = self.__convert_goal(frame_id, position)
         self.__status = self.Status.ACTIVE
-        self.__current_goal = goal_msg.order
+        self.__current_goal = goal_msg.pose
 
-        return self._action_client.send_goal_async(goal_msg)
+        return self._action_client.send_goal(goal_msg)
 
     
     
