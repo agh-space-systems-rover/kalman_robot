@@ -3,7 +3,9 @@ from enum import IntEnum
 from rclpy import Node
 from rclpy.client import Client
 from geometry_msgs.msg import Twist
-from rclpy.action import ActionServer, CancelResponse, GoalResponse
+from rclpy.action import ActionServer, CancelResponse, GoalResponse , ActionClient # Added Nav2 Classes
+from action_msgs.msg import GoalStatus
+from example_interfaces.action import Fibonacci
 import numpy as np
 
 #import actionlib
@@ -11,13 +13,14 @@ import numpy as np
 
 from geometry_msgs.msg import PoseStamped
 from std_srvs.srv import Empty
-import dynamic_reconfigure.client
+#import dynamic_reconfigure.client
 from .transformer import Transformer
 
 Vec2 = Tuple[float, float]
 EPS = 1e-6
 node = Node()
 client = Client()
+
 class MoveBase:
     class Status(IntEnum):
         PENDING = 0
@@ -33,7 +36,8 @@ class MoveBase:
 
     def __init__(self):
         self.__transformer = Transformer()
-        self.__client = actionlib.SimpleActionClient("move_base", MoveBaseAction)
+        self._action_client = ActionClient(self, Fibonacci, "Fibonacci_Action")  # added ROS2 ActionClient
+        #self.__client = actionlib.SimpleActionClient("move_base", MoveBaseAction)
         self.__costmap_client = dynamic_reconfigure.client.Client(
             "/move_base/global_costmap/obstacles"
         )
@@ -51,7 +55,28 @@ class MoveBase:
             self.__status == self.Status.SUCCEEDED
             or self.__status == self.Status.ABORTED
         )
+##############################################
+    
+    def send_goal(self, frame_id: str, position: Vec2, order):
+        
+        if frame_id == "gps":
+            node.get_logger().info("Got GPS as the goal frame, this should never happen, convert it to UTM!")
 
+        if frame_id == "base_link" and position[0] > EPS and position[1] > EPS:
+            node.get_logger().info("Got non-zero BASE_LINK goal, this should never happen!")
+
+        node.get_logger().info("Waiting for action server... ")
+        self._action_client.wait_for_server()
+        goal_msg = Fibonacci.Goal()
+        order = self.__convert_goal(frame_id, position)
+        goal_msg.order = order
+        self.__status = self.Status.ACTIVE
+        self.__current_goal = goal_msg.order
+
+        return self._action_client.send_goal_async(goal_msg)
+
+    
+    
     def send_goal(self, frame_id: str, position: Vec2):
 
         if frame_id == "gps":
@@ -65,6 +90,7 @@ class MoveBase:
         self.__client.send_goal(goal)
         self.__status = self.Status.ACTIVE
         self.__current_goal = goal
+#################################################
 
     def send_goal_in_dir(self, odom: Vec2, direction: Vec2, length: float):
         np_odom = np.array(odom)
@@ -103,12 +129,19 @@ class MoveBase:
         except rospy.ServiceException as exc:
         #############################################3
             node.get_logger().info("Service did not process request: " + str(exc))
-
+#################################################################################################
+    
+    
+    
+    
+    
+    
+    
     def __status_callback(self, msg: MoveBaseActionResult):
         if msg.status.goal_id.id != self.__cached_id:
             self.__status = self.Status(msg.status.status)
             self.__cached_id = msg.status.goal_id.id
-
+#################################################################################################
     # Returns distance to the current goal in meters
     def distance_to_goal(self, odom: Vec2) -> float:
         if self.__current_goal is None:
