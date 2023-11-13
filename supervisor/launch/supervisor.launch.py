@@ -31,7 +31,6 @@ def generate_launch_description():
                     ),
                 }.items(),
             )
-            for camera_name, serial_no in [("d455_front", "_043422251512")]
-            # TODO: Add other 3 cameras here.
+            
         ]
     )

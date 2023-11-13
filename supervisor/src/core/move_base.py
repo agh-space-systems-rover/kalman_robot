@@ -5,7 +5,6 @@ from rclpy.client import Client
 from geometry_msgs.msg import Twist
 from rclpy.action import ActionServer, CancelResponse, GoalResponse , ActionClient # Added Nav2 Classes
 from action_msgs.msg import GoalStatus
-from example_interfaces.action import Fibonacci
 from nav2_msgs.action import NavigateToPose
 import numpy as np
 
@@ -66,8 +65,7 @@ class MoveBase:
         if frame_id == "base_link" and position[0] > EPS and position[1] > EPS:
             node.get_logger().info("Got non-zero BASE_LINK goal, this should never happen!")
 
-        node.get_logger().info("Waiting for action server... ")
-        self._action_client.wait_for_server()
+        node.get_logger().info("Sending goal... ")
         goal_msg = NavigateToPose.Goal()
         goal_msg.pose = self.__convert_goal(frame_id, position)
         self.__status = self.Status.ACTIVE
