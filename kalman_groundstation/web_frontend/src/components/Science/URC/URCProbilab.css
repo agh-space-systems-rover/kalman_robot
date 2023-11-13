@@ -1,0 +1,7 @@
+.probilab {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    padding: 4px;
+    border: 1px solid black;
+}

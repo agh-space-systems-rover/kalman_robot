@@ -1,0 +1,13 @@
+.sidebar {
+    position: absolute;
+    top: 5vh;
+    left: 0;
+    width: 25vw;
+    height: 95vh;
+    background-color: white;
+    opacity: 100%;
+    z-index: 1;
+    border-right: 3px;
+    border-bottom: 3px;
+    border: solid #000;
+}
