@@ -1,0 +1,4 @@
+source;share/service_based_nav2_controller_srvs/environment/ament_prefix_path.sh
+source;share/service_based_nav2_controller_srvs/environment/library_path.sh
+source;share/service_based_nav2_controller_srvs/environment/path.sh
+source;share/service_based_nav2_controller_srvs/environment/pythonpath.sh

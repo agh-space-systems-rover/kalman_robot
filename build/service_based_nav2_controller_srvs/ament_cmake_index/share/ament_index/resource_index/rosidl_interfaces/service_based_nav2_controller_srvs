@@ -1,0 +1,4 @@
+srv/ComputeVelocityCommands.idl
+srv/ComputeVelocityCommands.srv
+srv/ComputeVelocityCommands_Request.msg
+srv/ComputeVelocityCommands_Response.msg

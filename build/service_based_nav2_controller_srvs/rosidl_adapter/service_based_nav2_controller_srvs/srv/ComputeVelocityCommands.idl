@@ -1,0 +1,23 @@
+// generated from rosidl_adapter/resource/srv.idl.em
+// with input from service_based_nav2_controller_srvs/srv/ComputeVelocityCommands.srv
+// generated code does not contain a copyright notice
+
+#include "geometry_msgs/msg/PoseStamped.idl"
+#include "geometry_msgs/msg/Twist.idl"
+#include "geometry_msgs/msg/TwistStamped.idl"
+#include "nav_msgs/msg/Path.idl"
+
+module service_based_nav2_controller_srvs {
+  module srv {
+    struct ComputeVelocityCommands_Request {
+      geometry_msgs::msg::PoseStamped pose;
+
+      geometry_msgs::msg::Twist velocity;
+
+      nav_msgs::msg::Path path;
+    };
+    struct ComputeVelocityCommands_Response {
+      geometry_msgs::msg::TwistStamped cmd_vel;
+    };
+  };
+};

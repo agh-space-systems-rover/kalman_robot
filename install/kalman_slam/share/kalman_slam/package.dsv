@@ -1,0 +1,6 @@
+source;share/kalman_slam/hook/pythonpath.ps1
+source;share/kalman_slam/hook/pythonpath.dsv
+source;share/kalman_slam/hook/pythonpath.sh
+source;share/kalman_slam/hook/ament_prefix_path.ps1
+source;share/kalman_slam/hook/ament_prefix_path.dsv
+source;share/kalman_slam/hook/ament_prefix_path.sh

@@ -1,0 +1,44 @@
+[1.416s] Invoking command in '/home/rafal/.ssh/kalman_ws/src/kalman_robot/kalman_rosou': PYTHONPATH=/home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_rosou/prefix_override:/home/rafal/.ssh/kalman_ws/src/kalman_robot/install/kalman_rosou/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py egg_info --egg-base ../build/kalman_rosou build --build-base /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_rosou/build install --record /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_rosou/install.log --single-version-externally-managed
+[1.584s] running egg_info
+[1.584s] creating ../build/kalman_rosou/kalman_rosou.egg-info
+[1.584s] writing ../build/kalman_rosou/kalman_rosou.egg-info/PKG-INFO
+[1.587s] writing dependency_links to ../build/kalman_rosou/kalman_rosou.egg-info/dependency_links.txt
+[1.587s] writing entry points to ../build/kalman_rosou/kalman_rosou.egg-info/entry_points.txt
+[1.587s] writing requirements to ../build/kalman_rosou/kalman_rosou.egg-info/requires.txt
+[1.587s] writing top-level names to ../build/kalman_rosou/kalman_rosou.egg-info/top_level.txt
+[1.587s] writing manifest file '../build/kalman_rosou/kalman_rosou.egg-info/SOURCES.txt'
+[1.587s] reading manifest file '../build/kalman_rosou/kalman_rosou.egg-info/SOURCES.txt'
+[1.588s] writing manifest file '../build/kalman_rosou/kalman_rosou.egg-info/SOURCES.txt'
+[1.588s] running build
+[1.588s] running build_py
+[1.588s] creating /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_rosou/build
+[1.588s] creating /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_rosou/build/lib
+[1.588s] creating /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_rosou/build/lib/kalman_rosou
+[1.588s] copying kalman_rosou/__init__.py -> /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_rosou/build/lib/kalman_rosou
+[1.588s] copying kalman_rosou/utils.py -> /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_rosou/build/lib/kalman_rosou
+[1.588s] copying kalman_rosou/rosou_node.py -> /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_rosou/build/lib/kalman_rosou
+[1.588s] running install
+[1.588s] running install_lib
+[1.589s] creating /home/rafal/.ssh/kalman_ws/src/kalman_robot/install/kalman_rosou/lib/python3.10/site-packages/kalman_rosou
+[1.589s] copying /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_rosou/build/lib/kalman_rosou/__init__.py -> /home/rafal/.ssh/kalman_ws/src/kalman_robot/install/kalman_rosou/lib/python3.10/site-packages/kalman_rosou
+[1.589s] copying /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_rosou/build/lib/kalman_rosou/utils.py -> /home/rafal/.ssh/kalman_ws/src/kalman_robot/install/kalman_rosou/lib/python3.10/site-packages/kalman_rosou
+[1.589s] copying /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_rosou/build/lib/kalman_rosou/rosou_node.py -> /home/rafal/.ssh/kalman_ws/src/kalman_robot/install/kalman_rosou/lib/python3.10/site-packages/kalman_rosou
+[1.589s] byte-compiling /home/rafal/.ssh/kalman_ws/src/kalman_robot/install/kalman_rosou/lib/python3.10/site-packages/kalman_rosou/__init__.py to __init__.cpython-310.pyc
+[1.590s] byte-compiling /home/rafal/.ssh/kalman_ws/src/kalman_robot/install/kalman_rosou/lib/python3.10/site-packages/kalman_rosou/utils.py to utils.cpython-310.pyc
+[1.590s] byte-compiling /home/rafal/.ssh/kalman_ws/src/kalman_robot/install/kalman_rosou/lib/python3.10/site-packages/kalman_rosou/rosou_node.py to rosou_node.cpython-310.pyc
+[1.592s] running install_data
+[1.592s] creating /home/rafal/.ssh/kalman_ws/src/kalman_robot/install/kalman_rosou/share/ament_index
+[1.592s] creating /home/rafal/.ssh/kalman_ws/src/kalman_robot/install/kalman_rosou/share/ament_index/resource_index
+[1.592s] creating /home/rafal/.ssh/kalman_ws/src/kalman_robot/install/kalman_rosou/share/ament_index/resource_index/packages
+[1.592s] copying resource/kalman_rosou -> /home/rafal/.ssh/kalman_ws/src/kalman_robot/install/kalman_rosou/share/ament_index/resource_index/packages
+[1.592s] copying package.xml -> /home/rafal/.ssh/kalman_ws/src/kalman_robot/install/kalman_rosou/share/kalman_rosou
+[1.592s] creating /home/rafal/.ssh/kalman_ws/src/kalman_robot/install/kalman_rosou/share/kalman_rosou/config
+[1.592s] copying config/rosou_config.json -> /home/rafal/.ssh/kalman_ws/src/kalman_robot/install/kalman_rosou/share/kalman_rosou/config
+[1.593s] creating /home/rafal/.ssh/kalman_ws/src/kalman_robot/install/kalman_rosou/share/kalman_rosou/log
+[1.593s] copying log/pub_sub.json -> /home/rafal/.ssh/kalman_ws/src/kalman_robot/install/kalman_rosou/share/kalman_rosou/log
+[1.593s] copying launch/rosou_launch.py -> /home/rafal/.ssh/kalman_ws/src/kalman_robot/install/kalman_rosou/share/kalman_rosou
+[1.593s] running install_egg_info
+[1.595s] Copying ../build/kalman_rosou/kalman_rosou.egg-info to /home/rafal/.ssh/kalman_ws/src/kalman_robot/install/kalman_rosou/lib/python3.10/site-packages/kalman_rosou-0.0.0-py3.10.egg-info
+[1.596s] running install_scripts
+[1.615s] Installing rosou_node script to /home/rafal/.ssh/kalman_ws/src/kalman_robot/install/kalman_rosou/lib/kalman_rosou
+[1.616s] writing list of installed files to '/home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_rosou/install.log'

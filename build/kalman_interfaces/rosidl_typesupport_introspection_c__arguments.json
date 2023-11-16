@@ -1,0 +1,25 @@
+{
+  "package_name": "kalman_interfaces",
+  "output_dir": "/home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_interfaces/rosidl_typesupport_introspection_c/kalman_interfaces",
+  "template_dir": "/opt/ros/humble/share/rosidl_typesupport_introspection_c/resource",
+  "idl_tuples": [
+    "/home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_interfaces/rosidl_adapter/kalman_interfaces:msg/WheelState.idl",
+    "/home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_interfaces/rosidl_adapter/kalman_interfaces:msg/WheelStates.idl",
+    "/home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_interfaces/rosidl_adapter/kalman_interfaces:msg/GpsTag.idl",
+    "/home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_interfaces/rosidl_adapter/kalman_interfaces:msg/GpsTagArray.idl"
+  ],
+  "target_dependencies": [
+    "/opt/ros/humble/lib/rosidl_typesupport_introspection_c/rosidl_typesupport_introspection_c",
+    "/opt/ros/humble/local/lib/python3.10/dist-packages/rosidl_typesupport_introspection_c/__init__.py",
+    "/opt/ros/humble/share/rosidl_typesupport_introspection_c/resource/idl__rosidl_typesupport_introspection_c.h.em",
+    "/opt/ros/humble/share/rosidl_typesupport_introspection_c/resource/idl__type_support.c.em",
+    "/opt/ros/humble/share/rosidl_typesupport_introspection_c/resource/msg__rosidl_typesupport_introspection_c.h.em",
+    "/opt/ros/humble/share/rosidl_typesupport_introspection_c/resource/msg__type_support.c.em",
+    "/opt/ros/humble/share/rosidl_typesupport_introspection_c/resource/srv__rosidl_typesupport_introspection_c.h.em",
+    "/opt/ros/humble/share/rosidl_typesupport_introspection_c/resource/srv__type_support.c.em",
+    "/home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_interfaces/rosidl_adapter/kalman_interfaces/msg/WheelState.idl",
+    "/home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_interfaces/rosidl_adapter/kalman_interfaces/msg/WheelStates.idl",
+    "/home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_interfaces/rosidl_adapter/kalman_interfaces/msg/GpsTag.idl",
+    "/home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_interfaces/rosidl_adapter/kalman_interfaces/msg/GpsTagArray.idl"
+  ]
+}

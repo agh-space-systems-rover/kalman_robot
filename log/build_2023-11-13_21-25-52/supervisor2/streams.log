@@ -1,0 +1,17 @@
+[1.243s] Invoking command in '/home/rafal/.ssh/kalman_ws/src/kalman_robot/supervisor': PYTHONPATH=/home/rafal/.ssh/kalman_ws/src/kalman_robot/build/supervisor2/prefix_override:/home/rafal/.ssh/kalman_ws/src/kalman_robot/install/supervisor2/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py egg_info --egg-base ../build/supervisor2 build --build-base /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/supervisor2/build install --record /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/supervisor2/install.log --single-version-externally-managed
+[1.528s] running egg_info
+[1.529s] creating ../build/supervisor2/supervisor2.egg-info
+[1.529s] writing ../build/supervisor2/supervisor2.egg-info/PKG-INFO
+[1.529s] writing dependency_links to ../build/supervisor2/supervisor2.egg-info/dependency_links.txt
+[1.529s] writing top-level names to ../build/supervisor2/supervisor2.egg-info/top_level.txt
+[1.529s] writing manifest file '../build/supervisor2/supervisor2.egg-info/SOURCES.txt'
+[1.530s] reading manifest file '../build/supervisor2/supervisor2.egg-info/SOURCES.txt'
+[1.530s] writing manifest file '../build/supervisor2/supervisor2.egg-info/SOURCES.txt'
+[1.530s] running build
+[1.530s] running install
+[1.530s] running install_data
+[1.531s] creating /home/rafal/.ssh/kalman_ws/src/kalman_robot/install/supervisor2/share/ament_index
+[1.531s] creating /home/rafal/.ssh/kalman_ws/src/kalman_robot/install/supervisor2/share/ament_index/resource_index
+[1.531s] creating /home/rafal/.ssh/kalman_ws/src/kalman_robot/install/supervisor2/share/ament_index/resource_index/packages
+[1.531s] error: can't copy 'resource/supervisor2': doesn't exist or not a regular file
+[1.596s] Invoked command in '/home/rafal/.ssh/kalman_ws/src/kalman_robot/supervisor' returned '1': PYTHONPATH=/home/rafal/.ssh/kalman_ws/src/kalman_robot/build/supervisor2/prefix_override:/home/rafal/.ssh/kalman_ws/src/kalman_robot/install/supervisor2/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py egg_info --egg-base ../build/supervisor2 build --build-base /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/supervisor2/build install --record /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/supervisor2/install.log --single-version-externally-managed

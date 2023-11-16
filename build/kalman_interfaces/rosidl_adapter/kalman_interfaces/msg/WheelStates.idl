@@ -1,0 +1,19 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from kalman_interfaces/msg/WheelStates.msg
+// generated code does not contain a copyright notice
+
+#include "kalman_interfaces/msg/WheelState.idl"
+
+module kalman_interfaces {
+  module msg {
+    struct WheelStates {
+      kalman_interfaces::msg::WheelState front_left;
+
+      kalman_interfaces::msg::WheelState front_right;
+
+      kalman_interfaces::msg::WheelState back_left;
+
+      kalman_interfaces::msg::WheelState back_right;
+    };
+  };
+};

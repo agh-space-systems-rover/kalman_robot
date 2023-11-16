@@ -1,0 +1,12 @@
+Metadata-Version: 2.1
+Name: kalman-drivers
+Version: 0.0.0
+Summary: drivers for the physical hardware; Only to be run separately from the simulation on a physical robot.
+Home-page: UNKNOWN
+Maintainer: rayferric
+Maintainer-email: 63957587+rayferric@users.noreply.github.com
+License: MIT
+Platform: UNKNOWN
+
+UNKNOWN
+

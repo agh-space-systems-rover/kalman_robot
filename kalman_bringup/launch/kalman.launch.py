@@ -94,7 +94,7 @@ def launch_setup(context):
         # supervisor
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
-                str(get_package_share_path("supervisor") / "launch" / "supervisor.launch.py")
+                str(get_package_share_path("kalman_supervisor") / "launch" / "supervisor.launch.py")
             )
         )
     ]

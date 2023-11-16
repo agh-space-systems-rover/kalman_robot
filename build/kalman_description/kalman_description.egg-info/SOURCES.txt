@@ -1,0 +1,11 @@
+package.xml
+setup.cfg
+setup.py
+../build/kalman_description/kalman_description.egg-info/PKG-INFO
+../build/kalman_description/kalman_description.egg-info/SOURCES.txt
+../build/kalman_description/kalman_description.egg-info/dependency_links.txt
+../build/kalman_description/kalman_description.egg-info/top_level.txt
+../build/kalman_description/kalman_description.egg-info/zip-safe
+launch/robot_state_publisher.launch.py
+resource/kalman_description
+urdf/kalman.urdf.xacro

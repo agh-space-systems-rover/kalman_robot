@@ -1,0 +1,27 @@
+[1.312s] Invoking command in '/home/rafal/.ssh/kalman_ws/src/kalman_robot/kalman_slam': PYTHONPATH=/home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_slam/prefix_override:/home/rafal/.ssh/kalman_ws/src/kalman_robot/install/kalman_slam/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py egg_info --egg-base ../build/kalman_slam build --build-base /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_slam/build install --record /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_slam/install.log --single-version-externally-managed
+[1.469s] running egg_info
+[1.470s] creating ../build/kalman_slam/kalman_slam.egg-info
+[1.470s] writing ../build/kalman_slam/kalman_slam.egg-info/PKG-INFO
+[1.470s] writing dependency_links to ../build/kalman_slam/kalman_slam.egg-info/dependency_links.txt
+[1.470s] writing top-level names to ../build/kalman_slam/kalman_slam.egg-info/top_level.txt
+[1.470s] writing manifest file '../build/kalman_slam/kalman_slam.egg-info/SOURCES.txt'
+[1.470s] reading manifest file '../build/kalman_slam/kalman_slam.egg-info/SOURCES.txt'
+[1.471s] writing manifest file '../build/kalman_slam/kalman_slam.egg-info/SOURCES.txt'
+[1.471s] running build
+[1.471s] running install
+[1.472s] running install_data
+[1.472s] creating /home/rafal/.ssh/kalman_ws/src/kalman_robot/install/kalman_slam/share/ament_index
+[1.472s] creating /home/rafal/.ssh/kalman_ws/src/kalman_robot/install/kalman_slam/share/ament_index/resource_index
+[1.472s] creating /home/rafal/.ssh/kalman_ws/src/kalman_robot/install/kalman_slam/share/ament_index/resource_index/packages
+[1.472s] copying resource/kalman_slam -> /home/rafal/.ssh/kalman_ws/src/kalman_robot/install/kalman_slam/share/ament_index/resource_index/packages
+[1.472s] copying package.xml -> /home/rafal/.ssh/kalman_ws/src/kalman_robot/install/kalman_slam/share/kalman_slam
+[1.472s] creating /home/rafal/.ssh/kalman_ws/src/kalman_robot/install/kalman_slam/share/kalman_slam/launch
+[1.472s] copying launch/slam.launch.py -> /home/rafal/.ssh/kalman_ws/src/kalman_robot/install/kalman_slam/share/kalman_slam/launch
+[1.472s] copying launch/rgbd_odometry.launch.py -> /home/rafal/.ssh/kalman_ws/src/kalman_robot/install/kalman_slam/share/kalman_slam/launch
+[1.472s] creating /home/rafal/.ssh/kalman_ws/src/kalman_robot/install/kalman_slam/share/kalman_slam/param
+[1.472s] copying param/ukf_filter_node.yaml -> /home/rafal/.ssh/kalman_ws/src/kalman_robot/install/kalman_slam/share/kalman_slam/param
+[1.473s] running install_egg_info
+[1.475s] Copying ../build/kalman_slam/kalman_slam.egg-info to /home/rafal/.ssh/kalman_ws/src/kalman_robot/install/kalman_slam/lib/python3.10/site-packages/kalman_slam-0.0.0-py3.10.egg-info
+[1.475s] running install_scripts
+[1.486s] writing list of installed files to '/home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_slam/install.log'
+[1.507s] Invoked command in '/home/rafal/.ssh/kalman_ws/src/kalman_robot/kalman_slam' returned '0': PYTHONPATH=/home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_slam/prefix_override:/home/rafal/.ssh/kalman_ws/src/kalman_robot/install/kalman_slam/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py egg_info --egg-base ../build/kalman_slam build --build-base /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_slam/build install --record /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_slam/install.log --single-version-externally-managed

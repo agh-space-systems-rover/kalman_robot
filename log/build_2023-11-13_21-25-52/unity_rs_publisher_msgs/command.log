@@ -1,0 +1,1 @@
+Invoking command in '/home/rafal/.ssh/kalman_ws/src/kalman_robot/build/unity_rs_publisher_msgs': CMAKE_PREFIX_PATH=/home/rafal/dev_ws/install/my_robot:/opt/ros/humble /usr/bin/cmake /home/rafal/.ssh/kalman_ws/src/kalman_robot/unity_sim/unity_rs_publisher_msgs -DCMAKE_INSTALL_PREFIX=/home/rafal/.ssh/kalman_ws/src/kalman_robot/install/unity_rs_publisher_msgs

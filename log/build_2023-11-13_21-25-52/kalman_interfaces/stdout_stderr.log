@@ -1,0 +1,110 @@
+-- The C compiler identification is GNU 11.4.0
+-- The CXX compiler identification is GNU 11.4.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Found ament_cmake: 1.3.5 (/opt/ros/humble/share/ament_cmake/cmake)
+-- Found Python3: /usr/bin/python3.10 (found version "3.10.12") found components: Interpreter 
+-- Found rosidl_default_generators: 1.2.0 (/opt/ros/humble/share/rosidl_default_generators/cmake)
+-- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+-- Found rosidl_adapter: 3.1.5 (/opt/ros/humble/share/rosidl_adapter/cmake)
+-- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+-- Found ament_cmake_ros: 0.10.0 (/opt/ros/humble/share/ament_cmake_ros/cmake)
+-- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+-- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+-- Found PythonInterp: /usr/bin/python3 (found suitable version "3.10.12", minimum required is "3.6") 
+-- Found python_cmake_module: 0.10.0 (/opt/ros/humble/share/python_cmake_module/cmake)
+-- Found PythonLibs: /usr/lib/x86_64-linux-gnu/libpython3.10.so (found suitable version "3.10.12", minimum required is "3.5") 
+-- Using PYTHON_EXECUTABLE: /usr/bin/python3
+-- Using PYTHON_INCLUDE_DIRS: /usr/include/python3.10
+-- Using PYTHON_LIBRARIES: /usr/lib/x86_64-linux-gnu/libpython3.10.so
+-- Found PythonExtra: .so  
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_interfaces
+[  1%] [34m[1mGenerating C code for ROS interfaces[0m
+[  3%] [34m[1mGenerating C++ code for ROS interfaces[0m
+[  3%] Built target ament_cmake_python_copy_kalman_interfaces
+running egg_info
+creating kalman_interfaces.egg-info
+writing kalman_interfaces.egg-info/PKG-INFO
+writing dependency_links to kalman_interfaces.egg-info/dependency_links.txt
+writing top-level names to kalman_interfaces.egg-info/top_level.txt
+writing manifest file 'kalman_interfaces.egg-info/SOURCES.txt'
+reading manifest file 'kalman_interfaces.egg-info/SOURCES.txt'
+writing manifest file 'kalman_interfaces.egg-info/SOURCES.txt'
+[  5%] [32mBuilding C object CMakeFiles/kalman_interfaces__rosidl_generator_c.dir/rosidl_generator_c/kalman_interfaces/msg/detail/wheel_state__functions.c.o[0m
+[  7%] [32mBuilding C object CMakeFiles/kalman_interfaces__rosidl_generator_c.dir/rosidl_generator_c/kalman_interfaces/msg/detail/wheel_states__functions.c.o[0m
+[ 10%] [32mBuilding C object CMakeFiles/kalman_interfaces__rosidl_generator_c.dir/rosidl_generator_c/kalman_interfaces/msg/detail/gps_tag__functions.c.o[0m
+[ 10%] [32mBuilding C object CMakeFiles/kalman_interfaces__rosidl_generator_c.dir/rosidl_generator_c/kalman_interfaces/msg/detail/gps_tag_array__functions.c.o[0m
+[ 10%] Built target kalman_interfaces__cpp
+[ 10%] Built target ament_cmake_python_build_kalman_interfaces_egg
+[ 12%] [34m[1mGenerating C++ type support for eProsima Fast-RTPS[0m
+[ 14%] [34m[1mGenerating C++ introspection for ROS interfaces[0m
+[ 16%] [34m[1mGenerating C++ type support dispatch for ROS interfaces[0m
+[ 18%] [32m[1mLinking C shared library libkalman_interfaces__rosidl_generator_c.so[0m
+[ 18%] Built target kalman_interfaces__rosidl_generator_c
+[ 21%] [34m[1mGenerating C type support dispatch for ROS interfaces[0m
+[ 21%] [34m[1mGenerating C type support for eProsima Fast-RTPS[0m
+[ 23%] [34m[1mGenerating C introspection for ROS interfaces[0m
+[ 25%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/kalman_interfaces/msg/gps_tag__type_support.cpp.o[0m
+[ 27%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/kalman_interfaces/msg/wheel_state__type_support.cpp.o[0m
+[ 29%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/kalman_interfaces/msg/wheel_states__type_support.cpp.o[0m
+[ 30%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/kalman_interfaces/msg/gps_tag_array__type_support.cpp.o[0m
+[ 34%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_c.dir/rosidl_typesupport_c/kalman_interfaces/msg/gps_tag_array__type_support.cpp.o[0m
+[ 34%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_c.dir/rosidl_typesupport_c/kalman_interfaces/msg/wheel_state__type_support.cpp.o[0m
+[ 36%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_c.dir/rosidl_typesupport_c/kalman_interfaces/msg/wheel_states__type_support.cpp.o[0m
+[ 38%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_c.dir/rosidl_typesupport_c/kalman_interfaces/msg/gps_tag__type_support.cpp.o[0m
+[ 41%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/kalman_interfaces/msg/detail/dds_fastrtps/wheel_states__type_support.cpp.o[0m
+[ 41%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/kalman_interfaces/msg/detail/dds_fastrtps/wheel_state__type_support.cpp.o[0m
+[ 43%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/kalman_interfaces/msg/detail/dds_fastrtps/gps_tag__type_support.cpp.o[0m
+[ 45%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/kalman_interfaces/msg/detail/dds_fastrtps/gps_tag_array__type_support.cpp.o[0m
+[ 47%] [32m[1mLinking CXX shared library libkalman_interfaces__rosidl_typesupport_c.so[0m
+[ 52%] [32mBuilding C object CMakeFiles/kalman_interfaces__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/kalman_interfaces/msg/detail/gps_tag_array__type_support.c.o[0m
+[ 52%] [32mBuilding C object CMakeFiles/kalman_interfaces__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/kalman_interfaces/msg/detail/wheel_state__type_support.c.o[0m
+[ 54%] [32mBuilding C object CMakeFiles/kalman_interfaces__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/kalman_interfaces/msg/detail/gps_tag__type_support.c.o[0m
+[ 54%] [32mBuilding C object CMakeFiles/kalman_interfaces__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/kalman_interfaces/msg/detail/wheel_states__type_support.c.o[0m
+[ 56%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/kalman_interfaces/msg/detail/wheel_state__type_support_c.cpp.o[0m
+[ 56%] Built target kalman_interfaces__rosidl_typesupport_c
+[ 58%] [32m[1mLinking C shared library libkalman_interfaces__rosidl_typesupport_introspection_c.so[0m
+[ 60%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/kalman_interfaces/msg/detail/wheel_states__type_support_c.cpp.o[0m
+[ 61%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/kalman_interfaces/msg/detail/gps_tag__type_support_c.cpp.o[0m
+[ 63%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/kalman_interfaces/msg/detail/gps_tag_array__type_support_c.cpp.o[0m
+[ 65%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/kalman_interfaces/msg/detail/wheel_state__type_support.cpp.o[0m
+[ 67%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/kalman_interfaces/msg/detail/gps_tag__type_support.cpp.o[0m
+[ 69%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/kalman_interfaces/msg/detail/wheel_states__type_support.cpp.o[0m
+[ 69%] Built target kalman_interfaces__rosidl_typesupport_introspection_c
+[ 70%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/kalman_interfaces/msg/detail/gps_tag_array__type_support.cpp.o[0m
+[ 72%] [32m[1mLinking CXX shared library libkalman_interfaces__rosidl_typesupport_cpp.so[0m
+[ 72%] Built target kalman_interfaces__rosidl_typesupport_cpp
+[ 74%] [32m[1mLinking CXX shared library libkalman_interfaces__rosidl_typesupport_fastrtps_cpp.so[0m
+[ 76%] [32m[1mLinking CXX shared library libkalman_interfaces__rosidl_typesupport_fastrtps_c.so[0m
+[ 76%] Built target kalman_interfaces__rosidl_typesupport_fastrtps_cpp
+[ 76%] Built target kalman_interfaces__rosidl_typesupport_fastrtps_c
+[ 78%] [32m[1mLinking CXX shared library libkalman_interfaces__rosidl_typesupport_introspection_cpp.so[0m
+[ 78%] Built target kalman_interfaces__rosidl_typesupport_introspection_cpp
+[ 78%] Built target kalman_interfaces
+[ 80%] [34m[1mGenerating Python code for ROS interfaces[0m
+[ 80%] Built target kalman_interfaces__py
+[ 81%] [32mBuilding C object CMakeFiles/kalman_interfaces__rosidl_generator_py.dir/rosidl_generator_py/kalman_interfaces/msg/_wheel_states_s.c.o[0m
+[ 85%] [32mBuilding C object CMakeFiles/kalman_interfaces__rosidl_generator_py.dir/rosidl_generator_py/kalman_interfaces/msg/_wheel_state_s.c.o[0m
+[ 85%] [32mBuilding C object CMakeFiles/kalman_interfaces__rosidl_generator_py.dir/rosidl_generator_py/kalman_interfaces/msg/_gps_tag_s.c.o[0m
+[ 87%] [32mBuilding C object CMakeFiles/kalman_interfaces__rosidl_generator_py.dir/rosidl_generator_py/kalman_interfaces/msg/_gps_tag_array_s.c.o[0m
+[ 89%] [32m[1mLinking C shared library rosidl_generator_py/kalman_interfaces/libkalman_interfaces__rosidl_generator_py.so[0m
+[ 89%] Built target kalman_interfaces__rosidl_generator_py
+[ 90%] [32mBuilding C object CMakeFiles/kalman_interfaces__rosidl_typesupport_fastrtps_c__pyext.dir/rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c.o[0m
+[ 92%] [32mBuilding C object CMakeFiles/kalman_interfaces__rosidl_typesupport_introspection_c__pyext.dir/rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_introspection_c.c.o[0m
+[ 94%] [32mBuilding C object CMakeFiles/kalman_interfaces__rosidl_typesupport_c__pyext.dir/rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_c.c.o[0m
+[ 98%] [32m[1mLinking C shared library rosidl_generator_py/kalman_interfaces/kalman_interfaces_s__rosidl_typesupport_c.cpython-310-x86_64-linux-gnu.so[0m
+[ 98%] [32m[1mLinking C shared library rosidl_generator_py/kalman_interfaces/kalman_interfaces_s__rosidl_typesupport_introspection_c.cpython-310-x86_64-linux-gnu.so[0m
+[100%] [32m[1mLinking C shared library rosidl_generator_py/kalman_interfaces/kalman_interfaces_s__rosidl_typesupport_fastrtps_c.cpython-310-x86_64-linux-gnu.so[0m
+[100%] Built target kalman_interfaces__rosidl_typesupport_introspection_c__pyext
+[100%] Built target kalman_interfaces__rosidl_typesupport_fastrtps_c__pyext
+[100%] Built target kalman_interfaces__rosidl_typesupport_c__pyext

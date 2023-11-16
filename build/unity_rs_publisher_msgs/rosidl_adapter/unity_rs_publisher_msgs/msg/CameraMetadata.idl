@@ -1,0 +1,26 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from unity_rs_publisher_msgs/msg/CameraMetadata.msg
+// generated code does not contain a copyright notice
+
+
+module unity_rs_publisher_msgs {
+  module msg {
+    struct CameraMetadata {
+      uint32 width;
+
+      uint32 height;
+
+      float depth_min;
+
+      float depth_max;
+
+      float fx;
+
+      float fy;
+
+      float cx;
+
+      float cy;
+    };
+  };
+};

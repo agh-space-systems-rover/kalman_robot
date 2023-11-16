@@ -1,0 +1,24 @@
+running egg_info
+creating ../build/kalman_description/kalman_description.egg-info
+writing ../build/kalman_description/kalman_description.egg-info/PKG-INFO
+writing dependency_links to ../build/kalman_description/kalman_description.egg-info/dependency_links.txt
+writing top-level names to ../build/kalman_description/kalman_description.egg-info/top_level.txt
+writing manifest file '../build/kalman_description/kalman_description.egg-info/SOURCES.txt'
+reading manifest file '../build/kalman_description/kalman_description.egg-info/SOURCES.txt'
+writing manifest file '../build/kalman_description/kalman_description.egg-info/SOURCES.txt'
+running build
+running install
+running install_data
+creating /home/rafal/.ssh/kalman_ws/src/kalman_robot/install/kalman_description/share/ament_index
+creating /home/rafal/.ssh/kalman_ws/src/kalman_robot/install/kalman_description/share/ament_index/resource_index
+creating /home/rafal/.ssh/kalman_ws/src/kalman_robot/install/kalman_description/share/ament_index/resource_index/packages
+copying resource/kalman_description -> /home/rafal/.ssh/kalman_ws/src/kalman_robot/install/kalman_description/share/ament_index/resource_index/packages
+copying package.xml -> /home/rafal/.ssh/kalman_ws/src/kalman_robot/install/kalman_description/share/kalman_description
+creating /home/rafal/.ssh/kalman_ws/src/kalman_robot/install/kalman_description/share/kalman_description/launch
+copying launch/robot_state_publisher.launch.py -> /home/rafal/.ssh/kalman_ws/src/kalman_robot/install/kalman_description/share/kalman_description/launch
+creating /home/rafal/.ssh/kalman_ws/src/kalman_robot/install/kalman_description/share/kalman_description/urdf
+copying urdf/kalman.urdf.xacro -> /home/rafal/.ssh/kalman_ws/src/kalman_robot/install/kalman_description/share/kalman_description/urdf
+running install_egg_info
+Copying ../build/kalman_description/kalman_description.egg-info to /home/rafal/.ssh/kalman_ws/src/kalman_robot/install/kalman_description/lib/python3.10/site-packages/kalman_description-0.0.0-py3.10.egg-info
+running install_scripts
+writing list of installed files to '/home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_description/install.log'
