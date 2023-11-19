@@ -1,25 +1,14 @@
 from typing import Tuple, Optional
 from enum import IntEnum
 from rclpy import Node
-from rclpy.client import Client
-from geometry_msgs.msg import Twist
 from nav2_simple_commander.robot_navigator import BasicNavigator
-from nav2_msgs.action import NavigateToPose
 from geometry_msgs.msg import PoseStamped
 import numpy as np
-
-#import actionlib
-#from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal, MoveBaseActionResult
-
-from geometry_msgs.msg import PoseStamped
 from std_srvs.srv import Empty
-#import dynamic_reconfigure.client
 from .transformer import Transformer
 
 Vec2 = Tuple[float, float]
 EPS = 1e-6
-node = Node()
-client = Client()
 
 class MoveBase:
     class Status(IntEnum):
@@ -36,18 +25,17 @@ class MoveBase:
 
     def __init__(self):
         self.__transformer = Transformer()
-        #self._action_client = ActionClient(self, NavigateToPose, "Navigate_to_pose Client")  # added ROS2 ActionClient
-        self.nav = BasicNavigator()
-        #self.__client = actionlib.SimpleActionClient("move_base", MoveBaseAction)
+        self.__nav = BasicNavigator()
+        self.__node = Node()
         self.__costmap_client = dynamic_reconfigure.client.Client(
             "/move_base/global_costmap/obstacles"
         )
         self.__current_goal: Optional[PoseStamped] = None
         self.__status = self.Status.PENDING
-        #self.__status_subscriber = node.create_subscription(MoveBaseActionResult, "/move_base/result", self.__status_callback)
+        #self.__status_subscriber = self.__node.create_subscription(MoveBaseActionResult, "/move_base/result", self.__status_callback)
         self.__cached_id: Optional[str] = None  # Prevent duplicate messages
         client.wait_for_service("/move_base/clear_costmaps")
-        self.__clear_costmap_handle = node.create_client(Empty, "/move_base/clear_costmaps")
+        self.__clear_costmap_handle = self.__node.create_client(Empty, "/move_base/clear_costmaps")
         self.__costmap_client.update_configuration({"enabled": True})
         self.clear_costmap()
 
@@ -56,39 +44,21 @@ class MoveBase:
             self.__status == self.Status.SUCCEEDED
             or self.__status == self.Status.ABORTED
         )
-##############################################
     
     def send_goal(self, frame_id: str, position: Vec2, order):
         
         if frame_id == "gps":
-            node.get_logger().info("Got GPS as the goal frame, this should never happen, convert it to UTM!")
+            self.__node.get_logger().info("Got GPS as the goal frame, this should never happen, convert it to UTM!")
 
         if frame_id == "base_link" and position[0] > EPS and position[1] > EPS:
-            node.get_logger().info("Got non-zero BASE_LINK goal, this should never happen!")
+            self.__node.get_logger().info("Got non-zero BASE_LINK goal, this should never happen!")
 
-        node.get_logger().info("Sending goal... ")
+        self.__node.get_logger().info("Sending goal... ")
         goal_pose = self.__convert_goal(frame_id, position)
         self.__status = self.Status.ACTIVE
         self.__current_goal = goal_pose
 
-        return self.nav.goToPose(goal_pose)
-
-    
-    
-    # def send_goal(self, frame_id: str, position: Vec2):
-
-    #     if frame_id == "gps":
-    #         node.get_logger().info("Got GPS as the goal frame, this should never happen, convert it to UTM!")
-
-    #     if frame_id == "base_link" and position[0] > EPS and position[1] > EPS:
-    #         node.get_logger().info("Got non-zero BASE_LINK goal, this should never happen!")
-
-    #     self.__client.wait_for_server()
-    #     goal: MoveBaseGoal = self.__convert_goal(frame_id, position)
-    #     self.__client.send_goal(goal)
-    #     self.__status = self.Status.ACTIVE
-    #     self.__current_goal = goal
-#################################################
+        return self.__nav.goToPose(goal_pose)
 
     def send_goal_in_dir(self, odom: Vec2, direction: Vec2, length: float):
         np_odom = np.array(odom)
@@ -97,32 +67,27 @@ class MoveBase:
         np_direction *= length
         goal = np.add(np_odom, np_direction)
         goal = (goal[0], goal[1])
-        self.nav.goThroughPoses(goal)
+        self.__nav.goToPose(goal)
 
     def cancel_goal(self):
-        self._action_client.wait_for_server()
-        self._action_client._cancel_goal()
+        self.__nav.cancelTask()
         self.send_goal("base_link", (0.0, 0.0))
         self.__current_goal = None
 
     def __convert_goal(self, frame_id: str, position: Vec2) -> PoseStamped():
         goal = PoseStamped()
         goal.header.frame_id = frame_id
-        #goal.target_pose.header.frame_id = frame_id
-        goal.pose.position.x = position[0]
         goal.pose.position.x = position[0]
         goal.pose.position.y = position[1]
         goal.pose.orientation.w = 1.0
-        #goal.target_pose.pose.position.x = position[0]
-        #goal.target_pose.pose.position.y = position[1]
-        #goal.target_pose.pose.orientation.w = 1.0
+       
         return goal
 
     def disable_costmap(self):
         self.__costmap_client.update_configuration({"enabled": False})
 
     def enable_costmap(self):
-        self.nav.clearGlobalCostmap()
+        self.__nav.clearGlobalCostmap()
         self.__costmap_client.update_configuration({"enabled": True})
 
     def clear_costmap(self):
@@ -130,7 +95,7 @@ class MoveBase:
             self.__clear_costmap_handle()
         except rospy.ServiceException as exc:
         #############################################3
-            node.get_logger().info("Service did not process request: " + str(exc))
+            self.__node.get_logger().info("Service did not process request: " + str(exc))
 #################################################################################################
     #def __status_callback(self, msg:):
         

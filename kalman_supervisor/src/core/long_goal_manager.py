@@ -1,7 +1,7 @@
 from typing import Tuple, Optional, Union, List
 import numpy as np
 
-from .move_base import MoveBase
+from .nav2_navigator import MoveBase
 from .position import Position
 from .transformer import Transformer
 
