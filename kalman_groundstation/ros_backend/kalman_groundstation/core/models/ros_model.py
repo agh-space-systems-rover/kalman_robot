@@ -8,6 +8,9 @@ class DictModel(BaseModel):
 
 
 class RosModel(BaseModel):
+    """
+    Model for ROS messages. It is a wrapper around pydantic's BaseModel.
+    """
     @classmethod
     def from_ros_msg(cls, msg: Json):
         return DictModel(data=json.loads(msg))

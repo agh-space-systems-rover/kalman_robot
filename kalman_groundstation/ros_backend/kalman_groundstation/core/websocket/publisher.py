@@ -4,6 +4,16 @@ from .message import Message
 
 
 class Publisher:
+    """
+    Publisher wrapper for ROS2 -> websocket communication. Basically, it is a publisher of Message 
+    on specified `topic` of specified `type`.
+
+    Example:
+    ```python
+    publisher = Publisher(node, "/topic", String)
+    publisher.publish(Message(topic="/topic", data="hello"))
+    ```
+    """
     def __init__(self, node: Node, topic: str, type) -> None:
         self.node = node
         self.publisher = node.create_publisher(type, topic, 10)

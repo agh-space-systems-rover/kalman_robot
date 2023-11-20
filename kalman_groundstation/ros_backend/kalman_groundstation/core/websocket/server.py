@@ -9,7 +9,6 @@ from .subscriber import Subscriber
 from .publisher import Publisher
 from .message import Message
 from .server_node import ServerNode
-from queue import Queue
 
 
 HOST = "localhost"
@@ -17,6 +16,25 @@ PORT = 8001
 
 
 class Server:
+    """
+    This class is a websocket server. It is responsible for communication between ROS2 and
+    websocket server. It creates a websocket server which receives messages from websocket
+    client and sends them to ROS2. It also creates a ROS2 publisher which sends messages
+    to websocket server.
+
+    Example:
+    ```python
+    node = ServerNode()
+    node.publish_to_websocket("/topic", String) # creates a ROS2 subscriber which sends messages to websocket server
+    node.publish_from_websocket("/topic", String) # creates a ROS2 publisher which receives messages from websocket server
+
+    ros_node = Node()
+    server = Server(ros_node)
+    server.include(node)
+
+    server.run()
+    ```
+    """
     def __init__(self, node: Node) -> None:
         self.connections = set()
         self.subscribers = set()

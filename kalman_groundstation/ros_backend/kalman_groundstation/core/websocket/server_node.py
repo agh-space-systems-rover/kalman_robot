@@ -1,4 +1,15 @@
 class ServerNode:
+    """
+    This class makes easy communication between ROS2 and websocket server. It is a nice
+    interface for creating publishers and subscribers. 
+
+    Example:
+    ```python
+    node = ServerNode()
+    node.publish_to_websocket("/topic", String) # creates a ROS2 subscriber which sends messages to websocket server
+    node.publish_from_websocket("/topic", String) # creates a ROS2 publisher which receives messages from websocket server
+    ```
+    """
     def __init__(self):
         self.subscribers = []
         self.publishers = []
