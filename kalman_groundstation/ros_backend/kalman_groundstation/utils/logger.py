@@ -5,6 +5,20 @@ from ros2pkg.api import get_prefix_path
 from geometry_msgs.msg import Vector3
 
 class GpsLogger:
+    """
+    Logs gps data to a file.
+
+    Args:
+        filename_prefix (str): The prefix of the filename. The date will be appended to the filename.
+
+    Attributes:
+        path (str): The path to the log file.
+        filename_prefix (str): The prefix of the filename. The date will be appended to the filename.
+
+    Usage:
+        logger = GpsLogger('gps')
+        logger.log(Vector3(1, 2, 3), 'This is a description')
+    """
     def __init__(self, filename_prefix: str) -> None:
         today = date.today()
         dir_path = os.path.join(get_prefix_path("kalman_groundstation"), 'log')
