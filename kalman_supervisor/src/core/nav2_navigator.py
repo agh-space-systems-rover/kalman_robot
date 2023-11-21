@@ -55,6 +55,7 @@ class MoveBase:
 
         self.__node.get_logger().info("Sending goal... ")
         goal_pose = self.__convert_goal(frame_id, position)
+        #self.__nav.goToPose(goal_pose)
         self.__status = self.Status.ACTIVE
         self.__current_goal = goal_pose
 

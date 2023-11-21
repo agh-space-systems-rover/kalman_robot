@@ -6,6 +6,7 @@ from .transformer import Transformer
 from .mode import Mode
 from .position import Position
 
+
 Vec2 = Tuple[float, float]
 node = Node()
 # sync with UnitedSupervisingProtocol
