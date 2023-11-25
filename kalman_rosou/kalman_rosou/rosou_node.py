@@ -27,7 +27,7 @@ class Rosou(Node):
     def __init__(self):
         super().__init__("rosou")  # type: ignore
         self.ros_to_master_pub = self.create_publisher(
-            UInt8MultiArray, "/master_com/ros_to_master", 10
+            UInt8MultiArray, "master_com/ros_to_master", 10
         )
 
         self.declare_parameter("is_station", False)
@@ -43,10 +43,7 @@ class Rosou(Node):
         config: Config
         if self.is_station():
             self.create_subscription(
-                UInt8MultiArray,
-                "/master_com/master_to_ros/0x81",
-                self.receive,
-                10
+                UInt8MultiArray, "master_com/master_to_ros/0x81", self.receive, 10
             )
             max_idx: int = 0
             # setup station publishers
@@ -71,7 +68,10 @@ class Rosou(Node):
 
         else:  # rover
             self.create_subscription(
-                UInt8MultiArray, "/master_com/master_to_ros/0x80", lambda msg: self.receive(msg), 10
+                UInt8MultiArray,
+                "master_com/master_to_ros/0x80",
+                lambda msg: self.receive(msg),
+                10,
             )
 
             max_idx = 0
@@ -81,9 +81,7 @@ class Rosou(Node):
 
             # setup rover subscribers
             for idx, config in enumerate(self.configs_rover, start=max_idx):
-                callback = lambda msg: self.send(
-                    FrameDirection.TO_RF, msg, config, idx
-                )
+                callback = lambda msg: self.send(FrameDirection.TO_RF, msg, config, idx)
                 self.subscribers_[idx] = self.create_subscription(
                     self._get_message_type(config), config["topic"], callback, 10
                 )
@@ -103,8 +101,7 @@ class Rosou(Node):
 
     def _log_publisher_subscriber_dicts(self):
         log_path: str = os.path.join(
-            get_package_share_directory("kalman_rosou"),
-            "log/pub_sub.json"
+            get_package_share_directory("kalman_rosou"), "log/pub_sub.json"
         )
 
         with open(log_path, "w") as log_file:
@@ -124,8 +121,7 @@ class Rosou(Node):
         self.configs_station: List[Config]
         self.configs_rover: List[Config] = []
         config_path = os.path.join(
-            get_package_share_directory("kalman_rosou"),
-            "config/rosou_config.json"
+            get_package_share_directory("kalman_rosou"), "config/rosou_config.json"
         )
         try:
             with open(config_path) as file:
@@ -140,7 +136,7 @@ class Rosou(Node):
     def _import_messages(self) -> None:
         self.message_modules = {}
         for config in chain(self.configs_rover, self.configs_station):
-            module_name: str = '.'.join(config["message_type"].split("/")[:-1])
+            module_name: str = ".".join(config["message_type"].split("/")[:-1])
             if module_name not in self.message_modules:
                 self.message_modules[module_name] = [
                     importlib.import_module(module_name + ".msg")

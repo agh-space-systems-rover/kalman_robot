@@ -10,6 +10,7 @@ from std_msgs.msg import String, Int16, UInt8MultiArray
 
 UInt8 = int
 
+
 @dataclass
 class SerialMsg:
     cmd: UInt8
@@ -68,11 +69,11 @@ class SerialDriver:
         )
 
         self.baudrate_debug_pub = node.create_publisher(
-            String, "/master_com/baudrate_debug", 10
+            String, "master_com/baudrate_debug", 10
         )
         self.malformed_packets_pub = node.create_publisher(
             Int16,
-            f"/master_com/malformed_packets_last_{self.malformed_packets_timer_time}_secs",
+            f"master_com/malformed_packets_last_{self.malformed_packets_timer_time}_secs",
             10,
         )
         self.bitrate_tx = 0
@@ -95,7 +96,9 @@ class SerialDriver:
         Returns:
             None
         """
-        msg = String(data=f"malformed packets in last {self.malformed_packets_timer_time} seconds: {self.malformed_packets}")
+        msg = String(
+            data=f"malformed packets in last {self.malformed_packets_timer_time} seconds: {self.malformed_packets}"
+        )
         self.baudrate_debug_pub.publish(msg)
         self.malformed_packets_pub.publish(Int16(data=self.malformed_packets))
         self.malformed_packets = 0
@@ -110,7 +113,9 @@ class SerialDriver:
         """
         self.baudrate_debug_pub.publish(String(data=f"data TX {self.bitrate_tx}"))
         self.baudrate_debug_pub.publish(String(data=f"data RX {self.bitrate_rx}"))
-        self.baudrate_debug_pub.publish(String(data=f"correct data RX {self.correct_bitrate_rx}"))
+        self.baudrate_debug_pub.publish(
+            String(data=f"correct data RX {self.correct_bitrate_rx}")
+        )
         self.bitrate_tx = 0
         self.bitrate_rx = 0
         self.correct_bitrate_rx = 0

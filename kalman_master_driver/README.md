@@ -50,10 +50,10 @@ class SerialMsg:
 Handles serial communication between Master device and ROS network.
 
 Every frame received from master is published as a ROS message (UInt8MultiArray) on a dynamically 
-created topic `/master_com/master_to_ros/{0x(lowercase hexadecimal frame ID)}` [msg command, argc, argv_0, ... , argv_n], where argc is unsigned, 8-bit variable.
+created topic `master_com/master_to_ros/{0x(lowercase hexadecimal frame ID)}` [msg command, argc, argv_0, ... , argv_n], where argc is unsigned, 8-bit variable.
 Frame data interpretation should be handled by client.
 
-Every ROS message sent on topic `/master_com/ros_to_master` should have [msg command, argc, argv_0, ... , argv_n] format.
+Every ROS message sent on topic `master_com/ros_to_master` should have [msg command, argc, argv_0, ... , argv_n] format.
 Message is then encoded as a binary frame and sent out using the serial driver.
 
 Messages should be of type `UInt8MultiArray` and contain the following data:

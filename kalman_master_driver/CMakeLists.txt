@@ -35,6 +35,7 @@ ament_python_install_package(master_driver)
 # Install Python executables
 install(PROGRAMS
   exec/master_com
+  exec/ueuos
   # ADD MORE SCRIPTS HERE
   DESTINATION lib/${PROJECT_NAME}
 )
