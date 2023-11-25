@@ -9,11 +9,11 @@ from typing import List
 """
 The idea of this node is to provide the ROS <--> Master bridge.
 
-Every frame received from master is published as a ROS message (UInt8MultiArray) on a dynamically 
-created topic master_com/master_to_ros/{0x(lowercase hexadecimal frame ID)} [msg command, argv_0, ... , argv_n], where argc is unsigned, 8-bit variable.
+Every frame received from master is published as a ROS message (MasterMessage) on a dynamically 
+created topic master_com/master_to_ros/{0x(lowercase hexadecimal frame ID)} [msg command, argv_0, ... , argv_n].
 Frame data interpretation should be handled by client.
 
-Every ROS message sent on topic master_com/ros_to_master should have [msg command, argv_0, ... , argv_n] format.
+Every ROS message sent on topic master_com/ros_to_master should have MasterMessage format.
 Message is then encoded as a binary frame and sent out using the serial driver.
 """
 

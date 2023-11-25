@@ -13,7 +13,7 @@ from rclpy.subscription import Subscription
 
 from ament_index_python.packages import get_package_share_directory
 
-from std_msgs.msg import UInt8MultiArray
+from kalman_interfaces.msg import MasterMessage
 
 from kalman_rosou.utils import (
     FrameDirection,
@@ -27,7 +27,7 @@ class Rosou(Node):
     def __init__(self):
         super().__init__("rosou")  # type: ignore
         self.ros_to_master_pub = self.create_publisher(
-            UInt8MultiArray, "master_com/ros_to_master", 10
+            MasterMessage, "master_com/ros_to_master", 10
         )
 
         self.declare_parameter("is_station", False)
@@ -43,7 +43,7 @@ class Rosou(Node):
         config: Config
         if self.is_station():
             self.create_subscription(
-                UInt8MultiArray, "master_com/master_to_ros/x81", self.receive, 10
+                MasterMessage, "master_com/master_to_ros/x81", self.receive, 10
             )
             max_idx: int = 0
             # setup station publishers
@@ -68,7 +68,7 @@ class Rosou(Node):
 
         else:  # rover
             self.create_subscription(
-                UInt8MultiArray,
+                MasterMessage,
                 "master_com/master_to_ros/x80",
                 lambda msg: self.receive(msg),
                 10,
@@ -152,9 +152,9 @@ class Rosou(Node):
             f"Message type {config['message_type']} not found in module {module_name}"
         )
 
-    def receive(self, msg: UInt8MultiArray) -> None:
-        frame_id: int = msg.data[2]
-        data: bytes = msg.data[3:]
+    def receive(self, msg: MasterMessage) -> None:
+        frame_id: int = msg.data[0]
+        data: bytes = msg.data[1:]
 
         # NON BAT CUSTOM FRAMES SHOULD YOU ID >= 100
         if frame_id >= 100:
@@ -194,7 +194,8 @@ class Rosou(Node):
             frame_direction, frame_id, data.getvalue()
         )
 
-        frame = UInt8MultiArray()
+        frame = MasterMessage()
+        # TODO frame.cmd = ???
         frame.data = frame_header + tuple(bytearray(data.getvalue()))
 
         self.ros_to_master_pub.publish(frame)
