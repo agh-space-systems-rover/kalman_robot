@@ -10,17 +10,23 @@ from typing import List
 The idea of this node is to provide the ROS <--> Master bridge.
 
 Every frame received from master is published as a ROS message (UInt8MultiArray) on a dynamically 
-created topic /master_com/master_to_ros/{0x(lowercase hexadecimal frame ID)} [msg command, argc, argv_0, ... , argv_n], where argc is unsigned, 8-bit variable.
+created topic master_com/master_to_ros/{0x(lowercase hexadecimal frame ID)} [msg command, argc, argv_0, ... , argv_n], where argc is unsigned, 8-bit variable.
 Frame data interpretation should be handled by client.
 
-Every ROS message sent on topic /master_com/ros_to_master should have [msg command, argc, argv_0, ... , argv_n] format.
+Every ROS message sent on topic master_com/ros_to_master should have [msg command, argc, argv_0, ... , argv_n] format.
 Message is then encoded as a binary frame and sent out using the serial driver.
 """
 
 
 class MasterCom(Node):
     # _port_name will be overwritten by launch file
-    def __init__(self, port_name: str = "/dev/master3", baud_rate: int = 115200, ascii_mode: bool = False, frequency: float = 400) -> None:
+    def __init__(
+        self,
+        port_name: str = "/dev/master3",
+        baud_rate: int = 115200,
+        ascii_mode: bool = False,
+        frequency: float = 400,
+    ) -> None:
         super().__init__("master_com")
 
         self.declare_parameter("serial_port", port_name)
@@ -46,7 +52,7 @@ class MasterCom(Node):
         )
 
         self.create_subscription(
-            UInt8MultiArray, "/master_com/ros_to_master", self.ros_to_master, 10
+            UInt8MultiArray, "master_com/ros_to_master", self.ros_to_master, 10
         )
         self.pubs = {}
 
@@ -57,7 +63,7 @@ class MasterCom(Node):
         for msg in msgs:
             if not msg.cmd in self.pubs:
                 self.pubs[msg.cmd] = self.create_publisher(
-                    UInt8MultiArray, "/master_com/master_to_ros/" + hex(msg.cmd)[1:], 10
+                    UInt8MultiArray, "master_com/master_to_ros/" + hex(msg.cmd)[1:], 10
                 )
 
             ros_msg = UInt8MultiArray()
