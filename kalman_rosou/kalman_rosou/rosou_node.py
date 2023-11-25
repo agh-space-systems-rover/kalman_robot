@@ -43,7 +43,7 @@ class Rosou(Node):
         config: Config
         if self.is_station():
             self.create_subscription(
-                UInt8MultiArray, "master_com/master_to_ros/0x81", self.receive, 10
+                UInt8MultiArray, "master_com/master_to_ros/x81", self.receive, 10
             )
             max_idx: int = 0
             # setup station publishers
@@ -69,7 +69,7 @@ class Rosou(Node):
         else:  # rover
             self.create_subscription(
                 UInt8MultiArray,
-                "master_com/master_to_ros/0x80",
+                "master_com/master_to_ros/x80",
                 lambda msg: self.receive(msg),
                 10,
             )
