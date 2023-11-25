@@ -68,10 +68,10 @@ class MasterCom(Node):
             self.pubs[msg.cmd].publish(ros_msg)
 
     def ros_to_master(self, ros_msg: MasterMessage) -> None:
-        serial_msg = SerialMsg()
-        serial_msg.cmd = ros_msg.cmd
-        serial_msg.argc = len(ros_msg.data)
-        serial_msg.argv = ros_msg.data
+        serial_msg = SerialMsg(
+            ros_msg.cmd,
+            len(ros_msg.data),
+            ros_msg.data)
 
         self.driver.write_msg(serial_msg)
         self.driver.tick()
