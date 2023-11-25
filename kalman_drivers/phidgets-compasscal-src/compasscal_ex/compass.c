@@ -1,7 +1,7 @@
 #include "compass.h"
 
 #define MAXSAMPLES 5000
-double compassData[MAXSAMPLES][3];
+static double compassData[MAXSAMPLES][3];
 double compassData2[MAXSAMPLES][2];
 int compassDataCnt = 0;
 

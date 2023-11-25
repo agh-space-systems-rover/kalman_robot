@@ -4,7 +4,7 @@
 #define NOISE 0.002 //2mG @ unit mag
 #define NOISE_PROD (2 / (NOISE * NOISE))
 
-double compassData[MAXSAMPLES][3];
+static double compassData[MAXSAMPLES][3];
 int compassDataCount = 0;
 
 int estimateOffsetsGains2(lbfgsfloatval_t offsets[3], lbfgsfloatval_t gains[3]) {
