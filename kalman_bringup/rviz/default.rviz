@@ -5,10 +5,8 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Global Options1
-        - /Status1
         - /TF1/Frames1
-        - /Path1
-        - /Map1
+        - /MarkerArray1/Status1
       Splitter Ratio: 0.4513888955116272
     Tree Height: 707
   - Class: rviz_common/Selection
@@ -413,7 +411,7 @@ Visualization Manager:
       Class: rviz_default_plugins/Map
       Color Scheme: map
       Draw Behind: false
-      Enabled: true
+      Enabled: false
       Name: Map
       Topic:
         Depth: 5
@@ -429,11 +427,23 @@ Visualization Manager:
         Reliability Policy: Reliable
         Value: /global_costmap/costmap_updates
       Use Timestamp: false
+      Value: false
+    - Class: rviz_default_plugins/MarkerArray
+      Enabled: true
+      Name: MarkerArray
+      Namespaces:
+        "": true
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /yolo_detect/markers
       Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
-    Fixed Frame: map
+    Fixed Frame: odom
     Frame Rate: 30
   Name: root
   Tools:
@@ -476,25 +486,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 35.584938049316406
+      Distance: 18.950735092163086
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -1.6162824630737305
-        Y: -5.782562732696533
-        Z: -7.373386859893799
+        X: -6.129083156585693
+        Y: -0.11059612035751343
+        Z: -6.025538921356201
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.0147968530654907
+      Pitch: 0.964796781539917
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 1.1660152673721313
+      Yaw: 5.899196624755859
     Saved: ~
 Window Geometry:
   Displays:

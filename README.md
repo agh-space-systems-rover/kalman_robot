@@ -35,6 +35,11 @@ Kalman's software stack is composed of multiple packages that are meant to be bu
 - `service_based_nav2_controller` - a `FollowPath` controller plugin for Nav2 that uses a service to compute velocity commands
 - `unity_sim` - a Unity-based simulation environment that can seamlessly replace the physical hardware of AGH Space Systems' robots
 
+## Guidelines
+
+- When committing new code, please follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) specification.
+- When creating new kalman_ packages, the Python modules within them should not always be named after the package name. For example, the `kalman_nav2` package contains the `path_follower` module, not `nav2`. Also `kalman_` prefix should be omitted in the names of modules.
+
 ## Known Issues; TODOs
 
 - sometimes IMU readings are not taken into account by the UKF until Unity process is restarted
