@@ -14,50 +14,23 @@ The description defines all the TF nodes that are children of base_link. -->
 
     <link name="base_link" />
 
-    <link name="base_footprint" />
-    <joint name="base_footprint_joint" type="fixed">
-        <origin xyz="-0.09 0 0" />
-        <parent link="base_link" />
-        <child link="base_footprint" />
-    </joint>
-
-    <link name="frame_front" />
-    <joint name="frame_front_joint" type="fixed">
-        <origin xyz="0.26 0 0" />
-        <parent link="base_link" />
-        <child link="frame_front" />
-    </joint>
-
-    <link name="frame_back_right" />
-    <joint name="frame_back_right_joint" type="fixed">
-        <origin xyz="-0.535 -0.2 0" />
-        <parent link="base_link" />
-        <child link="frame_back_right" />
-    </joint>
-
-    <link name="frame_back_left" />
-    <joint name="frame_back_left_joint" type="fixed">
-        <origin xyz="-0.535 0.2 0" />
-        <parent link="base_link" />
-        <child link="frame_back_left" />
-    </joint>
 
     <!-- TODO dodać maszty -->
 
     <!-- IMU -->
     <link name="imu_link" />
     <joint name="imu_joint" type="fixed">
-        <origin xyz="0.088 0.000 -0.010"/>
-        <parent link="base_link"/>
-        <child link="imu_link"/>
+        <origin xyz="0.088 0.000 -0.010" />
+        <parent link="base_link" />
+        <child link="imu_link" />
     </joint>
 
     <!-- Altimeter -->
     <link name="altimeter_link" />
     <joint name="altimeter_joint" type="fixed">
-        <origin xyz="0.088 0.000 -0.010"/>
-        <parent link="base_link"/>
-        <child link="altimeter_link"/>n
+        <origin xyz="0.088 0.000 -0.010" />
+        <parent link="base_link" />
+        <child link="altimeter_link" />n
     </joint>
 
     <!-- RealSense -->
@@ -79,99 +52,6 @@ The description defines all the TF nodes that are children of base_link. -->
     <xacro:main_body name="main_body" parent="base_link" rpy="0 0 0" xyz="0 0 0" />
     <xacro:suspension_side side_name="l" side_value="1" />
     <xacro:suspension_side side_name="r" side_value="-1" />
-
-    <gazebo>
-        <plugin filename="ign_ros2_control-system"
-            name="ign_ros2_control::IgnitionROS2ControlPlugin">
-            <!-- <ros>
-                <namespace>/kalman</namespace>
-            </ros> -->
-            <parameters>$(find kalman_description)/config/sim_controller.yaml</parameters>
-        </plugin>
-    </gazebo>
-
-    <ros2_control name="IgnitionSystem" type="system">
-        <hardware>
-            <plugin>ign_ros2_control/IgnitionSystem</plugin>
-        </hardware>
-        <joint name="wheel_fr_joint">
-            <command_interface name="velocity">
-                <param name="min">-15</param>
-                <param name="max">15</param>
-            </command_interface>
-            <state_interface name="position" />
-            <state_interface name="velocity" />
-        </joint>
-        <joint name="wheel_fl_joint">
-            <command_interface name="velocity">
-                <param name="min">-15</param>
-                <param name="max">15</param>
-            </command_interface>
-            <state_interface name="position" />
-            <state_interface name="velocity" />
-        </joint>
-        <joint name="wheel_br_joint">
-            <command_interface name="velocity">
-                <param name="min">-15</param>
-                <param name="max">15</param>
-            </command_interface>
-            <state_interface name="position" />
-            <state_interface name="velocity" />
-        </joint>
-        <joint name="wheel_bl_joint">
-            <command_interface name="velocity">
-                <param name="min">-15</param>
-                <param name="max">15</param>
-            </command_interface>
-            <state_interface name="position" />
-            <state_interface name="velocity" />
-        </joint>
-
-        <joint name="propulsion_module_fl_joint">
-            <command_interface name="position">
-                <param name="min">-15</param>
-                <param name="max">15</param>
-            </command_interface>
-            <state_interface name="position" />
-        </joint>
-        <joint name="propulsion_module_fr_joint">
-            <command_interface name="position">
-                <param name="min">-15</param>
-                <param name="max">15</param>
-            </command_interface>
-            <state_interface name="position" />
-        </joint>
-        <joint name="propulsion_module_bl_joint">
-            <command_interface name="position">
-                <param name="min">-15</param>
-                <param name="max">15</param>
-            </command_interface>
-            <state_interface name="position" />
-        </joint>
-        <joint name="propulsion_module_br_joint">
-            <command_interface name="position">
-                <param name="min">-15</param>
-                <param name="max">15</param>
-            </command_interface>
-            <state_interface name="position" />
-        </joint>
-
-        <joint name="rocker_r_joint">
-            <command_interface name="position">
-                <param name="min">-15</param>
-                <param name="max">15</param>
-            </command_interface>
-            <state_interface name="position" />
-        </joint>
-        <joint name="rocker_l_joint">
-            <command_interface name="position">
-                <param name="min">-15</param>
-                <param name="max">15</param>
-            </command_interface>
-            <state_interface name="position" />
-        </joint>
-
-    </ros2_control>
 
     <!-- <xacro:include filename="$(find
     kalman_description)/urdf/0_utils/002_gazebo_ros_control.xacro" /> -->

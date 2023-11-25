@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="platform">
+
+
+    <link name="base_footprint" />
+    <joint name="base_footprint_joint" type="fixed">
+        <origin xyz="-0.09 0 0" />
+        <parent link="base_link" />
+        <child link="base_footprint" />
+    </joint>
+
+    <link name="frame_front" />
+    <joint name="frame_front_joint" type="fixed">
+        <origin xyz="0.26 0 0" />
+        <parent link="base_link" />
+        <child link="frame_front" />
+    </joint>
+
+    <link name="frame_back_right" />
+    <joint name="frame_back_right_joint" type="fixed">
+        <origin xyz="-0.535 -0.2 0" />
+        <parent link="base_link" />
+        <child link="frame_back_right" />
+    </joint>
+
+    <link name="frame_back_left" />
+    <joint name="frame_back_left_joint" type="fixed">
+        <origin xyz="-0.535 0.2 0" />
+        <parent link="base_link" />
+        <child link="frame_back_left" />
+    </joint>
+
+</robot>

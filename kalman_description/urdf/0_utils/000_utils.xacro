@@ -3,7 +3,8 @@
 
     <!-- FILES INCLUDED -->
 
-    <xacro:include filename="$(find kalman_description)/urdf/0_utils/001_base_link.xacro" />
+    <xacro:include filename="$(find kalman_description)/urdf/0_utils/001_extra_links.xacro" />
+    <xacro:include filename="$(find kalman_description)/urdf/0_utils/002_gazebo_ros_control.xacro" />
     <xacro:include filename="$(find kalman_description)/urdf/0_utils/004_cylinder_inertia.xacro"/>
 
 
