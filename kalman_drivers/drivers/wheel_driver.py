@@ -9,7 +9,7 @@ from kalman_interfaces.msg import WheelStates
 # TODO change shit below, move to another file
 CMD_MOTOR_SET_WHEELS = 0x40
 CMD_AUTONOMY_SWITCH = 0x20
-METRIC_VELOCITY_TO_MOTOR_VALUE_FACTOR = 1
+METRIC_VELOCITY_TO_MOTOR_VALUE_FACTOR = 100
 
 class WheelDriver(Node):
     def __init__(self):
@@ -29,6 +29,7 @@ class WheelDriver(Node):
                                  np.rad2deg(msg.back_right.angle), 
                                  np.rad2deg(msg.back_left.angle), 
                                  -np.rad2deg(msg.front_left.angle)]]
+        
         data = list(pack('b'*len(data), *data))
         self.publisher.publish(UInt8MultiArray(data=data))
 
