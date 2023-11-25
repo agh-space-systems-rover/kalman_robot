@@ -28,12 +28,13 @@ def generate_launch_description():
                     "config_file": str(  # Must use external config file for non-configurable options.
                         get_package_share_path("kalman_drivers")
                         / "param"
-                        / "realsense.yaml"
+                        / "realsense2_camera.yaml"
                     ),
                 }.items(),
             ) for camera_name, serial_no in [("d455_front", "_043422251512"), ("d455_back", "_231622302908"), ("d455_right", "_231122300896")]
             # TODO: Add the fourth camera here.
         ] + [
+            # Compressed re-publishers
             Node(
                 package="image_transport",
                 executable="republish",
@@ -43,5 +44,6 @@ def generate_launch_description():
                     ("out/compressed", f"/{camera_name}/color/image_raw/compressed"),
                 ],
             ) for camera_name in ["d455_front"]
+            # TODO: Use compressed_depth_image_transport for depth images?
         ]
     )
