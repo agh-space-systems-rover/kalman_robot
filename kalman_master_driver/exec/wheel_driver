@@ -1,0 +1,3 @@
+#!/bin/bash
+
+python3 -c 'from master_driver.ueuos_node import *; main()' $@

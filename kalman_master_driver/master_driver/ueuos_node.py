@@ -3,9 +3,9 @@ from rclpy.node import Node
 from kalman_interfaces.srv import SetUeuosColor, SetUeuosEffect, SetUeuosMode
 from std_msgs.msg import UInt8MultiArray
 
-CAN_CMD_UEUOS_SET_STATE = 0x60
-CAN_CMD_UEUOS_SET_COLOR = 0x61
-CAN_CMD_UEUOS_SET_EFFECT = 0x62
+CMD_UEUOS_SET_STATE = 0x60
+CMD_UEUOS_SET_COLOR = 0x61
+CMD_UEUOS_SET_EFFECT = 0x62
 
 
 class UeuosNode(Node):
@@ -28,7 +28,7 @@ class UeuosNode(Node):
         self.ueuos_pub.publish(
             UInt8MultiArray(
                 data=[
-                    CAN_CMD_UEUOS_SET_COLOR,
+                    CMD_UEUOS_SET_COLOR,
                     3,
                     int(request.color.r * 255),
                     int(request.color.g * 255),
@@ -42,7 +42,7 @@ class UeuosNode(Node):
         self, request: SetUeuosEffect.Request, response: SetUeuosEffect.Response
     ):
         self.ueuos_pub.publish(
-            UInt8MultiArray(data=[CAN_CMD_UEUOS_SET_EFFECT, 1, request.effect])
+            UInt8MultiArray(data=[CMD_UEUOS_SET_EFFECT, 1, request.effect])
         )
         return response
 
@@ -50,7 +50,7 @@ class UeuosNode(Node):
         self, request: SetUeuosMode.Request, response: SetUeuosMode.Response
     ):
         self.ueuos_pub.publish(
-            UInt8MultiArray(data=[CAN_CMD_UEUOS_SET_STATE, 1, request.mode])
+            UInt8MultiArray(data=[CMD_UEUOS_SET_STATE, 1, request.mode])
         )
         return response
 
