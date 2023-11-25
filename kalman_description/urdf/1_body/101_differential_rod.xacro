@@ -1,19 +1,19 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="platform">
 
-    <xacro:macro name="differential_rod" params="parent name rpy xyz" >
+    <xacro:macro name="differential_rod" params="parent name rpy xyz">
 
         <!-- LINK -->
         <xacro:macro name="differential_rod_geo">
-            <origin rpy="1.57075 0 0" xyz="0 0 0"/>
+            <origin rpy="1.57075 0 0" xyz="0 0 0" />
             <geometry>
-                <cylinder radius="0.01" length="0.78"/>
+                <cylinder radius="0.01" length="0.78" />
             </geometry>
         </xacro:macro>
 
         <xacro:macro name="differential_rod_color">
             <material name="black">
-                <color rgba=".1 .1 .1 1"/>
+                <color rgba=".1 .1 .1 1" />
             </material>
         </xacro:macro>
 
@@ -21,10 +21,10 @@
         <link name="${name}">
 
             <!-- <xacro:if value="${use_mesh == 'false'}"> -->
-                <visual>
-                    <xacro:differential_rod_geo/>
-                    <xacro:differential_rod_color/>
-                </visual>
+            <visual>
+                <xacro:differential_rod_geo />
+                <xacro:differential_rod_color />
+            </visual>
             <!-- </xacro:if> -->
 
             <!-- <collision>
@@ -46,9 +46,9 @@
 
         <!-- JOINT -->
         <joint name="${name}_joint" type="fixed">
-            <parent link="${parent}"/>
-            <child link="${name}"/>
-            <origin rpy="${rpy}" xyz="${xyz}"/>
+            <parent link="${parent}" />
+            <child link="${name}" />
+            <origin rpy="${rpy}" xyz="${xyz}" />
         </joint>
 
     </xacro:macro>

@@ -5,36 +5,43 @@
 
         <!-- LINK -->
         <xacro:macro name="propulsion_module_geo">
-            <xacro:if value="${side_name == 'l'}">   <origin rpy="0 0 0" xyz="0  0.05 0.125"/>   </xacro:if>
-            <xacro:if value="${side_name == 'r'}">   <origin rpy="0 0 0" xyz="0 -0.05 0.125"/>   </xacro:if>
+            <xacro:if value="${side_name == 'l'}">
+                <origin rpy="0 0 0" xyz="0  0.05 0.125" />   </xacro:if>
+            <xacro:if value="${side_name == 'r'}">
+                <origin rpy="0 0 0" xyz="0 -0.05 0.125" />   </xacro:if>
             <geometry>
-                <box size="0.1 0.15 0.35"/>
+                <box size="0.1 0.15 0.35" />
             </geometry>
         </xacro:macro>
 
         <xacro:macro name="propulsion_module_mesh">
-            <xacro:if value="${side_name == 'l'}">   <origin rpy="0 0 0.0000" xyz="0 0 0.155"/>   </xacro:if>
-            <xacro:if value="${side_name == 'r'}">   <origin rpy="0 0 3.1416" xyz="0 0 0.155"/>   </xacro:if>
+            <xacro:if value="${side_name == 'l'}">
+                <origin rpy="0 0 0.0000" xyz="0 0 0.155" />   </xacro:if>
+            <xacro:if value="${side_name == 'r'}">
+                <origin rpy="0 0 3.1416" xyz="0 0 0.155" />   </xacro:if>
             <geometry>
-                <mesh filename="package://kalman_description/meshes/202_propulsion_module.STL" scale="0.001 0.001 0.001"/>
+                <mesh filename="package://kalman_description/meshes/202_propulsion_module.STL"
+                    scale="0.001 0.001 0.001" />
             </geometry>
         </xacro:macro>
 
         <xacro:macro name="propulsion_module_color">
             <material name="light_gray">
-                <color rgba=".7 .7 .7 1"/>
+                <color rgba=".7 .7 .7 1" />
             </material>
         </xacro:macro>
 
         <link name="${name}">
             <visual>
-                <xacro:propulsion_module_mesh/> 
-                <xacro:propulsion_module_color/>
+                <xacro:propulsion_module_mesh />
+                <xacro:propulsion_module_color />
             </visual>
 
             <xacro:cylinder_inertial radius="0.08" length="0.35" mass="2.25">
-                <xacro:if value="${side_name == 'l'}">   <origin rpy="0 0 0" xyz="0  0.05 0.125"/>   </xacro:if>
-                <xacro:if value="${side_name == 'r'}">   <origin rpy="0 0 0" xyz="0 -0.05 0.125"/>   </xacro:if>
+                <xacro:if value="${side_name == 'l'}">
+                    <origin rpy="0 0 0" xyz="0  0.05 0.125" />   </xacro:if>
+                <xacro:if value="${side_name == 'r'}">
+                    <origin rpy="0 0 0" xyz="0 -0.05 0.125" />   </xacro:if>
             </xacro:cylinder_inertial>
 
         </link>
@@ -46,12 +53,13 @@
         </gazebo>
 
         <joint name="${name}_joint" type="revolute">
-            <parent link="${parent}"/>
-            <child link="${name}"/>
-            <origin rpy="${rpy}" xyz="${xyz}"/>
-            <axis xyz="${axis}"/>
-            <limit effort="${effort}" velocity="${velocity}" lower="${low_limit}" upper="${high_limit}"/>
-            <dynamics friction="${friction}" damping="${damping}"/>
+            <parent link="${parent}" />
+            <child link="${name}" />
+            <origin rpy="${rpy}" xyz="${xyz}" />
+            <axis xyz="${axis}" />
+            <limit effort="${effort}" velocity="${velocity}" lower="${low_limit}"
+                upper="${high_limit}" />
+            <dynamics friction="${friction}" damping="${damping}" />
         </joint>
         <gazebo reference="${name}_joint">
             <stopCfm>0.8</stopCfm>
@@ -59,27 +67,6 @@
             <provideFeedback>true</provideFeedback>
             <implicitSpringDamper>true</implicitSpringDamper>
             <fudgeFactor>0.0</fudgeFactor>
-        </gazebo>
-
-        <transmission name="${name}_transmission">
-            <type>transmission_interface/SimpleTransmission</type>
-            <joint name="${name}_joint">
-                <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-            </joint>
-            <actuator name="${name}_motor">
-                <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-                <mechanicalReduction>1</mechanicalReduction>
-            </actuator>
-        </transmission>
-
-        <!-- ENCODER -->
-        <gazebo>
-            <plugin name="${name}_encoder" filename="libJointEncoder.so">
-                <joint>${name}_joint</joint>
-                <topic>/kalman/simulation/encoder/${name}_abs</topic>
-                <absolute>1</absolute>
-                <resolution>3600</resolution>
-            </plugin>
         </gazebo>
 
     </xacro:macro>

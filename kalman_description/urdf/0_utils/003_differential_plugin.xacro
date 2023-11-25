@@ -2,16 +2,16 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="platform">
 
     <!-- MY DIFFERENTIAL PLUGIN -->
-        <gazebo>
-            <plugin name="differential_pid" filename="libDifferentialPID.so">
-                <leftJoint>rocker_l_joint</leftJoint>
-                <rightJoint>rocker_r_joint</rightJoint>
-                <topic>/kalman/differential_pid</topic>
-                <Kp>100</Kp>
-                <Ki>0</Ki>
-                <Kd>300</Kd>
-                <limit>10000</limit>
-            </plugin>
-        </gazebo>
+    <gazebo>
+        <plugin name="differential_pid" filename="libDifferentialPID.so">
+            <leftJoint>rocker_l_joint</leftJoint>
+            <rightJoint>rocker_r_joint</rightJoint>
+            <topic>/kalman/differential_pid</topic>
+            <Kp>100</Kp>
+            <Ki>0</Ki>
+            <Kd>300</Kd>
+            <limit>10000</limit>
+        </plugin>
+    </gazebo>
 
 </robot>

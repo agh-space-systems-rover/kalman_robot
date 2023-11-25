@@ -7,7 +7,7 @@
 
     <xacro:macro name="suspension_side" params="side_name side_value">
 
-        <xacro:rocker name="rocker_${side_name}" parent="differential_rod" side_name="${side_name}"
+        <xacro:rocker name="rocker_${side_name}" parent="base_link" side_name="${side_name}"
             rpy="0 0 0"
             xyz="0 ${side_value * 0.354} 0"
             axis="0 1 0"
