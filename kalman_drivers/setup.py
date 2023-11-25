@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 import glob
 import os
 import xml.etree.ElementTree as ET
@@ -16,6 +16,7 @@ license = root.find("license").text
 setup(
     name=package_name,
     version=package_version,
+    packages=find_packages(),
     data_files=[
         ("share/ament_index/resource_index/packages", ["resource/" + package_name]),
         ("share/" + package_name, ["package.xml"]),
@@ -33,4 +34,9 @@ setup(
     maintainer_email=maintainer_email,
     description=description,
     license=license,
+    entry_points={
+        "console_scripts": [
+            "wheel_driver = drivers.wheel_driver:main",
+        ],
+    },
 )
