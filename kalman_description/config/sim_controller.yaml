@@ -15,10 +15,10 @@ controller_manager:
 velocity_controller:
   ros__parameters:
     joints:
-      - wheel_fl_joint
       - wheel_fr_joint
-      - wheel_bl_joint
       - wheel_br_joint
+      - wheel_bl_joint
+      - wheel_fl_joint
     command_interfaces:
       - velocity
     state_interfaces:
@@ -27,11 +27,12 @@ velocity_controller:
 
 joint_trajectory_controller:
   ros__parameters:
+    allow_partial_joints_goal: true
     joints:
-      - propulsion_module_fl_joint
       - propulsion_module_fr_joint
-      - propulsion_module_bl_joint
       - propulsion_module_br_joint
+      - propulsion_module_bl_joint
+      - propulsion_module_fl_joint
       - rocker_l_joint
       - rocker_r_joint
     command_interfaces:

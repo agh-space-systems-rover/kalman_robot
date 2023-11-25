@@ -53,6 +53,12 @@ def generate_launch_description():
         parameters=[params]
     )
 
+    kalman_gazebo_driver = Node(
+        package="kalman_gazebo",
+        executable='kalman_gazebo_driver',
+        output='screen'
+    )
+
     ignition_spawn_entity = Node(
         package='ros_gz_sim',
         executable='create',
@@ -69,8 +75,13 @@ def generate_launch_description():
         output='screen'
     )
 
-    load_joint_trajectory_controller = ExecuteProcess(
+    load_velocity_controller = ExecuteProcess(
         cmd=['ros2', 'control', 'load_controller', '--set-state', 'active', 'velocity_controller'],
+        output='screen'
+    )
+
+    load_joint_trajectory_controller = ExecuteProcess(
+        cmd=['ros2', 'control', 'load_controller', '--set-state', 'active', 'joint_trajectory_controller'],
         output='screen'
     )
 
@@ -85,6 +96,7 @@ def generate_launch_description():
 
         node_robot_state_publisher,
         ignition_spawn_entity,
+        kalman_gazebo_driver,
 
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
@@ -94,7 +106,8 @@ def generate_launch_description():
         RegisterEventHandler(
             event_handler=OnProcessExit(
                 target_action=ignition_spawn_entity,
-                on_exit=[load_joint_state_broadcaster],
+                on_exit=[load_joint_state_broadcaster,
+                         load_velocity_controller],
             )
         ),
         RegisterEventHandler(
