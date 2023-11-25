@@ -77,7 +77,7 @@ CAN_CMD_UEUOS_SET_EFFECT = 0x62
 
 class UeuosNode(Node):
     def __init__(self):
-        super().__init__("ueuos_node")
+        super().__init__("ueuos")
 
         # Init master publisher.
         self.ueuos_pub = self.create_publisher(
@@ -109,7 +109,7 @@ class UeuosNode(Node):
         self, request: SetUeuosEffect.Request, response: SetUeuosEffect.Response
     ):
         self.ueuos_pub.publish(
-            UInt8MultiArray(data=[CAN_CMD_UEUOS_SET_EFFECT, 1, request.effect.value])
+            UInt8MultiArray(data=[CAN_CMD_UEUOS_SET_EFFECT, 1, request.effect])
         )
         return response
 
@@ -117,7 +117,7 @@ class UeuosNode(Node):
         self, request: SetUeuosMode.Request, response: SetUeuosMode.Response
     ):
         self.ueuos_pub.publish(
-            UInt8MultiArray(data=[CAN_CMD_UEUOS_SET_STATE, 1, request.mode.value])
+            UInt8MultiArray(data=[CAN_CMD_UEUOS_SET_STATE, 1, request.mode])
         )
         return response
 
