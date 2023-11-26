@@ -10,10 +10,11 @@ find_package(rosidl_default_generators REQUIRED)
 find_package(std_msgs REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
+  "msg/GpsTagArray.msg"
+  "msg/GpsTag.msg"
+  "msg/MasterMessage.msg"
   "msg/WheelState.msg"
   "msg/WheelStates.msg"
-  "msg/GpsTag.msg"
-  "msg/GpsTagArray.msg"
   "srv/SetUeuosColor.srv"
   "srv/SetUeuosEffect.srv"
   "srv/SetUeuosMode.srv"

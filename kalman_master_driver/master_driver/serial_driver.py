@@ -6,7 +6,7 @@ from collections import deque
 from dataclasses import dataclass
 
 from rclpy.node import Node
-from std_msgs.msg import String, Int16, UInt8MultiArray
+from std_msgs.msg import String, Int16
 
 UInt8 = int
 
@@ -16,6 +16,9 @@ class SerialMsg:
     cmd: UInt8
     argc: UInt8
     argv: list[UInt8]
+
+    def as_list(self) -> list[UInt8]:
+        return [self.cmd, self.argc, *self.argv]
 
 
 class BinaryParserState(Enum):
@@ -120,12 +123,12 @@ class SerialDriver:
         self.bitrate_rx = 0
         self.correct_bitrate_rx = 0
 
-    def write_msg(self, msg: UInt8MultiArray):
+    def write_msg(self, msg: SerialMsg) -> None:
         """
         Write a message to the serial_write_buffer.
 
         Args:
-            msg (UInt8MultiArray): The message to write.
+            msg (SerialMsg): The message to write.
 
         Returns:
             None
@@ -402,18 +405,18 @@ class SerialDriver:
             self.bitrate_tx += len(bytes_to_send) * 8
             self.serial.write(bytes_to_send)
 
-    def _encode_msg(self, msg: UInt8MultiArray) -> bytes:
+    def _encode_msg(self, msg: SerialMsg) -> bytes:
         """
         Encode a ROS message as a packet. The packet is encoded as follows:
         [START_BYTE, CMD, LEN, ARG_0, ..., ARG_N, CRC, STOP_BYTE]
 
         Args:
-            msg (UInt8MultiArray): The ROS message to encode.
+            msg (SerialMsg): The ROS message to encode.
 
         Returns:
             bytes: The encoded message.
         """
-        data: list[UInt8] = list(msg.data)
+        data: list[UInt8] = msg.as_list()
         crc = self._calc_crc(data)
         data.append(crc)
         payload = "".join([self._byte2hex(byte) for byte in data])
@@ -433,18 +436,18 @@ class SerialDriver:
         """
         return hex(_byte)[2:].rjust(2, "0")
 
-    def _encode_msg_binary(self, msg: UInt8MultiArray) -> bytes:
+    def _encode_msg_binary(self, msg: SerialMsg) -> bytes:
         """
         Encode a ROS message as a binary packet. The packet is encoded as follows:
         [START_BYTE, CMD, LEN, HRC, ARG_0, ..., ARG_N, CRC, URC]
 
         Args:
-            msg (UInt8MultiArray): The ROS message to encode.
+            msg (Serial): The ROS message to encode.
 
         Returns:
             bytes: The encoded message.
         """
-        data: list[UInt8] = list(msg.data)
+        data: list[UInt8] = msg.as_list()
         hrc = self._calc_hrc(data)
         crc = self._calc_crc(data)
         urc = self._calc_urc(data)

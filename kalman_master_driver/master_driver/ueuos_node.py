@@ -1,11 +1,11 @@
 import rclpy
 from rclpy.node import Node
 from kalman_interfaces.srv import SetUeuosColor, SetUeuosEffect, SetUeuosMode
-from std_msgs.msg import UInt8MultiArray
+from kalman_interfaces.msg import MasterMessage
 
-CMD_UEUOS_SET_STATE = 0x60
-CMD_UEUOS_SET_COLOR = 0x61
-CMD_UEUOS_SET_EFFECT = 0x62
+CAN_CMD_UEUOS_SET_STATE = 0x60
+CAN_CMD_UEUOS_SET_COLOR = 0x61
+CAN_CMD_UEUOS_SET_EFFECT = 0x62
 
 
 class UeuosNode(Node):
@@ -14,7 +14,7 @@ class UeuosNode(Node):
 
         # Init master publisher.
         self.ueuos_pub = self.create_publisher(
-            UInt8MultiArray, "master_com/ros_to_master", 10
+            MasterMessage, "master_com/ros_to_master", 10
         )
 
         # Init services.
@@ -26,14 +26,13 @@ class UeuosNode(Node):
         self, request: SetUeuosColor.Request, response: SetUeuosColor.Response
     ):
         self.ueuos_pub.publish(
-            UInt8MultiArray(
+            MasterMessage(
+                cmd=CAN_CMD_UEUOS_SET_COLOR,
                 data=[
-                    CMD_UEUOS_SET_COLOR,
-                    3,
                     int(request.color.r * 255),
                     int(request.color.g * 255),
                     int(request.color.b * 255),
-                ]
+                ],
             )
         )
         return response
@@ -42,7 +41,7 @@ class UeuosNode(Node):
         self, request: SetUeuosEffect.Request, response: SetUeuosEffect.Response
     ):
         self.ueuos_pub.publish(
-            UInt8MultiArray(data=[CMD_UEUOS_SET_EFFECT, 1, request.effect])
+            MasterMessage(cmd=CAN_CMD_UEUOS_SET_EFFECT, data=[request.effect])
         )
         return response
 
@@ -50,7 +49,7 @@ class UeuosNode(Node):
         self, request: SetUeuosMode.Request, response: SetUeuosMode.Response
     ):
         self.ueuos_pub.publish(
-            UInt8MultiArray(data=[CMD_UEUOS_SET_STATE, 1, request.mode])
+            MasterMessage(cmd=CAN_CMD_UEUOS_SET_STATE, data=[request.mode])
         )
         return response
 

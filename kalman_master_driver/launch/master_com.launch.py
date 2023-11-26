@@ -1,8 +1,10 @@
 from launch import LaunchDescription
 from launch_ros.actions import Node
 from launch.actions import DeclareLaunchArgument
+from launch.substitutions import LaunchConfiguration
 
 def generate_launch_description():
+    serial_port = LaunchConfiguration('serial_port')
     declare_port_cmd = DeclareLaunchArgument(
         'serial_port',
         default_value='/dev/ttyUSB0',
@@ -15,7 +17,7 @@ def generate_launch_description():
             name="master_com",
             parameters=[
                 {
-                    "serial_port": "/dev/ttyUSB0",
+                    "serial_port": serial_port,
                 }
             ],
         ),

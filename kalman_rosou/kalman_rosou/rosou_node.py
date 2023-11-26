@@ -1,3 +1,4 @@
+from functools import partial
 import importlib
 from io import BytesIO
 from itertools import chain
@@ -5,15 +6,15 @@ import json
 import os
 import time
 from typing import Any, Dict, List, Tuple
-import genpy
 import rclpy
 from rclpy.node import Node
 from rclpy.publisher import Publisher
 from rclpy.subscription import Subscription
 
 from ament_index_python.packages import get_package_share_directory
+import rclpy.serialization
 
-from std_msgs.msg import UInt8MultiArray
+from kalman_interfaces.msg import MasterMessage
 
 from kalman_rosou.utils import (
     FrameDirection,
@@ -27,7 +28,7 @@ class Rosou(Node):
     def __init__(self):
         super().__init__("rosou")  # type: ignore
         self.ros_to_master_pub = self.create_publisher(
-            UInt8MultiArray, "master_com/ros_to_master", 10
+            MasterMessage, "/master_com/ros_to_master", 10
         )
 
         self.declare_parameter("is_station", False)
@@ -43,7 +44,7 @@ class Rosou(Node):
         config: Config
         if self.is_station():
             self.create_subscription(
-                UInt8MultiArray, "master_com/master_to_ros/x81", self.receive, 10
+                MasterMessage, "/master_com/master_to_ros/x81", self.receive, 10
             )
             max_idx: int = 0
             # setup station publishers
@@ -68,8 +69,8 @@ class Rosou(Node):
 
         else:  # rover
             self.create_subscription(
-                UInt8MultiArray,
-                "master_com/master_to_ros/x80",
+                MasterMessage,
+                "/master_com/master_to_ros/x80",
                 lambda msg: self.receive(msg),
                 10,
             )
@@ -81,7 +82,12 @@ class Rosou(Node):
 
             # setup rover subscribers
             for idx, config in enumerate(self.configs_rover, start=max_idx):
-                callback = lambda msg: self.send(FrameDirection.TO_RF, msg, config, idx)
+                callback = partial(
+                    self.send,
+                    frame_direction=FrameDirection.TO_RF,
+                    config=config,
+                    frame_id=idx,
+                )
                 self.subscribers_[idx] = self.create_subscription(
                     self._get_message_type(config), config["topic"], callback, 10
                 )
@@ -152,25 +158,29 @@ class Rosou(Node):
             f"Message type {config['message_type']} not found in module {module_name}"
         )
 
-    def receive(self, msg: UInt8MultiArray) -> None:
-        frame_id: int = msg.data[2]
-        data: bytes = msg.data[3:]
+    def receive(self, msg: MasterMessage) -> None:
+        frame_id: int = msg.data[1]
+        data: bytes = bytes(msg.data[2:])
 
-        # NON BAT CUSTOM FRAMES SHOULD YOU ID >= 100
+        # NON BAT CUSTOM FRAMES SHOULD USE ID >= 100
         if frame_id >= 100:
             return
 
         config = self.configs[frame_id]
 
         msg = self._get_message_type(config)()
-        eval(config["message_part_serialized"] + ".deserialize(data)")
+
+        to_deserialize = eval(config["message_part_serialized"])
+
+        deserialized_part = rclpy.serialization.deserialize_message(data, type(to_deserialize))
+        exec(config["message_part_serialized"] + "= deserialized_part")
 
         self.publishers_[frame_id].publish(msg)
 
     def send(
         self,
+        msg: Any,  # ros2 message
         frame_direction: FrameDirection,
-        msg: genpy.Message,
         config: Config,
         frame_id: int,
     ) -> None:
@@ -185,17 +195,20 @@ class Rosou(Node):
 
         self.timers_[frame_id] = now
 
-        message_part_serialized = eval(config["message_part_serialized"])
+        to_serialize = eval(config["message_part_serialized"])
 
-        data = BytesIO()
-        message_part_serialized.serialize(data)
+        data = BytesIO(rclpy.serialization.serialize_message(to_serialize))
+
+        ## Leaving this for debugging purposes
+        # back = rclpy.serialization.deserialize_message(data.read1(-1), type(to_serialize))
 
         frame_header: Tuple[Uint8, Uint8, Uint8] = create_header(
             frame_direction, frame_id, data.getvalue()
         )
 
-        frame = UInt8MultiArray()
-        frame.data = frame_header + tuple(bytearray(data.getvalue()))
+        frame = MasterMessage()
+        frame.cmd = frame_header[0] # Frame direction
+        frame.data = frame_header[1:] + tuple(bytearray(data.getvalue()))
 
         self.ros_to_master_pub.publish(frame)
 
