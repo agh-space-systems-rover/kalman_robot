@@ -30,7 +30,7 @@ setup(
     entry_points={
         "console_scripts": [
             "master_com = master_driver.master_com_node:main",
-            "ueuos = master_driver.ueuos_node:main"
+            "ueuos = master_driver.ueuos_node:main",
             "wheel_driver = master_driver.wheel_driver_node:main",
         ],
     },
