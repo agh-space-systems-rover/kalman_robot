@@ -3,10 +3,6 @@ from rclpy.node import Node
 from kalman_interfaces.srv import SetUeuosColor, SetUeuosEffect, SetUeuosMode
 from kalman_interfaces.msg import MasterMessage
 
-CAN_CMD_UEUOS_SET_STATE = 0x60
-CAN_CMD_UEUOS_SET_COLOR = 0x61
-CAN_CMD_UEUOS_SET_EFFECT = 0x62
-
 
 class UeuosNode(Node):
     def __init__(self):
@@ -27,7 +23,7 @@ class UeuosNode(Node):
     ):
         self.ueuos_pub.publish(
             MasterMessage(
-                cmd=CAN_CMD_UEUOS_SET_COLOR,
+                cmd=MasterMessage.UEUOS_SET_COLOR,
                 data=[
                     int(request.color.r * 255),
                     int(request.color.g * 255),
@@ -41,7 +37,7 @@ class UeuosNode(Node):
         self, request: SetUeuosEffect.Request, response: SetUeuosEffect.Response
     ):
         self.ueuos_pub.publish(
-            MasterMessage(cmd=CAN_CMD_UEUOS_SET_EFFECT, data=[request.effect])
+            MasterMessage(cmd=MasterMessage.UEUOS_SET_EFFECT, data=[request.effect])
         )
         return response
 
@@ -49,7 +45,7 @@ class UeuosNode(Node):
         self, request: SetUeuosMode.Request, response: SetUeuosMode.Response
     ):
         self.ueuos_pub.publish(
-            MasterMessage(cmd=CAN_CMD_UEUOS_SET_STATE, data=[request.mode])
+            MasterMessage(cmd=MasterMessage.UEUOS_SET_STATE, data=[request.mode])
         )
         return response
 

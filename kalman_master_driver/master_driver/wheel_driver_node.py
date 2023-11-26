@@ -5,8 +5,6 @@ from struct import pack
 
 from kalman_interfaces.msg import WheelStates, MasterMessage
 
-CMD_MOTOR_SET_WHEELS = 0x40
-CMD_AUTONOMY_SWITCH = 0x20
 
 METRIC_VELOCITY_TO_MOTOR_VALUE_FACTOR = 100
 
@@ -25,7 +23,7 @@ class WheelDriverNode(Node):
 
     def controller_state_received(self, msg: WheelStates):
         msg = MasterMessage()
-        msg.command = MasterMessage.CMD_MOTOR_SET_WHEELS
+        msg.command = MasterMessage.MOTOR_SET_WHEELS
         msg.data = [
             msg.front_right.velocity * METRIC_VELOCITY_TO_MOTOR_VALUE_FACTOR,
             msg.back_right.velocity * METRIC_VELOCITY_TO_MOTOR_VALUE_FACTOR,
@@ -42,7 +40,7 @@ class WheelDriverNode(Node):
 
     def autonomy_switch(self, on: bool):
         msg = MasterMessage()
-        msg.command = MasterMessage.CMD_AUTONOMY_SWITCH
+        msg.command = MasterMessage.AUTONOMY_SWITCH
         msg.data = [int(on) * 2]
         self.publisher.publish(msg)
 
