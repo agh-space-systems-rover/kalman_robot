@@ -76,10 +76,27 @@ class CompasscalNode(Node):
         if not os.path.exists(os.path.join(compasscal_path, "compasscal")):
             # If not, build it.
             self.get_logger().info("Compasscal is not built. Building it now...")
+
+            self.get_logger().info("Runnign autoreconf...")
+            subprocess.run(["autoreconf", "-fi"], cwd=compasscal_path)
             self.get_logger().info("Configuring compasscal...")
-            subprocess.run(["./configure"], cwd=compasscal_path)
+            subprocess.run(
+                ["./configure"],
+                cwd=compasscal_path,
+                env={
+                    "CFLAGS": f"-I/opt/ros/{os.environ['ROS_DISTRO']}/opt/libphidget22/include/libphidget22",
+                    "LDFLAGS": f"-L/opt/ros/{os.environ['ROS_DISTRO']}/opt/libphidget22/lib",
+                },
+            )
             self.get_logger().info("Building compasscal...")
             subprocess.run(["make"], cwd=compasscal_path)
+
+            # Check if compasscal was built successfully.
+            if not os.path.exists(os.path.join(compasscal_path, "compasscal")):
+                # If not, return success=False.
+                self.get_logger().error("Compasscal failed to build.")
+                response.success = False
+                return response
 
         # Run compasscal executable
         self.get_logger().info("Running compasscal...")
