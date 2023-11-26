@@ -22,9 +22,7 @@ class WheelDriverNode(Node):
         self.autonomy_switch(True)
 
     def controller_state_received(self, msg: WheelStates):
-        msg = MasterMessage()
-        msg.command = MasterMessage.MOTOR_SET_WHEELS
-        msg.data = [
+        data = [
             msg.front_right.velocity * METRIC_VELOCITY_TO_MOTOR_VALUE_FACTOR,
             msg.back_right.velocity * METRIC_VELOCITY_TO_MOTOR_VALUE_FACTOR,
             msg.back_left.velocity * METRIC_VELOCITY_TO_MOTOR_VALUE_FACTOR,
@@ -34,15 +32,16 @@ class WheelDriverNode(Node):
             np.rad2deg(msg.back_left.angle),
             -np.rad2deg(msg.front_left.angle),
         ]
-        msg.data = [int(x) for x in msg.data]
-        msg.data = list(pack("b" * len(msg.data), *msg.data))
-        self.publisher.publish(msg)
+        data = [int(x) for x in data]
+        data = list(pack("b" * len(data), *data))
+        self.publisher.publish(
+            MasterMessage(cmd=MasterMessage.MOTOR_SET_WHEELS, data=data)
+        )
 
     def autonomy_switch(self, on: bool):
-        msg = MasterMessage()
-        msg.command = MasterMessage.AUTONOMY_SWITCH
-        msg.data = [int(on) * 2]
-        self.publisher.publish(msg)
+        self.publisher.publish(
+            MasterMessage(cmd=MasterMessage.AUTONOMY_SWITCH, data=[int(on) * 2])
+        )
 
 
 def main():
