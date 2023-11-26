@@ -15,6 +15,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/MasterMessage.msg"
   "msg/WheelState.msg"
   "msg/WheelStates.msg"
+  "srv/CalibrateCompass.srv"
   "srv/SetUeuosColor.srv"
   "srv/SetUeuosEffect.srv"
   "srv/SetUeuosMode.srv"

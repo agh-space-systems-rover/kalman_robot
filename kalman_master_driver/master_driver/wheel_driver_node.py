@@ -13,10 +13,10 @@ class WheelDriverNode(Node):
     def __init__(self):
         super().__init__("wheel_driver")
         self.create_subscription(
-            WheelStates, "/wheel_controller/state", self.controller_state_received, 1
+            WheelStates, "wheel_controller/state", self.controller_state_received, 1
         )
         self.publisher = self.create_publisher(
-            MasterMessage, "/master_com/ros_to_master", 10
+            MasterMessage, "master_com/ros_to_master", 10
         )
 
         self.autonomy_switch(True)

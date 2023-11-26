@@ -51,7 +51,7 @@ try:
         license=license,
         entry_points={
             "console_scripts": [
-                "wheel_driver = drivers.wheel_driver:main",
+                "compasscal = drivers.compasscal:main",
             ],
         },
     )
