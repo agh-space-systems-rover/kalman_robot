@@ -1,10 +1,14 @@
-from ament_index_python import get_package_share_path
-from launch import LaunchDescription
+import os
 
+from ament_index_python import get_package_share_path
+
+from launch import LaunchDescription
 from launch.actions import IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 
 from launch_ros.actions import Node
+from launch_ros.actions import ComposableNodeContainer
+from launch_ros.descriptions import ComposableNode
 
 
 def generate_launch_description():
@@ -68,6 +72,32 @@ def generate_launch_description():
             Node(
                 package="kalman_drivers",
                 executable="compasscal",
+            ),
+            ComposableNodeContainer(
+                name="phidget_container",
+                namespace="",
+                package="rclcpp_components",
+                executable="component_container",
+                composable_node_descriptions=[
+                    ComposableNode(
+                        package="phidgets_spatial",
+                        plugin="phidgets::SpatialRosI",
+                        name="phidgets_spatial",
+                        parameters=[
+                            str(
+                                get_package_share_path("kalman_drivers")
+                                / "param"
+                                / "phidgets_spatial.yaml"
+                            ),
+                            os.path.abspath(
+                                os.path.join(
+                                    os.path.expanduser("~"),
+                                    ".config/kalman/phidgets_spatial_calibration_params.yaml",
+                                )
+                            ),
+                        ],
+                    ),
+                ],
             ),
         ]
     )
