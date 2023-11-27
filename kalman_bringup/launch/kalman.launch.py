@@ -71,7 +71,7 @@ def launch_setup(context):
                     / "launch"
                     / "robot_state_publisher.launch.py"
                 )
-            )
+            ),
         ),
         # SLAM
         IncludeLaunchDescription(

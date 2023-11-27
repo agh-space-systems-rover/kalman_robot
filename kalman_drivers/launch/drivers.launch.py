@@ -123,19 +123,19 @@ def launch_setup(context):
             for camera_name, serial_no in realsense_ids_sns
             # TODO: Add the fourth camera here.
         ]
-        description += [
-            # Compressed re-publishers
-            Node(
-                package="image_transport",
-                executable="republish",
-                arguments=["raw", "compressed"],
-                remappings=[
-                    ("in", f"/{camera_name}/color/image_raw"),
-                    ("out/compressed", f"/{camera_name}/color/image_raw/compressed"),
-                ],
-            )
-            for camera_name, serial_no in realsense_ids_sns
-        ]
+        # description += [
+        #     # Compressed re-publishers
+        #     Node(
+        #         package="image_transport",
+        #         executable="republish",
+        #         arguments=["raw", "compressed"],
+        #         remappings=[
+        #             ("in", f"/{camera_name}/color/image_raw"),
+        #             ("out/compressed", f"/{camera_name}/color/image_raw/compressed"),
+        #         ],
+        #     )
+        #     for camera_name, serial_no in realsense_ids_sns
+        # ]
         # TODO: Use compressed_depth_image_transport for depth images?
 
     return description
