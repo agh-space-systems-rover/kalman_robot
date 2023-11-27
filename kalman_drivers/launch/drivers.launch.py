@@ -63,7 +63,7 @@ def generate_launch_description():
             ),
             Node(
                 package="kalman_master_driver",
-                executable="ueuos",  # TODO: rename ueuos_node to ueuos_driver_node
+                executable="ueuos_driver",
             ),
             Node(
                 package="kalman_drivers",

@@ -20,7 +20,10 @@ setup(
     data_files=[
         ("share/ament_index/resource_index/packages", ["resource/" + package_name]),
         ("share/" + package_name, ["package.xml"]),
-        (os.path.join("share", package_name), glob("launch/*launch.[pxy][yma]*")),
+        (
+            os.path.join("share", package_name, "launch"),
+            glob(os.path.join("launch", "*launch.[pxy][yma]*")),
+        ),
     ],
     zip_safe=True,
     maintainer=maintainer_name,
@@ -30,7 +33,7 @@ setup(
     entry_points={
         "console_scripts": [
             "master_com = master_driver.master_com_node:main",
-            "ueuos = master_driver.ueuos_node:main",
+            "ueuos_driver = master_driver.ueuos_driver_node:main",
             "wheel_driver = master_driver.wheel_driver_node:main",
         ],
     },

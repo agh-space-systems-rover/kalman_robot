@@ -7,7 +7,7 @@ from kalman_interfaces.msg import MasterMessage
 
 class UeuosNode(Node):
     def __init__(self):
-        super().__init__("ueuos")
+        super().__init__("ueuos_driver")
 
         # Init master publisher.
         self.ueuos_pub = self.create_publisher(
