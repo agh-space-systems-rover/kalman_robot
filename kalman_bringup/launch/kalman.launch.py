@@ -15,6 +15,7 @@ from launch.conditions import IfCondition
 def launch_setup(context):
     unity_sim = LaunchConfiguration("unity_sim").perform(context)
     drivers = LaunchConfiguration("drivers").perform(context)
+    realsense_ids = LaunchConfiguration("realsense_ids").perform(context)
 
     if unity_sim == "True" and drivers == "True":
         raise RuntimeError(
@@ -43,18 +44,21 @@ def launch_setup(context):
                     / "drivers.launch.py"
                 )
             ),
+            launch_arguments={"realsense_ids": realsense_ids}.items(),
             condition=IfCondition(LaunchConfiguration("drivers")),
         ),
         # ----
         # RViz
         # ----
-        Node(
-            package="rviz2",
-            executable="rviz2",
-            arguments=[
-                "-d",
-                str(get_package_share_path("kalman_bringup") / "rviz" / "default.rviz"),
-            ],
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(
+                str(
+                    get_package_share_path("kalman_bringup")
+                    / "launch"
+                    / "rviz.launch.py"
+                )
+            ),
+            condition=IfCondition(LaunchConfiguration("rviz")),
         ),
         # -----
         # stack
@@ -73,7 +77,8 @@ def launch_setup(context):
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
                 str(get_package_share_path("kalman_slam") / "launch" / "slam.launch.py")
-            )
+            ),
+            launch_arguments={"realsense_ids": realsense_ids}.items(),
         ),
         # Nav2 stack + path follower
         IncludeLaunchDescription(
@@ -106,6 +111,16 @@ def generate_launch_description():
                 "drivers",
                 default_value="False",
                 description="Launch with physical sensors and actuators.",
+            ),
+            DeclareLaunchArgument(
+                "realsense_ids",
+                default_value="d455_front d455_back d455_left d455_right",
+                description="Space-separated IDs of the depth cameras to use.",
+            ),
+            DeclareLaunchArgument(
+                "rviz",
+                default_value="False",
+                description="Launch RViz.",
             ),
             OpaqueFunction(function=launch_setup),
         ]

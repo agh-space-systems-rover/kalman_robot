@@ -2,7 +2,7 @@ imu_filter_madgwick:
   ros__parameters:
     stateless: false
     use_mag: true
-    publish_tf: true
+    publish_tf: false
     reverse_tf: false
     fixed_frame: "odom"
     constant_dt: 0.0
