@@ -36,6 +36,7 @@
 #
 # ros@kalman:~$
 
+import fcntl
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
@@ -50,12 +51,33 @@ from kalman_interfaces.srv import CalibrateCompass
 CMD_VEL_FREQUENCY = 2
 
 
+def async_read_all(stream):
+    fd = stream.fileno()
+    fl = fcntl.fcntl(fd, fcntl.F_GETFL)
+    fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
+    try:
+        output = stream.read()
+        return output
+    except:
+        return ""
+
+
+def format_output(output):
+    if len(output.strip()) == 0:
+        return "> [NO OUTPUT]"
+    return "\n".join(["> " + x for x in output.split("\n")])
+
+
+def wait_for_process(process, duration):
+    try:
+        process.wait(duration)
+    except:
+        pass
+
+
 class CompasscalNode(Node):
     def __init__(self):
         super().__init__("compasscal")
-
-        # Init cmd_vel rate.
-        self.cmd_vel_rate = self.create_rate(CMD_VEL_FREQUENCY)
 
         # Init cmd_vel publisher.
         self.cmd_vel_pub = self.create_publisher(Twist, "cmd_vel", 10)
@@ -67,20 +89,48 @@ class CompasscalNode(Node):
         self, request: CalibrateCompass.Request, response: CalibrateCompass.Response
     ):
         # Run compasscal executable
-        self.get_logger().info("Running compasscal...")
+        self.get_logger().info("Starting compasscal.")
         process = subprocess.Popen(
-            os.path.join(get_package_share_directory("kalman_drivers"), "compasscal"),
+            "stdbuf -o0 "  # Disable buffering. Fixes the problem of not getting any output from compasscal.
+            + os.path.join(get_package_share_directory("kalman_drivers"), "compasscal"),
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
-            text=True,
-            bufsize=1,
             universal_newlines=True,
+            shell=True,
         )
 
+        # Wait until the process has printed the "Choose:" prompt.
+        success, output = self.wait_until_output(process, "Choose:")
+        if not success:
+            self.get_logger().error(
+                "compasscal calibration failed:\n" + format_output(output)
+            )
+            response.success = False
+            return response
+        else:
+            self.get_logger().info(
+                "compasscal has successfully started:\n" + format_output(output)
+            )
+
         # Choose 3-axis calibration
-        self.get_logger().info("Choosing 3-axis calibration...")
+        self.get_logger().info("Choosing 3-axis calibration.")
         process.stdin.write("3\n")
         process.stdin.flush()
+
+        # Wait until the process has printed the "Press Enter to start sampling..." prompt.
+        success, output = self.wait_until_output(
+            process, "Press Enter to start sampling..."
+        )
+        if not success:
+            self.get_logger().error(
+                "Failed to choose calibration mode:\n" + format_output(output)
+            )
+            response.success = False
+            return response
+        else:
+            self.get_logger().info(
+                "Successfully entered 3D calibration mode:\n" + format_output(output)
+            )
 
         # Start calibration by sending Enter to stdin
         self.get_logger().info("Starting sampling...")
@@ -90,36 +140,58 @@ class CompasscalNode(Node):
         # Before performing rotations, check if sampling has started.
         # If not, exit with success=False.
         # First read all currently available output from stdout.
-        output = process.stdout.read()
-
-        # If the output does not contain "Sampling...", then sampling has not started.
-        if "Sampling..." not in output:
-            # Kill the process.
-            process.kill()
-            # Log the output.
-            self.get_logger().error("Compasscal calibration failed:\n" + output)
+        success, output = self.wait_until_output(
+            process, "Sampling... Press Enter to stop..."
+        )
+        if not success:
+            self.get_logger().error(
+                "Failed to start sampling:\n" + format_output(output)
+            )
             response.success = False
             return response
+        else:
+            self.get_logger().info("Sampling started:\n" + format_output(output))
 
         # Now we are sure that sampling has started.
         # Perform rotations by sending cmd_vel messages.
-        n = request.duration * CMD_VEL_FREQUENCY
+        n = int(request.duration * CMD_VEL_FREQUENCY)
         for i in range(n):
+            self.get_logger().info(f"Rotating the robot: {i+1}/{n}")
+
             # Send a cmd_vel message.
             msg = Twist()
             msg.angular.z = request.angular_velocity
             self.cmd_vel_pub.publish(msg)
 
             # Wait for 1/msg_freq seconds.
-            self.cmd_vel_rate.sleep()
+            wait_for_process(process, 1 / CMD_VEL_FREQUENCY)
 
         # Stop calibration by sending Enter to stdin
         self.get_logger().info("Stopping sampling...")
         process.stdin.write("\n")
         process.stdin.flush()
 
-        # Read and print final output from stdout
-        output = process.communicate()[0]
+        # Wait until the process has printed "Enter to exit" prompt.
+        success, output = self.wait_until_output(
+            process, "explicitely reset or changed.\n\nEnter to exit"
+        )
+        if not success:
+            self.get_logger().error("Calibration failed:\n" + format_output(output))
+            response.success = False
+            return response
+        else:
+            self.get_logger().info("Calibration successful:\n" + format_output(output))
+
+        # Exit the program by sending Enter to stdin
+        process.stdin.write("\n")
+        process.stdin.flush()
+
+        # Wait up to 1 second for the process to exit on its own.
+        try:
+            process.communicate(timeout=1)[0]
+        except:
+            # No problem if exit fails.
+            pass
 
         # Find the calibration coefficients in the output
         # They are outputted in this format;
@@ -135,15 +207,8 @@ class CompasscalNode(Node):
             if line.startswith("\tVars: "):
                 vars_line = line
 
-        # If the line was not found, return success=False.
-        # Also log the whole output.
-        if vars_line is None:
-            self.get_logger().error("Compasscal calibration failed:\n" + output)
-            response.success = False
-            return response
-
         # Split the line into tokens.
-        coeffs = line.split(" ")
+        coeffs = vars_line.split(" ")
 
         # Drop the first token, "\tVars:"
         coeffs.pop(0)
@@ -154,15 +219,14 @@ class CompasscalNode(Node):
         # Convert the tokens to floats.
         coeffs = [float(x) for x in coeffs]
 
-        # Print the coefficients.
-        self.get_logger().info("Calibration coefficients:\n" + str(coeffs))
-
         # Save the coefficients to a file.
+        os.makedirs(os.path.expanduser("~/.config/kalman"), exist_ok=True)
         with open(
             os.path.join(
                 os.path.expanduser("~"),
                 ".config/kalman/phidgets_spatial_calibration_params.yaml",
             ),
+            "w",
         ) as f:
             yaml.dump(
                 {
@@ -187,6 +251,9 @@ class CompasscalNode(Node):
                 f,
             )
 
+        # Print the coefficients.
+        self.get_logger().info("Calibration is done. Coefficients:\n" + str(coeffs))
+
         # Return success=True.
         response.success = True
         response.cc_mag_field = coeffs[0]
@@ -203,6 +270,18 @@ class CompasscalNode(Node):
         response.cc_t4 = coeffs[11]
         response.cc_t5 = coeffs[12]
         return response
+
+    def wait_until_output(self, process, target_output):
+        output = ""
+        for _ in range(50, 0, -1):  # 5 seconds timeout
+            output += async_read_all(process.stdout)
+
+            if target_output in output:
+                return True, output
+
+            wait_for_process(process, 0.1)
+
+        return False, output
 
 
 def main():

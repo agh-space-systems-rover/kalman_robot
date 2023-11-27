@@ -13,6 +13,7 @@ if not os.path.exists(os.path.join("compasscal_build", "compasscal")):
     compasscal_build_dir = os.path.abspath(os.path.join(src_dir, "compasscal_build"))
     os.makedirs(compasscal_build_dir, exist_ok=True)
     distro = os.environ["ROS_DISTRO"]
+
     result = subprocess.run(
         [
             "sh",
