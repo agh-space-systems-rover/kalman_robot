@@ -99,5 +99,16 @@ def generate_launch_description():
                     ),
                 ],
             ),
+            Node(
+                package="imu_filter_madgwick",
+                executable="imu_filter_madgwick_node",
+                parameters=[
+                    str(
+                        get_package_share_path("kalman_drivers")
+                        / "param"
+                        / "imu_filter_madgwick.yaml"
+                    )
+                ],
+            ),
         ]
     )
