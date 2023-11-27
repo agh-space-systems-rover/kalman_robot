@@ -15,14 +15,11 @@ if not os.path.exists(os.path.join("compasscal_build", "compasscal")):
     distro = os.environ["ROS_DISTRO"]
 
     result = subprocess.run(
-        [
-            "sh",
-            "-c",
-            f'CFLAGS="-I/opt/ros/humble/opt/libphidget22/include/libphidget22 -I{compasscal_src_dir}/compasscal_lib" LDFLAGS="-L/opt/ros/humble/opt/libphidget22/lib" {compasscal_src_dir}/configure',
-        ],
+        f'CFLAGS="-I/opt/ros/humble/opt/libphidget22/include/libphidget22 -I{compasscal_src_dir}/compasscal_lib" LDFLAGS="-L/opt/ros/humble/opt/libphidget22/lib" {compasscal_src_dir}/configure',
         cwd=compasscal_build_dir,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
+        shell=True,
     )
 
     # Check if configure failed.
