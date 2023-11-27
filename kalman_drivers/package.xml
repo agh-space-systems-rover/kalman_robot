@@ -9,7 +9,7 @@
 
   <exec_depend>ros2launch</exec_depend>
   <exec_depend>realsense2_camera</exec_depend>
-  <exec_depend>phidgets_drivers</exec_depend>
+  <depend>phidgets_drivers</depend>
   <exec_depend>geometry_msgs</exec_depend>
 
   <export>
