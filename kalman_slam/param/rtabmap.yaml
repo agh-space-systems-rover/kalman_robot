@@ -1,0 +1,47 @@
+rtabmap:
+    ros__parameters:
+        subscribe_depth: False
+        subscribe_rgbd: False
+        subscribe_rgb: False
+        subscribe_stereo: False
+        subscribe_scan: False
+        subscribe_scan_cloud: True
+        subscribe_user_data: False
+        subscribe_odom_info: False
+        
+        frame_id: base_link
+        map_frame_id: map
+        odom_frame_id: odom
+        publish_tf: False
+        approx_sync: True
+        queue_size: 10
+
+        # RTAB-Map library parameters
+
+        Rtabmap/DetectionRate: "1"  # update Hz
+
+        Optimizer/Strategy: "2"  # GTSAM; default is ?
+        Optimizer/Robust: "true"  # optimize paths using Vertigo; default is false
+
+        Mem/NotLinkedNodesKept: "false"
+        Mem/STMSize: "30"  # short-term memory size; default is 10
+        Mem/LaserScanVoxelSize: "0.05"
+
+        Reg/Strategy: "1"  # ICP; default is visodo=0
+
+        Grid/CellSize: "0.1"  # resolution of occupancy grid; default is 0.05
+        Grid/Sensor: "0"  # 0 = laser scan; 1 = RGB-D; 2 = both; 1 is default
+        Grid/3D: "true"  # enables octomap; default is ?
+        # Grid/MaxObstacleHeight: "1.5"  # max height of obstacles; default is disabled
+        # Grid/ClusterRadius: "0.1"  # maximum radius of a cluster; default is 0.1
+        # Grid/MinClusterSize: "30"  # minimum number of points in a cluster; default is 10
+        # Grid/NormalK: "200"  # number of neighbors for normal estimation; default is 20
+        Grid/MaxGroundAngle: "30"
+        Grid/FlatObstacleDetected: "false"
+        # Grid/RayTracing: "True  # default is false
+
+        Icp/VoxelSize: "0.05"  # disable uniform voxel size; default is 0.05
+        # Icp/Iterations: "30"  # max iterations for ICP; default is 30
+
+        OdomF2M/ScanSubtractRadius: "0.05"  # radius for filtering new points in local map; default is 0.05
+        OdomF2M/ScanMaxSize: "10000"  # max number of points in local map; default is 2000

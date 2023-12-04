@@ -23,14 +23,14 @@ REALSENSE_SERIAL_NUMBERS = {
 
 
 def launch_setup(context):
-    realsense_ids = [
+    rgbd_ids = [
         x
-        for x in LaunchConfiguration("realsense_ids").perform(context).split(" ")
+        for x in LaunchConfiguration("rgbd_ids").perform(context).split(" ")
         if x != ""
     ]
-    realsense_ids_sns = [
+    rgbd_ids_sns = [
         (x, REALSENSE_SERIAL_NUMBERS[x])
-        for x in realsense_ids
+        for x in rgbd_ids
         if x in REALSENSE_SERIAL_NUMBERS
     ]
 
@@ -95,7 +95,7 @@ def launch_setup(context):
         ),
     ]
 
-    if len(realsense_ids_sns) > 0:
+    if len(rgbd_ids_sns) > 0:
         description += [
             # ---------------------------
             # real-life RealSense drivers
@@ -120,7 +120,7 @@ def launch_setup(context):
                     ),
                 }.items(),
             )
-            for camera_name, serial_no in realsense_ids_sns
+            for camera_name, serial_no in rgbd_ids_sns
             # TODO: Add the fourth camera here.
         ]
         # description += [
@@ -134,7 +134,7 @@ def launch_setup(context):
         #             ("out/compressed", f"/{camera_name}/color/image_raw/compressed"),
         #         ],
         #     )
-        #     for camera_name, serial_no in realsense_ids_sns
+        #     for camera_name, serial_no in rgbd_ids_sns
         # ]
         # TODO: Use compressed_depth_image_transport for depth images?
 
@@ -145,7 +145,7 @@ def generate_launch_description():
     return LaunchDescription(
         [
             DeclareLaunchArgument(
-                "realsense_ids",
+                "rgbd_ids",
                 default_value="d455_front d455_back d455_back d455_right",
                 description="Space-separated IDs of the depth cameras to use.",
             ),

@@ -15,7 +15,7 @@ from launch.conditions import IfCondition
 def launch_setup(context):
     unity_sim = LaunchConfiguration("unity_sim").perform(context)
     drivers = LaunchConfiguration("drivers").perform(context)
-    realsense_ids = LaunchConfiguration("realsense_ids").perform(context)
+    rgbd_ids = LaunchConfiguration("rgbd_ids").perform(context)
 
     if unity_sim == "True" and drivers == "True":
         raise RuntimeError(
@@ -44,7 +44,7 @@ def launch_setup(context):
                     / "drivers.launch.py"
                 )
             ),
-            launch_arguments={"realsense_ids": realsense_ids}.items(),
+            launch_arguments={"rgbd_ids": rgbd_ids}.items(),
             condition=IfCondition(LaunchConfiguration("drivers")),
         ),
         # ----
@@ -78,13 +78,14 @@ def launch_setup(context):
             PythonLaunchDescriptionSource(
                 str(get_package_share_path("kalman_slam") / "launch" / "slam.launch.py")
             ),
-            launch_arguments={"realsense_ids": realsense_ids}.items(),
+            launch_arguments={"rgbd_ids": rgbd_ids}.items(),
         ),
         # Nav2 stack + path follower
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
                 str(get_package_share_path("kalman_nav2") / "launch" / "nav2.launch.py")
-            )
+            ),
+            launch_arguments={"rgbd_ids": rgbd_ids}.items(),
         ),
         # wheel controller
         Node(
@@ -113,14 +114,14 @@ def generate_launch_description():
                 description="Launch with physical sensors and actuators.",
             ),
             DeclareLaunchArgument(
-                "realsense_ids",
-                default_value="d455_front d455_back d455_left d455_right",
-                description="Space-separated IDs of the depth cameras to use.",
-            ),
-            DeclareLaunchArgument(
                 "rviz",
                 default_value="False",
                 description="Launch RViz.",
+            ),
+            DeclareLaunchArgument(
+                "rgbd_ids",
+                default_value="d455_front d455_back d455_left d455_right",
+                description="Space-separated IDs of the depth cameras to use.",
             ),
             OpaqueFunction(function=launch_setup),
         ]

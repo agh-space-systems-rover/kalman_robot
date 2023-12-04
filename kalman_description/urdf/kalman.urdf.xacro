@@ -11,7 +11,7 @@ The description defines all the TF nodes that are children of base_link. -->
     <!-- IMU -->
     <link name="imu_link" />
     <joint name="imu_joint" type="fixed">
-        <origin xyz="0.088 0.000 -0.010"/>
+        <origin xyz="0.088 0.000 -0.015"/>
         <parent link="base_link"/>
         <child link="imu_link"/>
     </joint>
@@ -19,7 +19,7 @@ The description defines all the TF nodes that are children of base_link. -->
     <!-- Altimeter -->
     <link name="altimeter_link" />
     <joint name="altimeter_joint" type="fixed">
-        <origin xyz="0.088 0.000 -0.010"/>
+        <origin xyz="0.088 0.000 -0.015"/>
         <parent link="base_link"/>
         <child link="altimeter_link"/>n
     </joint>
