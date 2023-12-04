@@ -92,7 +92,7 @@ class WheelController(rclpy.node.Node):
         )
         self.declare_parameter(
             "wheel_turn_vel",
-            1.0,
+            0.8,
             ParameterDescriptor(
                 type=ParameterType.PARAMETER_DOUBLE,
                 description="angular speed of the swivel when changing wheel orientation; Predicates for how long the robot will wait when adjusting wheels. (rad/s)",
