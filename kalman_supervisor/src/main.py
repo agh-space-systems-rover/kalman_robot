@@ -1,4 +1,5 @@
-from core import Core, SupervisorStatus
+from core import Core
+from kalman_interfaces.msg import SupervisorStatus
 from transitions.extensions import GraphMachine
 from states import State, TRANSITIONS, STATE_TO_INT
 from waypoints_server import WaypointsServer
