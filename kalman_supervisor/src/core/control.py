@@ -41,7 +41,7 @@ class Control(Node):
         frame: self.Frame = self.Frame(self.get_parameter('frame').value)
 
         if frame == self.Frame.NONE:
-            node.get_logger().info("Got NONE as the input frame, this should never happen!")
+            self.get_logger().info("Got NONE as the input frame, this should never happen!")
 
         if frame == self.Frame.GPS:
             self.__debug_publisher.publish("Got GPS goal, converting to UTM.")
@@ -79,7 +79,7 @@ class Control(Node):
         mode = Mode(self.get_parameter('mode').value)
 
         if mode == Mode.NONE:
-            node.get_logger().info("Got NONE as mode, this should never happen!")
+            self.get_logger().info("Got NONE as mode, this should never happen!")
 
         return mode
     
