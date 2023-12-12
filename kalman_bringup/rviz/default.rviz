@@ -6,7 +6,7 @@ Panels:
       Expanded:
         - /Global Options1
         - /TF1/Frames1
-        - /MarkerArray1/Status1
+        - /PointCloud21
       Splitter Ratio: 0.4513888955116272
     Tree Height: 707
   - Class: rviz_common/Selection
@@ -320,7 +320,7 @@ Visualization Manager:
       Channel Name: intensity
       Class: rviz_default_plugins/PointCloud2
       Color: 255; 255; 255
-      Color Transformer: RGB8
+      Color Transformer: Intensity
       Decay Time: 0
       Enabled: true
       Invert Rainbow: false
@@ -340,7 +340,7 @@ Visualization Manager:
         Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /rtabmap/cloud_map
+        Value: /d455_front/obstacles
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
@@ -432,7 +432,7 @@ Visualization Manager:
       Enabled: true
       Name: MarkerArray
       Namespaces:
-        "": true
+        {}
       Topic:
         Depth: 5
         Durability Policy: Volatile
@@ -486,16 +486,16 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 18.950735092163086
+      Distance: 21.94085693359375
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -6.129083156585693
-        Y: -0.11059612035751343
-        Z: -6.025538921356201
+        X: -4.899817943572998
+        Y: -0.04419917240738869
+        Z: -6.798121929168701
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false

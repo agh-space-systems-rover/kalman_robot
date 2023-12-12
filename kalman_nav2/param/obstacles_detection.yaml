@@ -2,7 +2,7 @@ obstacles_detection:
   ros__parameters:
     frame_id: "base_link"
     map_frame_id: "map"
-    publish_tf: True
+    publish_tf: False
 
     Grid/CellSize: "0.1" # resolution of occupancy grid; default is 0.05
     Grid/Sensor: "0" # 0 = laser scan; 1 = RGB-D; 2 = both; 1 is default

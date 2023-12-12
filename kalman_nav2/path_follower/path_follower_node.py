@@ -189,7 +189,9 @@ class PathFollower(rclpy.node.Node):
             angular_velocity = self.get_parameter("angular_velocity").value
             res.cmd_vel.twist.linear.x = target_dir[0] * linear_velocity
             res.cmd_vel.twist.linear.y = target_dir[1] * linear_velocity
-            res.cmd_vel.twist.angular.z = rot_angle * angular_velocity
+            res.cmd_vel.twist.angular.z = (
+                np.sign(rot_angle) * angular_velocity
+            ) * np.min([1.0, np.abs(rot_angle) * 2.0])
 
             # If the robot is heading in a direction off of the target
             # direction over rotate_in_place_start_angle, it will rotate
@@ -202,7 +204,7 @@ class PathFollower(rclpy.node.Node):
         elif isinstance(self.state, RotateInPlaceState):
             # Rotate in place to face the target direction.
             angular_velocity = self.get_parameter("angular_velocity").value
-            res.cmd_vel.twist.angular.z = rot_angle * angular_velocity
+            res.cmd_vel.twist.angular.z = np.sign(rot_angle) * angular_velocity
 
             # Transition to RotateInPlace when the robot is almost parallel to the target direction.
             if (

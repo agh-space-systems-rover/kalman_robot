@@ -1,156 +1,225 @@
+# The Costmap 2D package implements a 2D grid-based costmap for environmental representations and a number of sensor processing plugins (AI outputs, depth sensor obstacle buffering, semantic information, etc). It is used in the planner and controller servers for creating the space to check for collisions or higher cost areas to negotiate around.
 global_costmap:
   global_costmap:
     ros__parameters:
-      update_frequency: 5.0
-      publish_frequency: 5.0
-      always_send_full_costmap: True
-      width: 100
-      height: 100
-      resolution: 0.1
-      global_frame: map
-      robot_base_frame: base_link
-      rolling_window: True # move with the robot
-      track_unknown_space: False # mark unknown space as free
+      # Reference frame.
+      # global_frame: map
+      # Robot base frame.
+      # robot_base_frame: base_link
+      # Topic of map from map_server or SLAM.
+      # map_topic: map
+
+      # Costmap update frequency.
+      # update_frequency: 5.0
+      # Frequency to publish costmap to topic.
+      publish_frequency: 5.0 # default: 1.0
+      # Whether to send full costmap every update, rather than updates.
+      always_send_full_costmap: true # default: false
+
+      # Width of costmap (m).
+      width: 100 # default: 5
+      # Height of costmap (m).
+      height: 100 # default: 5
+      # X origin of the costmap relative to width (m).
+      # origin_x: 0.0
+      # Y origin of the costmap relative to height (m).
+      # origin_y: 0.0
+      # Resolution of 1 pixel of the costmap, in meters.
+      # resolution: 0.1
+      
+      # Whether costmap should roll with robot base frame.
+      rolling_window: true # default: false
+      # If occupancy grid map should be interpreted as only 3 values (free, occupied, unknown) or with its stored values.
+      # trinary_costmap: true
+      # If false, treats unknown space as free space, else as unknown space.
+      track_unknown_space: true # default: false
+      # Whether when combining costmaps to use the maximum cost or override.
+      # use_maximum: false
+
+      # Cost of unknown space if tracking it.
+      # unknown_cost_value: 255
+      # Minimum cost of an occupancy grid map to be considered a lethal obstacle.
+      lethal_cost_threshold: 1000000 # default: 100
+
+      # TF transform tolerance.
+      # transform_tolerance: 0.3 # seconds
+      # Time to wait for the transform from robot base frame to global frame to become available. If exceeded, the configuration stage is aborted.
+      # transform_timeout: 60.0 # seconds
+
+      # Ordered set of footprint points passed in as a string, must be closed set. For example, the following defines a square base with side lengths of 0.2 meters footprint: “[ [0.1, 0.1], [0.1, -0.1], [-0.1, -0.1], [-0.1, 0.1] ]”. Note that this can also be adjusted over time using the costmap’s ~/footprint topic, which will update the polygon over time as needed due to changes in the robot’s state, such as movement of an attached manipulator, picking up a pallet, or other actions that adjust a robot’s shape.
+      # footprint: []
+      # Amount to pad footprint (m).
+      # footprint_padding: 0.01
+      # Robot radius to use, if footprint coordinates not provided.
+      robot_radius: 0.7 # default: 0.1
+
+      # List of mapped costmap filter names for parameter namespaces and names.
+      # filters: []
+
+      # List of mapped plugin names for parameter namespaces and names.
       plugins: ["stvl", "inflation_layer"]
+
+      # Why use STVL:
+      # - Standard voxel layer only clears obstacles when other obstacles are detected behind them.
+      # - STVL on the other hand clears obstacles when they are not detected in the frustum anymore.
+      # - Obstacle layer does not have its own memory like voxel layers so it is not suitable for mapping.
       stvl:
-        # Why STVL?
-        # - Standard voxel layer only clears obstacles when other obstacles are detected behind them.
-        # - STVL on the other hand clears obstacles when they are not detected anymore in the frustum.
-        # - Static layer does not have its own memory like voxel layers so it is not suitable for mapping.
         plugin: "spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer"
         enabled: true
+
+        origin_z: 0.0                   # meters
+        voxel_size: 0.1                 # meters
+        
         voxel_decay: 10.0               # seconds if linear, e^n if exponential
         decay_model: -1                 # 0=linear, 1=exponential, -1=persistent
-        voxel_size: 0.1                 # meters
-        track_unknown_space: true       # default space is unknown
         mark_threshold: 0               # voxel height
-        update_footprint_enabled: true  # default off
+        track_unknown_space: true       # default space is unknown
+        
         combination_method: 1           # 1=max, 0=override
-        origin_z: 0.0                   # meters
-        publish_voxel_map: true         # default off
+        update_footprint_enabled: true  # default off
         transform_tolerance: 0.2        # seconds
+
+        publish_voxel_map: false         # default off
         mapping_mode: false             # default off, saves map not for navigation
         map_save_duration: 60.0         # default 60s, how often to autosave
-        # observation_sources: d455_front d455_back d455_left d455_right
-        # d455_front:
-        #   data_type: PointCloud2
-        #   topic: /d455_front/obstacles
-        #   marking: true
-        #   clearing: true
-
-        #   # Marking params:
-        #   obstacle_range: 10.0            # meters
-        #   min_obstacle_height: -1000.0    # default 0, meters
-        #   max_obstacle_height: 1000.0     # default 3, meters
-        #   expected_update_rate: 0.0       # default 0, if not updating at this rate at least, remove from buffer
-        #   observation_persistence: 0.0    # default 0, use all measurements taken during now-value, 0=latest # Q: Does this average the last X seconds of observations before testing for occupancy?
-        #   inf_is_valid: false             # default false, for laser scans
-        #   clear_after_reading: true       # default false, clear the buffer after the layer gets readings from it
-        #   filter: "voxel"                 # default passthrough, apply "voxel", "passthrough", or no filter to sensor data, recommended to have at one filter on
-        #   voxel_min_points: 0             # default 0, minimum points per voxel for voxel filter
-            
-        #   # Clearing params:
-        #   min_z: 0.0                      # default 0, meters
-        #   max_z: 5.0                      # default 10, meters
-        #   vertical_fov_angle: 1.025       # default 0.7, radians
-        #   horizontal_fov_angle: 1.571     # default 1.04, radians
-        #   decay_acceleration: 100.0        # default 0, 1/s^2. If laser scanner MUST be 0
-        #   model_type: 0                   # default 0 (depth camera). Use 1 for 3D Lidar
 
         # Multi-camera setup using Jinja2 templating:
+        # List of sources of sensors as a string.
         observation_sources: {{ rgbd_ids | join(' ') }}
 {% for camera_id in rgbd_ids %}
         {{ camera_id }}:
           data_type: PointCloud2
-          topic: /{{ camera_id }}/obstacles # Substituted in launch file.
-          marking: true
-          clearing: true
+          topic: /{{ camera_id }}/obstacles
 
           # Marking params:
-          obstacle_range: 10.0            # meters
-          min_obstacle_height: -1000.0    # default 0, meters
-          max_obstacle_height: 1000.0     # default 3, meters
-          clear_after_reading: true       # default false, clear the buffer after the layer gets readings from it
-          filter: "voxel"                 # default passthrough, apply "voxel", "passthrough", or no filter to sensor data, recommended to have at one filter on
+          marking: true
+          obstacle_range: 5.0           # meters
+          min_obstacle_height: -1000.0  # default 0, meters
+          max_obstacle_height: 1000.0   # default 3, meters
+          clear_after_reading: true     # default false, clear the buffer after the layer gets readings from it
+          filter: "voxel"               # default passthrough, apply "voxel", "passthrough", or no filter to sensor data, recommended to have at one filter on
             
           # Clearing params:
-          max_z: 5.0                      # default 10, meters
-          vertical_fov_angle: 1.025       # default 0.7, radians
-          horizontal_fov_angle: 1.571     # default 1.04, radians
-          decay_acceleration: 10.0        # default 0, 1/s^2. If laser scanner MUST be 0
+          clearing: true
+          max_z: 6.5                    # default 10, meters
+          vertical_fov_angle: 1.025     # default 0.7, radians
+          horizontal_fov_angle: 1.571   # default 1.04, radians
+          decay_acceleration: 0.5       # default 0, 1/s^2. If laser scanner MUST be 0
 {% endfor %}
 
+      # This layer places an exponential decay functions around obstacles to increase cost to traverse near collision. It also places a lethal cost around obstacles within the robot’s fully inscribed radius - even if a robot is non-circular for optimized first-order collision checking.
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 0.1
-        inflation_radius: 0.7
 
+        # Radius to inflate costmap around lethal obstacles.
+        inflation_radius: 0.8 # default: 0.55
+        # Exponential decay factor across inflation radius.
+        cost_scaling_factor: 0.1 # default: 10.0
+
+        # Whether to inflate unknown cells as if lethal.
+        # inflate_unknown: false
+        # Whether to inflate unknown cells.
+        # inflate_around_unknown: false
+
+# Configuration is analogous to global_costmap.
 local_costmap:
   local_costmap:
     ros__parameters:
-      update_frequency: 5.0
       publish_frequency: 5.0
-      always_send_full_costmap: True
-      width: 10
-      height: 10
-      resolution: 0.1
-      global_frame: odom
-      robot_base_frame: base_link
-      rolling_window: True # move with robot
-      track_unknown_space: False # mark unknown space as free
-      plugins: ["inflation_layer"]
-      # voxel_layer:
-      #   plugin: "nav2_costmap_2d::VoxelLayer"
-      #   enabled: True
-      #   footprint_clearing_enabled: False
-      #   max_obstacle_height: 1000000.0
-      #   unknown_threshold: 1000000
-      #   mark_threshold: 0
-      #   combination_method: 0 # =overwrite; 1=max; 2=max without unknown overwrite
-      #   observation_sources: obstacle_cloud
-      #   obstacle_cloud:
-      #     topic: /rtabmap/local_grid_obstacle
-      #     observation_persistence: 0.0
-      #     expected_update_rate: 0.0
-      #     data_type: "PointCloud2"
-      #     min_obstacle_height: -1000000.0
-      #     max_obstacle_height: 1000000.0
-      #     inf_is_valid: False
-      #     marking: True
-      #     clearing: False
-      #     obstacle_max_range: 1000000.0
-      #     obstacle_min_range: 0.0
-      #     raytrace_max_range: 0.0
-      #     raytrace_min_range: 0.0
-      inflation_layer:
-        plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 0.01
-        inflation_radius: 0.7
+      always_send_full_costmap: true
 
+      width: 5
+      height: 5
+
+      rolling_window: true
+      track_unknown_space: true
+      
+      lethal_cost_threshold: 1000000
+      robot_radius: 0.7
+
+      plugins: ["static_layer"]
+
+      # This implements a costmap layer taking in a map from either SLAM or map_server (or other) to place into the costmap. It resizes the costmap to its size and places the static obstacles on the planning space.
+      static_layer:
+        plugin: "nav2_costmap_2d::StaticLayer"
+
+        # Subscribe to static map updates after receiving first.
+        subscribe_to_updates: true # default: false
+        # QoS settings for map topic.
+        # map_subscribe_transient_local: true
+        # TF tolerance.
+        transform_tolerance: 0.3 # seconds; default: 0.0
+        # Map topic to subscribe to. If left empty the map topic will default to the global map_topic parameter in costmap_2d_ros.
+        map_topic: /global_costmap/costmap # default: ""
+
+# The Behavior Server implements the server for handling various behavior, such as recoveries and docking, requests and hosting a vector of plugins implementing various C++ behaviors. It is also possible to implement independent behavior servers for each custom behavior, but this server will allow multiple behaviors to share resources such as costmaps and TF buffers to lower incremental costs for new behaviors.
+# Note: the wait recovery behavior has no parameters, the duration to wait is given in the action request. Note: pre-Rolling/Humble this was the Recovery server, not behavior server. Launch files, behaviors and tests were all renamed.
 behavior_server:
   ros__parameters:
-    # Enabled plugins are used by the behavior trees.
-    behavior_plugins: ["spin", "backup"]
+    # Raw costmap topic for collision checking on the local costmap.
+    local_costmap_topic: local_costmap/costmap_raw
+    # Raw costmap topic for collision checking on the global costmap.
+    global_costmap_topic: global_costmap/costmap_raw
+    # Topic for footprint in the local costmap frame.
+    local_footprint_topic: local_costmap/published_footprint
+    # Topic for footprint in the global costmap frame.
+    global_footprint_topic: global_costmap/published_footprint
+    # Frequency to run behavior plugins.
+    cycle_frequency: 10.0
+    # The timeout value (in seconds) for action servers to discard a goal handle if a result has not been produced. This used to default to 15 minutes in rcl but was changed to 10 seconds in this PR #1012, which may be less than some actions in Nav2 take to run. For most applications, this should not need to be adjusted as long as the actions within the server do not exceed this deadline. This issue has been raised with OSRF to find another solution to avoid active goal timeouts for bookkeeping, so this is a semi-temporary workaround
+    action_server_result_timeout: 900.0
+    # TF transform tolerance.
+    transform_tolerance: 0.1 # seconds
+    # Global frame.
+    global_frame: map
+    # Robot base frame.
+    robot_base_frame: base_link
+    # List of plugin names to use, also matches action server names.
+    behavior_plugins: ["spin"]
     spin:
       plugin: "nav2_behaviors/Spin"
-    backup:
-      plugin: "nav2_behaviors/BackUp"
 
+# The BT Navigator (Behavior Tree Navigator) module implements the NavigateToPose, NavigateThroughPoses, and other task interfaces. It is a Behavior Tree-based implementation of navigation that is intended to allow for flexibility in the navigation task and provide a way to easily specify complex robot behaviors, including recovery.
+# Consider checking out the Groot - Interacting with Behavior Trees tutorial for using Groot to visualize and modify behavior trees.
+# Make sure to review all parameters for non-default navigator plugins not discussed on this page (e.g. CoverageNavigator or custom additions).
 bt_navigator:
   ros__parameters:
-    default_nav_to_pose_bt_xml: $(find-pkg-share kalman_nav2)/behavior_trees/nav_to_pose.xml
-    default_nav_through_poses_bt_xml: $(find-pkg-share kalman_nav2)/behavior_trees/nav_through_poses.xml
+    # Reference frame.
     global_frame: map
+    # Robot base frame.
     robot_base_frame: base_link
+    # Topic on which odometry is published
     odom_topic: /odometry/filtered
-    bt_loop_duration: 10
-    default_server_timeout: 20
-    action_server_result_timeout: 900.0
+    # Blackboard variable to use to supply the goal to the behavior tree for NavigateToPose. Should match ports of BT XML file.
+    goal_blackboard_id: goal
+    # Blackboard variable to get the path from the behavior tree for NavigateThroughPoses feedback. Should match port names of BT XML file.
+    path_blackboard_id: path
+    # Blackboard variable to use to supply the goals to the behavior tree for NavigateThroughPoses. Should match ports of BT XML file.
+    goals_blackboard_id: goals
+
+    # New to Iron: Plugins for navigator types implementing the nav2_core::BehaviorTreeNavigator interface. They implement custom action servers with custom interface definitions and use that data to populate and process behavior tree navigation requests. Plugin classes are defined under the same namespace, see examples below. Defaults correspond to the NavigateToPoseNavigator and NavigateThroughPosesNavigator navigators.
     navigators: ["navigate_to_pose", "navigate_through_poses"]
+    # Path to the default behavior tree XML description for NavigateToPose, see Behavior Tree XML Nodes for details on this file. Used to be default_bt_xml_filename pre-Galactic. You can use substitution to specify file path like $(find-pkg-share my_package)/behavior_tree/my_nav_to_pose_bt.xml.
+    default_nav_to_pose_bt_xml: $(find-pkg-share kalman_nav2)/behavior_trees/nav_to_pose.xml
     navigate_to_pose:
       plugin: "nav2_bt_navigator/NavigateToPoseNavigator"
+    # Path to the default behavior tree XML description for NavigateThroughPoses, see Behavior Tree XML Nodes for details on this file. New to Galactic after NavigateThroughPoses was added. You can use substitution to specify file path like $(find-pkg-share my_package)/behavior_tree/my_nav_through_poses_bt.xml.
+    default_nav_through_poses_bt_xml: $(find-pkg-share kalman_nav2)/behavior_trees/nav_through_poses.xml
     navigate_through_poses:
       plugin: "nav2_bt_navigator/NavigateThroughPosesNavigator"
+
+    # Duration (in milliseconds) for each iteration of BT execution.
+    bt_loop_duration: 10
+    # Default timeout value (in milliseconds) while a BT action node is waiting for acknowledgement from an action server. This value will be overwritten for a BT node if the input port “server_timeout” is provided.
+    default_server_timeout: 20
+    # Default timeout value (in milliseconds) while Action or Service BT nodes will waiting for acknowledgement from an service or action server on BT initialization (e.g. wait_for_action_server(timeout)). This value will be overwritten for a BT node if the input port “wait_for_service_timeout” is provided.
+    wait_for_service_timeout: 1000
+    # The timeout value (in seconds) for action servers to discard a goal handle if a result has not been produced. This used to default to 15 minutes in rcl but was changed to 10 seconds in this PR #1012, which may be less than some actions in Nav2 take to run. For most applications, this should not need to be adjusted as long as the actions within the server do not exceed this deadline. This issue has been raised with OSRF to find another solution to avoid active goal timeouts for bookkeeping, so this is a semi-temporary workaround
+    action_server_result_timeout: 900.0
+    # TF transform tolerance.
+    transform_tolerance: 0.1 # seconds
+    
+    # List of behavior tree node shared libraries.
     plugin_lib_names:
       - nav2_compute_path_to_pose_action_bt_node
       - nav2_compute_path_through_poses_action_bt_node
@@ -199,13 +268,20 @@ bt_navigator:
       - nav2_assisted_teleop_cancel_bt_node
       - nav2_drive_on_heading_cancel_bt_node
       - nav2_is_battery_charging_condition_bt_node
+    # List of of error codes to compare.
     error_code_names:
       - compute_path_error_code
       - follow_path_error_code
 
+# The Planner Server implements the server for handling the planner requests for the stack and host a map of plugin implementations. It will take in a goal and a planner plugin name to use and call the appropriate plugin to compute a path to the goal. It also hosts the global costmap.
 planner_server:
   ros__parameters:
-    expected_planner_frequency: 10.0 # planning Hz
+    # Expected planner frequency. If the current frequency is less than the expected frequency, display the warning message.
+    expected_planner_frequency: 10.0
+    # The timeout value (in seconds) for action servers to discard a goal handle if a result has not been produced. This used to default to 15 minutes in rcl but was changed to 10 seconds in this PR #1012, which may be less than some actions in Nav2 take to run. For most applications, this should not need to be adjusted as long as the actions within the server do not exceed this deadline. This issue has been raised with OSRF to find another solution to avoid active goal timeouts for bookkeeping, so this is a semi-temporary workaround
+    action_server_result_timeout: 900.0
+
+    # List of Mapped plugin names for parameters and processing requests.
     planner_plugins: ["GridBased"]
     GridBased:
       plugin: "nav2_navfn_planner/NavfnPlanner"
@@ -213,82 +289,81 @@ planner_server:
       use_astar: True # Use A* or Dijkstra's?
       allow_unknown: True # Plan in unknown space?
     # GridBased:
-    #   plugin: "nav2_smac_planner/SmacPlannerHybrid"
-    #   downsample_costmap: false           # whether or not to downsample the map
-    #   downsampling_factor: 1              # multiplier for the resolution of the costmap layer (e.g. 2 on a 5cm costmap would be 10cm)
-    #   tolerance: 0.25                     # dist-to-goal heuristic cost (distance) for valid tolerance endpoints if exact goal cannot be found.
-    #   allow_unknown: true                 # allow traveling in unknown space
-    #   max_iterations: 1000000             # maximum total iterations to search for before failing (in case unreachable), set to -1 to disable
-    #   max_on_approach_iterations: 1000    # Maximum number of iterations after within tolerances to continue to try to find exact solution
-    #   max_planning_time: 5.0              # max time in s for planner to plan, smooth
-    #   motion_model_for_search: "DUBIN"    # Hybrid-A* Dubin, Redds-Shepp
-    #   angle_quantization_bins: 72         # Number of angle bins for search
-    #   analytic_expansion_ratio: 3.5       # The ratio to attempt analytic expansions during search for final approach.
-    #   analytic_expansion_max_length: 3.0  # For Hybrid/Lattice nodes: The maximum length of the analytic expansion to be considered valid to prevent unsafe shortcutting
-    #   minimum_turning_radius: 0.40        # minimum turning radius in m of path / vehicle
-    #   reverse_penalty: 2.0                # Penalty to apply if motion is reversing, must be => 1
-    #   change_penalty: 0.0                 # Penalty to apply if motion is changing directions (L to R), must be >= 0
-    #   non_straight_penalty: 1.2           # Penalty to apply if motion is non-straight, must be => 1
-    #   cost_penalty: 100.0                   # Penalty to apply to higher cost areas when adding into the obstacle map dynamic programming distance expansion heuristic. This drives the robot more towards the center of passages. A value between 1.3 - 3.5 is reasonable.
-    #   retrospective_penalty: 0.015
-    #   lookup_table_size: 20.0             # Size of the dubin/reeds-sheep distance window to cache, in meters.
-    #   cache_obstacle_heuristic: false     # Cache the obstacle map dynamic programming distance expansion heuristic between subsiquent replannings of the same goal location. Dramatically speeds up replanning performance (40x) if costmap is largely static.
-    #   debug_visualizations: false         # For Hybrid nodes: Whether to publish expansions on the /expansions topic as an array of poses (the orientation has no meaning) and the path's footprints on the /planned_footprints topic. WARNING: heavy to compute and to display, for debug only as it degrades the performance.
-    #   use_quadratic_cost_penalty: False
-    #   downsample_obstacle_heuristic: True
-    #   allow_primitive_interpolation: False
-      # smooth_path: True                   # If true, does a simple and quick smoothing post-processing to the path
-
-      # smoother:
-      #   max_iterations: 1000
-      #   w_smooth: 0.3
-      #   w_data: 0.2
-      #   tolerance: 1.0e-10
-      #   do_refinement: true
-      #   refinement_num: 2
-    # GridBased:
+    #   # This planner implements a cost-aware holonomic A* algorithm within the Smac Planner framework sharing the same code and behaviors as the Hybrid-A* and State Lattice planners.
     #   plugin: "nav2_smac_planner/SmacPlanner2D"
-    #   tolerance: 1000000.0                  # tolerance for planning if unable to reach exact pose, in meters
-    #   downsample_costmap: false             # whether or not to downsample the map
-    #   downsampling_factor: 1                # multiplier for the resolution of the costmap layer (e.g. 2 on a 5cm costmap would be 10cm)
-    #   allow_unknown: true                   # allow traveling in unknown space
-    #   max_iterations: -1                    # maximum total iterations to search for before failing (in case unreachable), set to -1 to disable
-    #   max_on_approach_iterations: 1000      # maximum number of iterations to attempt to reach goal once in tolerance
-    #   max_planning_time: 5.0                # max time in s for planner to plan, smooth
-    #   cost_travel_multiplier: 2.0           # Cost multiplier to apply to search to steer away from high cost areas. Larger values will place in the center of aisles more exactly (if non-`FREE` cost potential field exists) but take slightly longer to compute. To optimize for speed, a value of 1.0 is reasonable. A reasonable tradeoff value is 2.0. A value of 0.0 effective disables steering away from obstacles and acts like a naive binary search A*.
-    #   use_final_approach_orientation: false # Whether to set the final path pose at the goal's orientation to the requested orientation (false) or in line with the approach angle so the robot doesn't rotate to heading (true)
+      
+    #   # Tolerance in meters between requested goal pose and end of path.
+    #   tolerance: 1.0 # default: 0.125
+    #   # Cost multiplier to apply to search to steer away from high cost areas. Larger values will place in the center of aisles more exactly (if non-FREE cost potential field exists) but take slightly longer to compute. To optimize for speed, a value of 1.0 is reasonable. A reasonable tradeoff value is 2.0. A value of 0.0 effective disables steering away from obstacles and acts like a naive binary search A*.
+    #   cost_travel_multiplier: 1000000.0
+    #   # Whether to allow traversing/search in unknown space.
+    #   allow_unknown: true
+    #   # If true, the last pose of the path generated by the planner will have its orientation set to the approach orientation, i.e. the orientation of the vector connecting the last two points of the path
+    #   use_final_approach_orientation: false
+
+    #   # Whether to downsample costmap to another resolution for search.
+    #   downsample_costmap: false
+    #   # Multiplier factor to downsample costmap by (e.g. if 5cm costmap at 2 downsample_factor, 10cm output).
+    #   downsampling_factor: 1
+      
+    #   # Maximum number of search iterations before failing to limit compute time, disabled by -1.
+    #   max_iterations: 1000000
+    #   # Maximum number of iterations after the search is within tolerance before returning approximate path with best heuristic if exact path is not found.
+    #   max_on_approach_iterations: 1000
+    #   # Maximum planning time in seconds.
+    #   max_planning_time: 2.0
+      
     #   smoother:
+    #     # The maximum number of iterations the smoother has to smooth the path, to bound potential computation.
     #     max_iterations: 1000
+    #     # Weight for smoother to apply to smooth out the data points
     #     w_smooth: 0.3
+    #     # Weight for smoother to apply to retain original data information
     #     w_data: 0.2
+    #     # Parameter tolerance change amount to terminate smoothing session
     #     tolerance: 1e-10
 
+# The Controller Server implements the server for handling the controller requests for the stack and host a map of plugin implementations. It will take in path and plugin names for controller, progress checker and goal checker to use and call the appropriate plugins. It also hosts the local costmap.
 controller_server:
   ros__parameters:
+    # Frequency to run controller (Hz).
     controller_frequency: 10.0
-    min_x_velocity_threshold: 0.001
-    min_y_velocity_threshold: 0.001
-    min_theta_velocity_threshold: 0.001
-    failure_tolerance: 0.0 # disable failure detection
+    # Adds soft real-time priorization to the controller server to better ensure resources to time sensitive portions of the codebase. This will set the controller’s execution thread to a higher priority than the rest of the system (90) to meet scheduling deadlines to have less missed loop rates. To use this feature, you use set the following inside of /etc/security/limits.conf to give userspace access to elevated prioritization permissions: <username> soft rtprio 99 <username> hard rtprio 99
+    use_realtime_priority: false
+    # The timeout value (in seconds) for action servers to discard a goal handle if a result has not been produced. This used to default to 15 minutes in rcl but was changed to 10 seconds in this PR #1012, which may be less than some actions in Nav2 take to run. For most applications, this should not need to be adjusted as long as the actions within the server do not exceed this deadline. This issue has been raised with OSRF to find another solution to avoid active goal timeouts for bookkeeping, so this is a semi-temporary workaround
+    action_server_result_timeout: 86400.0 # 24h
     
+    # The controller server filters the velocity portion of the odometry messages received before sending them to the controller plugin. Odometry values below this threshold (in m/s) will be set to 0.0.
+    min_x_velocity_threshold: 0.001
+    # The controller server filters the velocity portion of the odometry messages received before sending them to the controller plugin. Odometry values below this threshold (in m/s) will be set to 0.0. For non-holonomic robots
+    min_y_velocity_threshold: 0.001
+    # The controller server filters the velocity portion of the odometry messages received before sending them to the controller plugin. Odometry values below this threshold (in rad/s) will be set to 0.0.
+    min_theta_velocity_threshold: 0.001
+    # The maximum duration in seconds the called controller plugin can fail (i.e. the computeVelocityCommands function of the plugin throwing an exception) before the nav2_msgs::action::FollowPath action fails. Setting it to the special value of -1.0 makes it infinite, 0 to disable, and any positive value for the appropriate timeout.
+    failure_tolerance: -1.0 # infinite
+    
+    # Mapped name for progress checker plugin for checking progress made by robot. Formerly progress_checker_plugin for Humble and older with a single string plugin.
     progress_checker_plugin: "progress_checker"
     progress_checker:
       plugin: "nav2_controller::SimpleProgressChecker"
       required_movement_radius: 1.0 # robot must have moved 1 m
-      movement_time_allowance: 30.0 # in the last 10 seconds
+      movement_time_allowance: 30.0 # in the last 30 seconds
     
+    # Mapped name for goal checker plugin for checking goal is reached.
     goal_checker_plugins: ["simple_goal_checker"]
     simple_goal_checker:
       plugin: "nav2_controller::SimpleGoalChecker"
       xy_goal_tolerance: 1.0 # meters
-      yaw_goal_tolerance: 1000000.0 # radians
-      stateful: True # check XY after rotating
+      yaw_goal_tolerance: 4.0 # radians (allows full circle error)
+      stateful: False # do not check XY after rotating
     
+    # List of mapped names for controller plugins for processing requests and parameters.
     controller_plugins: ["FollowPath"]
     FollowPath:
       plugin: "service_based_nav2_controller::ServiceBasedNav2Controller"
       compute_velocity_commands_service: "/path_follower/compute_velocity_commands"
 
+# The nav2_velocity_smoother is a package containing a lifecycle-component node for smoothing velocities sent by Nav2 to robot controllers. The aim of this package is to implement velocity, acceleration, and deadband smoothing from Nav2 to reduce wear-and-tear on robot motors and hardware controllers by smoothing out the accelerations/jerky movements that might be present with some local trajectory planners’ control efforts. It can also interpolate velocity commands at higher rates than the controller server publishes.
 velocity_smoother:
   ros__parameters:
     # Frequency (Hz) to use the last received velocity command to smooth by velocity, acceleration, and deadband constraints. If set approximately to the rate of your local trajectory planner, it should smooth by acceleration constraints velocity commands. If set much higher, it will interpolate and provide a smooth set of commands to the hardware controller.

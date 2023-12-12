@@ -68,7 +68,7 @@ def launch_setup(context):
                 ("depth/image", f"/{camera_id}/aligned_depth_to_color/image_raw"),
                 ("rgb/camera_info", f"/{camera_id}/color/camera_info"),
             ],
-            arguments=["--ros-args", "--log-level", "warn"],
+            arguments=["--ros-args", "--log-level", "error"],
         )
         for camera_id in rgbd_ids
     ]

@@ -108,7 +108,7 @@ class WheelController(rclpy.node.Node):
         )
         self.declare_parameter(
             "min_wheel_turn_diff",
-            0.1,
+            0.2,
             ParameterDescriptor(
                 type=ParameterType.PARAMETER_DOUBLE,
                 description="maximum difference between current and target wheel swivel angle to stop adjusting wheels in place (rad)",

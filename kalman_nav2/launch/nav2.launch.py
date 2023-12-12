@@ -37,6 +37,8 @@ def launch_setup(context):
                 "cloud": f"/{camera_id}/depth/color/points",
                 "obstacles": f"/{camera_id}/obstacles",
             }.items(),
+            # output="log",  # screen, log or both
+            arguments=["--ros-args", "--log-level", "fatal"],
         )
         for camera_id in rgbd_ids
     ]
