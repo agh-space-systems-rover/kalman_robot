@@ -9,15 +9,14 @@ from launch.actions import (
 )
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
-from launch.conditions import IfCondition
 
 
 def launch_setup(context):
     unity_sim = LaunchConfiguration("unity_sim").perform(context).lower() == "true"
     drivers = LaunchConfiguration("drivers").perform(context).lower() == "true"
-    rviz = LaunchConfiguration("drivers").perform(context).lower() == "true"
+    rviz = LaunchConfiguration("rviz").perform(context).lower() == "true"
     rgbd_ids = LaunchConfiguration("rgbd_ids").perform(context)
-    
+
     if unity_sim and drivers:
         raise RuntimeError(
             "Cannot launch with both physical drivers and Unity simulation."
@@ -64,7 +63,6 @@ def launch_setup(context):
                 ),
             ),
         ]
-
 
     description += [
         # -----
