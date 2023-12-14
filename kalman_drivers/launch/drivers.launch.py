@@ -73,33 +73,53 @@ def launch_setup(context):
 
     # RGBD cameras are togglable.
     if len(rgbd_ids) > 0:
-        description += [
-            # ---------------------------
-            # real-life RealSense drivers
-            # ---------------------------
-            # Those nodes facilitate the communication with the RealSense devices
-            # and publish data to ROS topics.
-            IncludeLaunchDescription(
-                PythonLaunchDescriptionSource(
-                    str(
-                        get_package_share_path("realsense2_camera")
-                        / "launch"
-                        / "rs_launch.py"
-                    )
-                ),
-                launch_arguments={
-                    "camera_name": camera_name,
-                    "serial_no": serial_no,
-                    "config_file": str(  # Must use external config file for non-configurable options.
-                        get_package_share_path("kalman_drivers")
-                        / "param"
-                        / "realsense2_camera.yaml"
+        for camera_name, serial_no in rgbd_ids_sns:
+            description += [
+                # ---------------------------
+                # real-life RealSense drivers
+                # ---------------------------
+                # Those nodes facilitate the communication with the RealSense devices
+                # and publish data to ROS topics.
+                IncludeLaunchDescription(
+                    PythonLaunchDescriptionSource(
+                        str(
+                            get_package_share_path("realsense2_camera")
+                            / "launch"
+                            / "rs_launch.py"
+                        )
                     ),
-                }.items(),
-            )
-            for camera_name, serial_no in rgbd_ids_sns
-            # TODO: Add the fourth camera here.
-        ]
+                    launch_arguments={
+                        "camera_name": f"{camera_name}_high_fps",
+                        "serial_no": serial_no,
+                        "config_file": str(  # Must use external config file for non-configurable options.
+                            get_package_share_path("kalman_drivers")
+                            / "param"
+                            / "realsense2_camera.yaml"
+                        ),
+                    }.items(),
+                )
+            ]
+            description += [
+                Node(
+                    package="topic_tools",
+                    executable="throttle",
+                    arguments=[
+                        "messages",
+                        f"/{camera_name}_high_fps/{topic}",
+                        "10.0",
+                        f"/{camera_name}/{topic}"
+                    ]
+                ) for topic in [
+                    "color/camera_info",
+                    "color/image_raw",
+                    "color/image_raw/compressed",
+                    "aligned_depth_to_color/camera_info",
+                    "aligned_depth_to_color/image_raw",
+                    # "aligned_depth_to_color/image_raw/compressed",
+                    "depth/color/points",
+                ]
+            ]
+
         # description += [
         #     # Compressed re-publishers
         #     Node(
