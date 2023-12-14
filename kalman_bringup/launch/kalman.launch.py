@@ -13,53 +13,60 @@ from launch.conditions import IfCondition
 
 
 def launch_setup(context):
-    unity_sim = LaunchConfiguration("unity_sim").perform(context)
-    drivers = LaunchConfiguration("drivers").perform(context)
+    unity_sim = LaunchConfiguration("unity_sim").perform(context).lower() == "true"
+    drivers = LaunchConfiguration("drivers").perform(context).lower() == "true"
+    rviz = LaunchConfiguration("drivers").perform(context).lower() == "true"
     rgbd_ids = LaunchConfiguration("rgbd_ids").perform(context)
-
-    if unity_sim == "True" and drivers == "True":
+    
+    if unity_sim and drivers:
         raise RuntimeError(
             "Cannot launch with both physical drivers and Unity simulation."
         )
 
-    return [
-        # -----------------------------------
-        # Unity simulation / physical drivers
-        # -----------------------------------
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(
-                str(
-                    get_package_share_path("unity_sim")
-                    / "launch"
-                    / "unity_sim.launch.py"
-                )
+    description = []
+
+    if unity_sim:
+        description += [
+            IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(
+                    str(
+                        get_package_share_path("unity_sim")
+                        / "launch"
+                        / "unity_sim.launch.py"
+                    )
+                ),
             ),
-            condition=IfCondition(LaunchConfiguration("unity_sim")),
-        ),
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(
-                str(
-                    get_package_share_path("kalman_drivers")
-                    / "launch"
-                    / "drivers.launch.py"
-                )
+        ]
+
+    if drivers:
+        description += [
+            IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(
+                    str(
+                        get_package_share_path("kalman_drivers")
+                        / "launch"
+                        / "drivers.launch.py"
+                    )
+                ),
+                launch_arguments={"rgbd_ids": rgbd_ids}.items(),
             ),
-            launch_arguments={"rgbd_ids": rgbd_ids}.items(),
-            condition=IfCondition(LaunchConfiguration("drivers")),
-        ),
-        # ----
-        # RViz
-        # ----
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(
-                str(
-                    get_package_share_path("kalman_bringup")
-                    / "launch"
-                    / "rviz.launch.py"
-                )
+        ]
+
+    if rviz:
+        description += [
+            IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(
+                    str(
+                        get_package_share_path("kalman_bringup")
+                        / "launch"
+                        / "rviz.launch.py"
+                    )
+                ),
             ),
-            condition=IfCondition(LaunchConfiguration("rviz")),
-        ),
+        ]
+
+
+    description += [
         # -----
         # stack
         # -----
@@ -99,23 +106,25 @@ def launch_setup(context):
         ),
     ]
 
+    return description
+
 
 def generate_launch_description():
     return LaunchDescription(
         [
             DeclareLaunchArgument(
                 "unity_sim",
-                default_value="False",
+                default_value="false",
                 description="Start up the Unity simulator with virtual sensors and actuators.",
             ),
             DeclareLaunchArgument(
                 "drivers",
-                default_value="False",
+                default_value="false",
                 description="Launch with physical sensors and actuators.",
             ),
             DeclareLaunchArgument(
                 "rviz",
-                default_value="False",
+                default_value="false",
                 description="Launch RViz.",
             ),
             DeclareLaunchArgument(

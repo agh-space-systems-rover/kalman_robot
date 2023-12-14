@@ -77,7 +77,7 @@ setup(
     license=license,
     entry_points={
         "console_scripts": [
-            "compasscal = drivers.compasscal:main",
+            "compasscal = drivers.compasscal_node:main",
         ],
     },
 )

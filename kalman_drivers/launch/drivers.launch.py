@@ -21,81 +21,58 @@ REALSENSE_SERIAL_NUMBERS = {
     "d455_right": "_231122300896",
 }
 
-
 def launch_setup(context):
+    master = LaunchConfiguration("master").perform(context).lower() == "true"
     rgbd_ids = [
         x
         for x in LaunchConfiguration("rgbd_ids").perform(context).split(" ")
         if x != ""
     ]
-    rgbd_ids_sns = [
-        (x, REALSENSE_SERIAL_NUMBERS[x])
-        for x in rgbd_ids
-        if x in REALSENSE_SERIAL_NUMBERS
-    ]
+    imu = LaunchConfiguration("imu").perform(context).lower() == "true"
+    compasscal = LaunchConfiguration("compasscal").perform(context).lower() == "true"
 
-    description = [
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(
-                str(
-                    get_package_share_path("kalman_master_driver")
-                    / "launch"
-                    / "master_com.launch.py"
+    if len(rgbd_ids) > 0:
+        rgbd_ids_sns = [
+            (x, REALSENSE_SERIAL_NUMBERS[x])
+            for x in rgbd_ids
+            if x in REALSENSE_SERIAL_NUMBERS
+        ]
+
+    if imu:
+        if compasscal:
+            raise RuntimeError(
+                "IMU cannot be started simultaneously with the compasscal service node. Please start either one of them separately or do not start them at all."
+            )
+
+        phidgets_spatial_calibration_params_path = os.path.abspath(
+            os.path.join(
+                os.path.expanduser("~"),
+                ".config/kalman/phidgets_spatial_calibration_params.yaml",
+            )
+        )
+
+        if not os.path.exists(phidgets_spatial_calibration_params_path):
+            raise RuntimeError(
+                "Cannot launch without calibration parameters. Please start the compasscal node and invoke the calibration service to generate the required configuration file."
+            )
+
+    description = []
+    
+    if master:
+        description += [
+            IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(
+                    str(
+                        get_package_share_path("kalman_master_driver")
+                        / "launch"
+                        / "master_driver.launch.py"
+                    )
                 )
             )
-        ),
-        Node(
-            package="kalman_master_driver",
-            executable="wheel_driver",
-        ),
-        Node(
-            package="kalman_master_driver",
-            executable="ueuos_driver",
-        ),
-        Node(
-            package="kalman_drivers",
-            executable="compasscal",
-        ),
-        ComposableNodeContainer(
-            name="phidget_container",
-            namespace="",
-            package="rclcpp_components",
-            executable="component_container",
-            composable_node_descriptions=[
-                ComposableNode(
-                    package="phidgets_spatial",
-                    plugin="phidgets::SpatialRosI",
-                    name="phidgets_spatial",
-                    parameters=[
-                        str(
-                            get_package_share_path("kalman_drivers")
-                            / "param"
-                            / "phidgets_spatial.yaml"
-                        ),
-                        os.path.abspath(
-                            os.path.join(
-                                os.path.expanduser("~"),
-                                ".config/kalman/phidgets_spatial_calibration_params.yaml",
-                            )
-                        ),
-                    ],
-                ),
-            ],
-        ),
-        Node(
-            package="imu_filter_madgwick",
-            executable="imu_filter_madgwick_node",
-            parameters=[
-                str(
-                    get_package_share_path("kalman_drivers")
-                    / "param"
-                    / "imu_filter_madgwick.yaml"
-                )
-            ],
-        ),
-    ]
+        ]
 
-    if len(rgbd_ids_sns) > 0:
+    # RGBD cameras are togglable.
+    if len(rgbd_ids) > 0:
         description += [
             # ---------------------------
             # real-life RealSense drivers
@@ -138,6 +115,51 @@ def launch_setup(context):
         # ]
         # TODO: Use compressed_depth_image_transport for depth images?
 
+    # The IMU may also be disabled to allow for compass calibration.
+    if imu:
+        description += [
+            ComposableNodeContainer(
+                name="phidget_container",
+                namespace="",
+                package="rclcpp_components",
+                executable="component_container",
+                composable_node_descriptions=[
+                    ComposableNode(
+                        package="phidgets_spatial",
+                        plugin="phidgets::SpatialRosI",
+                        name="phidgets_spatial",
+                        parameters=[
+                            str(
+                                get_package_share_path("kalman_drivers")
+                                / "param"
+                                / "phidgets_spatial.yaml"
+                            ),
+                            phidgets_spatial_calibration_params_path
+                        ],
+                    ),
+                ],
+            ),
+            Node(
+                package="imu_filter_madgwick",
+                executable="imu_filter_madgwick_node",
+                parameters=[
+                    str(
+                        get_package_share_path("kalman_drivers")
+                        / "param"
+                        / "imu_filter_madgwick.yaml"
+                    )
+                ],
+            ),
+        ]
+
+    if compasscal:
+        description += [
+            Node(
+                package="kalman_drivers",
+                executable="compasscal",
+            ),
+        ]
+
     return description
 
 
@@ -145,9 +167,24 @@ def generate_launch_description():
     return LaunchDescription(
         [
             DeclareLaunchArgument(
+                "master",
+                default_value="true",
+                description="Start the master driver."
+            ),
+            DeclareLaunchArgument(
                 "rgbd_ids",
-                default_value="d455_front d455_back d455_back d455_right",
+                default_value="d455_front d455_back d455_left d455_right",
                 description="Space-separated IDs of the depth cameras to use.",
+            ),
+            DeclareLaunchArgument(
+                "imu",
+                default_value="true",
+                description="Start the IMU driver."
+            ),
+            DeclareLaunchArgument(
+                "compasscal",
+                default_value="false",
+                description="Start the IMU compass calibration service node. IMU must be disabled in order to calibrate the compass."
             ),
             OpaqueFunction(function=launch_setup),
         ]
