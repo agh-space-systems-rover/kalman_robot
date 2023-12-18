@@ -8,9 +8,10 @@ from launch.actions import (
     IncludeLaunchDescription,
     DeclareLaunchArgument,
     OpaqueFunction,
+    GroupAction
 )
 
-from launch_ros.actions import Node, ComposableNodeContainer
+from launch_ros.actions import Node, ComposableNodeContainer, SetRemap
 from launch_ros.descriptions import ComposableNode
 from launch.substitutions import LaunchConfiguration
 
@@ -73,13 +74,23 @@ def launch_setup(context):
 
     # RGBD cameras are togglable.
     if len(rgbd_ids) > 0:
+        THROTTLE_TOPICS = [
+            "color/camera_info",
+            "color/image_raw",
+            "color/image_raw/compressed",
+            "aligned_depth_to_color/camera_info",
+            "aligned_depth_to_color/image_raw",
+            # "aligned_depth_to_color/image_raw/compressed",
+            "depth/color/points",
+        ]
+
+        # Those nodes facilitate the communication with the RealSense devices
+        # and publish data to ROS topics.
         for camera_name, serial_no in rgbd_ids_sns:
-            description += [
-                # ---------------------------
-                # real-life RealSense drivers
-                # ---------------------------
-                # Those nodes facilitate the communication with the RealSense devices
-                # and publish data to ROS topics.
+            actions = [
+                SetRemap(src=f'/{camera_name}/{topic}', dst=f'/{camera_name}/{topic}/high_fps')
+                for topic in THROTTLE_TOPICS
+            ] + [
                 IncludeLaunchDescription(
                     PythonLaunchDescriptionSource(
                         str(
@@ -89,7 +100,7 @@ def launch_setup(context):
                         )
                     ),
                     launch_arguments={
-                        "camera_name": f"{camera_name}_high_fps",
+                        "camera_name": f"{camera_name}",
                         "serial_no": serial_no,
                         "config_file": str(  # Must use external config file for non-configurable options.
                             get_package_share_path("kalman_drivers")
@@ -99,25 +110,19 @@ def launch_setup(context):
                     }.items(),
                 )
             ]
+
+            description += [GroupAction(actions=actions)]
             description += [
                 Node(
                     package="topic_tools",
                     executable="throttle",
                     arguments=[
                         "messages",
-                        f"/{camera_name}_high_fps/{topic}",
+                        f"/{camera_name}/{topic}/high_fps",
                         "10.0",
                         f"/{camera_name}/{topic}"
                     ]
-                ) for topic in [
-                    "color/camera_info",
-                    "color/image_raw",
-                    "color/image_raw/compressed",
-                    "aligned_depth_to_color/camera_info",
-                    "aligned_depth_to_color/image_raw",
-                    # "aligned_depth_to_color/image_raw/compressed",
-                    "depth/color/points",
-                ]
+                ) for topic in THROTTLE_TOPICS
             ]
 
         # description += [
