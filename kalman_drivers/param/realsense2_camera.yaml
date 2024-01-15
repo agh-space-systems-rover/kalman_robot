@@ -8,3 +8,7 @@ pointcloud:
   enable: true
 align_depth:
   enable: true
+rgb_camera:
+  profile: 640x360x5
+depth_module:
+  profile: 640x360x5

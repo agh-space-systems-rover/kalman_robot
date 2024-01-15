@@ -8,7 +8,6 @@ from launch.actions import (
     IncludeLaunchDescription,
     DeclareLaunchArgument,
     OpaqueFunction,
-    GroupAction
 )
 
 from launch_ros.actions import Node, ComposableNodeContainer, SetRemap
@@ -21,6 +20,7 @@ REALSENSE_SERIAL_NUMBERS = {
     # TODO: left cam
     "d455_right": "_231122300896",
 }
+
 
 def launch_setup(context):
     master = LaunchConfiguration("master").perform(context).lower() == "true"
@@ -58,7 +58,7 @@ def launch_setup(context):
             )
 
     description = []
-    
+
     if master:
         description += [
             IncludeLaunchDescription(
@@ -87,10 +87,7 @@ def launch_setup(context):
         # Those nodes facilitate the communication with the RealSense devices
         # and publish data to ROS topics.
         for camera_name, serial_no in rgbd_ids_sns:
-            actions = [
-                SetRemap(src=f'/{camera_name}/{topic}', dst=f'/{camera_name}/{topic}/high_fps')
-                for topic in THROTTLE_TOPICS
-            ] + [
+            description += [
                 IncludeLaunchDescription(
                     PythonLaunchDescriptionSource(
                         str(
@@ -109,20 +106,6 @@ def launch_setup(context):
                         ),
                     }.items(),
                 )
-            ]
-
-            description += [GroupAction(actions=actions)]
-            description += [
-                Node(
-                    package="topic_tools",
-                    executable="throttle",
-                    arguments=[
-                        "messages",
-                        f"/{camera_name}/{topic}/high_fps",
-                        "10.0",
-                        f"/{camera_name}/{topic}"
-                    ]
-                ) for topic in THROTTLE_TOPICS
             ]
 
         # description += [
@@ -159,7 +142,7 @@ def launch_setup(context):
                                 / "param"
                                 / "phidgets_spatial.yaml"
                             ),
-                            phidgets_spatial_calibration_params_path
+                            phidgets_spatial_calibration_params_path,
                         ],
                     ),
                 ],
@@ -192,9 +175,7 @@ def generate_launch_description():
     return LaunchDescription(
         [
             DeclareLaunchArgument(
-                "master",
-                default_value="true",
-                description="Start the master driver."
+                "master", default_value="true", description="Start the master driver."
             ),
             DeclareLaunchArgument(
                 "rgbd_ids",
@@ -202,14 +183,12 @@ def generate_launch_description():
                 description="Space-separated IDs of the depth cameras to use.",
             ),
             DeclareLaunchArgument(
-                "imu",
-                default_value="true",
-                description="Start the IMU driver."
+                "imu", default_value="true", description="Start the IMU driver."
             ),
             DeclareLaunchArgument(
                 "compasscal",
                 default_value="false",
-                description="Start the IMU compass calibration service node. IMU must be disabled in order to calibrate the compass."
+                description="Start the IMU compass calibration service node. IMU must be disabled in order to calibrate the compass.",
             ),
             OpaqueFunction(function=launch_setup),
         ]

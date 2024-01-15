@@ -8,13 +8,25 @@ from rcl_interfaces.msg import ParameterType, ParameterDescriptor
 import time
 
 # Direction of each wheel in order to turn the robot by a positive angle.
+# TURN_VECTORS = [
+#     vec / np.linalg.norm(vec)
+#     for vec in [
+#         np.array([-1, 1]),  # front left
+#         np.array([1, 1]),  # front right
+#         np.array([-1, -1]),  # back left
+#         np.array([1, -1]),  # back right
+#     ]
+# ]
 TURN_VECTORS = [
     vec / np.linalg.norm(vec)
     for vec in [
-        np.array([-1, 1]),  # front left
-        np.array([1, 1]),  # front right
-        np.array([-1, -1]),  # back left
-        np.array([1, -1]),  # back right
+        np.array([-wheel_pos[1], wheel_pos[0]])  # rot +90
+        for wheel_pos in [
+            np.array([0.4, 0.33]),  # front left
+            np.array([0.4, -0.33]),  # front right
+            np.array([-0.4, 0.33]),  # back left
+            np.array([-0.4, -0.33]),  # back right
+        ]
     ]
 ]
 
