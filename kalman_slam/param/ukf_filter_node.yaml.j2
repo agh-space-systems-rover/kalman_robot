@@ -86,11 +86,11 @@ ukf_filter_node:
         # do not provide some of the state variables estimated by the filter. For example, a TwistWithCovarianceStamped message
         # has no pose information, so the first six values would be meaningless in that case. Each vector defaults to all false
         # if unspecified, effectively making this parameter required for each sensor.
-        odom{{ loop.index0 }}_config: [false,  false,  false,
-                       false, false, false,
-                       true, true, true,
-                       false, false, false,
-                       false, false, false]
+        odom{{ loop.index0 }}_config: [false, false, false,
+                                       false, false, false,
+                                       true,  true,  true,
+                                       false, false, false,
+                                       false, false, false]
 
         # If you have high-frequency data or are running with a low frequency parameter value, then you may want to increase
         # the size of the subscription queue so that more measurements are fused.
