@@ -17,7 +17,7 @@ from launch.substitutions import LaunchConfiguration
 REALSENSE_SERIAL_NUMBERS = {
     "d455_front": "_043422251512",
     "d455_back": "_231622302908",
-    # TODO: left cam
+    "d455_left": "_231622302763",
     "d455_right": "_231122300896",
 }
 
