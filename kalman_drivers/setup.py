@@ -14,6 +14,21 @@ if not os.path.exists(os.path.join("compasscal_build", "compasscal")):
     os.makedirs(compasscal_build_dir, exist_ok=True)
     distro = os.environ["ROS_DISTRO"]
 
+    # Run aclocal, autoconf, automake
+    result = subprocess.run(
+        f"aclocal && autoconf && autoheader && automake --add-missing",
+        cwd=compasscal_src_dir,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        shell=True,
+    )
+
+    # Check if command has failed.
+    if result.returncode != 0:
+        output = result.stdout.decode("utf-8")
+        print("Compasscal autotools failed:\n" + output, file=sys.stderr)
+        sys.exit(1)
+
     result = subprocess.run(
         f'CFLAGS="-I/opt/ros/humble/opt/libphidget22/include/libphidget22 -I{compasscal_src_dir}/compasscal_lib" LDFLAGS="-L/opt/ros/humble/opt/libphidget22/lib" {compasscal_src_dir}/configure',
         cwd=compasscal_build_dir,
