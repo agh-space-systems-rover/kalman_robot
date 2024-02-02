@@ -35,7 +35,8 @@ def launch_setup(context):
             name="odom_to_base_link",
             package="tf2_ros",
             executable="static_transform_publisher",
-            arguments=["0", "0", "0", "0", "0", "0", "odom", "base_link"],
+            # arguments=["0", "0", "0", "0", "0", "0", "odom", "base_link"],
+            arguments=["--frame-id", "odom", "--child-frame-id", "base_link"],
             condition=UnlessCondition(LaunchConfiguration("localization")),
         ),
         # static map->odom transform
@@ -43,7 +44,8 @@ def launch_setup(context):
             name="map_to_odom",
             package="tf2_ros",
             executable="static_transform_publisher",
-            arguments=["0", "0", "0", "0", "0", "0", "map", "odom"],
+            # arguments=["0", "0", "0", "0", "0", "0", "map", "odom"],
+            arguments=["--frame-id", "map", "--child-frame-id", "odom"],
         ),
     ]
     description += [
