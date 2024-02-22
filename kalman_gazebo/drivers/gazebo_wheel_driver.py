@@ -4,11 +4,11 @@ from std_msgs.msg import Float64MultiArray
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from kalman_interfaces.msg import WheelState, WheelStates
 
-TURN_JOINT_NAMES = [
-    "sim_turn_fr_joint",
-    "sim_turn_br_joint",
-    "sim_turn_bl_joint",
-    "sim_turn_fl_joint",
+SWIVEL_JOINT_NAMES = [
+    "swivel_fr_joint",
+    "swivel_br_joint",
+    "swivel_bl_joint",
+    "swivel_fl_joint",
 ]
 
 RADIANS_PER_METER = (
@@ -45,13 +45,13 @@ class GazeboWheelDriverNode(Node):
         ]
         self.velocity_pub.publish(wheels_message)
 
-        turn_message = JointTrajectory()
+        swivel_message = JointTrajectory()
         point = JointTrajectoryPoint()
-        for i, name in enumerate(TURN_JOINT_NAMES):
-            turn_message.joint_names.append(name)
+        for i, name in enumerate(SWIVEL_JOINT_NAMES):
+            swivel_message.joint_names.append(name)
             point.positions.append(wheel_states_in_order[i].angle)
-        turn_message.points.append(point)
-        self.position_pub.publish(turn_message)
+        swivel_message.points.append(point)
+        self.position_pub.publish(swivel_message)
 
 
 def main():

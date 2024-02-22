@@ -6,7 +6,7 @@
         <color rgba="0.8 0.8 0.8 1" />
     </material>
 
-    <link name="sim_body_link">
+    <link name="body_link">
         <visual>
             <geometry>
                 <mesh filename="package://kalman_description/stl/body.stl" />
@@ -14,13 +14,13 @@
             <material name="white" />
         </visual>
     </link>
-    <joint name="sim_body_joint" type="fixed">
+    <joint name="body_joint" type="fixed">
         <parent link="base_link" />
-        <child link="sim_body_link" />
+        <child link="body_link" />
     </joint>
 
-    <xacro:macro name="sim_suspension" params="y_side y_scale">
-        <link name="sim_suspension_${y_side}_link">
+    <xacro:macro name="suspension" params="y_side y_scale">
+        <link name="suspension_${y_side}_link">
             <visual>
                 <geometry>
                     <mesh filename="package://kalman_description/stl/suspension_r.stl" scale="1 ${y_scale} 1" />
@@ -33,22 +33,22 @@
                 <origin rpy="1.57075 0 0" />
             </xacro:cylinder_inertial>
         </link>
-        <joint name="sim_suspension_${y_side}_joint" type="fixed">
+        <joint name="suspension_${y_side}_joint" type="fixed">
             <!-- Suspension is static for now. -->
             <origin xyz="0.009 0 -0.06" />
             <axis xyz="0 1 0" />
-            <parent link="base_link" />
-            <child link="sim_suspension_${y_side}_link" />
+            <parent link="body_link" />
+            <child link="suspension_${y_side}_link" />
         </joint>
     </xacro:macro>
-    <xacro:sim_suspension y_side="r" y_scale="1" />
-    <xacro:sim_suspension y_side="l" y_scale="-1" />
+    <xacro:suspension y_side="r" y_scale="1" />
+    <xacro:suspension y_side="l" y_scale="-1" />
 
-    <xacro:macro name="sim_turn" params="x_side y_side y_scale xyz">
-        <link name="sim_turn_${x_side}${y_side}_link">
+    <xacro:macro name="swivel" params="x_side y_side y_scale xyz">
+        <link name="swivel_${x_side}${y_side}_link">
             <visual>
                 <geometry>
-                    <mesh filename="package://kalman_description/stl/turn_fr.stl" scale="1 ${y_scale} 1" />
+                    <mesh filename="package://kalman_description/stl/swivel_fr.stl" scale="1 ${y_scale} 1" />
                 </geometry>
                 <material name="white" />
             </visual>
@@ -56,20 +56,20 @@
                 <origin xyz="0 0 -0.25" />
             </xacro:cylinder_inertial>
         </link>
-        <joint name="sim_turn_${x_side}${y_side}_joint" type="continuous">
+        <joint name="swivel_${x_side}${y_side}_joint" type="continuous">
             <origin xyz="${xyz}" />
             <axis xyz="0 0 1" />
-            <parent link="sim_suspension_${y_side}_link" />
-            <child link="sim_turn_${x_side}${y_side}_link" />
+            <parent link="suspension_${y_side}_link" />
+            <child link="swivel_${x_side}${y_side}_link" />
         </joint>
     </xacro:macro>
-    <xacro:sim_turn x_side="f" y_side="r" y_scale="1" xyz="0.295 -0.333 0.06" />
-    <xacro:sim_turn x_side="f" y_side="l" y_scale="-1" xyz="0.295 0.333 0.06" />
-    <xacro:sim_turn x_side="b" y_side="r" y_scale="1" xyz="-0.497 -0.333 0.06" />
-    <xacro:sim_turn x_side="b" y_side="l" y_scale="-1" xyz="-0.497 0.333 0.06" />
+    <xacro:swivel x_side="f" y_side="r" y_scale="1" xyz="0.295 -0.333 0.06" />
+    <xacro:swivel x_side="f" y_side="l" y_scale="-1" xyz="0.295 0.333 0.06" />
+    <xacro:swivel x_side="b" y_side="r" y_scale="1" xyz="-0.497 -0.333 0.06" />
+    <xacro:swivel x_side="b" y_side="l" y_scale="-1" xyz="-0.497 0.333 0.06" />
 
-    <xacro:macro name="sim_wheel" params="x_side y_side y_scale xyz">
-        <link name="sim_wheel_${x_side}${y_side}_link">
+    <xacro:macro name="wheel" params="x_side y_side y_scale xyz">
+        <link name="wheel_${x_side}${y_side}_link">
             <visual>
                 <geometry>
                     <mesh filename="package://kalman_description/stl/wheel_fr.stl" scale="1 ${y_scale} 1" />
@@ -86,15 +86,15 @@
                 <origin rpy="1.57075 0 0" xyz="0 0 0"/>
             </xacro:cylinder_inertial>
         </link>
-        <joint name="sim_wheel_${x_side}${y_side}_joint" type="continuous">
+        <joint name="wheel_${x_side}${y_side}_joint" type="continuous">
             <origin xyz="${xyz}" />
             <axis xyz="0 1 0" />
-            <parent link="sim_turn_${x_side}${y_side}_link" />
-            <child link="sim_wheel_${x_side}${y_side}_link" />
+            <parent link="swivel_${x_side}${y_side}_link" />
+            <child link="wheel_${x_side}${y_side}_link" />
         </joint>
     </xacro:macro>
-    <xacro:sim_wheel x_side="f" y_side="r" y_scale="1" xyz="0 0 -0.363" />
-    <xacro:sim_wheel x_side="f" y_side="l" y_scale="-1" xyz="0 0 -0.363" />
-    <xacro:sim_wheel x_side="b" y_side="r" y_scale="1" xyz="0 0 -0.363" />
-    <xacro:sim_wheel x_side="b" y_side="l" y_scale="-1" xyz="0 0 -0.363" />
+    <xacro:wheel x_side="f" y_side="r" y_scale="1" xyz="0 0 -0.363" />
+    <xacro:wheel x_side="f" y_side="l" y_scale="-1" xyz="0 0 -0.363" />
+    <xacro:wheel x_side="b" y_side="r" y_scale="1" xyz="0 0 -0.363" />
+    <xacro:wheel x_side="b" y_side="l" y_scale="-1" xyz="0 0 -0.363" />
 </robot>

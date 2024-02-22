@@ -9,5 +9,4 @@ The description defines all the TF nodes that are children of base_link. -->
 
     <!-- What's required for Gazebo to control the joints: -->
     <xacro:include filename="$(find kalman_gazebo)/urdf/ign_ros2_control.urdf.xacro" />
-    <xacro:ign_ros2_control />
 </robot>

@@ -17,10 +17,10 @@ controller_manager:
 velocity_controller:
   ros__parameters:
     joints:
-      - sim_wheel_fr_joint
-      - sim_wheel_br_joint
-      - sim_wheel_bl_joint
-      - sim_wheel_fl_joint
+      - wheel_fr_joint
+      - wheel_br_joint
+      - wheel_bl_joint
+      - wheel_fl_joint
     command_interfaces:
       - velocity
     state_interfaces:
@@ -31,10 +31,10 @@ joint_trajectory_controller:
   ros__parameters:
     allow_partial_joints_goal: true
     joints:
-      - sim_turn_fr_joint
-      - sim_turn_br_joint
-      - sim_turn_bl_joint
-      - sim_turn_fl_joint
+      - swivel_fr_joint
+      - swivel_br_joint
+      - swivel_bl_joint
+      - swivel_fl_joint
     command_interfaces:
       - position
     state_interfaces:
