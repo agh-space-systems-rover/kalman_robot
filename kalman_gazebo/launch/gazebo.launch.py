@@ -16,22 +16,20 @@ import xacro
 
 def generate_launch_description():
     robot_description = xacro.process_file(
-        str(get_package_share_path("kalman_description") / "urdf" / "kalman.urdf.xacro")
+        str(
+            get_package_share_path("kalman_gazebo")
+            / "urdf"
+            / "kalman_with_gazebo.urdf.xacro"
+        )
     ).toxml()
 
     description = [
-        # robot state publisher
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(
-                str(
-                    get_package_share_path("kalman_description")
-                    / "launch"
-                    / "robot_state_publisher.launch.py"
-                )
-            ),
+        # robot structure TF publisher
+        Node(
+            package="robot_state_publisher",
+            executable="robot_state_publisher",
+            parameters=[{"robot_description": robot_description}],
         ),
-        Node(package="joint_state_publisher", executable="joint_state_publisher"),
-        Node(package="kalman_gazebo", executable="gazebo_wheel_driver"),
         # Gazebo simulator
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
@@ -43,6 +41,8 @@ def generate_launch_description():
             ),
             launch_arguments=[("gz_args", [" -r -v 4 shapes.sdf"])],
         ),
+        # wheel driver
+        Node(package="kalman_gazebo", executable="gazebo_wheel_driver"),
     ]
 
     # Spawn the robot in Gazebo.
@@ -65,7 +65,8 @@ def generate_launch_description():
     )
     description += [gazebo_spawn]
 
-    # Run controllers after the robot is spawned.
+    # Run state broadcaster (a dependency of trajectory controller?)
+    # and the velocity controller once the robot is spawned.
     load_joint_state_broadcaster = ExecuteProcess(
         cmd=[
             "ros2",
@@ -95,7 +96,7 @@ def generate_launch_description():
         )
     ]
 
-    # Run trajectory controller after joint state broadcaster.
+    # Run the trajectory controller after joint state broadcaster is ready.
     load_joint_trajectory_controller = ExecuteProcess(
         cmd=[
             "ros2",

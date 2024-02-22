@@ -15,6 +15,14 @@ setup(
             os.path.join("share", package_name, "launch"),
             glob.glob(os.path.join("launch", "*launch.[pxy][yma]*")),
         ),
+        (
+            "share/" + package_name + "/param",
+            glob.glob(os.path.join("param", "*")),
+        ),
+        (
+            "share/" + package_name + "/urdf",
+            glob.glob(os.path.join("urdf", "*")),
+        ),
     ],
     install_requires=["setuptools"],
     zip_safe=True,

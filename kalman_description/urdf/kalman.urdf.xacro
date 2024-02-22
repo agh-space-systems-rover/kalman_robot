@@ -39,11 +39,6 @@ The description defines all the TF nodes that are children of base_link. -->
         <origin xyz="-0.561 -0.211 0.275" rpy="0 0 -1.57" />
     </xacro:sensor_d455>
 
-    <!-- additional robot model and Ignition-specific config below -->
-
-    <xacro:include filename="$(find kalman_description)/urdf/sim_model.xacro" />
-    <xacro:sim_model />
-
-    <xacro:include filename="$(find kalman_description)/urdf/ign_ros2_control.xacro" />
-    <xacro:ign_ros2_control />
+    <!-- additional robot model -->
+    <xacro:include filename="$(find kalman_description)/urdf/sim_model.urdf.xacro" />
 </robot>

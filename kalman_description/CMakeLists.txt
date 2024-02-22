@@ -3,7 +3,7 @@ project(kalman_description)
 
 find_package(ament_cmake REQUIRED)
 
-install(DIRECTORY launch param rviz urdf stl
+install(DIRECTORY launch rviz urdf stl
   DESTINATION share/${PROJECT_NAME}
 )
 

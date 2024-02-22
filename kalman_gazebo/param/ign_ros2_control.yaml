@@ -35,8 +35,6 @@ joint_trajectory_controller:
       - sim_turn_br_joint
       - sim_turn_bl_joint
       - sim_turn_fl_joint
-      - sim_suspension_l_joint
-      - sim_suspension_r_joint
     command_interfaces:
       - position
     state_interfaces:

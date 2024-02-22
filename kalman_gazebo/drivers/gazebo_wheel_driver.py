@@ -5,11 +5,15 @@ from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from kalman_interfaces.msg import WheelState, WheelStates
 
 TURN_JOINT_NAMES = [
-    "sim_suspension_fr_joint",
-    "sim_suspension_br_joint",
-    "sim_suspension_bl_joint",
-    "sim_suspension_fl_joint",
+    "sim_turn_fr_joint",
+    "sim_turn_br_joint",
+    "sim_turn_bl_joint",
+    "sim_turn_fl_joint",
 ]
+
+RADIANS_PER_METER = (
+    2 / 0.25
+)  # = 8; 0.25 m is the wheel diameter; 2 is part of the formula
 
 
 class GazeboWheelDriverNode(Node):
@@ -36,7 +40,9 @@ class GazeboWheelDriverNode(Node):
         ]
 
         wheels_message = Float64MultiArray()
-        wheels_message.data = [state.velocity for state in wheel_states_in_order]
+        wheels_message.data = [
+            state.velocity * RADIANS_PER_METER for state in wheel_states_in_order
+        ]
         self.velocity_pub.publish(wheels_message)
 
         turn_message = JointTrajectory()

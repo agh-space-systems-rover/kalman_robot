@@ -4,7 +4,7 @@
         <gazebo>
             <plugin filename="ign_ros2_control-system"
                 name="ign_ros2_control::IgnitionROS2ControlPlugin">
-                <parameters>$(find kalman_description)/param/ign_ros2_control.yaml</parameters>
+                <parameters>$(find kalman_gazebo)/param/ign_ros2_control.yaml</parameters>
             </plugin>
         </gazebo>
 
@@ -13,7 +13,7 @@
                 <plugin>ign_ros2_control/IgnitionSystem</plugin>
             </hardware>
 
-            <xacro:macro name="ign_suspension_joint" params="side">
+            <!-- <xacro:macro name="ign_suspension_joint" params="side">
                 <joint name="sim_suspension_${side}_joint">
                     <command_interface name="position">
                         <param name="min">-15</param>
@@ -23,7 +23,8 @@
                 </joint>
             </xacro:macro>
             <xacro:ign_suspension_joint side="r" />
-            <xacro:ign_suspension_joint side="l" />
+            <xacro:ign_suspension_joint side="l" /> -->
+            <!-- Suspension is static for now. -->
 
             <xacro:macro name="ign_turn_joint" params="side">
                 <joint name="sim_turn_${side}_joint">
