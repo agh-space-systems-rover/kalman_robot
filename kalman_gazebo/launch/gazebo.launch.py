@@ -5,7 +5,7 @@ from launch.actions import (
     ExecuteProcess,
     IncludeLaunchDescription,
 )
-from launch.actions import RegisterEventHandler
+from launch.actions import RegisterEventHandler, SetEnvironmentVariable, GroupAction
 from launch.event_handlers import OnProcessExit
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 
@@ -31,15 +31,23 @@ def generate_launch_description():
             parameters=[{"robot_description": robot_description}],
         ),
         # Gazebo simulator
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(
-                str(
-                    get_package_share_path("ros_ign_gazebo")
-                    / "launch"
-                    / "ign_gazebo.launch.py"
-                )
-            ),
-            launch_arguments=[("gz_args", [" -r -v 4 shapes.sdf"])],
+        GroupAction(
+            actions=[
+                SetEnvironmentVariable(
+                    "IGN_GAZEBO_RESOURCE_PATH",
+                    str(get_package_share_path("kalman_description") / ".."),
+                ),
+                IncludeLaunchDescription(
+                    PythonLaunchDescriptionSource(
+                        str(
+                            get_package_share_path("ros_ign_gazebo")
+                            / "launch"
+                            / "ign_gazebo.launch.py"
+                        )
+                    ),
+                    launch_arguments=[("gz_args", [" -r -v 4 shapes.sdf"])],
+                ),
+            ]
         ),
         # wheel driver
         Node(package="kalman_gazebo", executable="gazebo_wheel_driver"),

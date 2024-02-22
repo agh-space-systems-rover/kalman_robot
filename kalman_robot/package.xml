@@ -12,6 +12,7 @@
     <depend>kalman_bringup</depend>
     <depend>kalman_description</depend>
     <depend>kalman_drivers</depend>
+    <depend>kalman_gazebo</depend>
     <depend>kalman_interfaces</depend>
     <depend>kalman_master_driver</depend>
     <depend>kalman_nav2</depend>
