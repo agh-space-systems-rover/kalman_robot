@@ -7,18 +7,10 @@
   <maintainer email="63957587+rayferric@users.noreply.github.com">rayferric</maintainer>
   <license>MIT</license>
 
-  <buildtool_depend>ament_cmake</buildtool_depend>
-
   <exec_depend>ros2launch</exec_depend>
   <exec_depend>xacro</exec_depend>
   <exec_depend>realsense2_description</exec_depend>
-  <exec_depend>joint_state_publisher</exec_depend>
-  <exec_depend>robot_state_publisher</exec_depend>
-  <exec_depend>ign_ros2_control</exec_depend>
-  <exec_depend>ros_ign_gazebo</exec_depend>
-  <exec_depend>ros2_control</exec_depend>
-  <exec_depend>ros2_controllers</exec_depend>
-  
+  <exec_depend>joint_state_publisher_gui</exec_depend> <!-- for model demo -->
 
   <export>
     <build_type>ament_cmake</build_type>

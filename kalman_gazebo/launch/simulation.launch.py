@@ -1,28 +1,13 @@
-# Copyright 2021 Open Source Robotics Foundation, Inc.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-import os
-
-from ament_index_python.packages import get_package_share_directory
-
+from ament_index_python import get_package_share_path
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, ExecuteProcess, IncludeLaunchDescription
+from launch.actions import (
+    ExecuteProcess,
+    IncludeLaunchDescription,
+)
 from launch.actions import RegisterEventHandler
 from launch.event_handlers import OnProcessExit
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration
 
 from launch_ros.actions import Node
 
@@ -30,101 +15,116 @@ import xacro
 
 
 def generate_launch_description():
-    # Launch Arguments
-    use_sim_time = LaunchConfiguration('use_sim_time', default=True)
+    robot_description = xacro.process_file(
+        str(get_package_share_path("kalman_description") / "urdf" / "kalman.urdf.xacro")
+    ).toxml()
 
-    ignition_ros2_control_demos_path = os.path.join(
-        get_package_share_directory('kalman_description'))
-
-    xacro_file = os.path.join(ignition_ros2_control_demos_path,
-                              'urdf',
-                              'kalman.urdf.xacro')
-
-    doc = xacro.parse(open(xacro_file))
-    xacro.process_doc(doc)
-    params = {'robot_description': doc.toxml()}
-
-    # print(doc.toxml())
-
-    node_robot_state_publisher = Node(
-        package='robot_state_publisher',
-        executable='robot_state_publisher',
-        output='screen',
-        parameters=[params]
-    )
-
-    kalman_gazebo_driver = Node(
-        package="kalman_gazebo",
-        executable='kalman_gazebo_driver',
-        output='screen'
-    )
-
-    ignition_spawn_entity = Node(
-        package='ros_gz_sim',
-        executable='create',
-        output='screen',
-        arguments=['-string', doc.toxml(),
-                   '-name', 'kalman',
-                   '-allow_renaming', 'true',
-                   '-z', '1.5','-x', '-2'],
-    )
-
-    load_joint_state_broadcaster = ExecuteProcess(
-        cmd=['ros2', 'control', 'load_controller', '--set-state', 'active',
-             'joint_state_broadcaster'],
-        output='screen'
-    )
-
-    load_velocity_controller = ExecuteProcess(
-        cmd=['ros2', 'control', 'load_controller', '--set-state', 'active', 'velocity_controller'],
-        output='screen'
-    )
-
-    load_joint_trajectory_controller = ExecuteProcess(
-        cmd=['ros2', 'control', 'load_controller', '--set-state', 'active', 'joint_trajectory_controller'],
-        output='screen'
-    )
-
-    load_imu_sensor_broadcaster = ExecuteProcess(
-        cmd=['ros2', 'control', 'load_controller', '--set-state', 'active',
-             'imu_sensor_broadcaster'],
-        output='screen'
-    )
-
-    return LaunchDescription([
-        # Launch gazebo environment
-
-        node_robot_state_publisher,
-        ignition_spawn_entity,
-        kalman_gazebo_driver,
-
+    description = [
+        # robot state publisher
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
-                [os.path.join(get_package_share_directory('ros_ign_gazebo'),
-                              'launch', 'ign_gazebo.launch.py')]),
-            launch_arguments=[('gz_args', [' -r -v 4 shapes.sdf'])]),
+                str(
+                    get_package_share_path("kalman_description")
+                    / "launch"
+                    / "robot_state_publisher.launch.py"
+                )
+            ),
+        ),
+        Node(package="joint_state_publisher", executable="joint_state_publisher"),
+        Node(package="kalman_gazebo", executable="gazebo_wheel_driver"),
+        # Gazebo simulator
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(
+                str(
+                    get_package_share_path("ros_ign_gazebo")
+                    / "launch"
+                    / "ign_gazebo.launch.py"
+                )
+            ),
+            launch_arguments=[("gz_args", [" -r -v 4 shapes.sdf"])],
+        ),
+    ]
+
+    # Spawn the robot in Gazebo.
+    gazebo_spawn = Node(
+        package="ros_gz_sim",
+        executable="create",
+        output="screen",
+        arguments=[
+            "-string",
+            robot_description,
+            "-name",
+            "kalman",
+            "-allow_renaming",
+            "true",
+            "-z",
+            "1.5",
+            "-x",
+            "-2",
+        ],
+    )
+    description += [gazebo_spawn]
+
+    # Run controllers after the robot is spawned.
+    load_joint_state_broadcaster = ExecuteProcess(
+        cmd=[
+            "ros2",
+            "control",
+            "load_controller",
+            "--set-state",
+            "active",
+            "joint_state_broadcaster",
+        ],
+    )
+    load_velocity_controller = ExecuteProcess(
+        cmd=[
+            "ros2",
+            "control",
+            "load_controller",
+            "--set-state",
+            "active",
+            "velocity_controller",
+        ],
+    )
+    description += [
         RegisterEventHandler(
             event_handler=OnProcessExit(
-                target_action=ignition_spawn_entity,
-                on_exit=[load_joint_state_broadcaster,
-                         load_velocity_controller],
+                target_action=gazebo_spawn,
+                on_exit=[load_joint_state_broadcaster, load_velocity_controller],
             )
-        ),
+        )
+    ]
+
+    # Run trajectory controller after joint state broadcaster.
+    load_joint_trajectory_controller = ExecuteProcess(
+        cmd=[
+            "ros2",
+            "control",
+            "load_controller",
+            "--set-state",
+            "active",
+            "joint_trajectory_controller",
+        ],
+    )
+    description += [
         RegisterEventHandler(
             event_handler=OnProcessExit(
                 target_action=load_joint_state_broadcaster,
                 on_exit=[load_joint_trajectory_controller],
             )
-        ),
-        # RegisterEventHandler(
-        #     event_handler=OnProcessExit(
-        #         target_action=load_joint_trajectory_controller,
-        #         on_exit=[load_imu_sensor_broadcaster],
-        #     )
-        # ),
-        # Launch Arguments
-        DeclareLaunchArgument(
-            'use_sim_time',
-            default_value=use_sim_time,
-            description='If true, use simulated clock'),
-    ])
+        )
+    ]
+
+    # load_imu_sensor_broadcaster = ExecuteProcess(
+    #     cmd=[
+    #         "ros2",
+    #         "control",
+    #         "load_controller",
+    #         "--set-state",
+    #         "active",
+    #         "imu_sensor_broadcaster",
+    #     ],
+    #     output="screen",
+    # )
+
+    return LaunchDescription(description)

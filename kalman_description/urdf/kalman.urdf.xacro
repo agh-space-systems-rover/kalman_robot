@@ -6,31 +6,22 @@ The description defines all the TF nodes that are children of base_link. -->
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="kalman">
     <xacro:include filename="$(find realsense2_description)/urdf/_d455.urdf.xacro" />
 
-    <xacro:include filename="$(find kalman_description)/urdf/1_body/102_main_body.xacro" />
-    <xacro:include
-        filename="$(find kalman_description)/urdf/2_suspension/200A_suspension_side.xacro" />
-
-    <xacro:include filename="$(find kalman_description)/urdf/0_utils/000_utils.xacro" />
-
     <link name="base_link" />
-
-
-    <!-- TODO dodać maszty -->
 
     <!-- IMU -->
     <link name="imu_link" />
     <joint name="imu_joint" type="fixed">
-        <origin xyz="0.088 0.000 -0.015"/>
-        <parent link="base_link"/>
-        <child link="imu_link"/>
+        <origin xyz="0.088 0.000 -0.015" />
+        <parent link="base_link" />
+        <child link="imu_link" />
     </joint>
 
     <!-- Altimeter -->
     <link name="altimeter_link" />
     <joint name="altimeter_joint" type="fixed">
-        <origin xyz="0.088 0.000 -0.015"/>
-        <parent link="base_link"/>
-        <child link="altimeter_link"/>n
+        <origin xyz="0.088 0.000 -0.015" />
+        <parent link="base_link" />
+        <child link="altimeter_link" />
     </joint>
 
     <!-- RealSense -->
@@ -48,12 +39,11 @@ The description defines all the TF nodes that are children of base_link. -->
         <origin xyz="-0.561 -0.211 0.275" rpy="0 0 -1.57" />
     </xacro:sensor_d455>
 
+    <!-- additional robot model and Ignition-specific config below -->
 
-    <xacro:main_body name="main_body" parent="base_link" rpy="0 0 0" xyz="0 0 0" />
-    <xacro:suspension_side side_name="l" side_value="1" />
-    <xacro:suspension_side side_name="r" side_value="-1" />
+    <xacro:include filename="$(find kalman_description)/urdf/sim_model.xacro" />
+    <xacro:sim_model />
 
-    <!-- <xacro:include filename="$(find
-    kalman_description)/urdf/0_utils/002_gazebo_ros_control.xacro" /> -->
-
+    <xacro:include filename="$(find kalman_description)/urdf/ign_ros2_control.xacro" />
+    <xacro:ign_ros2_control />
 </robot>
