@@ -3,7 +3,7 @@
   recovery actions specific to planning / control as well as general system issues.
   This will be continuous if a kinematically valid planner is selected.
 -->
-<root main_tree_to_execute="MainTree">
+<!-- <root main_tree_to_execute="MainTree">
   <BehaviorTree ID="MainTree">
     <RecoveryNode number_of_retries="6" name="NavigateRecovery">
       <PipelineSequence name="NavigateWithReplanning">
@@ -19,37 +19,39 @@
         </RecoveryNode>
       </PipelineSequence>
       <ReactiveFallback name="RecoveryFallback">
-        <GoalUpdated/>
-        <RoundRobin name="RecoveryActions">
+        <GoalUpdated/> -->
+        <!-- <RoundRobin name="RecoveryActions">
           <Sequence name="ClearingActions">
             <ClearEntireCostmap name="ClearLocalCostmap-Subtree" service_name="local_costmap/clear_entirely_local_costmap"/>
             <ClearEntireCostmap name="ClearGlobalCostmap-Subtree" service_name="global_costmap/clear_entirely_global_costmap"/>
           </Sequence>
           <Spin spin_dist="1.57"/>
-          <!-- <Wait wait_duration="5.0"/> --> <!-- Waiting does not help at all? -->
+          <Wait wait_duration="5.0"/>
           <BackUp backup_dist="0.30" backup_speed="0.05"/>
-        </RoundRobin>
+        </RoundRobin> -->
+        <!-- <Sequence name="ClearingActions">
+          <ClearEntireCostmap name="ClearLocalCostmap-Subtree" service_name="local_costmap/clear_entirely_local_costmap"/>
+          <ClearEntireCostmap name="ClearGlobalCostmap-Subtree" service_name="global_costmap/clear_entirely_global_costmap"/>
+        </Sequence> -->
+        <!-- Replaced all recovery actions with just costmap clearing to eliminate unpredictable behavior. -->
+      <!-- </ReactiveFallback>
+    </RecoveryNode>
+  </BehaviorTree>
+</root> -->
+
+<!-- Simplified behavior with no recovery. -->
+<root main_tree_to_execute="MainTree">
+  <BehaviorTree ID="MainTree">
+    <RecoveryNode number_of_retries="6" name="NavigateRecovery">
+      <PipelineSequence name="NavigateWithReplanning">
+        <RateController hz="1.0">
+          <ComputePathToPose goal="{goal}" path="{path}" planner_id="GridBased"/>
+        </RateController>
+        <FollowPath path="{path}" controller_id="FollowPath"/>
+      </PipelineSequence>
+      <ReactiveFallback name="RecoveryFallback">
+        <ClearEntireCostmap name="ClearLocalCostmap-Subtree" service_name="local_costmap/clear_entirely_local_costmap"/>
       </ReactiveFallback>
     </RecoveryNode>
   </BehaviorTree>
 </root>
-
-<!-- Simplified behavior with just costmap clearing. -->
-<!-- <root main_tree_to_execute="MainTree">
-    <BehaviorTree ID="MainTree">
-        <RecoveryNode number_of_retries="10" name="NavigateRecovery">
-            <PipelineSequence name="NavigateWithReplanning">
-                <RateController hz="1.0">
-                    <ComputePathToPose goal="{goal}" path="{path}" planner_id="GridBased"/>
-                </RateController>
-                <FollowPath path="{path}" controller_id="FollowPath"/>
-            </PipelineSequence>
-            <ReactiveFallback name="RecoveryFallback">
-                <Sequence name="ClearingActions">
-                    <ClearEntireCostmap name="ClearLocalCostmap-Subtree" service_name="local_costmap/clear_entirely_local_costmap"/>
-                    <ClearEntireCostmap name="ClearGlobalCostmap-Subtree" service_name="global_costmap/clear_entirely_global_costmap"/>
-                </Sequence>
-            </ReactiveFallback>
-        </RecoveryNode>
-    </BehaviorTree>
-</root> -->

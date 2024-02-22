@@ -26,7 +26,7 @@ setup(
     license=license,
     entry_points={
         "console_scripts": [
-            "wheel_controller = wheel_controller:main",
+            "wheel_controller = wheel_controller.wheel_controller_node:main",
         ],
     },
 )

@@ -20,32 +20,32 @@ The description defines all the TF nodes that are children of base_link. -->
     <!-- IMU -->
     <link name="imu_link" />
     <joint name="imu_joint" type="fixed">
-        <origin xyz="0.088 0.000 -0.010" />
-        <parent link="base_link" />
-        <child link="imu_link" />
+        <origin xyz="0.088 0.000 -0.015"/>
+        <parent link="base_link"/>
+        <child link="imu_link"/>
     </joint>
 
     <!-- Altimeter -->
     <link name="altimeter_link" />
     <joint name="altimeter_joint" type="fixed">
-        <origin xyz="0.088 0.000 -0.010" />
-        <parent link="base_link" />
-        <child link="altimeter_link" />n
+        <origin xyz="0.088 0.000 -0.015"/>
+        <parent link="base_link"/>
+        <child link="altimeter_link"/>n
     </joint>
 
     <!-- RealSense -->
     <!-- origin at bottom screw mount -->
     <xacro:sensor_d455 name="d455_front" parent="base_link" use_nominal_extrinsics="true">
-        <origin xyz="0.114 0.105 0.202" rpy="0 0.349 0" />
+        <origin xyz="0.114 0.105 0.202" rpy="0 0 0" />
     </xacro:sensor_d455>
     <xacro:sensor_d455 name="d455_back" parent="base_link" use_nominal_extrinsics="true">
-        <origin xyz="-0.592 -0.179 0.203" rpy="0 0.349 -3.14" />
+        <origin xyz="-0.592 -0.179 0.203" rpy="0 0 -3.14" />
     </xacro:sensor_d455>
     <xacro:sensor_d455 name="d455_left" parent="base_link" use_nominal_extrinsics="true">
-        <origin xyz="0.083 0.137 0.270" rpy="0 0.349 1.57" />
+        <origin xyz="0.083 0.137 0.270" rpy="0 0 1.57" />
     </xacro:sensor_d455>
     <xacro:sensor_d455 name="d455_right" parent="base_link" use_nominal_extrinsics="true">
-        <origin xyz="-0.561 -0.211 0.275" rpy="0 0.349 -1.57" />
+        <origin xyz="-0.561 -0.211 0.275" rpy="0 0 -1.57" />
     </xacro:sensor_d455>
 
 

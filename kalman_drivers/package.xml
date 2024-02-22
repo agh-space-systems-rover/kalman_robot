@@ -9,6 +9,9 @@
 
   <exec_depend>ros2launch</exec_depend>
   <exec_depend>realsense2_camera</exec_depend>
+  <depend>phidgets_drivers</depend> <!-- libphidget22 is required to build compasscal. -->
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>imu_tools</exec_depend>
 
   <export>
     <build_type>ament_python</build_type>

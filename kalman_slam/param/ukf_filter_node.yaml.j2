@@ -4,7 +4,7 @@ ukf_filter_node:
         # The frequency, in Hz, at which the filter will output a position estimate. Note that the filter will not begin
         # computation until it receives at least one message from one of the inputs. It will then run continuously at the
         # frequency specified here, regardless of whether it receives more measurements. Defaults to 30 if unspecified.
-        frequency: 30.0
+        frequency: 15.0
 
         # The period, in seconds, after which we consider a sensor to have timed out. In this event, we carry out a predict
         # cycle on the EKF without correcting it. This parameter can be thought of as the minimum frequency with which the
@@ -71,12 +71,13 @@ ukf_filter_node:
         base_link_frame: base_link  # Defaults to "base_link" if unspecified
         world_frame: odom           # Defaults to the value of odom_frame if unspecified
 
+{% for camera_id in rgbd_ids %}
         # The filter accepts an arbitrary number of inputs from each input message type (nav_msgs/Odometry,
         # geometry_msgs/PoseWithCovarianceStamped, geometry_msgs/TwistWithCovarianceStamped,
         # sensor_msgs/Imu). To add an input, simply append the next number in the sequence to its "base" name, e.g., odom0,
         # odom1, twist0, twist1, imu0, imu1, imu2, etc. The value should be the topic name. These parameters obviously have no
         # default values, and must be specified.
-        odom0: /d455_front/rgbd_odometry/odom
+        odom{{ loop.index0 }}: /{{ camera_id }}/rgbd_odometry/odom
 
         # Each sensor reading updates some or all of the filter's state. These options give you greater control over which
         # values from each measurement are fed to the filter. For example, if you have an odometry message as input, but only
@@ -85,15 +86,15 @@ ukf_filter_node:
         # do not provide some of the state variables estimated by the filter. For example, a TwistWithCovarianceStamped message
         # has no pose information, so the first six values would be meaningless in that case. Each vector defaults to all false
         # if unspecified, effectively making this parameter required for each sensor.
-        odom0_config: [false,  false,  false,
-                       false, false, false,
-                       true, true, true,
-                       false, false, false,
-                       false, false, false]
+        odom{{ loop.index0 }}_config: [false, false, false,
+                                       false, false, false,
+                                       true,  true,  true,
+                                       false, false, false,
+                                       false, false, false]
 
         # If you have high-frequency data or are running with a low frequency parameter value, then you may want to increase
         # the size of the subscription queue so that more measurements are fused.
-        odom0_queue_size: 10
+        odom{{ loop.index0 }}_queue_size: 10
 
         # [ADVANCED] When measuring one pose variable with two sensors, a situation can arise in which both sensors under-
         # report their covariances. This can lead to the filter rapidly jumping back and forth between each measurement as they
@@ -103,50 +104,21 @@ ukf_filter_node:
         # data is converted to velocity data by differentiating the absolute pose measurements. These velocities are then
         # integrated as usual. NOTE: this only applies to sensors that provide pose measurements; setting differential to true
         # for twist measurements has no effect.
-        odom0_differential: true
+        odom{{ loop.index0 }}_differential: true
 
         # [ADVANCED] When the node starts, if this parameter is true, then the first measurement is treated as a "zero point"
         # for all future measurements. While you can achieve the same effect with the differential paremeter, the key
         # difference is that the relative parameter doesn't cause the measurement to be converted to a velocity before
         # integrating it. If you simply want your measurements to start at 0 for a given sensor, set this to true.
-        odom0_relative: false
-
-        odom1: /d455_back/rgbd_odometry/odom
-        odom1_config: [false, false, false,
-                       false, false, false,
-                       true, true, true,
-                       false, false, false,
-                       false, false, false]
-        odom1_differential: true
-        odom1_relative: false
-        odom1_queue_size: 10
-
-        odom2: /d455_left/rgbd_odometry/odom
-        odom2_config: [false, false, false,
-                       false, false, false,
-                       true, true, true,
-                       false, false, false,
-                       false, false, false]
-        odom2_differential: true
-        odom2_relative: false
-        odom2_queue_size: 10
-
-        odom3: /d455_right/rgbd_odometry/odom
-        odom3_config: [false, false, false,
-                       false, false, false,
-                       true, true, true,
-                       false, false, false,
-                       false, false, false]
-        odom3_differential: true
-        odom3_relative: false
-        odom3_queue_size: 10
+        odom{{ loop.index0 }}_relative: false
+{% endfor %}
 
         imu0: /imu/data
         imu0_config: [false, false, false,
                       true,  true,  true,
                       false, false, false,
-                      false,  false,  false,
-                      false,  false, false]
+                      false, false, false,
+                      false, false, false]
         imu0_differential: false
         imu0_relative: false
         imu0_queue_size: 10

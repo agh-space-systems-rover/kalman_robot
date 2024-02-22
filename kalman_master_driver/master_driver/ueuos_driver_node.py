@@ -1,16 +1,13 @@
 import rclpy
 from rclpy.node import Node
+
 from kalman_interfaces.srv import SetUeuosColor, SetUeuosEffect, SetUeuosMode
 from kalman_interfaces.msg import MasterMessage
-
-CAN_CMD_UEUOS_SET_STATE = 0x60
-CAN_CMD_UEUOS_SET_COLOR = 0x61
-CAN_CMD_UEUOS_SET_EFFECT = 0x62
 
 
 class UeuosNode(Node):
     def __init__(self):
-        super().__init__("ueuos")
+        super().__init__("ueuos_driver")
 
         # Init master publisher.
         self.ueuos_pub = self.create_publisher(
@@ -18,42 +15,36 @@ class UeuosNode(Node):
         )
 
         # Init services.
-        self.create_service(SetUeuosColor, "set_ueuos_color", self.set_ueuos_color)
-        self.create_service(SetUeuosEffect, "set_ueuos_effect", self.set_ueuos_effect)
-        self.create_service(SetUeuosMode, "set_ueuos_mode", self.set_ueuos_mode)
+        self.create_service(SetUeuosColor, "ueuos/set_color", self.set_color)
+        self.create_service(SetUeuosEffect, "ueuos/set_effect", self.set_effect)
+        self.create_service(SetUeuosMode, "ueuos/set_mode", self.set_mode)
 
-    def set_ueuos_color(
+    def set_color(
         self, request: SetUeuosColor.Request, response: SetUeuosColor.Response
     ):
         self.ueuos_pub.publish(
             MasterMessage(
-                cmd=CAN_CMD_UEUOS_SET_COLOR,
+                cmd=MasterMessage.UEUOS_SET_COLOR,
                 data=[
                     int(request.color.r * 255),
                     int(request.color.g * 255),
                     int(request.color.b * 255),
-                ]
+                ],
             )
         )
         return response
 
-    def set_ueuos_effect(
+    def set_effect(
         self, request: SetUeuosEffect.Request, response: SetUeuosEffect.Response
     ):
         self.ueuos_pub.publish(
-            MasterMessage(
-                cmd=CAN_CMD_UEUOS_SET_EFFECT,
-                data=[request.effect])
+            MasterMessage(cmd=MasterMessage.UEUOS_SET_EFFECT, data=[request.effect])
         )
         return response
 
-    def set_ueuos_mode(
-        self, request: SetUeuosMode.Request, response: SetUeuosMode.Response
-    ):
+    def set_mode(self, request: SetUeuosMode.Request, response: SetUeuosMode.Response):
         self.ueuos_pub.publish(
-            MasterMessage(
-                cmd=CAN_CMD_UEUOS_SET_STATE, 
-                data=[request.mode])
+            MasterMessage(cmd=MasterMessage.UEUOS_SET_STATE, data=[request.mode])
         )
         return response
 
