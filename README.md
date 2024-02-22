@@ -6,14 +6,14 @@ ROS 2 Kalman robot software stack
 
 ## Prerequisites
 
-- [rtabmap_sync](https://github.com/introlab/rtabmap_ros) built with `-DRTABMAP_SYNC_MULTI_RGBD=ON`
+- [Spatio-Temporal Voxel Layer](https://github.com/SteveMacenski/spatio_temporal_voxel_layer) (Must be installed manually from source. Is provided by kalman_ws.)
 
 ## Getting Started
 
 ```bash
-ros2 launch kalman_bringup kalman.launch.py
-# ros2 launch kalman_bringup kalman.launch.py unity_sim:=true # to also start the simulation
-# ros2 launch kalman_bringup kalman.launch.py drivers:=true # to also start the physical drivers
+ros2 launch kalman_bringup kalman.launch.py # to start only the stack while assuming that hardware is already up
+# ros2 launch kalman_bringup kalman.launch.py unity_sim:=true # to also start the (virtual hardware) simulation
+# ros2 launch kalman_bringup kalman.launch.py drivers:=true # to also start the (physical hardware) drivers
 ```
 
 Please also note that physical drivers cannot be run along the simulation as they both provide a homogeneous interface to the (simulated or physical) hardware using the same ROS 2 topics.
