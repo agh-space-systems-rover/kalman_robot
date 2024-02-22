@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="kalman">
+    <xacro:macro name="ign_ros2_control">
+        <gazebo>
+            <plugin filename="ign_ros2_control-system"
+                name="ign_ros2_control::IgnitionROS2ControlPlugin">
+                <parameters>$(find kalman_gazebo)/param/ign_ros2_control.yaml</parameters>
+            </plugin>
+        </gazebo>
+
+        <ros2_control name="IgnitionSystem" type="system">
+            <hardware>
+                <plugin>ign_ros2_control/IgnitionSystem</plugin>
+            </hardware>
+
+            <!-- <xacro:macro name="ign_suspension_joint" params="side">
+                <joint name="sim_suspension_${side}_joint">
+                    <command_interface name="position">
+                        <param name="min">-15</param>
+                        <param name="max">15</param>
+                    </command_interface>
+                    <state_interface name="position" />
+                </joint>
+            </xacro:macro>
+            <xacro:ign_suspension_joint side="r" />
+            <xacro:ign_suspension_joint side="l" /> -->
+            <!-- Suspension is static for now. -->
+
+            <xacro:macro name="ign_turn_joint" params="side">
+                <joint name="sim_turn_${side}_joint">
+                    <command_interface name="position">
+                        <param name="min">-15</param>
+                        <param name="max">15</param>
+                    </command_interface>
+                    <state_interface name="position" />
+                </joint>
+            </xacro:macro>
+            <xacro:ign_turn_joint side="fr" />
+            <xacro:ign_turn_joint side="br" />
+            <xacro:ign_turn_joint side="bl" />
+            <xacro:ign_turn_joint side="fl" />
+
+            <xacro:macro name="ign_wheel_joint" params="side">
+                <joint name="sim_wheel_${side}_joint">
+                    <command_interface name="velocity">
+                        <param name="min">-15</param>
+                        <param name="max">15</param>
+                    </command_interface>
+                    <state_interface name="position" />
+                    <state_interface name="velocity" />
+                </joint>
+            </xacro:macro>
+            <xacro:ign_wheel_joint side="fr" />
+            <xacro:ign_wheel_joint side="br" />
+            <xacro:ign_wheel_joint side="bl" />
+            <xacro:ign_wheel_joint side="fl" />
+        </ros2_control>
+    </xacro:macro>
+</robot>

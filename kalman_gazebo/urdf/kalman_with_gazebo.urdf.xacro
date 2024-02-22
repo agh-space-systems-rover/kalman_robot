@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+
+<!-- This Xacro file is used to generate an URDF description of the Kalman robot.
+The description defines all the TF nodes that are children of base_link. -->
+
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="kalman">
+    <!-- The original robot description: -->
+    <xacro:include filename="$(find kalman_description)/urdf/kalman.urdf.xacro" />
+
+    <!-- What's required for Gazebo to control the joints: -->
+    <xacro:include filename="$(find kalman_gazebo)/urdf/ign_ros2_control.urdf.xacro" />
+    <xacro:ign_ros2_control />
+</robot>

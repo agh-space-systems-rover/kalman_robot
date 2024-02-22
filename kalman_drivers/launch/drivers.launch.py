@@ -57,7 +57,18 @@ def launch_setup(context):
                 "Cannot launch without calibration parameters. Please start the compasscal node and invoke the calibration service to generate the required configuration file."
             )
 
-    description = []
+    description = [
+        # robot structure TF publisher
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(
+                str(
+                    get_package_share_path("kalman_description")
+                    / "launch"
+                    / "robot_state_publisher.launch.py"
+                )
+            ),
+        ),
+    ]
 
     if master:
         description += [
@@ -74,16 +85,6 @@ def launch_setup(context):
 
     # RGBD cameras are togglable.
     if len(rgbd_ids) > 0:
-        THROTTLE_TOPICS = [
-            "color/camera_info",
-            "color/image_raw",
-            "color/image_raw/compressed",
-            "aligned_depth_to_color/camera_info",
-            "aligned_depth_to_color/image_raw",
-            # "aligned_depth_to_color/image_raw/compressed",
-            "depth/color/points",
-        ]
-
         # Those nodes facilitate the communication with the RealSense devices
         # and publish data to ROS topics.
         for camera_name, serial_no in rgbd_ids_sns:
