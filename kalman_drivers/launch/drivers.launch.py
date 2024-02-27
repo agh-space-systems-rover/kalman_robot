@@ -57,18 +57,7 @@ def launch_setup(context):
                 "Cannot launch without calibration parameters. Please start the compasscal node and invoke the calibration service to generate the required configuration file."
             )
 
-    description = [
-        # robot structure TF publisher
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(
-                str(
-                    get_package_share_path("kalman_description")
-                    / "launch"
-                    / "robot_state_publisher.launch.py"
-                )
-            ),
-        ),
-    ]
+    description = []
 
     if master:
         description += [

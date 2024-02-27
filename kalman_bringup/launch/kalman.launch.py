@@ -17,6 +17,9 @@ def launch_setup(context):
     drivers = LaunchConfiguration("drivers").perform(context).lower() == "true"
     rviz = LaunchConfiguration("rviz").perform(context).lower() == "true"
     rgbd_ids = LaunchConfiguration("rgbd_ids").perform(context)
+    gazebo_already_running = (
+        LaunchConfiguration("gazebo_already_running").perform(context).lower() == "true"
+    )
 
     if int(unity_sim) + int(gazebo) + int(drivers) > 1:
         raise RuntimeError(
@@ -78,6 +81,21 @@ def launch_setup(context):
             ),
         ]
 
+    # Start robot state publisher only if Gazebo is not currently running.
+    if not gazebo_already_running:
+        description += [
+            # robot structure TF publisher
+            IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(
+                    str(
+                        get_package_share_path("kalman_description")
+                        / "launch"
+                        / "robot_state_publisher.launch.py"
+                    )
+                ),
+            )
+        ]
+
     description += [
         # SLAM
         IncludeLaunchDescription(
@@ -135,6 +153,11 @@ def generate_launch_description():
                 "rgbd_ids",
                 default_value="d455_front d455_back d455_left d455_right",
                 description="Space-separated IDs of the depth cameras to use.",
+            ),
+            DeclareLaunchArgument(
+                "gazebo_already_running",
+                default_value="false",
+                description="Start up the stack without the robot state publisher. Should be set on when Gazebo is already running because it has its own robot state publisher.",
             ),
             OpaqueFunction(function=launch_setup),
         ]
