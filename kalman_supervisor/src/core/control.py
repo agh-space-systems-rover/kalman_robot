@@ -24,7 +24,7 @@ class Control(Node):
 
     def __init__(self):
         self.__transformer = Transformer()
-        self.__debug_publisher = node.create_publisher(String,  "/supervisor/debug", 10)
+        self.__debug_publisher = self.create_publisher(String,  "/supervisor/debug", 10)
         self._x = self.declare_parameter('x')
         self._y = self.declare_parameter('y')
         self._frame = self.declare_parameter('frame')
@@ -93,7 +93,7 @@ class Control(Node):
         self._mode.value = int(Mode.NONE)
 
     def completed(self):
-        self._autonomus_drv.value
+        self._autonomus_drv.value = True
         self._x.value = 0
         self._y.value = 0
         self._tag1.value = -1
