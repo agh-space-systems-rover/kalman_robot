@@ -1,0 +1,5 @@
+LIBRARY	"compasscal"
+EXPORTS
+	getCompassArgs_3D
+	getCompassArgs_2D_ver1
+	getCompassArgs_2D_ver2

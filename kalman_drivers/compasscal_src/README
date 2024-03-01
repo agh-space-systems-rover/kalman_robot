@@ -1,0 +1,39 @@
+Compass calibration program in C
+
+This provides the parameters for the setCompassCorrectionParameters() 
+function. This will help to filter out constant hard and soft iron effects.
+
+There is also a graphical version available for Windows, written in C#.
+
+The Phidget21 libraries must have been installed first
+
+On OS X, Linux:
+
+  1. ./configure
+  2. make
+  3. ./compasscal
+
+On Windows:
+
+  1. Open compasscal.sln using Visual Studio 2005 or higher
+  2. Set compasscal_ex as the startup project
+  3. Run
+
+USAGE:
+
+Choose either the 2-axis or 3-axis calibration method. For the two
+axis function, the board needs to be rotated in a level circle about
+gravity - ie, straight up and down. For the three axis calibration
+the board needs to be rotated in all three axes. The three axis
+calibration is better, but some vehicles do not have enough range of
+motion to capture sufficient data for the three axis calibration.
+
+The program outputs the calibration parameters in the same order as
+the setCompassCorrectionParameters() function expects - ie:
+	magField, offset0, 1, 2, gain0, 1, 2, T0, 1, 2, 3, 4, 5
+
+You may wish to provide a better value for magField as the value
+estimated by the program isn't very accurate. Generally, an accurate
+magField is not that important - it's much more important to have
+proper gains and offsets. The true magnetic field strength for any region
+can be found here: http://www.ngdc.noaa.gov/geomagmodels/IGRFWMM.jsp

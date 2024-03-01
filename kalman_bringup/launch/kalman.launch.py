@@ -9,77 +9,107 @@ from launch.actions import (
 )
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
-from launch.conditions import IfCondition
 
 
 def launch_setup(context):
-    unity_sim = LaunchConfiguration("unity_sim").perform(context)
-    drivers = LaunchConfiguration("drivers").perform(context)
+    unity_sim = LaunchConfiguration("unity_sim").perform(context).lower() == "true"
+    gazebo = LaunchConfiguration("gazebo").perform(context).lower() == "true"
+    drivers = LaunchConfiguration("drivers").perform(context).lower() == "true"
+    rviz = LaunchConfiguration("rviz").perform(context).lower() == "true"
+    rgbd_ids = LaunchConfiguration("rgbd_ids").perform(context)
+    gazebo_already_running = (
+        LaunchConfiguration("gazebo_already_running").perform(context).lower() == "true"
+    )
 
-    if unity_sim == "True" and drivers == "True":
+    if int(unity_sim) + int(gazebo) + int(drivers) > 1:
         raise RuntimeError(
-            "Cannot launch with both physical drivers and Unity simulation."
+            "Only one of the 'unity_sim', 'gazebo', and 'drivers' arguments can be set to true."
         )
 
-    return [
-        # -----------------------------------
-        # Unity simulation / physical drivers
-        # -----------------------------------
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(
-                str(
-                    get_package_share_path("unity_sim")
-                    / "launch"
-                    / "unity_sim.launch.py"
-                )
+    description = []
+
+    if unity_sim:
+        description += [
+            IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(
+                    str(
+                        get_package_share_path("unity_sim")
+                        / "launch"
+                        / "unity_sim.launch.py"
+                    )
+                ),
             ),
-            condition=IfCondition(LaunchConfiguration("unity_sim")),
-        ),
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(
-                str(
-                    get_package_share_path("kalman_drivers")
-                    / "launch"
-                    / "drivers.launch.py"
-                )
+        ]
+
+    if gazebo:
+        description += [
+            IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(
+                    str(
+                        get_package_share_path("kalman_gazebo")
+                        / "launch"
+                        / "gazebo.launch.py"
+                    )
+                ),
             ),
-            condition=IfCondition(LaunchConfiguration("drivers")),
-        ),
-        # ----
-        # RViz
-        # ----
-        Node(
-            package="rviz2",
-            executable="rviz2",
-            arguments=[
-                "-d",
-                str(get_package_share_path("kalman_bringup") / "rviz" / "default.rviz"),
-            ],
-        ),
-        # -----
-        # stack
-        # -----
-        # robot structure TF publisher
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(
-                str(
-                    get_package_share_path("kalman_description")
-                    / "launch"
-                    / "robot_state_publisher.launch.py"
-                )
+        ]
+
+    if drivers:
+        description += [
+            IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(
+                    str(
+                        get_package_share_path("kalman_drivers")
+                        / "launch"
+                        / "drivers.launch.py"
+                    )
+                ),
+                launch_arguments={"rgbd_ids": rgbd_ids}.items(),
+            ),
+        ]
+
+    if rviz:
+        description += [
+            IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(
+                    str(
+                        get_package_share_path("kalman_bringup")
+                        / "launch"
+                        / "rviz.launch.py"
+                    )
+                ),
+            ),
+        ]
+
+    # Start robot state publisher only if Gazebo is not currently running.
+    if not gazebo_already_running:
+        description += [
+            # robot structure TF publisher
+            IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(
+                    str(
+                        get_package_share_path("kalman_description")
+                        / "launch"
+                        / "robot_state_publisher.launch.py"
+                    )
+                ),
             )
-        ),
+        ]
+
+    description += [
         # SLAM
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
                 str(get_package_share_path("kalman_slam") / "launch" / "slam.launch.py")
-            )
+            ),
+            launch_arguments={"rgbd_ids": rgbd_ids}.items(),
         ),
         # Nav2 stack + path follower
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
                 str(get_package_share_path("kalman_nav2") / "launch" / "nav2.launch.py")
-            )
+            ),
+            launch_arguments={"rgbd_ids": rgbd_ids}.items(),
         ),
         # wheel controller
         Node(
@@ -99,19 +129,41 @@ def launch_setup(context):
         )
     ]
 
+    return description
+
 
 def generate_launch_description():
     return LaunchDescription(
         [
             DeclareLaunchArgument(
                 "unity_sim",
-                default_value="False",
+                default_value="false",
                 description="Start up the Unity simulator with virtual sensors and actuators.",
             ),
             DeclareLaunchArgument(
+                "gazebo",
+                default_value="false",
+                description="Start up the Gazebo simulator with virtual sensors and actuators.",
+            ),
+            DeclareLaunchArgument(
                 "drivers",
-                default_value="False",
+                default_value="false",
                 description="Launch with physical sensors and actuators.",
+            ),
+            DeclareLaunchArgument(
+                "rviz",
+                default_value="false",
+                description="Launch RViz.",
+            ),
+            DeclareLaunchArgument(
+                "rgbd_ids",
+                default_value="d455_front d455_back d455_left d455_right",
+                description="Space-separated IDs of the depth cameras to use.",
+            ),
+            DeclareLaunchArgument(
+                "gazebo_already_running",
+                default_value="false",
+                description="Start up the stack without the robot state publisher. Should be set on when Gazebo is already running because it has its own robot state publisher.",
             ),
             OpaqueFunction(function=launch_setup),
         ]

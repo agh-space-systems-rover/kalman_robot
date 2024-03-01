@@ -40,7 +40,7 @@ setup(
     license=license,
     entry_points={
         "console_scripts": [
-            "path_follower = path_follower:main",
+            "path_follower = path_follower.path_follower_node:main",
         ],
     },
 )

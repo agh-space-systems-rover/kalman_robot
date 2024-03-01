@@ -1,0 +1,41 @@
+# This is Ignition Gazebo config. It is specific to the robot structure defined in this package and is virtually impossible to be separated from the robot description package. All other Gazebo-specific configurations should be put in a separate package.
+
+controller_manager:
+  ros__parameters:
+    use_sim_time: false
+    update_rate: 25 # Hz
+
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+    velocity_controller:
+      type: velocity_controllers/JointGroupVelocityController
+    joint_trajectory_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+    # imu_broadcaster:
+    #   type: imu_sensor_broadcaster/IMUSensorBroadcaster
+
+velocity_controller:
+  ros__parameters:
+    joints:
+      - wheel_fr_joint
+      - wheel_br_joint
+      - wheel_bl_joint
+      - wheel_fl_joint
+    command_interfaces:
+      - velocity
+    state_interfaces:
+      - position
+      - velocity
+
+joint_trajectory_controller:
+  ros__parameters:
+    allow_partial_joints_goal: true
+    joints:
+      - swivel_fr_joint
+      - swivel_br_joint
+      - swivel_bl_joint
+      - swivel_fl_joint
+    command_interfaces:
+      - position
+    state_interfaces:
+      - position

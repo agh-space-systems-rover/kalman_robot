@@ -1,3 +1,0 @@
-#!/bin/bash
-
-python3 -c 'from master_driver.master_com import *; main()' $@

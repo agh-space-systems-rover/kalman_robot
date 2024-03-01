@@ -25,7 +25,7 @@ driver.tick()
 messages: List[SerialMsg] = driver.read_all_msgs()
 
 # Write a message to serial
-msg = UInt8MultiArray()
+msg = MasterMessage()
 
 driver.write_msg(msg)
 driver.tick()
@@ -49,17 +49,17 @@ class SerialMsg:
 
 Handles serial communication between Master device and ROS network.
 
-Every frame received from master is published as a ROS message (UInt8MultiArray) on a dynamically 
-created topic `/master_com/master_to_ros/{0x(lowercase hexadecimal frame ID)}` [msg command, argc, argv_0, ... , argv_n], where argc is unsigned, 8-bit variable.
+Every frame received from master is published as a ROS message (MasterMessage) on a dynamically
+created topic `master_com/master_to_ros/{0x(lowercase hexadecimal frame ID)}`.
 Frame data interpretation should be handled by client.
 
-Every ROS message sent on topic `/master_com/ros_to_master` should have [msg command, argc, argv_0, ... , argv_n] format.
+Every ROS message sent on topic `master_com/ros_to_master` should have MasterMessage format.
 Message is then encoded as a binary frame and sent out using the serial driver.
 
-Messages should be of type `UInt8MultiArray` and contain the following data:
+Messages should be of type `MasterMessage` and contain the following data:
+
 -   `cmd` - command id
--   `argc` - number of arguments
--   `argv` - list of arguments
+-   `data` - list of arguments
 
 #### Usage
 
@@ -73,12 +73,12 @@ Run as a ROS node.
 
 #### Topics
 
--   `/kalman_rover/master_to_ros/{id}` - messages received from serial
--   `/kalman_rover/ros_to_master` - messages to be sent to serial
+-   `master_com/master_to_ros/{0x(lowercase hexadecimal frame ID)}` - messages received from serial
+-   `master_com/ros_to_master` - messages to be sent to serial
 
 ## Uses
 
-- `pyserial`
+-   `pyserial`
 
 ## Package structure
 
