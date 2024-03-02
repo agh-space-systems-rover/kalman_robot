@@ -1,6 +1,6 @@
 from ament_index_python import get_package_share_path
 from launch import LaunchDescription
-from launch_ros.actions import Node
+from launch_ros.actions import Node, ComposableNodeContainer
 
 from launch.actions import (
     DeclareLaunchArgument,
@@ -8,6 +8,8 @@ from launch.actions import (
 )
 from launch.substitutions import LaunchConfiguration
 from launch.conditions import UnlessCondition, IfCondition
+from launch_ros.descriptions import ComposableNode
+
 import jinja2
 import yaml
 import os
@@ -48,8 +50,9 @@ def launch_setup(context):
             arguments=["--frame-id", "map", "--child-frame-id", "odom"],
         ),
     ]
+    
+    # Visual odometry
     description += [
-        # Visual odometry
         Node(
             namespace=f"{camera_id}/rgbd_odometry",
             package="rtabmap_odom",
@@ -93,19 +96,36 @@ def launch_setup(context):
     ukf_params = yaml.load(ukf_config, Loader=yaml.FullLoader)
 
     # Save UKF config to file
-    ukf_params_path = os.path.expanduser("~/.config/kalman/ukf_filter_node.yaml")
+    ukf_params_path = "/tmp/kalman/ukf_filter_node." + str(os.getpid()) + ".yaml"
     os.makedirs(os.path.dirname(ukf_params_path), exist_ok=True)
     with open(ukf_params_path, "w") as f:
         yaml.dump(ukf_params, f)
 
+    # Kalman filter
     description += [
-        # Kalman filter
         Node(
             package="robot_localization",
             executable="ukf_node",
             parameters=[ukf_params_path],
             condition=IfCondition(LaunchConfiguration("localization")),
         ),
+    ]
+
+    # point cloud clean-up
+    description += [
+        Node(
+            package='point_cloud_filters',
+            executable='voxel_grid',
+            parameters=[
+                {
+                    "leaf_size": 0.1,
+                }
+            ],
+            remappings=[
+                ("input", f"/{camera_id}/depth/color/points"),
+                ("output", f"/{camera_id}/depth/color/points/filtered"),
+            ],
+        ) for camera_id in rgbd_ids
     ]
 
     if mapping:
@@ -116,7 +136,7 @@ def launch_setup(context):
                 parameters=[
                     {
                         "input_topics": [
-                            f"/{camera_id}/depth/color/points" for camera_id in rgbd_ids
+                            f"/{camera_id}/depth/color/points/filtered" for camera_id in rgbd_ids
                         ],
                     }
                 ],

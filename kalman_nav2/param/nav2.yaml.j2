@@ -89,7 +89,7 @@ global_costmap:
 {% for camera_id in rgbd_ids %}
         {{ camera_id }}:
           data_type: PointCloud2
-          topic: /{{ camera_id }}/obstacles
+          topic: /{{ camera_id }}/depth/color/points/filtered/obstacles
 
           # Marking params:
           marking: true
@@ -101,7 +101,7 @@ global_costmap:
             
           # Clearing params:
           clearing: true
-          max_z: 8.0                    # default 10, meters
+          max_z: 5.0                    # default 10, meters
           vertical_fov_angle: 1.025     # default 0.7, radians
           horizontal_fov_angle: 1.571   # default 1.04, radians
           decay_acceleration: 0.5       # default 0, 1/s^2. If laser scanner MUST be 0

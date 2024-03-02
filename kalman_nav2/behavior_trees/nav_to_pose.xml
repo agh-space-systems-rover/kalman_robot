@@ -3,7 +3,7 @@
   recovery actions specific to planning / control as well as general system issues.
   This will be continuous if a kinematically valid planner is selected.
 -->
-<!-- <root main_tree_to_execute="MainTree">
+<root main_tree_to_execute="MainTree">
   <BehaviorTree ID="MainTree">
     <RecoveryNode number_of_retries="6" name="NavigateRecovery">
       <PipelineSequence name="NavigateWithReplanning">
@@ -19,7 +19,7 @@
         </RecoveryNode>
       </PipelineSequence>
       <ReactiveFallback name="RecoveryFallback">
-        <GoalUpdated/> -->
+        <GoalUpdated/>
         <!-- <RoundRobin name="RecoveryActions">
           <Sequence name="ClearingActions">
             <ClearEntireCostmap name="ClearLocalCostmap-Subtree" service_name="local_costmap/clear_entirely_local_costmap"/>
@@ -29,18 +29,18 @@
           <Wait wait_duration="5.0"/>
           <BackUp backup_dist="0.30" backup_speed="0.05"/>
         </RoundRobin> -->
-        <!-- <Sequence name="ClearingActions">
+        <Sequence name="ClearingActions">
           <ClearEntireCostmap name="ClearLocalCostmap-Subtree" service_name="local_costmap/clear_entirely_local_costmap"/>
           <ClearEntireCostmap name="ClearGlobalCostmap-Subtree" service_name="global_costmap/clear_entirely_global_costmap"/>
-        </Sequence> -->
+        </Sequence>
         <!-- Replaced all recovery actions with just costmap clearing to eliminate unpredictable behavior. -->
-      <!-- </ReactiveFallback>
+      </ReactiveFallback>
     </RecoveryNode>
   </BehaviorTree>
-</root> -->
+</root>
 
 <!-- Simplified behavior with no recovery. -->
-<root main_tree_to_execute="MainTree">
+<!-- <root main_tree_to_execute="MainTree">
   <BehaviorTree ID="MainTree">
     <RecoveryNode number_of_retries="6" name="NavigateRecovery">
       <PipelineSequence name="NavigateWithReplanning">
@@ -54,4 +54,4 @@
       </ReactiveFallback>
     </RecoveryNode>
   </BehaviorTree>
-</root>
+</root> -->

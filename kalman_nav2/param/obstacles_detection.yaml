@@ -11,6 +11,6 @@ obstacles_detection:
     # Grid/ClusterRadius: "0.1" # maximum radius of a cluster; default is 0.1
     # Grid/MinClusterSize: "30" # minimum number of points in a cluster; default is 10
     # Grid/NormalK: "200" # number of neighbors for normal estimation; default is 20
-    Grid/MaxGroundAngle: "30"
+    Grid/MaxGroundAngle: "25"
     Grid/FlatObstacleDetected: "false"
     # Grid/RayTracing: "true" # default is false

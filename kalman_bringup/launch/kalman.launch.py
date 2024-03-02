@@ -82,7 +82,7 @@ def launch_setup(context):
         ]
 
     # Start robot state publisher only if Gazebo is not currently running.
-    if not gazebo_already_running:
+    if not gazebo and not gazebo_already_running:
         description += [
             # robot structure TF publisher
             IncludeLaunchDescription(
@@ -157,7 +157,7 @@ def generate_launch_description():
             DeclareLaunchArgument(
                 "gazebo_already_running",
                 default_value="false",
-                description="Start up the stack without the robot state publisher. Should be set on when Gazebo is already running because it has its own robot state publisher.",
+                description="Start up the stack without the robot state publisher. Should be set on if Gazebo is already running while launching the stack because Gazebo has its own robot state publisher.",
             ),
             OpaqueFunction(function=launch_setup),
         ]
