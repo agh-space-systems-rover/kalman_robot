@@ -7,7 +7,7 @@ phidgets_spatial:
     # * `frame_id` (string) - The header frame ID to use when publishing the message.  Defaults to [REP-0145](http://www.ros.org/reps/rep-0145.html) compliant `imu_link`.
     frame_id: imu_link
     # * `use_orientation` (bool) - Use the phidget spatials onboard orientation estimation; Just available on MOT0109 onwards. Set to false for older versions. Defaults to false.
-    use_orientation: true
+    use_orientation: false
     # * `spatial_algorithm` (string) - Name of the spatial algorithm used for orientation estimation (one of "none", "ahrs", "imu"); Just used if `use_orientation` is set to true. Defaults to `ahrs`.
     spatial_algorithm: ahrs
     # * `ahrs_angular_velocity_threshold` (double) - Parameter for AHRS orientation estimation; Just used if `use_orientation` is set to true.

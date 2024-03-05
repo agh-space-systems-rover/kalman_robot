@@ -160,7 +160,11 @@ class CompasscalNode(Node):
 
             # Send a cmd_vel message.
             msg = Twist()
-            msg.angular.z = request.angular_velocity
+            # For the second half of the process turn in the reverse direction.
+            if i * 2 < n:
+                msg.angular.z = request.angular_velocity
+            else:
+                msg.angular.z = -request.angular_velocity
             self.cmd_vel_pub.publish(msg)
 
             # Wait for 1/msg_freq seconds.

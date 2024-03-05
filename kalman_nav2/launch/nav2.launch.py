@@ -21,27 +21,29 @@ def launch_setup(context):
         if x != ""
     ]
 
-    description = [
-        # Obstacle detection
-        Node(
-            package="rtabmap_util",
-            executable="obstacles_detection",
-            parameters=[
-                str(
-                    get_package_share_path("kalman_nav2")
-                    / "param"
-                    / "obstacles_detection.yaml"
-                ),
-            ],
-            remappings={
-                "cloud": f"/{camera_id}/depth/color/points",
-                "obstacles": f"/{camera_id}/obstacles",
-            }.items(),
-            # output="log",  # screen, log or both
-            arguments=["--ros-args", "--log-level", "fatal"],
-        )
-        for camera_id in rgbd_ids
-    ]
+    # description = [
+    #     # Obstacle detection
+    #     Node(
+    #         package="rtabmap_util",
+    #         executable="obstacles_detection",
+    #         parameters=[
+    #             str(
+    #                 get_package_share_path("kalman_nav2")
+    #                 / "param"
+    #                 / "obstacles_detection.yaml"
+    #             ),
+    #         ],
+    #         remappings={
+    #             "cloud": f"/{camera_id}/depth/color/points",
+    #             "obstacles": f"/{camera_id}/obstacles",
+    #         }.items(),
+    #         # output="log",  # screen, log or both
+    #         arguments=["--ros-args", "--log-level", "fatal"],
+    #     )
+    #     for camera_id in rgbd_ids
+    # ]
+    description = []
+    # Removed obstacle detection for now because it's too performance heavy.
 
     # Load Nav2 config template
     with open(

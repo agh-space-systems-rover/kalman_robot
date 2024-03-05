@@ -11,7 +11,7 @@ The description defines all the TF nodes that are children of base_link. -->
     <!-- IMU -->
     <link name="imu_link" />
     <joint name="imu_joint" type="fixed">
-        <origin xyz="0.088 0.000 -0.015"/>
+        <origin xyz="0.088 0.000 -0.015" rpy="0 0 -1.57" />
         <parent link="base_link"/>
         <child link="imu_link"/>
     </joint>

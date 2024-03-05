@@ -12,14 +12,14 @@ global_costmap:
       # Costmap update frequency.
       # update_frequency: 5.0
       # Frequency to publish costmap to topic.
-      publish_frequency: 5.0 # default: 1.0
+      publish_frequency: 1.0
       # Whether to send full costmap every update, rather than updates.
       # always_send_full_costmap: false
 
       # Width of costmap (m).
-      width: 100 # default: 5
+      width: 30 # default: 5
       # Height of costmap (m).
-      height: 100 # default: 5
+      height: 30 # default: 5
       # X origin of the costmap relative to width (m).
       # origin_x: 0.0
       # Y origin of the costmap relative to height (m).
@@ -89,13 +89,15 @@ global_costmap:
 {% for camera_id in rgbd_ids %}
         {{ camera_id }}:
           data_type: PointCloud2
-          topic: /{{ camera_id }}/obstacles
+          # topic: /{{ camera_id }}/obstacles
+          topic: /{{ camera_id }}/depth/color/points
+          # For now obstacle detection is disabled.
 
           # Marking params:
           marking: true
           obstacle_range: 5.0           # meters
-          min_obstacle_height: -1000.0  # default 0, meters
-          max_obstacle_height: 1000.0   # default 3, meters
+          min_obstacle_height: -0.3     # default 0, meters
+          max_obstacle_height: 1.0      # default 3, meters
           clear_after_reading: true     # default false, clear the buffer after the layer gets readings from it
           filter: "voxel"               # default passthrough, apply "voxel", "passthrough", or no filter to sensor data, recommended to have at one filter on
             
@@ -125,7 +127,7 @@ global_costmap:
 local_costmap:
   local_costmap:
     ros__parameters:
-      publish_frequency: 5.0
+      publish_frequency: 3.0
 
       width: 5
       height: 5
