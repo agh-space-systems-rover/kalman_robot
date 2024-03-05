@@ -3,12 +3,12 @@
 
 decimation_filter:
   enable: true
-  filter_magnitude: 6
+  filter_magnitude: 8
 pointcloud:
   enable: true
 align_depth:
   enable: true
 rgb_camera:
-  profile: 640x360x5
+  profile: 640x360x15
 depth_module:
-  profile: 640x360x5
+  profile: 640x360x15

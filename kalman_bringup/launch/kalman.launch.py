@@ -105,12 +105,12 @@ def launch_setup(context):
             launch_arguments={"rgbd_ids": rgbd_ids}.items(),
         ),
         # Nav2 stack + path follower
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(
-                str(get_package_share_path("kalman_nav2") / "launch" / "nav2.launch.py")
-            ),
-            launch_arguments={"rgbd_ids": rgbd_ids}.items(),
-        ),
+        # IncludeLaunchDescription(
+        #     PythonLaunchDescriptionSource(
+        #         str(get_package_share_path("kalman_nav2") / "launch" / "nav2.launch.py")
+        #     ),
+        #     launch_arguments={"rgbd_ids": rgbd_ids}.items(),
+        # ),
         # wheel controller
         Node(
             package="kalman_wheel_controller",
