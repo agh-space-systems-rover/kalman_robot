@@ -21,29 +21,27 @@ def launch_setup(context):
         if x != ""
     ]
 
-    # description = [
-    #     # Obstacle detection
-    #     Node(
-    #         package="rtabmap_util",
-    #         executable="obstacles_detection",
-    #         parameters=[
-    #             str(
-    #                 get_package_share_path("kalman_nav2")
-    #                 / "param"
-    #                 / "obstacles_detection.yaml"
-    #             ),
-    #         ],
-    #         remappings={
-    #             "cloud": f"/{camera_id}/depth/color/points",
-    #             "obstacles": f"/{camera_id}/obstacles",
-    #         }.items(),
-    #         # output="log",  # screen, log or both
-    #         arguments=["--ros-args", "--log-level", "fatal"],
-    #     )
-    #     for camera_id in rgbd_ids
-    # ]
-    description = []
-    # Removed obstacle detection for now because it's too performance heavy.
+    description = [
+        # Obstacle detection
+        Node(
+            package="rtabmap_util",
+            executable="obstacles_detection",
+            parameters=[
+                str(
+                    get_package_share_path("kalman_nav2")
+                    / "param"
+                    / "obstacles_detection.yaml"
+                ),
+            ],
+            remappings={
+                "cloud": f"/{camera_id}/depth/color/points/filtered",
+                "obstacles": f"/{camera_id}/depth/color/points/filtered/obstacles",
+            }.items(),
+            # output="log",  # screen, log or both
+            arguments=["--ros-args", "--log-level", "fatal"],
+        )
+        for camera_id in rgbd_ids
+    ]
 
     # Load Nav2 config template
     with open(
@@ -60,7 +58,7 @@ def launch_setup(context):
     nav2_params = yaml.load(ukf_config_str, Loader=yaml.FullLoader)
 
     # Save it to file
-    nav2_params_path = os.path.expanduser("~/.config/kalman/nav2.yaml")
+    nav2_params_path = "/tmp/kalman/nav2." + str(os.getpid()) + ".yaml"
     os.makedirs(os.path.dirname(nav2_params_path), exist_ok=True)
     with open(nav2_params_path, "w") as f:
         yaml.dump(nav2_params, f)

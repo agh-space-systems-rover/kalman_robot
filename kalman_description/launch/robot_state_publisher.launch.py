@@ -23,5 +23,11 @@ def generate_launch_description():
                     }
                 ],
             ),
+            # joint state publisher
+            # Required for 3D model joints to show up.
+            Node(
+                package="joint_state_publisher",
+                executable="joint_state_publisher",
+            ),
         ]
     )

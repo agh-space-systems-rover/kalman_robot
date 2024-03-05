@@ -5,9 +5,9 @@ The description defines all the TF nodes that are children of base_link. -->
 
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="kalman">
     <xacro:include filename="$(find realsense2_description)/urdf/_d455.urdf.xacro" />
-  
+
     <link name="base_link" />
-    
+
     <!-- IMU -->
     <link name="imu_link" />
     <joint name="imu_joint" type="fixed">
@@ -19,9 +19,9 @@ The description defines all the TF nodes that are children of base_link. -->
     <!-- Altimeter -->
     <link name="altimeter_link" />
     <joint name="altimeter_joint" type="fixed">
-        <origin xyz="0.088 0.000 -0.015"/>
-        <parent link="base_link"/>
-        <child link="altimeter_link"/>n
+        <origin xyz="0.088 0.000 -0.015" />
+        <parent link="base_link" />
+        <child link="altimeter_link" />
     </joint>
 
     <!-- RealSense -->
@@ -38,4 +38,7 @@ The description defines all the TF nodes that are children of base_link. -->
     <xacro:sensor_d455 name="d455_right" parent="base_link" use_nominal_extrinsics="true">
         <origin xyz="-0.561 -0.211 0.275" rpy="0 0 -1.57" />
     </xacro:sensor_d455>
+
+    <!-- additional robot model -->
+    <xacro:include filename="$(find kalman_description)/urdf/sim_model.urdf.xacro" />
 </robot>

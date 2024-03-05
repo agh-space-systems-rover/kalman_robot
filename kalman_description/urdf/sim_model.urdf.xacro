@@ -1,0 +1,100 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="kalman">
+    <xacro:include filename="$(find kalman_description)/urdf/cylinder_inertial.urdf.xacro" />
+
+    <material name="white">
+        <color rgba="0.8 0.8 0.8 1" />
+    </material>
+
+    <link name="body_link">
+        <visual>
+            <geometry>
+                <mesh filename="package://kalman_description/stl/body.stl" />
+            </geometry>
+            <material name="white" />
+        </visual>
+    </link>
+    <joint name="body_joint" type="fixed">
+        <parent link="base_link" />
+        <child link="body_link" />
+    </joint>
+
+    <xacro:macro name="suspension" params="y_side y_scale">
+        <link name="suspension_${y_side}_link">
+            <visual>
+                <geometry>
+                    <mesh filename="package://kalman_description/stl/suspension_r.stl" scale="1 ${y_scale} 1" />
+                </geometry>
+                <material name="white" />
+            </visual>
+            <xacro:cylinder_inertial radius="0.1" length="1" mass="1">
+                <!-- This is not the correct intertia of the suspension,
+                but it shuts up the warnings when supsension is dynamic. -->
+                <origin rpy="1.57075 0 0" />
+            </xacro:cylinder_inertial>
+        </link>
+        <joint name="suspension_${y_side}_joint" type="fixed">
+            <!-- Suspension is static for now. -->
+            <origin xyz="0.009 0 -0.06" />
+            <axis xyz="0 1 0" />
+            <parent link="body_link" />
+            <child link="suspension_${y_side}_link" />
+        </joint>
+    </xacro:macro>
+    <xacro:suspension y_side="r" y_scale="1" />
+    <xacro:suspension y_side="l" y_scale="-1" />
+
+    <xacro:macro name="swivel" params="x_side y_side y_scale xyz">
+        <link name="swivel_${x_side}${y_side}_link">
+            <visual>
+                <geometry>
+                    <mesh filename="package://kalman_description/stl/swivel_fr.stl" scale="1 ${y_scale} 1" />
+                </geometry>
+                <material name="white" />
+            </visual>
+            <xacro:cylinder_inertial radius="0.08" length="0.35" mass="2.25">
+                <origin xyz="0 0 -0.25" />
+            </xacro:cylinder_inertial>
+        </link>
+        <joint name="swivel_${x_side}${y_side}_joint" type="continuous">
+            <origin xyz="${xyz}" />
+            <axis xyz="0 0 1" />
+            <parent link="suspension_${y_side}_link" />
+            <child link="swivel_${x_side}${y_side}_link" />
+        </joint>
+    </xacro:macro>
+    <xacro:swivel x_side="f" y_side="r" y_scale="1" xyz="0.295 -0.333 0.06" />
+    <xacro:swivel x_side="f" y_side="l" y_scale="-1" xyz="0.295 0.333 0.06" />
+    <xacro:swivel x_side="b" y_side="r" y_scale="1" xyz="-0.497 -0.333 0.06" />
+    <xacro:swivel x_side="b" y_side="l" y_scale="-1" xyz="-0.497 0.333 0.06" />
+
+    <xacro:macro name="wheel" params="x_side y_side y_scale xyz">
+        <link name="wheel_${x_side}${y_side}_link">
+            <visual>
+                <geometry>
+                    <mesh filename="package://kalman_description/stl/wheel_fr.stl" scale="1 ${y_scale} 1" />
+                </geometry>
+                <material name="white" />
+            </visual>
+            <collision>
+                <origin rpy="1.57075 0 0" xyz="0 0 0"/>
+                <geometry>
+                    <cylinder radius="0.12" length="0.15" />
+                </geometry>
+            </collision>
+            <xacro:cylinder_inertial radius="0.12" length="0.15" mass="3.3">
+                <origin rpy="1.57075 0 0" xyz="0 0 0"/>
+            </xacro:cylinder_inertial>
+        </link>
+        <joint name="wheel_${x_side}${y_side}_joint" type="continuous">
+            <origin xyz="${xyz}" />
+            <axis xyz="0 1 0" />
+            <parent link="swivel_${x_side}${y_side}_link" />
+            <child link="wheel_${x_side}${y_side}_link" />
+        </joint>
+    </xacro:macro>
+    <xacro:wheel x_side="f" y_side="r" y_scale="1" xyz="0 0 -0.363" />
+    <xacro:wheel x_side="f" y_side="l" y_scale="-1" xyz="0 0 -0.363" />
+    <xacro:wheel x_side="b" y_side="r" y_scale="1" xyz="0 0 -0.363" />
+    <xacro:wheel x_side="b" y_side="l" y_scale="-1" xyz="0 0 -0.363" />
+</robot>

@@ -10,7 +10,7 @@ from typing import List
 The idea of this node is to provide the ROS <--> Master bridge.
 
 Every frame received from master is published as a ROS message (MasterMessage) on a dynamically 
-created topic master_com/master_to_ros/{0x(lowercase hexadecimal frame ID)} [msg command, argv_0, ... , argv_n].
+created topic master_com/master_to_ros/{x(lowercase hexadecimal frame ID)} [msg command, argv_0, ... , argv_n].
 Frame data interpretation should be handled by client.
 
 Every ROS message sent on topic master_com/ros_to_master should have MasterMessage format.
@@ -20,7 +20,13 @@ Message is then encoded as a binary frame and sent out using the serial driver.
 
 class MasterCom(Node):
     # _port_name will be overwritten by launch file
-    def __init__(self, port_name: str = "/dev/ttyUSB0", baud_rate: int = 115200, ascii_mode: bool = False, frequency: float = 400) -> None:
+    def __init__(
+        self,
+        port_name: str = "/dev/ttyUSB0",
+        baud_rate: int = 115200,
+        ascii_mode: bool = False,
+        frequency: float = 400,
+    ) -> None:
         super().__init__("master_com")
 
         self.declare_parameter("serial_port", port_name)
@@ -68,10 +74,7 @@ class MasterCom(Node):
             self.pubs[msg.cmd].publish(ros_msg)
 
     def ros_to_master(self, ros_msg: MasterMessage) -> None:
-        serial_msg = SerialMsg(
-            ros_msg.cmd,
-            len(ros_msg.data),
-            ros_msg.data)
+        serial_msg = SerialMsg(ros_msg.cmd, len(ros_msg.data), ros_msg.data)
 
         self.driver.write_msg(serial_msg)
         self.driver.tick()

@@ -1,16 +1,18 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>kalman_description</name>
+  <name>point_cloud_filters</name>
   <version>0.0.0</version>
-  <description>Xacro / URDF descriptions + models for the rover</description>
+  <description>TODO: Package description</description>
   <maintainer email="63957587+rayferric@users.noreply.github.com">rayferric</maintainer>
-  <license>MIT</license>
+  <license>TODO: License declaration</license>
 
-  <exec_depend>ros2launch</exec_depend>
-  <exec_depend>xacro</exec_depend>
-  <exec_depend>realsense2_description</exec_depend>
-  <exec_depend>joint_state_publisher_gui</exec_depend> <!-- for model demo -->
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <depend>rclcpp</depend>
+  <depend>sensor_msgs</depend>
+  <depend>message_filters</depend>
+  <depend>tf2_ros</depend>
+  <depend>pcl_ros</depend>
 
   <export>
     <build_type>ament_cmake</build_type>
