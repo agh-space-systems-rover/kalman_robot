@@ -40,7 +40,7 @@ rtabmap:
         Grid/FlatObstacleDetected: "false"
         # Grid/RayTracing: "True  # default is false
 
-        Icp/VoxelSize: "0.05"  # disable uniform voxel size; default is 0.05
+        Icp/VoxelSize: "0.1"  # disable uniform voxel size; default is 0.05
         # Icp/Iterations: "30"  # max iterations for ICP; default is 30
 
         OdomF2M/ScanSubtractRadius: "0.05"  # radius for filtering new points in local map; default is 0.05

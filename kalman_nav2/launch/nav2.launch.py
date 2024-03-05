@@ -21,24 +21,15 @@ def launch_setup(context):
         if x != ""
     ]
 
+    # Obstacle detection
     description = [
-        # Obstacle detection
         Node(
-            package="rtabmap_util",
-            executable="obstacles_detection",
-            parameters=[
-                str(
-                    get_package_share_path("kalman_nav2")
-                    / "param"
-                    / "obstacles_detection.yaml"
-                ),
-            ],
+            package="obstacle_detection",
+            executable="obstacle_detection",
             remappings={
-                "cloud": f"/{camera_id}/depth/color/points/filtered",
-                "obstacles": f"/{camera_id}/depth/color/points/filtered/obstacles",
+                "input": f"/{camera_id}/depth/color/points/filtered",
+                "output": f"/{camera_id}/depth/color/points/filtered/obstacles",
             }.items(),
-            # output="log",  # screen, log or both
-            arguments=["--ros-args", "--log-level", "fatal"],
         )
         for camera_id in rgbd_ids
     ]
