@@ -1,0 +1,31 @@
+running develop
+running egg_info
+creating kalman_nav2.egg-info
+writing kalman_nav2.egg-info/PKG-INFO
+writing dependency_links to kalman_nav2.egg-info/dependency_links.txt
+writing entry points to kalman_nav2.egg-info/entry_points.txt
+writing top-level names to kalman_nav2.egg-info/top_level.txt
+writing manifest file 'kalman_nav2.egg-info/SOURCES.txt'
+reading manifest file 'kalman_nav2.egg-info/SOURCES.txt'
+writing manifest file 'kalman_nav2.egg-info/SOURCES.txt'
+running build_ext
+Creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_nav2/lib/python3.10/site-packages/kalman-nav2.egg-link (link to .)
+Installing path_follower script to /home/rafal/kalman_ws/src/kalman_robot/install/kalman_nav2/lib/kalman_nav2
+
+Installed /home/rafal/kalman_ws/src/kalman_robot/build/kalman_nav2
+running install_data
+creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_nav2/share/ament_index
+creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_nav2/share/ament_index/resource_index
+creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_nav2/share/ament_index/resource_index/packages
+copying resource/kalman_nav2 -> /home/rafal/kalman_ws/src/kalman_robot/install/kalman_nav2/share/ament_index/resource_index/packages
+copying package.xml -> /home/rafal/kalman_ws/src/kalman_robot/install/kalman_nav2/share/kalman_nav2
+creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_nav2/share/kalman_nav2/launch
+copying launch/navigation_launch.launch.py -> /home/rafal/kalman_ws/src/kalman_robot/install/kalman_nav2/share/kalman_nav2/launch
+copying launch/nav2.launch.py -> /home/rafal/kalman_ws/src/kalman_robot/install/kalman_nav2/share/kalman_nav2/launch
+creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_nav2/share/kalman_nav2/param
+copying param/nav2.yaml.j2 -> /home/rafal/kalman_ws/src/kalman_robot/install/kalman_nav2/share/kalman_nav2/param
+copying param/obstacles_detection.yaml -> /home/rafal/kalman_ws/src/kalman_robot/install/kalman_nav2/share/kalman_nav2/param
+copying param/path_follower.yaml -> /home/rafal/kalman_ws/src/kalman_robot/install/kalman_nav2/share/kalman_nav2/param
+creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_nav2/share/kalman_nav2/behavior_trees
+copying behavior_trees/nav_through_poses.xml -> /home/rafal/kalman_ws/src/kalman_robot/install/kalman_nav2/share/kalman_nav2/behavior_trees
+copying behavior_trees/nav_to_pose.xml -> /home/rafal/kalman_ws/src/kalman_robot/install/kalman_nav2/share/kalman_nav2/behavior_trees

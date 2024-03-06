@@ -1,8 +1,8 @@
-# Install script for directory: /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/service_based_nav2_controller_srvs/service_based_nav2_controller_srvs__py
+# Install script for directory: /home/rafal/kalman_ws/src/kalman_robot/build/service_based_nav2_controller_srvs/service_based_nav2_controller_srvs__py
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "/home/rafal/.ssh/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs")
+  set(CMAKE_INSTALL_PREFIX "/home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 

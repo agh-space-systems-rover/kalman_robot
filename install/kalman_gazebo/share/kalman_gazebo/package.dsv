@@ -1,0 +1,9 @@
+source;share/kalman_gazebo/hook/pythonpath.ps1
+source;share/kalman_gazebo/hook/pythonpath.dsv
+source;share/kalman_gazebo/hook/pythonpath.sh
+source;share/kalman_gazebo/hook/ament_prefix_path.ps1
+source;share/kalman_gazebo/hook/ament_prefix_path.dsv
+source;share/kalman_gazebo/hook/ament_prefix_path.sh
+source;../../build/kalman_gazebo/share/kalman_gazebo/hook/pythonpath_develop.ps1
+source;../../build/kalman_gazebo/share/kalman_gazebo/hook/pythonpath_develop.dsv
+source;../../build/kalman_gazebo/share/kalman_gazebo/hook/pythonpath_develop.sh

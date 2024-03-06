@@ -1,0 +1,45 @@
+// generated from rosidl_adapter/resource/srv.idl.em
+// with input from kalman_interfaces/srv/CalibrateCompass.srv
+// generated code does not contain a copyright notice
+
+
+module kalman_interfaces {
+  module srv {
+    struct CalibrateCompass_Request {
+      @default (value=30.0)
+      float duration;
+
+      @default (value=0.5)
+      float angular_velocity;
+    };
+    struct CalibrateCompass_Response {
+      boolean success;
+
+      float cc_mag_field;
+
+      float cc_offset0;
+
+      float cc_offset1;
+
+      float cc_offset2;
+
+      float cc_gain0;
+
+      float cc_gain1;
+
+      float cc_gain2;
+
+      float cc_t0;
+
+      float cc_t1;
+
+      float cc_t2;
+
+      float cc_t3;
+
+      float cc_t4;
+
+      float cc_t5;
+    };
+  };
+};

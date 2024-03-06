@@ -1,0 +1,1 @@
+ament_cmake_symlink_install_targets("TARGET_FILES" "/home/rafal/kalman_ws/src/kalman_robot/build/unity_rs_publisher/unity_rs_publisher" "TARGETS" "unity_rs_publisher" "DESTINATION" "lib/unity_rs_publisher")

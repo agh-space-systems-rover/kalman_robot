@@ -53,10 +53,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/rafal/.ssh/kalman_ws/src/kalman_robot/unity_sim/unity_rs_publisher_msgs
+CMAKE_SOURCE_DIR = /home/rafal/kalman_ws/src/kalman_robot/unity_sim/unity_rs_publisher_msgs
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/unity_rs_publisher_msgs
+CMAKE_BINARY_DIR = /home/rafal/kalman_ws/src/kalman_robot/build/unity_rs_publisher_msgs
 
 # Utility rule file for unity_rs_publisher_msgs.
 
@@ -66,7 +66,7 @@ include CMakeFiles/unity_rs_publisher_msgs.dir/compiler_depend.make
 # Include the progress variables for this target.
 include CMakeFiles/unity_rs_publisher_msgs.dir/progress.make
 
-CMakeFiles/unity_rs_publisher_msgs: /home/rafal/.ssh/kalman_ws/src/kalman_robot/unity_sim/unity_rs_publisher_msgs/msg/CameraMetadata.msg
+CMakeFiles/unity_rs_publisher_msgs: /home/rafal/kalman_ws/src/kalman_robot/unity_sim/unity_rs_publisher_msgs/msg/CameraMetadata.msg
 
 unity_rs_publisher_msgs: CMakeFiles/unity_rs_publisher_msgs
 unity_rs_publisher_msgs: CMakeFiles/unity_rs_publisher_msgs.dir/build.make
@@ -81,6 +81,6 @@ CMakeFiles/unity_rs_publisher_msgs.dir/clean:
 .PHONY : CMakeFiles/unity_rs_publisher_msgs.dir/clean
 
 CMakeFiles/unity_rs_publisher_msgs.dir/depend:
-	cd /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/unity_rs_publisher_msgs && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/rafal/.ssh/kalman_ws/src/kalman_robot/unity_sim/unity_rs_publisher_msgs /home/rafal/.ssh/kalman_ws/src/kalman_robot/unity_sim/unity_rs_publisher_msgs /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/unity_rs_publisher_msgs /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/unity_rs_publisher_msgs /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/unity_rs_publisher_msgs/CMakeFiles/unity_rs_publisher_msgs.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/rafal/kalman_ws/src/kalman_robot/build/unity_rs_publisher_msgs && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/rafal/kalman_ws/src/kalman_robot/unity_sim/unity_rs_publisher_msgs /home/rafal/kalman_ws/src/kalman_robot/unity_sim/unity_rs_publisher_msgs /home/rafal/kalman_ws/src/kalman_robot/build/unity_rs_publisher_msgs /home/rafal/kalman_ws/src/kalman_robot/build/unity_rs_publisher_msgs /home/rafal/kalman_ws/src/kalman_robot/build/unity_rs_publisher_msgs/CMakeFiles/unity_rs_publisher_msgs.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/unity_rs_publisher_msgs.dir/depend
 

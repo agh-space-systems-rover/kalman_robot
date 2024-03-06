@@ -1,0 +1,31 @@
+[0.460s] Invoking command in '/home/rafal/kalman_ws/src/kalman_robot/build/kalman_description': CMAKE_PREFIX_PATH=/home/rafal/dev_ws/install/my_robot:/opt/ros/humble /usr/bin/cmake --build /home/rafal/kalman_ws/src/kalman_robot/build/kalman_description -- -j16 -l16
+[1.658s] Invoked command in '/home/rafal/kalman_ws/src/kalman_robot/build/kalman_description' returned '0': CMAKE_PREFIX_PATH=/home/rafal/dev_ws/install/my_robot:/opt/ros/humble /usr/bin/cmake --build /home/rafal/kalman_ws/src/kalman_robot/build/kalman_description -- -j16 -l16
+[2.308s] Invoking command in '/home/rafal/kalman_ws/src/kalman_robot/build/kalman_description': CMAKE_PREFIX_PATH=/home/rafal/dev_ws/install/my_robot:/opt/ros/humble /usr/bin/cmake --install /home/rafal/kalman_ws/src/kalman_robot/build/kalman_description
+[2.328s] -- Install configuration: ""
+[2.328s] -- Execute custom install script
+[2.328s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_description/share/kalman_description/launch/demo_rviz_model.launch.py
+[2.329s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_description/share/kalman_description/launch/robot_state_publisher.launch.py
+[2.329s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_description/share/kalman_description/rviz/demo_rviz_model.rviz
+[2.329s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_description/share/kalman_description/urdf/cylinder_inertial.urdf.xacro
+[2.329s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_description/share/kalman_description/urdf/kalman.urdf.xacro
+[2.329s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_description/share/kalman_description/urdf/sim_model.urdf.xacro
+[2.330s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_description/share/kalman_description/stl/body.stl
+[2.333s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_description/share/kalman_description/stl/suspension_r.stl
+[2.334s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_description/share/kalman_description/stl/swivel_fr.stl
+[2.334s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_description/share/kalman_description/stl/wheel_fr.stl
+[2.334s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_description/share/ament_index/resource_index/package_run_dependencies/kalman_description
+[2.335s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_description/share/ament_index/resource_index/parent_prefix_path/kalman_description
+[2.335s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_description/share/kalman_description/environment/ament_prefix_path.sh
+[2.335s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_description/share/kalman_description/environment/ament_prefix_path.dsv
+[2.336s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_description/share/kalman_description/environment/path.sh
+[2.336s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_description/share/kalman_description/environment/path.dsv
+[2.336s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_description/share/kalman_description/local_setup.bash
+[2.336s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_description/share/kalman_description/local_setup.sh
+[2.337s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_description/share/kalman_description/local_setup.zsh
+[2.337s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_description/share/kalman_description/local_setup.dsv
+[2.338s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_description/share/kalman_description/package.dsv
+[2.367s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_description/share/ament_index/resource_index/packages/kalman_description
+[2.367s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_description/share/kalman_description/cmake/kalman_descriptionConfig.cmake
+[2.368s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_description/share/kalman_description/cmake/kalman_descriptionConfig-version.cmake
+[2.368s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_description/share/kalman_description/package.xml
+[2.562s] Invoked command in '/home/rafal/kalman_ws/src/kalman_robot/build/kalman_description' returned '0': CMAKE_PREFIX_PATH=/home/rafal/dev_ws/install/my_robot:/opt/ros/humble /usr/bin/cmake --install /home/rafal/kalman_ws/src/kalman_robot/build/kalman_description

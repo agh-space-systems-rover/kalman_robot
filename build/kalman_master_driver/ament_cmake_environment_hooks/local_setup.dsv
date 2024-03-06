@@ -1,3 +1,0 @@
-source;share/kalman_master_driver/environment/ament_prefix_path.sh
-source;share/kalman_master_driver/environment/path.sh
-source;share/kalman_master_driver/environment/pythonpath.sh

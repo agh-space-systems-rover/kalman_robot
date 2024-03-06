@@ -53,10 +53,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/rafal/.ssh/kalman_ws/src/kalman_robot/kalman_interfaces
+CMAKE_SOURCE_DIR = /home/rafal/kalman_ws/src/kalman_robot/kalman_interfaces
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_interfaces
+CMAKE_BINARY_DIR = /home/rafal/kalman_ws/src/kalman_robot/build/kalman_interfaces
 
 # Utility rule file for kalman_interfaces__py.
 
@@ -69,15 +69,26 @@ include kalman_interfaces__py/CMakeFiles/kalman_interfaces__py.dir/progress.make
 kalman_interfaces__py/CMakeFiles/kalman_interfaces__py: rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c
 kalman_interfaces__py/CMakeFiles/kalman_interfaces__py: rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_introspection_c.c
 kalman_interfaces__py/CMakeFiles/kalman_interfaces__py: rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_c.c
+kalman_interfaces__py/CMakeFiles/kalman_interfaces__py: rosidl_generator_py/kalman_interfaces/msg/_gps_tag_array.py
+kalman_interfaces__py/CMakeFiles/kalman_interfaces__py: rosidl_generator_py/kalman_interfaces/msg/_gps_tag.py
+kalman_interfaces__py/CMakeFiles/kalman_interfaces__py: rosidl_generator_py/kalman_interfaces/msg/_master_message.py
 kalman_interfaces__py/CMakeFiles/kalman_interfaces__py: rosidl_generator_py/kalman_interfaces/msg/_wheel_state.py
 kalman_interfaces__py/CMakeFiles/kalman_interfaces__py: rosidl_generator_py/kalman_interfaces/msg/_wheel_states.py
-kalman_interfaces__py/CMakeFiles/kalman_interfaces__py: rosidl_generator_py/kalman_interfaces/msg/_gps_tag.py
-kalman_interfaces__py/CMakeFiles/kalman_interfaces__py: rosidl_generator_py/kalman_interfaces/msg/_gps_tag_array.py
+kalman_interfaces__py/CMakeFiles/kalman_interfaces__py: rosidl_generator_py/kalman_interfaces/srv/_calibrate_compass.py
+kalman_interfaces__py/CMakeFiles/kalman_interfaces__py: rosidl_generator_py/kalman_interfaces/srv/_set_ueuos_color.py
+kalman_interfaces__py/CMakeFiles/kalman_interfaces__py: rosidl_generator_py/kalman_interfaces/srv/_set_ueuos_effect.py
+kalman_interfaces__py/CMakeFiles/kalman_interfaces__py: rosidl_generator_py/kalman_interfaces/srv/_set_ueuos_mode.py
 kalman_interfaces__py/CMakeFiles/kalman_interfaces__py: rosidl_generator_py/kalman_interfaces/msg/__init__.py
+kalman_interfaces__py/CMakeFiles/kalman_interfaces__py: rosidl_generator_py/kalman_interfaces/srv/__init__.py
+kalman_interfaces__py/CMakeFiles/kalman_interfaces__py: rosidl_generator_py/kalman_interfaces/msg/_gps_tag_array_s.c
+kalman_interfaces__py/CMakeFiles/kalman_interfaces__py: rosidl_generator_py/kalman_interfaces/msg/_gps_tag_s.c
+kalman_interfaces__py/CMakeFiles/kalman_interfaces__py: rosidl_generator_py/kalman_interfaces/msg/_master_message_s.c
 kalman_interfaces__py/CMakeFiles/kalman_interfaces__py: rosidl_generator_py/kalman_interfaces/msg/_wheel_state_s.c
 kalman_interfaces__py/CMakeFiles/kalman_interfaces__py: rosidl_generator_py/kalman_interfaces/msg/_wheel_states_s.c
-kalman_interfaces__py/CMakeFiles/kalman_interfaces__py: rosidl_generator_py/kalman_interfaces/msg/_gps_tag_s.c
-kalman_interfaces__py/CMakeFiles/kalman_interfaces__py: rosidl_generator_py/kalman_interfaces/msg/_gps_tag_array_s.c
+kalman_interfaces__py/CMakeFiles/kalman_interfaces__py: rosidl_generator_py/kalman_interfaces/srv/_calibrate_compass_s.c
+kalman_interfaces__py/CMakeFiles/kalman_interfaces__py: rosidl_generator_py/kalman_interfaces/srv/_set_ueuos_color_s.c
+kalman_interfaces__py/CMakeFiles/kalman_interfaces__py: rosidl_generator_py/kalman_interfaces/srv/_set_ueuos_effect_s.c
+kalman_interfaces__py/CMakeFiles/kalman_interfaces__py: rosidl_generator_py/kalman_interfaces/srv/_set_ueuos_mode_s.c
 
 rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: /opt/ros/humble/lib/rosidl_generator_py/rosidl_generator_py
 rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: /opt/ros/humble/local/lib/python3.10/dist-packages/rosidl_generator_py/__init__.py
@@ -92,12 +103,49 @@ rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport
 rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: /opt/ros/humble/share/rosidl_generator_py/resource/_msg.py.em
 rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: /opt/ros/humble/share/rosidl_generator_py/resource/_srv_pkg_typesupport_entry_point.c.em
 rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: /opt/ros/humble/share/rosidl_generator_py/resource/_srv.py.em
+rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: rosidl_adapter/kalman_interfaces/msg/GpsTagArray.idl
+rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: rosidl_adapter/kalman_interfaces/msg/GpsTag.idl
+rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: rosidl_adapter/kalman_interfaces/msg/MasterMessage.idl
 rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: rosidl_adapter/kalman_interfaces/msg/WheelState.idl
 rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: rosidl_adapter/kalman_interfaces/msg/WheelStates.idl
-rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: rosidl_adapter/kalman_interfaces/msg/GpsTag.idl
-rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: rosidl_adapter/kalman_interfaces/msg/GpsTagArray.idl
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_interfaces/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Generating Python code for ROS interfaces"
-	cd /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_interfaces/kalman_interfaces__py && /usr/bin/python3 /opt/ros/humble/share/rosidl_generator_py/cmake/../../../lib/rosidl_generator_py/rosidl_generator_py --generator-arguments-file /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_interfaces/rosidl_generator_py__arguments.json --typesupport-impls "rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c;rosidl_typesupport_c"
+rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: rosidl_adapter/kalman_interfaces/srv/CalibrateCompass.idl
+rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: rosidl_adapter/kalman_interfaces/srv/SetUeuosColor.idl
+rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: rosidl_adapter/kalman_interfaces/srv/SetUeuosEffect.idl
+rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: rosidl_adapter/kalman_interfaces/srv/SetUeuosMode.idl
+rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: /opt/ros/humble/share/std_msgs/msg/Bool.idl
+rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: /opt/ros/humble/share/std_msgs/msg/Byte.idl
+rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: /opt/ros/humble/share/std_msgs/msg/ByteMultiArray.idl
+rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: /opt/ros/humble/share/std_msgs/msg/Char.idl
+rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: /opt/ros/humble/share/std_msgs/msg/ColorRGBA.idl
+rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: /opt/ros/humble/share/std_msgs/msg/Empty.idl
+rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: /opt/ros/humble/share/std_msgs/msg/Float32.idl
+rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: /opt/ros/humble/share/std_msgs/msg/Float32MultiArray.idl
+rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: /opt/ros/humble/share/std_msgs/msg/Float64.idl
+rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: /opt/ros/humble/share/std_msgs/msg/Float64MultiArray.idl
+rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: /opt/ros/humble/share/std_msgs/msg/Header.idl
+rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: /opt/ros/humble/share/std_msgs/msg/Int16.idl
+rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: /opt/ros/humble/share/std_msgs/msg/Int16MultiArray.idl
+rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: /opt/ros/humble/share/std_msgs/msg/Int32.idl
+rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: /opt/ros/humble/share/std_msgs/msg/Int32MultiArray.idl
+rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: /opt/ros/humble/share/std_msgs/msg/Int64.idl
+rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: /opt/ros/humble/share/std_msgs/msg/Int64MultiArray.idl
+rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: /opt/ros/humble/share/std_msgs/msg/Int8.idl
+rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: /opt/ros/humble/share/std_msgs/msg/Int8MultiArray.idl
+rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: /opt/ros/humble/share/std_msgs/msg/MultiArrayDimension.idl
+rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: /opt/ros/humble/share/std_msgs/msg/MultiArrayLayout.idl
+rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: /opt/ros/humble/share/std_msgs/msg/String.idl
+rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: /opt/ros/humble/share/std_msgs/msg/UInt16.idl
+rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: /opt/ros/humble/share/std_msgs/msg/UInt16MultiArray.idl
+rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: /opt/ros/humble/share/std_msgs/msg/UInt32.idl
+rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: /opt/ros/humble/share/std_msgs/msg/UInt32MultiArray.idl
+rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: /opt/ros/humble/share/std_msgs/msg/UInt64.idl
+rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: /opt/ros/humble/share/std_msgs/msg/UInt64MultiArray.idl
+rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: /opt/ros/humble/share/std_msgs/msg/UInt8.idl
+rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: /opt/ros/humble/share/std_msgs/msg/UInt8MultiArray.idl
+rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: /opt/ros/humble/share/builtin_interfaces/msg/Duration.idl
+rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c: /opt/ros/humble/share/builtin_interfaces/msg/Time.idl
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/rafal/kalman_ws/src/kalman_robot/build/kalman_interfaces/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Generating Python code for ROS interfaces"
+	cd /home/rafal/kalman_ws/src/kalman_robot/build/kalman_interfaces/kalman_interfaces__py && /usr/bin/python3 /opt/ros/humble/share/rosidl_generator_py/cmake/../../../lib/rosidl_generator_py/rosidl_generator_py --generator-arguments-file /home/rafal/kalman_ws/src/kalman_robot/build/kalman_interfaces/rosidl_generator_py__arguments.json --typesupport-impls "rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c;rosidl_typesupport_c"
 
 rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_introspection_c.c: rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c
 	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_introspection_c.c
@@ -105,20 +153,47 @@ rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport
 rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_c.c: rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c
 	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_c.c
 
+rosidl_generator_py/kalman_interfaces/msg/_gps_tag_array.py: rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_py/kalman_interfaces/msg/_gps_tag_array.py
+
+rosidl_generator_py/kalman_interfaces/msg/_gps_tag.py: rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_py/kalman_interfaces/msg/_gps_tag.py
+
+rosidl_generator_py/kalman_interfaces/msg/_master_message.py: rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_py/kalman_interfaces/msg/_master_message.py
+
 rosidl_generator_py/kalman_interfaces/msg/_wheel_state.py: rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c
 	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_py/kalman_interfaces/msg/_wheel_state.py
 
 rosidl_generator_py/kalman_interfaces/msg/_wheel_states.py: rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c
 	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_py/kalman_interfaces/msg/_wheel_states.py
 
-rosidl_generator_py/kalman_interfaces/msg/_gps_tag.py: rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c
-	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_py/kalman_interfaces/msg/_gps_tag.py
+rosidl_generator_py/kalman_interfaces/srv/_calibrate_compass.py: rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_py/kalman_interfaces/srv/_calibrate_compass.py
 
-rosidl_generator_py/kalman_interfaces/msg/_gps_tag_array.py: rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c
-	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_py/kalman_interfaces/msg/_gps_tag_array.py
+rosidl_generator_py/kalman_interfaces/srv/_set_ueuos_color.py: rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_py/kalman_interfaces/srv/_set_ueuos_color.py
+
+rosidl_generator_py/kalman_interfaces/srv/_set_ueuos_effect.py: rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_py/kalman_interfaces/srv/_set_ueuos_effect.py
+
+rosidl_generator_py/kalman_interfaces/srv/_set_ueuos_mode.py: rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_py/kalman_interfaces/srv/_set_ueuos_mode.py
 
 rosidl_generator_py/kalman_interfaces/msg/__init__.py: rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c
 	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_py/kalman_interfaces/msg/__init__.py
+
+rosidl_generator_py/kalman_interfaces/srv/__init__.py: rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_py/kalman_interfaces/srv/__init__.py
+
+rosidl_generator_py/kalman_interfaces/msg/_gps_tag_array_s.c: rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_py/kalman_interfaces/msg/_gps_tag_array_s.c
+
+rosidl_generator_py/kalman_interfaces/msg/_gps_tag_s.c: rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_py/kalman_interfaces/msg/_gps_tag_s.c
+
+rosidl_generator_py/kalman_interfaces/msg/_master_message_s.c: rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_py/kalman_interfaces/msg/_master_message_s.c
 
 rosidl_generator_py/kalman_interfaces/msg/_wheel_state_s.c: rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c
 	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_py/kalman_interfaces/msg/_wheel_state_s.c
@@ -126,11 +201,17 @@ rosidl_generator_py/kalman_interfaces/msg/_wheel_state_s.c: rosidl_generator_py/
 rosidl_generator_py/kalman_interfaces/msg/_wheel_states_s.c: rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c
 	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_py/kalman_interfaces/msg/_wheel_states_s.c
 
-rosidl_generator_py/kalman_interfaces/msg/_gps_tag_s.c: rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c
-	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_py/kalman_interfaces/msg/_gps_tag_s.c
+rosidl_generator_py/kalman_interfaces/srv/_calibrate_compass_s.c: rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_py/kalman_interfaces/srv/_calibrate_compass_s.c
 
-rosidl_generator_py/kalman_interfaces/msg/_gps_tag_array_s.c: rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c
-	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_py/kalman_interfaces/msg/_gps_tag_array_s.c
+rosidl_generator_py/kalman_interfaces/srv/_set_ueuos_color_s.c: rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_py/kalman_interfaces/srv/_set_ueuos_color_s.c
+
+rosidl_generator_py/kalman_interfaces/srv/_set_ueuos_effect_s.c: rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_py/kalman_interfaces/srv/_set_ueuos_effect_s.c
+
+rosidl_generator_py/kalman_interfaces/srv/_set_ueuos_mode_s.c: rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c
+	@$(CMAKE_COMMAND) -E touch_nocreate rosidl_generator_py/kalman_interfaces/srv/_set_ueuos_mode_s.c
 
 kalman_interfaces__py: kalman_interfaces__py/CMakeFiles/kalman_interfaces__py
 kalman_interfaces__py: rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_c.c
@@ -141,10 +222,21 @@ kalman_interfaces__py: rosidl_generator_py/kalman_interfaces/msg/_gps_tag.py
 kalman_interfaces__py: rosidl_generator_py/kalman_interfaces/msg/_gps_tag_array.py
 kalman_interfaces__py: rosidl_generator_py/kalman_interfaces/msg/_gps_tag_array_s.c
 kalman_interfaces__py: rosidl_generator_py/kalman_interfaces/msg/_gps_tag_s.c
+kalman_interfaces__py: rosidl_generator_py/kalman_interfaces/msg/_master_message.py
+kalman_interfaces__py: rosidl_generator_py/kalman_interfaces/msg/_master_message_s.c
 kalman_interfaces__py: rosidl_generator_py/kalman_interfaces/msg/_wheel_state.py
 kalman_interfaces__py: rosidl_generator_py/kalman_interfaces/msg/_wheel_state_s.c
 kalman_interfaces__py: rosidl_generator_py/kalman_interfaces/msg/_wheel_states.py
 kalman_interfaces__py: rosidl_generator_py/kalman_interfaces/msg/_wheel_states_s.c
+kalman_interfaces__py: rosidl_generator_py/kalman_interfaces/srv/__init__.py
+kalman_interfaces__py: rosidl_generator_py/kalman_interfaces/srv/_calibrate_compass.py
+kalman_interfaces__py: rosidl_generator_py/kalman_interfaces/srv/_calibrate_compass_s.c
+kalman_interfaces__py: rosidl_generator_py/kalman_interfaces/srv/_set_ueuos_color.py
+kalman_interfaces__py: rosidl_generator_py/kalman_interfaces/srv/_set_ueuos_color_s.c
+kalman_interfaces__py: rosidl_generator_py/kalman_interfaces/srv/_set_ueuos_effect.py
+kalman_interfaces__py: rosidl_generator_py/kalman_interfaces/srv/_set_ueuos_effect_s.c
+kalman_interfaces__py: rosidl_generator_py/kalman_interfaces/srv/_set_ueuos_mode.py
+kalman_interfaces__py: rosidl_generator_py/kalman_interfaces/srv/_set_ueuos_mode_s.c
 kalman_interfaces__py: kalman_interfaces__py/CMakeFiles/kalman_interfaces__py.dir/build.make
 .PHONY : kalman_interfaces__py
 
@@ -153,10 +245,10 @@ kalman_interfaces__py/CMakeFiles/kalman_interfaces__py.dir/build: kalman_interfa
 .PHONY : kalman_interfaces__py/CMakeFiles/kalman_interfaces__py.dir/build
 
 kalman_interfaces__py/CMakeFiles/kalman_interfaces__py.dir/clean:
-	cd /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_interfaces/kalman_interfaces__py && $(CMAKE_COMMAND) -P CMakeFiles/kalman_interfaces__py.dir/cmake_clean.cmake
+	cd /home/rafal/kalman_ws/src/kalman_robot/build/kalman_interfaces/kalman_interfaces__py && $(CMAKE_COMMAND) -P CMakeFiles/kalman_interfaces__py.dir/cmake_clean.cmake
 .PHONY : kalman_interfaces__py/CMakeFiles/kalman_interfaces__py.dir/clean
 
 kalman_interfaces__py/CMakeFiles/kalman_interfaces__py.dir/depend:
-	cd /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_interfaces && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/rafal/.ssh/kalman_ws/src/kalman_robot/kalman_interfaces /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_interfaces/kalman_interfaces__py /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_interfaces /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_interfaces/kalman_interfaces__py /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_interfaces/kalman_interfaces__py/CMakeFiles/kalman_interfaces__py.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/rafal/kalman_ws/src/kalman_robot/build/kalman_interfaces && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/rafal/kalman_ws/src/kalman_robot/kalman_interfaces /home/rafal/kalman_ws/src/kalman_robot/build/kalman_interfaces/kalman_interfaces__py /home/rafal/kalman_ws/src/kalman_robot/build/kalman_interfaces /home/rafal/kalman_ws/src/kalman_robot/build/kalman_interfaces/kalman_interfaces__py /home/rafal/kalman_ws/src/kalman_robot/build/kalman_interfaces/kalman_interfaces__py/CMakeFiles/kalman_interfaces__py.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : kalman_interfaces__py/CMakeFiles/kalman_interfaces__py.dir/depend
 

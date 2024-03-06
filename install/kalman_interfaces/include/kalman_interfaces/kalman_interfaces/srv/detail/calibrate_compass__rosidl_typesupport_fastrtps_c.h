@@ -1,0 +1,1 @@
+/home/rafal/kalman_ws/src/kalman_robot/build/kalman_interfaces/rosidl_typesupport_fastrtps_c/kalman_interfaces/srv/detail/calibrate_compass__rosidl_typesupport_fastrtps_c.h

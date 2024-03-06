@@ -1,0 +1,23 @@
+[6.554s] Invoking command in '/home/rafal/kalman_ws/src/kalman_robot/build/kalman_wheel_controller': AMENT_PREFIX_PATH=/home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces:${AMENT_PREFIX_PATH} CMAKE_PREFIX_PATH=/home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces LD_LIBRARY_PATH=/home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/lib:${LD_LIBRARY_PATH} PYTHONPATH=/home/rafal/kalman_ws/src/kalman_robot/build/kalman_wheel_controller/prefix_override:/home/rafal/kalman_ws/src/kalman_robot/install/kalman_wheel_controller/lib/python3.10/site-packages:/home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages:${PYTHONPATH} /usr/bin/python3 setup.py develop --editable --build-directory /home/rafal/kalman_ws/src/kalman_robot/build/kalman_wheel_controller/build --no-deps install_data
+[7.128s] running develop
+[7.431s] running egg_info
+[7.431s] creating kalman_wheel_controller.egg-info
+[7.431s] writing kalman_wheel_controller.egg-info/PKG-INFO
+[7.432s] writing dependency_links to kalman_wheel_controller.egg-info/dependency_links.txt
+[7.432s] writing entry points to kalman_wheel_controller.egg-info/entry_points.txt
+[7.432s] writing top-level names to kalman_wheel_controller.egg-info/top_level.txt
+[7.432s] writing manifest file 'kalman_wheel_controller.egg-info/SOURCES.txt'
+[7.435s] reading manifest file 'kalman_wheel_controller.egg-info/SOURCES.txt'
+[7.436s] writing manifest file 'kalman_wheel_controller.egg-info/SOURCES.txt'
+[7.438s] running build_ext
+[7.438s] Creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_wheel_controller/lib/python3.10/site-packages/kalman-wheel-controller.egg-link (link to .)
+[7.440s] Installing wheel_controller script to /home/rafal/kalman_ws/src/kalman_robot/install/kalman_wheel_controller/lib/kalman_wheel_controller
+[7.440s] 
+[7.440s] Installed /home/rafal/kalman_ws/src/kalman_robot/build/kalman_wheel_controller
+[7.441s] running install_data
+[7.441s] creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_wheel_controller/share/ament_index
+[7.441s] creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_wheel_controller/share/ament_index/resource_index
+[7.441s] creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_wheel_controller/share/ament_index/resource_index/packages
+[7.441s] copying resource/kalman_wheel_controller -> /home/rafal/kalman_ws/src/kalman_robot/install/kalman_wheel_controller/share/ament_index/resource_index/packages
+[7.441s] copying package.xml -> /home/rafal/kalman_ws/src/kalman_robot/install/kalman_wheel_controller/share/kalman_wheel_controller
+[7.498s] Invoked command in '/home/rafal/kalman_ws/src/kalman_robot/build/kalman_wheel_controller' returned '0': AMENT_PREFIX_PATH=/home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces:${AMENT_PREFIX_PATH} CMAKE_PREFIX_PATH=/home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces LD_LIBRARY_PATH=/home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/lib:${LD_LIBRARY_PATH} PYTHONPATH=/home/rafal/kalman_ws/src/kalman_robot/build/kalman_wheel_controller/prefix_override:/home/rafal/kalman_ws/src/kalman_robot/install/kalman_wheel_controller/lib/python3.10/site-packages:/home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages:${PYTHONPATH} /usr/bin/python3 setup.py develop --editable --build-directory /home/rafal/kalman_ws/src/kalman_robot/build/kalman_wheel_controller/build --no-deps install_data

@@ -1,0 +1,14 @@
+[4.572s] Invoking command in '/home/rafal/kalman_ws/src/kalman_robot/build/kalman_slam': AMENT_PREFIX_PATH=/home/rafal/kalman_ws/src/kalman_robot/install/point_cloud_sync:${AMENT_PREFIX_PATH} CMAKE_PREFIX_PATH=/home/rafal/kalman_ws/src/kalman_robot/install/point_cloud_sync PYTHONPATH=/home/rafal/kalman_ws/src/kalman_robot/build/kalman_slam/prefix_override:/home/rafal/kalman_ws/src/kalman_robot/install/kalman_slam/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py develop --editable --build-directory /home/rafal/kalman_ws/src/kalman_robot/build/kalman_slam/build --no-deps install_data
+[5.378s] running develop
+[5.918s] running egg_info
+[5.918s] writing kalman_slam.egg-info/PKG-INFO
+[5.918s] writing dependency_links to kalman_slam.egg-info/dependency_links.txt
+[5.919s] writing top-level names to kalman_slam.egg-info/top_level.txt
+[5.921s] reading manifest file 'kalman_slam.egg-info/SOURCES.txt'
+[5.923s] writing manifest file 'kalman_slam.egg-info/SOURCES.txt'
+[5.926s] running build_ext
+[5.928s] Creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_slam/lib/python3.10/site-packages/kalman-slam.egg-link (link to .)
+[5.930s] 
+[5.930s] Installed /home/rafal/kalman_ws/src/kalman_robot/build/kalman_slam
+[5.930s] running install_data
+[6.004s] Invoked command in '/home/rafal/kalman_ws/src/kalman_robot/build/kalman_slam' returned '0': AMENT_PREFIX_PATH=/home/rafal/kalman_ws/src/kalman_robot/install/point_cloud_sync:${AMENT_PREFIX_PATH} CMAKE_PREFIX_PATH=/home/rafal/kalman_ws/src/kalman_robot/install/point_cloud_sync PYTHONPATH=/home/rafal/kalman_ws/src/kalman_robot/build/kalman_slam/prefix_override:/home/rafal/kalman_ws/src/kalman_robot/install/kalman_slam/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py develop --editable --build-directory /home/rafal/kalman_ws/src/kalman_robot/build/kalman_slam/build --no-deps install_data

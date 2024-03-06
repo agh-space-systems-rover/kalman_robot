@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>unity_rs_publisher</name>
+  <version>0.0.0</version>
+  <description>a node that receives feed from RGB-D sensors simulated in Unity over a Unix socket, pre-processes the data similarly to realsense2_camera nodes and publishes results to ROS topics</description>
+  <maintainer email="63957587+rayferric@users.noreply.github.com">rayferric</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <depend>rclcpp</depend>
+  <depend>unity_rs_publisher_msgs</depend>
+  <depend>image_transport</depend>
+  <depend>cv_bridge</depend>
+  <depend>std_msgs</depend>
+  <depend>sensor_msgs</depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

@@ -1,9 +1,9 @@
 {
   "package_name": "unity_rs_publisher_msgs",
-  "output_dir": "/home/rafal/.ssh/kalman_ws/src/kalman_robot/build/unity_rs_publisher_msgs/rosidl_typesupport_introspection_c/unity_rs_publisher_msgs",
+  "output_dir": "/home/rafal/kalman_ws/src/kalman_robot/build/unity_rs_publisher_msgs/rosidl_typesupport_introspection_c/unity_rs_publisher_msgs",
   "template_dir": "/opt/ros/humble/share/rosidl_typesupport_introspection_c/resource",
   "idl_tuples": [
-    "/home/rafal/.ssh/kalman_ws/src/kalman_robot/build/unity_rs_publisher_msgs/rosidl_adapter/unity_rs_publisher_msgs:msg/CameraMetadata.idl"
+    "/home/rafal/kalman_ws/src/kalman_robot/build/unity_rs_publisher_msgs/rosidl_adapter/unity_rs_publisher_msgs:msg/CameraMetadata.idl"
   ],
   "target_dependencies": [
     "/opt/ros/humble/lib/rosidl_typesupport_introspection_c/rosidl_typesupport_introspection_c",
@@ -14,6 +14,6 @@
     "/opt/ros/humble/share/rosidl_typesupport_introspection_c/resource/msg__type_support.c.em",
     "/opt/ros/humble/share/rosidl_typesupport_introspection_c/resource/srv__rosidl_typesupport_introspection_c.h.em",
     "/opt/ros/humble/share/rosidl_typesupport_introspection_c/resource/srv__type_support.c.em",
-    "/home/rafal/.ssh/kalman_ws/src/kalman_robot/build/unity_rs_publisher_msgs/rosidl_adapter/unity_rs_publisher_msgs/msg/CameraMetadata.idl"
+    "/home/rafal/kalman_ws/src/kalman_robot/build/unity_rs_publisher_msgs/rosidl_adapter/unity_rs_publisher_msgs/msg/CameraMetadata.idl"
   ]
 }

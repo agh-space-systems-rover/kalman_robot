@@ -1,0 +1,27 @@
+-- Install configuration: ""
+-- Execute custom install script
+-- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_description/share/kalman_description/launch/demo_rviz_model.launch.py
+-- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_description/share/kalman_description/launch/robot_state_publisher.launch.py
+-- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_description/share/kalman_description/rviz/demo_rviz_model.rviz
+-- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_description/share/kalman_description/urdf/cylinder_inertial.urdf.xacro
+-- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_description/share/kalman_description/urdf/kalman.urdf.xacro
+-- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_description/share/kalman_description/urdf/sim_model.urdf.xacro
+-- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_description/share/kalman_description/stl/body.stl
+-- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_description/share/kalman_description/stl/suspension_r.stl
+-- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_description/share/kalman_description/stl/swivel_fr.stl
+-- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_description/share/kalman_description/stl/wheel_fr.stl
+-- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_description/share/ament_index/resource_index/package_run_dependencies/kalman_description
+-- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_description/share/ament_index/resource_index/parent_prefix_path/kalman_description
+-- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_description/share/kalman_description/environment/ament_prefix_path.sh
+-- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_description/share/kalman_description/environment/ament_prefix_path.dsv
+-- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_description/share/kalman_description/environment/path.sh
+-- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_description/share/kalman_description/environment/path.dsv
+-- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_description/share/kalman_description/local_setup.bash
+-- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_description/share/kalman_description/local_setup.sh
+-- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_description/share/kalman_description/local_setup.zsh
+-- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_description/share/kalman_description/local_setup.dsv
+-- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_description/share/kalman_description/package.dsv
+-- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_description/share/ament_index/resource_index/packages/kalman_description
+-- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_description/share/kalman_description/cmake/kalman_descriptionConfig.cmake
+-- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_description/share/kalman_description/cmake/kalman_descriptionConfig-version.cmake
+-- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_description/share/kalman_description/package.xml

@@ -1,0 +1,8 @@
+source;share/kalman_robot/hook/cmake_prefix_path.ps1
+source;share/kalman_robot/hook/cmake_prefix_path.dsv
+source;share/kalman_robot/hook/cmake_prefix_path.sh
+source;share/kalman_robot/local_setup.bash
+source;share/kalman_robot/local_setup.dsv
+source;share/kalman_robot/local_setup.ps1
+source;share/kalman_robot/local_setup.sh
+source;share/kalman_robot/local_setup.zsh

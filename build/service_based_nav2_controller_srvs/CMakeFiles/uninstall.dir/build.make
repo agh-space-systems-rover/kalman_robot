@@ -53,10 +53,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/rafal/.ssh/kalman_ws/src/kalman_robot/service_based_nav2_controller/service_based_nav2_controller_srvs
+CMAKE_SOURCE_DIR = /home/rafal/kalman_ws/src/kalman_robot/service_based_nav2_controller/service_based_nav2_controller_srvs
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/service_based_nav2_controller_srvs
+CMAKE_BINARY_DIR = /home/rafal/kalman_ws/src/kalman_robot/build/service_based_nav2_controller_srvs
 
 # Utility rule file for uninstall.
 
@@ -78,6 +78,6 @@ CMakeFiles/uninstall.dir/clean:
 .PHONY : CMakeFiles/uninstall.dir/clean
 
 CMakeFiles/uninstall.dir/depend:
-	cd /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/service_based_nav2_controller_srvs && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/rafal/.ssh/kalman_ws/src/kalman_robot/service_based_nav2_controller/service_based_nav2_controller_srvs /home/rafal/.ssh/kalman_ws/src/kalman_robot/service_based_nav2_controller/service_based_nav2_controller_srvs /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/service_based_nav2_controller_srvs /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/service_based_nav2_controller_srvs /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/service_based_nav2_controller_srvs/CMakeFiles/uninstall.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/rafal/kalman_ws/src/kalman_robot/build/service_based_nav2_controller_srvs && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/rafal/kalman_ws/src/kalman_robot/service_based_nav2_controller/service_based_nav2_controller_srvs /home/rafal/kalman_ws/src/kalman_robot/service_based_nav2_controller/service_based_nav2_controller_srvs /home/rafal/kalman_ws/src/kalman_robot/build/service_based_nav2_controller_srvs /home/rafal/kalman_ws/src/kalman_robot/build/service_based_nav2_controller_srvs /home/rafal/kalman_ws/src/kalman_robot/build/service_based_nav2_controller_srvs/CMakeFiles/uninstall.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/uninstall.dir/depend
 

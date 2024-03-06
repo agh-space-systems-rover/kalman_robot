@@ -1,0 +1,27 @@
+running develop
+running egg_info
+creating kalman_rosou.egg-info
+writing kalman_rosou.egg-info/PKG-INFO
+writing dependency_links to kalman_rosou.egg-info/dependency_links.txt
+writing entry points to kalman_rosou.egg-info/entry_points.txt
+writing requirements to kalman_rosou.egg-info/requires.txt
+writing top-level names to kalman_rosou.egg-info/top_level.txt
+writing manifest file 'kalman_rosou.egg-info/SOURCES.txt'
+reading manifest file 'kalman_rosou.egg-info/SOURCES.txt'
+writing manifest file 'kalman_rosou.egg-info/SOURCES.txt'
+running build_ext
+Creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_rosou/lib/python3.10/site-packages/kalman-rosou.egg-link (link to .)
+Installing rosou_node script to /home/rafal/kalman_ws/src/kalman_robot/install/kalman_rosou/lib/kalman_rosou
+
+Installed /home/rafal/kalman_ws/src/kalman_robot/build/kalman_rosou
+running install_data
+creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_rosou/share/ament_index
+creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_rosou/share/ament_index/resource_index
+creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_rosou/share/ament_index/resource_index/packages
+copying resource/kalman_rosou -> /home/rafal/kalman_ws/src/kalman_robot/install/kalman_rosou/share/ament_index/resource_index/packages
+copying package.xml -> /home/rafal/kalman_ws/src/kalman_robot/install/kalman_rosou/share/kalman_rosou
+creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_rosou/share/kalman_rosou/config
+copying config/rosou_config.json -> /home/rafal/kalman_ws/src/kalman_robot/install/kalman_rosou/share/kalman_rosou/config
+creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_rosou/share/kalman_rosou/log
+copying log/pub_sub.json -> /home/rafal/kalman_ws/src/kalman_robot/install/kalman_rosou/share/kalman_rosou/log
+copying launch/rosou.launch.py -> /home/rafal/kalman_ws/src/kalman_robot/install/kalman_rosou/share/kalman_rosou

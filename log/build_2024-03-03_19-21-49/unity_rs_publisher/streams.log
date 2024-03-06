@@ -1,0 +1,64 @@
+[0.229s] Invoking command in '/home/rafal/kalman_ws/src/kalman_robot/build/unity_rs_publisher': AMENT_PREFIX_PATH=/home/rafal/kalman_ws/src/kalman_robot/install/unity_rs_publisher_msgs:${AMENT_PREFIX_PATH} CMAKE_PREFIX_PATH=/home/rafal/kalman_ws/src/kalman_robot/install/unity_rs_publisher_msgs:/home/rafal/dev_ws/install/my_robot:/opt/ros/humble LD_LIBRARY_PATH=/home/rafal/kalman_ws/src/kalman_robot/install/unity_rs_publisher_msgs/lib:${LD_LIBRARY_PATH} PYTHONPATH=/home/rafal/kalman_ws/src/kalman_robot/install/unity_rs_publisher_msgs/local/lib/python3.10/dist-packages:${PYTHONPATH} /usr/bin/cmake /home/rafal/kalman_ws/src/kalman_robot/unity_sim/unity_rs_publisher -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/rafal/kalman_ws/src/kalman_robot/install/unity_rs_publisher
+[0.317s] -- The C compiler identification is GNU 11.4.0
+[0.417s] -- The CXX compiler identification is GNU 11.4.0
+[0.428s] -- Detecting C compiler ABI info
+[0.561s] -- Detecting C compiler ABI info - done
+[0.575s] -- Check for working C compiler: /usr/bin/cc - skipped
+[0.576s] -- Detecting C compile features
+[0.577s] -- Detecting C compile features - done
+[0.583s] -- Detecting CXX compiler ABI info
+[0.725s] -- Detecting CXX compiler ABI info - done
+[0.743s] -- Check for working CXX compiler: /usr/bin/c++ - skipped
+[0.744s] -- Detecting CXX compile features
+[0.744s] -- Detecting CXX compile features - done
+[0.752s] -- Found ament_cmake: 1.3.8 (/opt/ros/humble/share/ament_cmake/cmake)
+[1.098s] -- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter 
+[1.248s] -- Override CMake install command with custom implementation using symlinks instead of copying resources
+[1.317s] -- Found unity_rs_publisher_msgs: 0.0.0 (/home/rafal/kalman_ws/src/kalman_robot/install/unity_rs_publisher_msgs/share/unity_rs_publisher_msgs/cmake)
+[1.398s] -- Found rosidl_generator_c: 3.1.5 (/opt/ros/humble/share/rosidl_generator_c/cmake)
+[1.409s] -- Found rosidl_adapter: 3.1.5 (/opt/ros/humble/share/rosidl_adapter/cmake)
+[1.426s] -- Found rosidl_generator_cpp: 3.1.5 (/opt/ros/humble/share/rosidl_generator_cpp/cmake)
+[1.453s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[1.492s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[1.528s] -- Found rclcpp: 16.0.8 (/opt/ros/humble/share/rclcpp/cmake)
+[1.690s] -- Found rmw_implementation_cmake: 6.1.1 (/opt/ros/humble/share/rmw_implementation_cmake/cmake)
+[1.696s] -- Found rmw_fastrtps_cpp: 6.2.6 (/opt/ros/humble/share/rmw_fastrtps_cpp/cmake)
+[1.890s] -- Found OpenSSL: /usr/lib/x86_64-linux-gnu/libcrypto.so (found version "3.0.2")  
+[1.946s] -- Found FastRTPS: /opt/ros/humble/include  
+[2.040s] -- Using RMW implementation 'rmw_fastrtps_cpp' as default
+[2.060s] -- Looking for pthread.h
+[2.182s] -- Looking for pthread.h - found
+[2.182s] -- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+[2.361s] -- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+[2.363s] -- Found Threads: TRUE  
+[2.898s] -- Found image_transport: 3.1.8 (/opt/ros/humble/share/image_transport/cmake)
+[3.334s] -- Found cv_bridge: 3.2.1 (/opt/ros/humble/share/cv_bridge/cmake)
+[3.540s] -- Configuring done
+[3.558s] -- Generating done
+[3.561s] -- Build files have been written to: /home/rafal/kalman_ws/src/kalman_robot/build/unity_rs_publisher
+[3.578s] Invoked command in '/home/rafal/kalman_ws/src/kalman_robot/build/unity_rs_publisher' returned '0': AMENT_PREFIX_PATH=/home/rafal/kalman_ws/src/kalman_robot/install/unity_rs_publisher_msgs:${AMENT_PREFIX_PATH} CMAKE_PREFIX_PATH=/home/rafal/kalman_ws/src/kalman_robot/install/unity_rs_publisher_msgs:/home/rafal/dev_ws/install/my_robot:/opt/ros/humble LD_LIBRARY_PATH=/home/rafal/kalman_ws/src/kalman_robot/install/unity_rs_publisher_msgs/lib:${LD_LIBRARY_PATH} PYTHONPATH=/home/rafal/kalman_ws/src/kalman_robot/install/unity_rs_publisher_msgs/local/lib/python3.10/dist-packages:${PYTHONPATH} /usr/bin/cmake /home/rafal/kalman_ws/src/kalman_robot/unity_sim/unity_rs_publisher -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/rafal/kalman_ws/src/kalman_robot/install/unity_rs_publisher
+[3.585s] Invoking command in '/home/rafal/kalman_ws/src/kalman_robot/build/unity_rs_publisher': AMENT_PREFIX_PATH=/home/rafal/kalman_ws/src/kalman_robot/install/unity_rs_publisher_msgs:${AMENT_PREFIX_PATH} CMAKE_PREFIX_PATH=/home/rafal/kalman_ws/src/kalman_robot/install/unity_rs_publisher_msgs:/home/rafal/dev_ws/install/my_robot:/opt/ros/humble LD_LIBRARY_PATH=/home/rafal/kalman_ws/src/kalman_robot/install/unity_rs_publisher_msgs/lib:${LD_LIBRARY_PATH} PYTHONPATH=/home/rafal/kalman_ws/src/kalman_robot/install/unity_rs_publisher_msgs/local/lib/python3.10/dist-packages:${PYTHONPATH} /usr/bin/cmake --build /home/rafal/kalman_ws/src/kalman_robot/build/unity_rs_publisher -- -j16 -l16
+[3.714s] [ 50%] [32mBuilding CXX object CMakeFiles/unity_rs_publisher.dir/src/main.cpp.o[0m
+[20.488s] [100%] [32m[1mLinking CXX executable unity_rs_publisher[0m
+[21.300s] [100%] Built target unity_rs_publisher
+[21.319s] Invoked command in '/home/rafal/kalman_ws/src/kalman_robot/build/unity_rs_publisher' returned '0': AMENT_PREFIX_PATH=/home/rafal/kalman_ws/src/kalman_robot/install/unity_rs_publisher_msgs:${AMENT_PREFIX_PATH} CMAKE_PREFIX_PATH=/home/rafal/kalman_ws/src/kalman_robot/install/unity_rs_publisher_msgs:/home/rafal/dev_ws/install/my_robot:/opt/ros/humble LD_LIBRARY_PATH=/home/rafal/kalman_ws/src/kalman_robot/install/unity_rs_publisher_msgs/lib:${LD_LIBRARY_PATH} PYTHONPATH=/home/rafal/kalman_ws/src/kalman_robot/install/unity_rs_publisher_msgs/local/lib/python3.10/dist-packages:${PYTHONPATH} /usr/bin/cmake --build /home/rafal/kalman_ws/src/kalman_robot/build/unity_rs_publisher -- -j16 -l16
+[21.368s] Invoking command in '/home/rafal/kalman_ws/src/kalman_robot/build/unity_rs_publisher': AMENT_PREFIX_PATH=/home/rafal/kalman_ws/src/kalman_robot/install/unity_rs_publisher_msgs:${AMENT_PREFIX_PATH} CMAKE_PREFIX_PATH=/home/rafal/kalman_ws/src/kalman_robot/install/unity_rs_publisher_msgs:/home/rafal/dev_ws/install/my_robot:/opt/ros/humble LD_LIBRARY_PATH=/home/rafal/kalman_ws/src/kalman_robot/install/unity_rs_publisher_msgs/lib:${LD_LIBRARY_PATH} PYTHONPATH=/home/rafal/kalman_ws/src/kalman_robot/install/unity_rs_publisher_msgs/local/lib/python3.10/dist-packages:${PYTHONPATH} /usr/bin/cmake --install /home/rafal/kalman_ws/src/kalman_robot/build/unity_rs_publisher
+[21.396s] -- Install configuration: ""
+[21.397s] -- Execute custom install script
+[21.398s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/unity_rs_publisher/lib/unity_rs_publisher/unity_rs_publisher
+[21.413s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/unity_rs_publisher/share/ament_index/resource_index/package_run_dependencies/unity_rs_publisher
+[21.434s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/unity_rs_publisher/share/ament_index/resource_index/parent_prefix_path/unity_rs_publisher
+[21.449s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/unity_rs_publisher/share/unity_rs_publisher/environment/ament_prefix_path.sh
+[21.465s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/unity_rs_publisher/share/unity_rs_publisher/environment/ament_prefix_path.dsv
+[21.479s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/unity_rs_publisher/share/unity_rs_publisher/environment/path.sh
+[21.488s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/unity_rs_publisher/share/unity_rs_publisher/environment/path.dsv
+[21.503s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/unity_rs_publisher/share/unity_rs_publisher/local_setup.bash
+[21.516s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/unity_rs_publisher/share/unity_rs_publisher/local_setup.sh
+[21.528s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/unity_rs_publisher/share/unity_rs_publisher/local_setup.zsh
+[21.541s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/unity_rs_publisher/share/unity_rs_publisher/local_setup.dsv
+[21.556s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/unity_rs_publisher/share/unity_rs_publisher/package.dsv
+[21.568s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/unity_rs_publisher/share/ament_index/resource_index/packages/unity_rs_publisher
+[21.580s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/unity_rs_publisher/share/unity_rs_publisher/cmake/unity_rs_publisherConfig.cmake
+[21.592s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/unity_rs_publisher/share/unity_rs_publisher/cmake/unity_rs_publisherConfig-version.cmake
+[21.604s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/unity_rs_publisher/share/unity_rs_publisher/package.xml
+[21.620s] Invoked command in '/home/rafal/kalman_ws/src/kalman_robot/build/unity_rs_publisher' returned '0': AMENT_PREFIX_PATH=/home/rafal/kalman_ws/src/kalman_robot/install/unity_rs_publisher_msgs:${AMENT_PREFIX_PATH} CMAKE_PREFIX_PATH=/home/rafal/kalman_ws/src/kalman_robot/install/unity_rs_publisher_msgs:/home/rafal/dev_ws/install/my_robot:/opt/ros/humble LD_LIBRARY_PATH=/home/rafal/kalman_ws/src/kalman_robot/install/unity_rs_publisher_msgs/lib:${LD_LIBRARY_PATH} PYTHONPATH=/home/rafal/kalman_ws/src/kalman_robot/install/unity_rs_publisher_msgs/local/lib/python3.10/dist-packages:${PYTHONPATH} /usr/bin/cmake --install /home/rafal/kalman_ws/src/kalman_robot/build/unity_rs_publisher

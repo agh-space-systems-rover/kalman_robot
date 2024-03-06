@@ -1,17 +1,1 @@
-<?xml version="1.0"?>
-<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
-<package format="3">
-  <name>kalman_description</name>
-  <version>0.0.0</version>
-  <description>Xacro / URDF descriptions + models for the rover</description>
-  <maintainer email="63957587+rayferric@users.noreply.github.com">rayferric</maintainer>
-  <license>MIT</license>
-
-  <exec_depend>ros2launch</exec_depend>
-  <exec_depend>xacro</exec_depend>
-  <exec_depend>realsense2_description</exec_depend>
-
-  <export>
-    <build_type>ament_python</build_type>
-  </export>
-</package>
+/home/rafal/kalman_ws/src/kalman_robot/kalman_description/package.xml

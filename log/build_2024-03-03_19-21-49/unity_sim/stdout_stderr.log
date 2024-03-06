@@ -1,0 +1,25 @@
+running develop
+running egg_info
+creating unity_sim.egg-info
+writing unity_sim.egg-info/PKG-INFO
+writing dependency_links to unity_sim.egg-info/dependency_links.txt
+writing entry points to unity_sim.egg-info/entry_points.txt
+writing top-level names to unity_sim.egg-info/top_level.txt
+writing manifest file 'unity_sim.egg-info/SOURCES.txt'
+reading manifest file 'unity_sim.egg-info/SOURCES.txt'
+writing manifest file 'unity_sim.egg-info/SOURCES.txt'
+running build_ext
+Creating /home/rafal/kalman_ws/src/kalman_robot/install/unity_sim/lib/python3.10/site-packages/unity-sim.egg-link (link to .)
+Installing simulation script to /home/rafal/kalman_ws/src/kalman_robot/install/unity_sim/lib/unity_sim
+Installing version script to /home/rafal/kalman_ws/src/kalman_robot/install/unity_sim/lib/unity_sim
+
+Installed /home/rafal/kalman_ws/src/kalman_robot/build/unity_sim
+running install_data
+creating /home/rafal/kalman_ws/src/kalman_robot/install/unity_sim/share/ament_index
+creating /home/rafal/kalman_ws/src/kalman_robot/install/unity_sim/share/ament_index/resource_index
+creating /home/rafal/kalman_ws/src/kalman_robot/install/unity_sim/share/ament_index/resource_index/packages
+copying resource/unity_sim -> /home/rafal/kalman_ws/src/kalman_robot/install/unity_sim/share/ament_index/resource_index/packages
+copying package.xml -> /home/rafal/kalman_ws/src/kalman_robot/install/unity_sim/share/unity_sim
+copying unity_project_dir -> /home/rafal/kalman_ws/src/kalman_robot/install/unity_sim/share/unity_sim
+creating /home/rafal/kalman_ws/src/kalman_robot/install/unity_sim/share/unity_sim/launch
+copying launch/unity_sim.launch.py -> /home/rafal/kalman_ws/src/kalman_robot/install/unity_sim/share/unity_sim/launch

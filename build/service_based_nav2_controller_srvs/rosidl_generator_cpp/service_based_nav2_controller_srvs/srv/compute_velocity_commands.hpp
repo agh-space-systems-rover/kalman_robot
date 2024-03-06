@@ -1,0 +1,11 @@
+// generated from rosidl_generator_cpp/resource/idl.hpp.em
+// generated code does not contain a copyright notice
+
+#ifndef SERVICE_BASED_NAV2_CONTROLLER_SRVS__SRV__COMPUTE_VELOCITY_COMMANDS_HPP_
+#define SERVICE_BASED_NAV2_CONTROLLER_SRVS__SRV__COMPUTE_VELOCITY_COMMANDS_HPP_
+
+#include "service_based_nav2_controller_srvs/srv/detail/compute_velocity_commands__struct.hpp"
+#include "service_based_nav2_controller_srvs/srv/detail/compute_velocity_commands__builder.hpp"
+#include "service_based_nav2_controller_srvs/srv/detail/compute_velocity_commands__traits.hpp"
+
+#endif  // SERVICE_BASED_NAV2_CONTROLLER_SRVS__SRV__COMPUTE_VELOCITY_COMMANDS_HPP_

@@ -1,0 +1,1 @@
+/home/rafal/kalman_ws/src/kalman_robot/build/point_cloud_sync/ament_cmake_core/point_cloud_syncConfig-version.cmake

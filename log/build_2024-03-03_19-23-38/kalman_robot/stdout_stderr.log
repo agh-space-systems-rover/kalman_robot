@@ -1,0 +1,17 @@
+-- Install configuration: ""
+-- Execute custom install script
+-- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_robot/share/ament_index/resource_index/package_run_dependencies/kalman_robot
+-- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_robot/share/ament_index/resource_index/parent_prefix_path/kalman_robot
+-- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_robot/share/kalman_robot/environment/ament_prefix_path.sh
+-- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_robot/share/kalman_robot/environment/ament_prefix_path.dsv
+-- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_robot/share/kalman_robot/environment/path.sh
+-- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_robot/share/kalman_robot/environment/path.dsv
+-- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_robot/share/kalman_robot/local_setup.bash
+-- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_robot/share/kalman_robot/local_setup.sh
+-- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_robot/share/kalman_robot/local_setup.zsh
+-- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_robot/share/kalman_robot/local_setup.dsv
+-- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_robot/share/kalman_robot/package.dsv
+-- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_robot/share/ament_index/resource_index/packages/kalman_robot
+-- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_robot/share/kalman_robot/cmake/kalman_robotConfig.cmake
+-- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_robot/share/kalman_robot/cmake/kalman_robotConfig-version.cmake
+-- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_robot/share/kalman_robot/package.xml

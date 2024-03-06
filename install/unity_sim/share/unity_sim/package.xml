@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>unity_sim</name>
+  <version>0.0.0</version>
+  <description>Unity simulation environment for AGH Space Systems robotics projects.</description>
+  <maintainer email="63957587+rayferric@users.noreply.github.com">rayferric</maintainer>
+  <license>MIT</license>
+
+  <exec_depend>ros2launch</exec_depend>
+  <exec_depend>rosbridge_server</exec_depend>
+  <exec_depend>image_transport</exec_depend>
+  <exec_depend>compressed_image_transport</exec_depend>
+  <exec_depend>image_pipeline</exec_depend>
+
+  <exec_depend>kalman_interfaces</exec_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

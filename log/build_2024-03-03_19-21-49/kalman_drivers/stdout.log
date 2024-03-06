@@ -1,0 +1,28 @@
+running develop
+running egg_info
+creating kalman_drivers.egg-info
+writing kalman_drivers.egg-info/PKG-INFO
+writing dependency_links to kalman_drivers.egg-info/dependency_links.txt
+writing entry points to kalman_drivers.egg-info/entry_points.txt
+writing top-level names to kalman_drivers.egg-info/top_level.txt
+writing manifest file 'kalman_drivers.egg-info/SOURCES.txt'
+reading manifest file 'kalman_drivers.egg-info/SOURCES.txt'
+writing manifest file 'kalman_drivers.egg-info/SOURCES.txt'
+running build_ext
+Creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_drivers/lib/python3.10/site-packages/kalman-drivers.egg-link (link to .)
+Installing compasscal script to /home/rafal/kalman_ws/src/kalman_robot/install/kalman_drivers/lib/kalman_drivers
+
+Installed /home/rafal/kalman_ws/src/kalman_robot/build/kalman_drivers
+running install_data
+creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_drivers/share/ament_index
+creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_drivers/share/ament_index/resource_index
+creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_drivers/share/ament_index/resource_index/packages
+copying resource/kalman_drivers -> /home/rafal/kalman_ws/src/kalman_robot/install/kalman_drivers/share/ament_index/resource_index/packages
+copying package.xml -> /home/rafal/kalman_ws/src/kalman_robot/install/kalman_drivers/share/kalman_drivers
+copying compasscal_build/compasscal -> /home/rafal/kalman_ws/src/kalman_robot/install/kalman_drivers/share/kalman_drivers
+creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_drivers/share/kalman_drivers/launch
+copying launch/drivers.launch.py -> /home/rafal/kalman_ws/src/kalman_robot/install/kalman_drivers/share/kalman_drivers/launch
+creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_drivers/share/kalman_drivers/param
+copying param/phidgets_spatial.yaml -> /home/rafal/kalman_ws/src/kalman_robot/install/kalman_drivers/share/kalman_drivers/param
+copying param/realsense2_camera.yaml -> /home/rafal/kalman_ws/src/kalman_robot/install/kalman_drivers/share/kalman_drivers/param
+copying param/imu_filter_madgwick.yaml -> /home/rafal/kalman_ws/src/kalman_robot/install/kalman_drivers/share/kalman_drivers/param

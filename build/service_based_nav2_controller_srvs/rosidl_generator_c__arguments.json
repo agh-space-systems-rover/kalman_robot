@@ -1,9 +1,9 @@
 {
   "package_name": "service_based_nav2_controller_srvs",
-  "output_dir": "/home/rafal/.ssh/kalman_ws/src/kalman_robot/build/service_based_nav2_controller_srvs/rosidl_generator_c/service_based_nav2_controller_srvs",
+  "output_dir": "/home/rafal/kalman_ws/src/kalman_robot/build/service_based_nav2_controller_srvs/rosidl_generator_c/service_based_nav2_controller_srvs",
   "template_dir": "/opt/ros/humble/share/rosidl_generator_c/cmake/../resource",
   "idl_tuples": [
-    "/home/rafal/.ssh/kalman_ws/src/kalman_robot/build/service_based_nav2_controller_srvs/rosidl_adapter/service_based_nav2_controller_srvs:srv/ComputeVelocityCommands.idl"
+    "/home/rafal/kalman_ws/src/kalman_robot/build/service_based_nav2_controller_srvs/rosidl_adapter/service_based_nav2_controller_srvs:srv/ComputeVelocityCommands.idl"
   ],
   "ros_interface_dependencies": [
     "geometry_msgs:/opt/ros/humble/share/geometry_msgs/msg/Accel.idl",
@@ -91,7 +91,7 @@
     "/opt/ros/humble/share/rosidl_generator_c/cmake/../resource/msg__struct.h.em",
     "/opt/ros/humble/share/rosidl_generator_c/cmake/../resource/msg__type_support.h.em",
     "/opt/ros/humble/share/rosidl_generator_c/cmake/../resource/srv__type_support.h.em",
-    "/home/rafal/.ssh/kalman_ws/src/kalman_robot/build/service_based_nav2_controller_srvs/rosidl_adapter/service_based_nav2_controller_srvs/srv/ComputeVelocityCommands.idl",
+    "/home/rafal/kalman_ws/src/kalman_robot/build/service_based_nav2_controller_srvs/rosidl_adapter/service_based_nav2_controller_srvs/srv/ComputeVelocityCommands.idl",
     "/opt/ros/humble/share/geometry_msgs/msg/Accel.idl",
     "/opt/ros/humble/share/geometry_msgs/msg/AccelStamped.idl",
     "/opt/ros/humble/share/geometry_msgs/msg/AccelWithCovariance.idl",

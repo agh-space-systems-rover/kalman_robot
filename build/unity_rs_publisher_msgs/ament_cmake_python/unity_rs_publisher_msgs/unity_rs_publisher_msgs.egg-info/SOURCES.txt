@@ -1,0 +1,8 @@
+setup.py
+unity_rs_publisher_msgs/__init__.py
+unity_rs_publisher_msgs.egg-info/PKG-INFO
+unity_rs_publisher_msgs.egg-info/SOURCES.txt
+unity_rs_publisher_msgs.egg-info/dependency_links.txt
+unity_rs_publisher_msgs.egg-info/top_level.txt
+unity_rs_publisher_msgs/msg/__init__.py
+unity_rs_publisher_msgs/msg/_camera_metadata.py

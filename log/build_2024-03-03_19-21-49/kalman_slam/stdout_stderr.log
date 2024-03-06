@@ -1,0 +1,24 @@
+running develop
+running egg_info
+creating kalman_slam.egg-info
+writing kalman_slam.egg-info/PKG-INFO
+writing dependency_links to kalman_slam.egg-info/dependency_links.txt
+writing top-level names to kalman_slam.egg-info/top_level.txt
+writing manifest file 'kalman_slam.egg-info/SOURCES.txt'
+reading manifest file 'kalman_slam.egg-info/SOURCES.txt'
+writing manifest file 'kalman_slam.egg-info/SOURCES.txt'
+running build_ext
+Creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_slam/lib/python3.10/site-packages/kalman-slam.egg-link (link to .)
+
+Installed /home/rafal/kalman_ws/src/kalman_robot/build/kalman_slam
+running install_data
+creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_slam/share/ament_index
+creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_slam/share/ament_index/resource_index
+creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_slam/share/ament_index/resource_index/packages
+copying resource/kalman_slam -> /home/rafal/kalman_ws/src/kalman_robot/install/kalman_slam/share/ament_index/resource_index/packages
+copying package.xml -> /home/rafal/kalman_ws/src/kalman_robot/install/kalman_slam/share/kalman_slam
+creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_slam/share/kalman_slam/launch
+copying launch/slam.launch.py -> /home/rafal/kalman_ws/src/kalman_robot/install/kalman_slam/share/kalman_slam/launch
+creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_slam/share/kalman_slam/param
+copying param/rtabmap.yaml -> /home/rafal/kalman_ws/src/kalman_robot/install/kalman_slam/share/kalman_slam/param
+copying param/ukf_filter_node.yaml.j2 -> /home/rafal/kalman_ws/src/kalman_robot/install/kalman_slam/share/kalman_slam/param

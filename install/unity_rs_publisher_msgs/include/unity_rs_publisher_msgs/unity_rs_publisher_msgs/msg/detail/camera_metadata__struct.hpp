@@ -1,0 +1,1 @@
+/home/rafal/kalman_ws/src/kalman_robot/build/unity_rs_publisher_msgs/rosidl_generator_cpp/unity_rs_publisher_msgs/msg/detail/camera_metadata__struct.hpp

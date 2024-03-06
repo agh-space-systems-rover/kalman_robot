@@ -1,0 +1,15 @@
+running develop
+running egg_info
+writing kalman_gazebo.egg-info/PKG-INFO
+writing dependency_links to kalman_gazebo.egg-info/dependency_links.txt
+writing entry points to kalman_gazebo.egg-info/entry_points.txt
+writing requirements to kalman_gazebo.egg-info/requires.txt
+writing top-level names to kalman_gazebo.egg-info/top_level.txt
+reading manifest file 'kalman_gazebo.egg-info/SOURCES.txt'
+writing manifest file 'kalman_gazebo.egg-info/SOURCES.txt'
+running build_ext
+Creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_gazebo/lib/python3.10/site-packages/kalman-gazebo.egg-link (link to .)
+Installing gazebo_wheel_driver script to /home/rafal/kalman_ws/src/kalman_robot/install/kalman_gazebo/lib/kalman_gazebo
+
+Installed /home/rafal/kalman_ws/src/kalman_robot/build/kalman_gazebo
+running install_data

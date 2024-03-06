@@ -1,0 +1,18 @@
+[3.979s] Invoking command in '/home/rafal/kalman_ws/src/kalman_robot/build/kalman_master_driver': AMENT_PREFIX_PATH=/home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces:${AMENT_PREFIX_PATH} CMAKE_PREFIX_PATH=/home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces LD_LIBRARY_PATH=/home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/lib:${LD_LIBRARY_PATH} PYTHONPATH=/home/rafal/kalman_ws/src/kalman_robot/build/kalman_master_driver/prefix_override:/home/rafal/kalman_ws/src/kalman_robot/install/kalman_master_driver/lib/python3.10/site-packages:/home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages:${PYTHONPATH} /usr/bin/python3 setup.py develop --editable --build-directory /home/rafal/kalman_ws/src/kalman_robot/build/kalman_master_driver/build --no-deps install_data
+[4.756s] running develop
+[5.081s] running egg_info
+[5.081s] writing kalman_master_driver.egg-info/PKG-INFO
+[5.081s] writing dependency_links to kalman_master_driver.egg-info/dependency_links.txt
+[5.082s] writing entry points to kalman_master_driver.egg-info/entry_points.txt
+[5.082s] writing top-level names to kalman_master_driver.egg-info/top_level.txt
+[5.084s] reading manifest file 'kalman_master_driver.egg-info/SOURCES.txt'
+[5.086s] writing manifest file 'kalman_master_driver.egg-info/SOURCES.txt'
+[5.088s] running build_ext
+[5.088s] Creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_master_driver/lib/python3.10/site-packages/kalman-master-driver.egg-link (link to .)
+[5.089s] Installing master_com script to /home/rafal/kalman_ws/src/kalman_robot/install/kalman_master_driver/lib/kalman_master_driver
+[5.090s] Installing ueuos_driver script to /home/rafal/kalman_ws/src/kalman_robot/install/kalman_master_driver/lib/kalman_master_driver
+[5.090s] Installing wheel_driver script to /home/rafal/kalman_ws/src/kalman_robot/install/kalman_master_driver/lib/kalman_master_driver
+[5.090s] 
+[5.090s] Installed /home/rafal/kalman_ws/src/kalman_robot/build/kalman_master_driver
+[5.090s] running install_data
+[5.141s] Invoked command in '/home/rafal/kalman_ws/src/kalman_robot/build/kalman_master_driver' returned '0': AMENT_PREFIX_PATH=/home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces:${AMENT_PREFIX_PATH} CMAKE_PREFIX_PATH=/home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces LD_LIBRARY_PATH=/home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/lib:${LD_LIBRARY_PATH} PYTHONPATH=/home/rafal/kalman_ws/src/kalman_robot/build/kalman_master_driver/prefix_override:/home/rafal/kalman_ws/src/kalman_robot/install/kalman_master_driver/lib/python3.10/site-packages:/home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages:${PYTHONPATH} /usr/bin/python3 setup.py develop --editable --build-directory /home/rafal/kalman_ws/src/kalman_robot/build/kalman_master_driver/build --no-deps install_data

@@ -55,11 +55,9 @@ class MoveBase:
 
         self.__node.get_logger().info("Sending goal... ")
         goal_pose = self.__convert_goal(frame_id, position)
-        self.__nav.goToPose(goal_pose)
+        #self.__nav.goToPose(goal_pose)
         self.__status = self.Status.ACTIVE
         self.__current_goal = goal_pose
-
-        return self.__nav.goToPose(goal_pose)
 
     def send_goal_in_dir(self, odom: Vec2, direction: Vec2, length: float):
         np_odom = np.array(odom)
@@ -68,14 +66,14 @@ class MoveBase:
         np_direction *= length
         goal = np.add(np_odom, np_direction)
         goal = (goal[0], goal[1])
-        self.__nav.goToPose(goal)
+        
 
     def cancel_goal(self):
         self.__nav.cancelTask()
         self.send_goal("base_link", (0.0, 0.0))
         self.__current_goal = None
 
-    def __convert_goal(self, frame_id: str, position: Vec2) -> PoseStamped():
+    def __convert_goal(self, frame_id: str, position: Vec2) -> PoseStamped:
         goal = PoseStamped()
         goal.header.frame_id = frame_id
         goal.pose.position.x = position[0]

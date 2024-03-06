@@ -1,1 +1,0 @@
-Invoking command in '/home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_master_driver': CMAKE_PREFIX_PATH=/home/rafal/dev_ws/install/my_robot:/opt/ros/humble /usr/bin/cmake /home/rafal/.ssh/kalman_ws/src/kalman_robot/kalman_master_driver -DCMAKE_INSTALL_PREFIX=/home/rafal/.ssh/kalman_ws/src/kalman_robot/install/kalman_master_driver

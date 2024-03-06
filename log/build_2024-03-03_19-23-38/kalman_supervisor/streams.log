@@ -1,0 +1,16 @@
+[2.975s] Invoking command in '/home/rafal/kalman_ws/src/kalman_robot/build/kalman_supervisor': PYTHONPATH=/home/rafal/kalman_ws/src/kalman_robot/build/kalman_supervisor/prefix_override:/home/rafal/kalman_ws/src/kalman_robot/install/kalman_supervisor/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py develop --editable --build-directory /home/rafal/kalman_ws/src/kalman_robot/build/kalman_supervisor/build --no-deps install_data
+[3.567s] running develop
+[3.854s] running egg_info
+[3.854s] writing kalman_supervisor.egg-info/PKG-INFO
+[3.854s] writing dependency_links to kalman_supervisor.egg-info/dependency_links.txt
+[3.855s] writing entry points to kalman_supervisor.egg-info/entry_points.txt
+[3.855s] writing top-level names to kalman_supervisor.egg-info/top_level.txt
+[3.855s] reading manifest file 'kalman_supervisor.egg-info/SOURCES.txt'
+[3.860s] writing manifest file 'kalman_supervisor.egg-info/SOURCES.txt'
+[3.860s] running build_ext
+[3.860s] Creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_supervisor/lib/python3.10/site-packages/kalman-supervisor.egg-link (link to .)
+[3.860s] Installing supervisor_node script to /home/rafal/kalman_ws/src/kalman_robot/install/kalman_supervisor/lib/kalman_supervisor
+[3.860s] 
+[3.861s] Installed /home/rafal/kalman_ws/src/kalman_robot/build/kalman_supervisor
+[3.861s] running install_data
+[5.632s] Invoked command in '/home/rafal/kalman_ws/src/kalman_robot/build/kalman_supervisor' returned '0': PYTHONPATH=/home/rafal/kalman_ws/src/kalman_robot/build/kalman_supervisor/prefix_override:/home/rafal/kalman_ws/src/kalman_robot/install/kalman_supervisor/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py develop --editable --build-directory /home/rafal/kalman_ws/src/kalman_robot/build/kalman_supervisor/build --no-deps install_data

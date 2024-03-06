@@ -1,0 +1,16 @@
+obstacles_detection:
+  ros__parameters:
+    frame_id: "base_link"
+    map_frame_id: "map"
+    publish_tf: False
+
+    Grid/CellSize: "0.1" # resolution of occupancy grid; default is 0.05
+    Grid/Sensor: "0" # 0 = laser scan; 1 = RGB-D; 2 = both; 1 is default
+    # Grid/NormalsSegmentation: "false" # disabled for max ground height; default is true
+    Grid/MaxObstacleHeight: "1.0" # max height of obstacles; default is disabled
+    # Grid/ClusterRadius: "0.1" # maximum radius of a cluster; default is 0.1
+    # Grid/MinClusterSize: "30" # minimum number of points in a cluster; default is 10
+    # Grid/NormalK: "200" # number of neighbors for normal estimation; default is 20
+    Grid/MaxGroundAngle: "30"
+    Grid/FlatObstacleDetected: "false"
+    # Grid/RayTracing: "true" # default is false

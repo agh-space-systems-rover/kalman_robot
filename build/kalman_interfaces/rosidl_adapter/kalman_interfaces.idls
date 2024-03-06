@@ -1,4 +1,9 @@
-/home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_interfaces/rosidl_adapter/kalman_interfaces:msg/WheelState.idl
-/home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_interfaces/rosidl_adapter/kalman_interfaces:msg/WheelStates.idl
-/home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_interfaces/rosidl_adapter/kalman_interfaces:msg/GpsTag.idl
-/home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_interfaces/rosidl_adapter/kalman_interfaces:msg/GpsTagArray.idl
+/home/rafal/kalman_ws/src/kalman_robot/build/kalman_interfaces/rosidl_adapter/kalman_interfaces:msg/GpsTagArray.idl
+/home/rafal/kalman_ws/src/kalman_robot/build/kalman_interfaces/rosidl_adapter/kalman_interfaces:msg/GpsTag.idl
+/home/rafal/kalman_ws/src/kalman_robot/build/kalman_interfaces/rosidl_adapter/kalman_interfaces:msg/MasterMessage.idl
+/home/rafal/kalman_ws/src/kalman_robot/build/kalman_interfaces/rosidl_adapter/kalman_interfaces:msg/WheelState.idl
+/home/rafal/kalman_ws/src/kalman_robot/build/kalman_interfaces/rosidl_adapter/kalman_interfaces:msg/WheelStates.idl
+/home/rafal/kalman_ws/src/kalman_robot/build/kalman_interfaces/rosidl_adapter/kalman_interfaces:srv/CalibrateCompass.idl
+/home/rafal/kalman_ws/src/kalman_robot/build/kalman_interfaces/rosidl_adapter/kalman_interfaces:srv/SetUeuosColor.idl
+/home/rafal/kalman_ws/src/kalman_robot/build/kalman_interfaces/rosidl_adapter/kalman_interfaces:srv/SetUeuosEffect.idl
+/home/rafal/kalman_ws/src/kalman_robot/build/kalman_interfaces/rosidl_adapter/kalman_interfaces:srv/SetUeuosMode.idl

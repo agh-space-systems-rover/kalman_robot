@@ -1,1 +1,1 @@
-realsense2_description:ros2launch:xacro
+joint_state_publisher_gui:realsense2_description:ros2launch:xacro

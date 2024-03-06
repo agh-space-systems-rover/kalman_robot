@@ -1,0 +1,12 @@
+Metadata-Version: 2.1
+Name: kalman-master-driver
+Version: 0.0.0
+Summary: Handles serial communication between Master device and ROS network.
+Home-page: UNKNOWN
+Maintainer: rayferric
+Maintainer-email: kacper.iwi@gmail.com
+License: MIT
+Platform: UNKNOWN
+
+UNKNOWN
+

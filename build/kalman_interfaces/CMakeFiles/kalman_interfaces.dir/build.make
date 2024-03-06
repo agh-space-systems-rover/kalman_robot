@@ -53,10 +53,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/rafal/.ssh/kalman_ws/src/kalman_robot/kalman_interfaces
+CMAKE_SOURCE_DIR = /home/rafal/kalman_ws/src/kalman_robot/kalman_interfaces
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_interfaces
+CMAKE_BINARY_DIR = /home/rafal/kalman_ws/src/kalman_robot/build/kalman_interfaces
 
 # Utility rule file for kalman_interfaces.
 
@@ -66,10 +66,53 @@ include CMakeFiles/kalman_interfaces.dir/compiler_depend.make
 # Include the progress variables for this target.
 include CMakeFiles/kalman_interfaces.dir/progress.make
 
-CMakeFiles/kalman_interfaces: /home/rafal/.ssh/kalman_ws/src/kalman_robot/kalman_interfaces/msg/WheelState.msg
-CMakeFiles/kalman_interfaces: /home/rafal/.ssh/kalman_ws/src/kalman_robot/kalman_interfaces/msg/WheelStates.msg
-CMakeFiles/kalman_interfaces: /home/rafal/.ssh/kalman_ws/src/kalman_robot/kalman_interfaces/msg/GpsTag.msg
-CMakeFiles/kalman_interfaces: /home/rafal/.ssh/kalman_ws/src/kalman_robot/kalman_interfaces/msg/GpsTagArray.msg
+CMakeFiles/kalman_interfaces: /home/rafal/kalman_ws/src/kalman_robot/kalman_interfaces/msg/GpsTagArray.msg
+CMakeFiles/kalman_interfaces: /home/rafal/kalman_ws/src/kalman_robot/kalman_interfaces/msg/GpsTag.msg
+CMakeFiles/kalman_interfaces: /home/rafal/kalman_ws/src/kalman_robot/kalman_interfaces/msg/MasterMessage.msg
+CMakeFiles/kalman_interfaces: /home/rafal/kalman_ws/src/kalman_robot/kalman_interfaces/msg/WheelState.msg
+CMakeFiles/kalman_interfaces: /home/rafal/kalman_ws/src/kalman_robot/kalman_interfaces/msg/WheelStates.msg
+CMakeFiles/kalman_interfaces: /home/rafal/kalman_ws/src/kalman_robot/kalman_interfaces/srv/CalibrateCompass.srv
+CMakeFiles/kalman_interfaces: rosidl_cmake/srv/CalibrateCompass_Request.msg
+CMakeFiles/kalman_interfaces: rosidl_cmake/srv/CalibrateCompass_Response.msg
+CMakeFiles/kalman_interfaces: /home/rafal/kalman_ws/src/kalman_robot/kalman_interfaces/srv/SetUeuosColor.srv
+CMakeFiles/kalman_interfaces: rosidl_cmake/srv/SetUeuosColor_Request.msg
+CMakeFiles/kalman_interfaces: rosidl_cmake/srv/SetUeuosColor_Response.msg
+CMakeFiles/kalman_interfaces: /home/rafal/kalman_ws/src/kalman_robot/kalman_interfaces/srv/SetUeuosEffect.srv
+CMakeFiles/kalman_interfaces: rosidl_cmake/srv/SetUeuosEffect_Request.msg
+CMakeFiles/kalman_interfaces: rosidl_cmake/srv/SetUeuosEffect_Response.msg
+CMakeFiles/kalman_interfaces: /home/rafal/kalman_ws/src/kalman_robot/kalman_interfaces/srv/SetUeuosMode.srv
+CMakeFiles/kalman_interfaces: rosidl_cmake/srv/SetUeuosMode_Request.msg
+CMakeFiles/kalman_interfaces: rosidl_cmake/srv/SetUeuosMode_Response.msg
+CMakeFiles/kalman_interfaces: /opt/ros/humble/share/std_msgs/msg/Bool.idl
+CMakeFiles/kalman_interfaces: /opt/ros/humble/share/std_msgs/msg/Byte.idl
+CMakeFiles/kalman_interfaces: /opt/ros/humble/share/std_msgs/msg/ByteMultiArray.idl
+CMakeFiles/kalman_interfaces: /opt/ros/humble/share/std_msgs/msg/Char.idl
+CMakeFiles/kalman_interfaces: /opt/ros/humble/share/std_msgs/msg/ColorRGBA.idl
+CMakeFiles/kalman_interfaces: /opt/ros/humble/share/std_msgs/msg/Empty.idl
+CMakeFiles/kalman_interfaces: /opt/ros/humble/share/std_msgs/msg/Float32.idl
+CMakeFiles/kalman_interfaces: /opt/ros/humble/share/std_msgs/msg/Float32MultiArray.idl
+CMakeFiles/kalman_interfaces: /opt/ros/humble/share/std_msgs/msg/Float64.idl
+CMakeFiles/kalman_interfaces: /opt/ros/humble/share/std_msgs/msg/Float64MultiArray.idl
+CMakeFiles/kalman_interfaces: /opt/ros/humble/share/std_msgs/msg/Header.idl
+CMakeFiles/kalman_interfaces: /opt/ros/humble/share/std_msgs/msg/Int16.idl
+CMakeFiles/kalman_interfaces: /opt/ros/humble/share/std_msgs/msg/Int16MultiArray.idl
+CMakeFiles/kalman_interfaces: /opt/ros/humble/share/std_msgs/msg/Int32.idl
+CMakeFiles/kalman_interfaces: /opt/ros/humble/share/std_msgs/msg/Int32MultiArray.idl
+CMakeFiles/kalman_interfaces: /opt/ros/humble/share/std_msgs/msg/Int64.idl
+CMakeFiles/kalman_interfaces: /opt/ros/humble/share/std_msgs/msg/Int64MultiArray.idl
+CMakeFiles/kalman_interfaces: /opt/ros/humble/share/std_msgs/msg/Int8.idl
+CMakeFiles/kalman_interfaces: /opt/ros/humble/share/std_msgs/msg/Int8MultiArray.idl
+CMakeFiles/kalman_interfaces: /opt/ros/humble/share/std_msgs/msg/MultiArrayDimension.idl
+CMakeFiles/kalman_interfaces: /opt/ros/humble/share/std_msgs/msg/MultiArrayLayout.idl
+CMakeFiles/kalman_interfaces: /opt/ros/humble/share/std_msgs/msg/String.idl
+CMakeFiles/kalman_interfaces: /opt/ros/humble/share/std_msgs/msg/UInt16.idl
+CMakeFiles/kalman_interfaces: /opt/ros/humble/share/std_msgs/msg/UInt16MultiArray.idl
+CMakeFiles/kalman_interfaces: /opt/ros/humble/share/std_msgs/msg/UInt32.idl
+CMakeFiles/kalman_interfaces: /opt/ros/humble/share/std_msgs/msg/UInt32MultiArray.idl
+CMakeFiles/kalman_interfaces: /opt/ros/humble/share/std_msgs/msg/UInt64.idl
+CMakeFiles/kalman_interfaces: /opt/ros/humble/share/std_msgs/msg/UInt64MultiArray.idl
+CMakeFiles/kalman_interfaces: /opt/ros/humble/share/std_msgs/msg/UInt8.idl
+CMakeFiles/kalman_interfaces: /opt/ros/humble/share/std_msgs/msg/UInt8MultiArray.idl
 
 kalman_interfaces: CMakeFiles/kalman_interfaces
 kalman_interfaces: CMakeFiles/kalman_interfaces.dir/build.make
@@ -84,6 +127,6 @@ CMakeFiles/kalman_interfaces.dir/clean:
 .PHONY : CMakeFiles/kalman_interfaces.dir/clean
 
 CMakeFiles/kalman_interfaces.dir/depend:
-	cd /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_interfaces && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/rafal/.ssh/kalman_ws/src/kalman_robot/kalman_interfaces /home/rafal/.ssh/kalman_ws/src/kalman_robot/kalman_interfaces /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_interfaces /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_interfaces /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_interfaces/CMakeFiles/kalman_interfaces.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/rafal/kalman_ws/src/kalman_robot/build/kalman_interfaces && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/rafal/kalman_ws/src/kalman_robot/kalman_interfaces /home/rafal/kalman_ws/src/kalman_robot/kalman_interfaces /home/rafal/kalman_ws/src/kalman_robot/build/kalman_interfaces /home/rafal/kalman_ws/src/kalman_robot/build/kalman_interfaces /home/rafal/kalman_ws/src/kalman_robot/build/kalman_interfaces/CMakeFiles/kalman_interfaces.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/kalman_interfaces.dir/depend
 

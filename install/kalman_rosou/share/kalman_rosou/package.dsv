@@ -1,0 +1,9 @@
+source;share/kalman_rosou/hook/pythonpath.ps1
+source;share/kalman_rosou/hook/pythonpath.dsv
+source;share/kalman_rosou/hook/pythonpath.sh
+source;share/kalman_rosou/hook/ament_prefix_path.ps1
+source;share/kalman_rosou/hook/ament_prefix_path.dsv
+source;share/kalman_rosou/hook/ament_prefix_path.sh
+source;../../build/kalman_rosou/share/kalman_rosou/hook/pythonpath_develop.ps1
+source;../../build/kalman_rosou/share/kalman_rosou/hook/pythonpath_develop.dsv
+source;../../build/kalman_rosou/share/kalman_rosou/hook/pythonpath_develop.sh

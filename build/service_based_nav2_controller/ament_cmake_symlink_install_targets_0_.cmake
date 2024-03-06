@@ -1,0 +1,1 @@
+ament_cmake_symlink_install_targets("TARGET_FILES" "/home/rafal/kalman_ws/src/kalman_robot/build/service_based_nav2_controller/libservice_based_nav2_controller.so" "TARGETS" "service_based_nav2_controller" "DESTINATION" "lib/service_based_nav2_controller")

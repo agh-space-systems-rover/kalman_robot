@@ -1,0 +1,1 @@
+/home/rafal/kalman_ws/src/kalman_robot/build/kalman_interfaces/ament_cmake_python/kalman_interfaces/kalman_interfaces.egg-info/top_level.txt

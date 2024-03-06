@@ -1,0 +1,8 @@
+setup.py
+service_based_nav2_controller_srvs/__init__.py
+service_based_nav2_controller_srvs.egg-info/PKG-INFO
+service_based_nav2_controller_srvs.egg-info/SOURCES.txt
+service_based_nav2_controller_srvs.egg-info/dependency_links.txt
+service_based_nav2_controller_srvs.egg-info/top_level.txt
+service_based_nav2_controller_srvs/srv/__init__.py
+service_based_nav2_controller_srvs/srv/_compute_velocity_commands.py

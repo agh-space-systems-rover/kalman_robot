@@ -1,0 +1,1 @@
+/home/rafal/kalman_ws/src/kalman_robot/build/kalman_interfaces/rosidl_typesupport_introspection_cpp/kalman_interfaces/msg/detail/master_message__rosidl_typesupport_introspection_cpp.hpp

@@ -1,0 +1,1 @@
+/home/rafal/kalman_ws/src/kalman_robot/build/service_based_nav2_controller_srvs/rosidl_generator_py/service_based_nav2_controller_srvs/srv/__init__.py

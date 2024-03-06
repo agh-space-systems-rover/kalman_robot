@@ -53,10 +53,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/rafal/.ssh/kalman_ws/src/kalman_robot/service_based_nav2_controller/service_based_nav2_controller_srvs
+CMAKE_SOURCE_DIR = /home/rafal/kalman_ws/src/kalman_robot/service_based_nav2_controller/service_based_nav2_controller_srvs
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/service_based_nav2_controller_srvs
+CMAKE_BINARY_DIR = /home/rafal/kalman_ws/src/kalman_robot/build/service_based_nav2_controller_srvs
 
 # Utility rule file for ament_cmake_python_build_service_based_nav2_controller_srvs_egg.
 
@@ -67,7 +67,7 @@ include CMakeFiles/ament_cmake_python_build_service_based_nav2_controller_srvs_e
 include CMakeFiles/ament_cmake_python_build_service_based_nav2_controller_srvs_egg.dir/progress.make
 
 CMakeFiles/ament_cmake_python_build_service_based_nav2_controller_srvs_egg:
-	cd /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/service_based_nav2_controller_srvs/ament_cmake_python/service_based_nav2_controller_srvs && /usr/bin/python3.10 setup.py egg_info
+	cd /home/rafal/kalman_ws/src/kalman_robot/build/service_based_nav2_controller_srvs/ament_cmake_python/service_based_nav2_controller_srvs && /usr/bin/python3 setup.py egg_info
 
 ament_cmake_python_build_service_based_nav2_controller_srvs_egg: CMakeFiles/ament_cmake_python_build_service_based_nav2_controller_srvs_egg
 ament_cmake_python_build_service_based_nav2_controller_srvs_egg: CMakeFiles/ament_cmake_python_build_service_based_nav2_controller_srvs_egg.dir/build.make
@@ -82,6 +82,6 @@ CMakeFiles/ament_cmake_python_build_service_based_nav2_controller_srvs_egg.dir/c
 .PHONY : CMakeFiles/ament_cmake_python_build_service_based_nav2_controller_srvs_egg.dir/clean
 
 CMakeFiles/ament_cmake_python_build_service_based_nav2_controller_srvs_egg.dir/depend:
-	cd /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/service_based_nav2_controller_srvs && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/rafal/.ssh/kalman_ws/src/kalman_robot/service_based_nav2_controller/service_based_nav2_controller_srvs /home/rafal/.ssh/kalman_ws/src/kalman_robot/service_based_nav2_controller/service_based_nav2_controller_srvs /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/service_based_nav2_controller_srvs /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/service_based_nav2_controller_srvs /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/service_based_nav2_controller_srvs/CMakeFiles/ament_cmake_python_build_service_based_nav2_controller_srvs_egg.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/rafal/kalman_ws/src/kalman_robot/build/service_based_nav2_controller_srvs && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/rafal/kalman_ws/src/kalman_robot/service_based_nav2_controller/service_based_nav2_controller_srvs /home/rafal/kalman_ws/src/kalman_robot/service_based_nav2_controller/service_based_nav2_controller_srvs /home/rafal/kalman_ws/src/kalman_robot/build/service_based_nav2_controller_srvs /home/rafal/kalman_ws/src/kalman_robot/build/service_based_nav2_controller_srvs /home/rafal/kalman_ws/src/kalman_robot/build/service_based_nav2_controller_srvs/CMakeFiles/ament_cmake_python_build_service_based_nav2_controller_srvs_egg.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/ament_cmake_python_build_service_based_nav2_controller_srvs_egg.dir/depend
 

@@ -1,9 +1,0 @@
-package.xml
-setup.cfg
-setup.py
-../build/supervisor2/supervisor2.egg-info/PKG-INFO
-../build/supervisor2/supervisor2.egg-info/SOURCES.txt
-../build/supervisor2/supervisor2.egg-info/dependency_links.txt
-../build/supervisor2/supervisor2.egg-info/top_level.txt
-../build/supervisor2/supervisor2.egg-info/zip-safe
-launch/supervisor.launch.py

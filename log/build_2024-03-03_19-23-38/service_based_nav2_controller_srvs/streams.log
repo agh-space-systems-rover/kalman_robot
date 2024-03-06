@@ -1,0 +1,131 @@
+[0.524s] Invoking command in '/home/rafal/kalman_ws/src/kalman_robot/build/service_based_nav2_controller_srvs': CMAKE_PREFIX_PATH=/home/rafal/dev_ws/install/my_robot:/opt/ros/humble /usr/bin/cmake --build /home/rafal/kalman_ws/src/kalman_robot/build/service_based_nav2_controller_srvs -- -j16 -l16
+[1.720s] [35m[1mConsolidate compiler generated dependencies of target service_based_nav2_controller_srvs__rosidl_generator_c[0m
+[1.721s] [  3%] Built target service_based_nav2_controller_srvs__cpp
+[1.722s] [ 12%] Built target service_based_nav2_controller_srvs__rosidl_generator_c
+[1.722s] [35m[1mConsolidate compiler generated dependencies of target service_based_nav2_controller_srvs__rosidl_typesupport_cpp[0m
+[1.722s] [35m[1mConsolidate compiler generated dependencies of target service_based_nav2_controller_srvs__rosidl_typesupport_introspection_cpp[0m
+[1.722s] [35m[1mConsolidate compiler generated dependencies of target service_based_nav2_controller_srvs__rosidl_typesupport_fastrtps_cpp[0m
+[1.722s] [35m[1mConsolidate compiler generated dependencies of target service_based_nav2_controller_srvs__rosidl_typesupport_introspection_c[0m
+[1.722s] [35m[1mConsolidate compiler generated dependencies of target service_based_nav2_controller_srvs__rosidl_typesupport_c[0m
+[1.722s] [35m[1mConsolidate compiler generated dependencies of target service_based_nav2_controller_srvs__rosidl_typesupport_fastrtps_c[0m
+[1.722s] [ 22%] Built target service_based_nav2_controller_srvs__rosidl_typesupport_cpp
+[1.722s] [ 32%] Built target service_based_nav2_controller_srvs__rosidl_typesupport_introspection_cpp
+[1.722s] [ 41%] Built target service_based_nav2_controller_srvs__rosidl_typesupport_fastrtps_cpp
+[1.722s] [ 51%] Built target service_based_nav2_controller_srvs__rosidl_typesupport_introspection_c
+[1.722s] [ 61%] Built target service_based_nav2_controller_srvs__rosidl_typesupport_c
+[1.722s] [ 70%] Built target service_based_nav2_controller_srvs__rosidl_typesupport_fastrtps_c
+[1.722s] [ 70%] Built target ament_cmake_python_symlink_service_based_nav2_controller_srvs
+[1.722s] [ 70%] Built target service_based_nav2_controller_srvs
+[1.722s] [ 74%] Built target service_based_nav2_controller_srvs__py
+[1.723s] [35m[1mConsolidate compiler generated dependencies of target service_based_nav2_controller_srvs__rosidl_generator_py[0m
+[1.723s] [ 80%] Built target service_based_nav2_controller_srvs__rosidl_generator_py
+[1.723s] [35m[1mConsolidate compiler generated dependencies of target service_based_nav2_controller_srvs__rosidl_typesupport_fastrtps_c__pyext[0m
+[1.723s] [35m[1mConsolidate compiler generated dependencies of target service_based_nav2_controller_srvs__rosidl_typesupport_introspection_c__pyext[0m
+[1.723s] [35m[1mConsolidate compiler generated dependencies of target service_based_nav2_controller_srvs__rosidl_typesupport_c__pyext[0m
+[1.723s] [ 87%] Built target service_based_nav2_controller_srvs__rosidl_typesupport_fastrtps_c__pyext
+[1.723s] [ 93%] Built target service_based_nav2_controller_srvs__rosidl_typesupport_introspection_c__pyext
+[1.723s] [100%] Built target service_based_nav2_controller_srvs__rosidl_typesupport_c__pyext
+[1.723s] running egg_info
+[1.723s] writing service_based_nav2_controller_srvs.egg-info/PKG-INFO
+[1.723s] writing dependency_links to service_based_nav2_controller_srvs.egg-info/dependency_links.txt
+[1.723s] writing top-level names to service_based_nav2_controller_srvs.egg-info/top_level.txt
+[1.723s] reading manifest file 'service_based_nav2_controller_srvs.egg-info/SOURCES.txt'
+[1.723s] writing manifest file 'service_based_nav2_controller_srvs.egg-info/SOURCES.txt'
+[1.723s] [100%] Built target ament_cmake_python_build_service_based_nav2_controller_srvs_egg
+[1.731s] Invoked command in '/home/rafal/kalman_ws/src/kalman_robot/build/service_based_nav2_controller_srvs' returned '0': CMAKE_PREFIX_PATH=/home/rafal/dev_ws/install/my_robot:/opt/ros/humble /usr/bin/cmake --build /home/rafal/kalman_ws/src/kalman_robot/build/service_based_nav2_controller_srvs -- -j16 -l16
+[2.386s] Invoking command in '/home/rafal/kalman_ws/src/kalman_robot/build/service_based_nav2_controller_srvs': CMAKE_PREFIX_PATH=/home/rafal/dev_ws/install/my_robot:/opt/ros/humble /usr/bin/cmake --install /home/rafal/kalman_ws/src/kalman_robot/build/service_based_nav2_controller_srvs
+[2.407s] -- Install configuration: ""
+[2.409s] -- Execute custom install script
+[2.409s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/share/ament_index/resource_index/rosidl_interfaces/service_based_nav2_controller_srvs
+[2.412s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/include/service_based_nav2_controller_srvs/service_based_nav2_controller_srvs/msg/rosidl_generator_c__visibility_control.h
+[2.412s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/include/service_based_nav2_controller_srvs/service_based_nav2_controller_srvs/srv/compute_velocity_commands.h
+[2.412s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/include/service_based_nav2_controller_srvs/service_based_nav2_controller_srvs/srv/detail/compute_velocity_commands__functions.h
+[2.413s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/include/service_based_nav2_controller_srvs/service_based_nav2_controller_srvs/srv/detail/compute_velocity_commands__struct.h
+[2.414s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/include/service_based_nav2_controller_srvs/service_based_nav2_controller_srvs/srv/detail/compute_velocity_commands__type_support.h
+[2.414s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/share/service_based_nav2_controller_srvs/environment/library_path.sh
+[2.415s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/share/service_based_nav2_controller_srvs/environment/library_path.dsv
+[2.416s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/include/service_based_nav2_controller_srvs/service_based_nav2_controller_srvs/msg/rosidl_typesupport_fastrtps_c__visibility_control.h
+[2.416s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/include/service_based_nav2_controller_srvs/service_based_nav2_controller_srvs/srv/detail/compute_velocity_commands__rosidl_typesupport_fastrtps_c.h
+[2.421s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/include/service_based_nav2_controller_srvs/service_based_nav2_controller_srvs/msg/rosidl_typesupport_introspection_c__visibility_control.h
+[2.421s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/include/service_based_nav2_controller_srvs/service_based_nav2_controller_srvs/srv/detail/compute_velocity_commands__rosidl_typesupport_introspection_c.h
+[2.421s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/include/service_based_nav2_controller_srvs/service_based_nav2_controller_srvs/srv/compute_velocity_commands.hpp
+[2.422s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/include/service_based_nav2_controller_srvs/service_based_nav2_controller_srvs/srv/detail/compute_velocity_commands__builder.hpp
+[2.422s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/include/service_based_nav2_controller_srvs/service_based_nav2_controller_srvs/srv/detail/compute_velocity_commands__struct.hpp
+[2.424s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/include/service_based_nav2_controller_srvs/service_based_nav2_controller_srvs/srv/detail/compute_velocity_commands__traits.hpp
+[2.425s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/include/service_based_nav2_controller_srvs/service_based_nav2_controller_srvs/msg/rosidl_typesupport_fastrtps_cpp__visibility_control.h
+[2.426s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/include/service_based_nav2_controller_srvs/service_based_nav2_controller_srvs/srv/detail/compute_velocity_commands__rosidl_typesupport_fastrtps_cpp.hpp
+[2.428s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/include/service_based_nav2_controller_srvs/service_based_nav2_controller_srvs/srv/detail/compute_velocity_commands__rosidl_typesupport_introspection_cpp.hpp
+[2.429s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/share/service_based_nav2_controller_srvs/environment/pythonpath.sh
+[2.429s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/share/service_based_nav2_controller_srvs/environment/pythonpath.dsv
+[2.429s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/local/lib/python3.10/dist-packages/service_based_nav2_controller_srvs-0.0.0-py3.10.egg-info/PKG-INFO
+[2.431s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/local/lib/python3.10/dist-packages/service_based_nav2_controller_srvs-0.0.0-py3.10.egg-info/SOURCES.txt
+[2.432s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/local/lib/python3.10/dist-packages/service_based_nav2_controller_srvs-0.0.0-py3.10.egg-info/dependency_links.txt
+[2.432s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/local/lib/python3.10/dist-packages/service_based_nav2_controller_srvs-0.0.0-py3.10.egg-info/top_level.txt
+[2.434s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/local/lib/python3.10/dist-packages/service_based_nav2_controller_srvs/__init__.py
+[2.435s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/local/lib/python3.10/dist-packages/service_based_nav2_controller_srvs/_service_based_nav2_controller_srvs_s.ep.rosidl_typesupport_c.c
+[2.436s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/local/lib/python3.10/dist-packages/service_based_nav2_controller_srvs/_service_based_nav2_controller_srvs_s.ep.rosidl_typesupport_fastrtps_c.c
+[2.436s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/local/lib/python3.10/dist-packages/service_based_nav2_controller_srvs/_service_based_nav2_controller_srvs_s.ep.rosidl_typesupport_introspection_c.c
+[2.436s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/local/lib/python3.10/dist-packages/service_based_nav2_controller_srvs/libservice_based_nav2_controller_srvs__rosidl_generator_py.so
+[2.437s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/local/lib/python3.10/dist-packages/service_based_nav2_controller_srvs/service_based_nav2_controller_srvs_s__rosidl_typesupport_c.cpython-310-x86_64-linux-gnu.so
+[2.437s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/local/lib/python3.10/dist-packages/service_based_nav2_controller_srvs/service_based_nav2_controller_srvs_s__rosidl_typesupport_fastrtps_c.cpython-310-x86_64-linux-gnu.so
+[2.438s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/local/lib/python3.10/dist-packages/service_based_nav2_controller_srvs/service_based_nav2_controller_srvs_s__rosidl_typesupport_introspection_c.cpython-310-x86_64-linux-gnu.so
+[2.438s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/local/lib/python3.10/dist-packages/service_based_nav2_controller_srvs/srv/__init__.py
+[2.439s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/local/lib/python3.10/dist-packages/service_based_nav2_controller_srvs/srv/_compute_velocity_commands.py
+[2.439s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/local/lib/python3.10/dist-packages/service_based_nav2_controller_srvs/srv/_compute_velocity_commands_s.c
+[2.440s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/local/lib/python3.10/dist-packages/service_based_nav2_controller_srvs/service_based_nav2_controller_srvs_s__rosidl_typesupport_fastrtps_c.cpython-310-x86_64-linux-gnu.so
+[2.442s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/local/lib/python3.10/dist-packages/service_based_nav2_controller_srvs/service_based_nav2_controller_srvs_s__rosidl_typesupport_introspection_c.cpython-310-x86_64-linux-gnu.so
+[2.442s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/local/lib/python3.10/dist-packages/service_based_nav2_controller_srvs/service_based_nav2_controller_srvs_s__rosidl_typesupport_c.cpython-310-x86_64-linux-gnu.so
+[2.443s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/share/service_based_nav2_controller_srvs/srv/ComputeVelocityCommands.idl
+[2.446s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/share/service_based_nav2_controller_srvs/srv/ComputeVelocityCommands.srv
+[2.449s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/share/service_based_nav2_controller_srvs/srv/ComputeVelocityCommands_Request.msg
+[2.450s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/share/service_based_nav2_controller_srvs/srv/ComputeVelocityCommands_Response.msg
+[2.450s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/share/ament_index/resource_index/package_run_dependencies/service_based_nav2_controller_srvs
+[2.451s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/share/ament_index/resource_index/parent_prefix_path/service_based_nav2_controller_srvs
+[2.453s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/share/service_based_nav2_controller_srvs/environment/ament_prefix_path.sh
+[2.453s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/share/service_based_nav2_controller_srvs/environment/ament_prefix_path.dsv
+[2.453s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/share/service_based_nav2_controller_srvs/environment/path.sh
+[2.454s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/share/service_based_nav2_controller_srvs/environment/path.dsv
+[2.454s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/share/service_based_nav2_controller_srvs/local_setup.bash
+[2.454s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/share/service_based_nav2_controller_srvs/local_setup.sh
+[2.454s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/share/service_based_nav2_controller_srvs/local_setup.zsh
+[2.455s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/share/service_based_nav2_controller_srvs/local_setup.dsv
+[2.455s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/share/service_based_nav2_controller_srvs/package.dsv
+[2.474s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/share/ament_index/resource_index/packages/service_based_nav2_controller_srvs
+[2.475s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/share/service_based_nav2_controller_srvs/cmake/rosidl_cmake-extras.cmake
+[2.475s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/share/service_based_nav2_controller_srvs/cmake/ament_cmake_export_dependencies-extras.cmake
+[2.475s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/share/service_based_nav2_controller_srvs/cmake/ament_cmake_export_include_directories-extras.cmake
+[2.475s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/share/service_based_nav2_controller_srvs/cmake/ament_cmake_export_libraries-extras.cmake
+[2.476s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/share/service_based_nav2_controller_srvs/cmake/ament_cmake_export_targets-extras.cmake
+[2.476s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/share/service_based_nav2_controller_srvs/cmake/rosidl_cmake_export_typesupport_targets-extras.cmake
+[2.476s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/share/service_based_nav2_controller_srvs/cmake/rosidl_cmake_export_typesupport_libraries-extras.cmake
+[2.476s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/share/service_based_nav2_controller_srvs/cmake/service_based_nav2_controller_srvsConfig.cmake
+[2.477s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/share/service_based_nav2_controller_srvs/cmake/service_based_nav2_controller_srvsConfig-version.cmake
+[2.477s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/share/service_based_nav2_controller_srvs/package.xml
+[2.477s] -- Up-to-date: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/lib/libservice_based_nav2_controller_srvs__rosidl_generator_c.so
+[2.477s] -- Up-to-date: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/lib/libservice_based_nav2_controller_srvs__rosidl_typesupport_fastrtps_c.so
+[2.477s] -- Up-to-date: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/lib/libservice_based_nav2_controller_srvs__rosidl_typesupport_introspection_c.so
+[2.478s] -- Up-to-date: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/lib/libservice_based_nav2_controller_srvs__rosidl_typesupport_c.so
+[2.478s] -- Up-to-date: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/lib/libservice_based_nav2_controller_srvs__rosidl_typesupport_fastrtps_cpp.so
+[2.478s] -- Up-to-date: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/lib/libservice_based_nav2_controller_srvs__rosidl_typesupport_introspection_cpp.so
+[2.478s] -- Up-to-date: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/lib/libservice_based_nav2_controller_srvs__rosidl_typesupport_cpp.so
+[2.549s] Listing '/home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/local/lib/python3.10/dist-packages/service_based_nav2_controller_srvs'...
+[2.549s] Listing '/home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/local/lib/python3.10/dist-packages/service_based_nav2_controller_srvs/srv'...
+[2.558s] -- Up-to-date: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/lib/libservice_based_nav2_controller_srvs__rosidl_generator_py.so
+[2.560s] -- Up-to-date: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/share/service_based_nav2_controller_srvs/cmake/export_service_based_nav2_controller_srvs__rosidl_generator_cExport.cmake
+[2.561s] -- Up-to-date: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/share/service_based_nav2_controller_srvs/cmake/export_service_based_nav2_controller_srvs__rosidl_generator_cExport-noconfig.cmake
+[2.562s] -- Up-to-date: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/share/service_based_nav2_controller_srvs/cmake/export_service_based_nav2_controller_srvs__rosidl_typesupport_fastrtps_cExport.cmake
+[2.562s] -- Up-to-date: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/share/service_based_nav2_controller_srvs/cmake/export_service_based_nav2_controller_srvs__rosidl_typesupport_fastrtps_cExport-noconfig.cmake
+[2.562s] -- Up-to-date: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/share/service_based_nav2_controller_srvs/cmake/service_based_nav2_controller_srvs__rosidl_typesupport_introspection_cExport.cmake
+[2.565s] -- Up-to-date: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/share/service_based_nav2_controller_srvs/cmake/service_based_nav2_controller_srvs__rosidl_typesupport_introspection_cExport-noconfig.cmake
+[2.565s] -- Up-to-date: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/share/service_based_nav2_controller_srvs/cmake/service_based_nav2_controller_srvs__rosidl_typesupport_cExport.cmake
+[2.566s] -- Up-to-date: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/share/service_based_nav2_controller_srvs/cmake/service_based_nav2_controller_srvs__rosidl_typesupport_cExport-noconfig.cmake
+[2.566s] -- Up-to-date: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/share/service_based_nav2_controller_srvs/cmake/export_service_based_nav2_controller_srvs__rosidl_generator_cppExport.cmake
+[2.566s] -- Up-to-date: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/share/service_based_nav2_controller_srvs/cmake/export_service_based_nav2_controller_srvs__rosidl_typesupport_fastrtps_cppExport.cmake
+[2.566s] -- Up-to-date: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/share/service_based_nav2_controller_srvs/cmake/export_service_based_nav2_controller_srvs__rosidl_typesupport_fastrtps_cppExport-noconfig.cmake
+[2.566s] -- Up-to-date: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/share/service_based_nav2_controller_srvs/cmake/service_based_nav2_controller_srvs__rosidl_typesupport_introspection_cppExport.cmake
+[2.566s] -- Up-to-date: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/share/service_based_nav2_controller_srvs/cmake/service_based_nav2_controller_srvs__rosidl_typesupport_introspection_cppExport-noconfig.cmake
+[2.566s] -- Up-to-date: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/share/service_based_nav2_controller_srvs/cmake/service_based_nav2_controller_srvs__rosidl_typesupport_cppExport.cmake
+[2.566s] -- Up-to-date: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/share/service_based_nav2_controller_srvs/cmake/service_based_nav2_controller_srvs__rosidl_typesupport_cppExport-noconfig.cmake
+[2.567s] -- Up-to-date: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/share/service_based_nav2_controller_srvs/cmake/export_service_based_nav2_controller_srvs__rosidl_generator_pyExport.cmake
+[2.567s] -- Up-to-date: /home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/share/service_based_nav2_controller_srvs/cmake/export_service_based_nav2_controller_srvs__rosidl_generator_pyExport-noconfig.cmake
+[2.772s] Invoked command in '/home/rafal/kalman_ws/src/kalman_robot/build/service_based_nav2_controller_srvs' returned '0': CMAKE_PREFIX_PATH=/home/rafal/dev_ws/install/my_robot:/opt/ros/humble /usr/bin/cmake --install /home/rafal/kalman_ws/src/kalman_robot/build/service_based_nav2_controller_srvs

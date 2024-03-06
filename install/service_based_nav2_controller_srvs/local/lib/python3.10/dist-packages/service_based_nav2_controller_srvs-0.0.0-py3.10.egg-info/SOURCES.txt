@@ -1,0 +1,1 @@
+/home/rafal/kalman_ws/src/kalman_robot/build/service_based_nav2_controller_srvs/ament_cmake_python/service_based_nav2_controller_srvs/service_based_nav2_controller_srvs.egg-info/SOURCES.txt

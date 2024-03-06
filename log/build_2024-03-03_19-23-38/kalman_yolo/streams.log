@@ -1,0 +1,16 @@
+[3.129s] Invoking command in '/home/rafal/kalman_ws/src/kalman_robot/build/kalman_yolo': PYTHONPATH=/home/rafal/kalman_ws/src/kalman_robot/build/kalman_yolo/prefix_override:/home/rafal/kalman_ws/src/kalman_robot/install/kalman_yolo/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py develop --editable --build-directory /home/rafal/kalman_ws/src/kalman_robot/build/kalman_yolo/build --no-deps install_data
+[3.603s] running develop
+[3.896s] running egg_info
+[3.897s] writing kalman_yolo.egg-info/PKG-INFO
+[3.900s] writing dependency_links to kalman_yolo.egg-info/dependency_links.txt
+[3.902s] writing entry points to kalman_yolo.egg-info/entry_points.txt
+[3.902s] writing top-level names to kalman_yolo.egg-info/top_level.txt
+[3.909s] reading manifest file 'kalman_yolo.egg-info/SOURCES.txt'
+[3.910s] writing manifest file 'kalman_yolo.egg-info/SOURCES.txt'
+[3.910s] running build_ext
+[3.910s] Creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_yolo/lib/python3.10/site-packages/kalman-yolo.egg-link (link to .)
+[3.910s] Installing yolo_detect script to /home/rafal/kalman_ws/src/kalman_robot/install/kalman_yolo/lib/kalman_yolo
+[3.910s] 
+[3.910s] Installed /home/rafal/kalman_ws/src/kalman_robot/build/kalman_yolo
+[3.910s] running install_data
+[5.560s] Invoked command in '/home/rafal/kalman_ws/src/kalman_robot/build/kalman_yolo' returned '0': PYTHONPATH=/home/rafal/kalman_ws/src/kalman_robot/build/kalman_yolo/prefix_override:/home/rafal/kalman_ws/src/kalman_robot/install/kalman_yolo/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 setup.py develop --editable --build-directory /home/rafal/kalman_ws/src/kalman_robot/build/kalman_yolo/build --no-deps install_data

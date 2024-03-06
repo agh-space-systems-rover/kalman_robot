@@ -1,0 +1,3 @@
+[console_scripts]
+supervisor_node = src.supervisor_node:main
+

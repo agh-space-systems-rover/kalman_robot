@@ -1,0 +1,408 @@
+[0.632s] Invoking command in '/home/rafal/kalman_ws/src/kalman_robot/build/kalman_interfaces': CMAKE_PREFIX_PATH=/home/rafal/dev_ws/install/my_robot:/opt/ros/humble /usr/bin/cmake /home/rafal/kalman_ws/src/kalman_robot/kalman_interfaces -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces
+[2.045s] -- The C compiler identification is GNU 11.4.0
+[2.045s] -- The CXX compiler identification is GNU 11.4.0
+[2.045s] -- Detecting C compiler ABI info
+[2.045s] -- Detecting C compiler ABI info - done
+[2.045s] -- Check for working C compiler: /usr/bin/cc - skipped
+[2.046s] -- Detecting C compile features
+[2.049s] -- Detecting C compile features - done
+[2.049s] -- Detecting CXX compiler ABI info
+[2.050s] -- Detecting CXX compiler ABI info - done
+[2.050s] -- Check for working CXX compiler: /usr/bin/c++ - skipped
+[2.050s] -- Detecting CXX compile features
+[2.050s] -- Detecting CXX compile features - done
+[2.051s] -- Found ament_cmake: 1.3.8 (/opt/ros/humble/share/ament_cmake/cmake)
+[2.051s] -- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter 
+[2.051s] -- Override CMake install command with custom implementation using symlinks instead of copying resources
+[2.051s] -- Found rosidl_default_generators: 1.2.0 (/opt/ros/humble/share/rosidl_default_generators/cmake)
+[2.051s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[2.051s] -- Found rosidl_adapter: 3.1.5 (/opt/ros/humble/share/rosidl_adapter/cmake)
+[2.052s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[2.052s] -- Found std_msgs: 4.2.3 (/opt/ros/humble/share/std_msgs/cmake)
+[2.831s] -- Found ament_cmake_ros: 0.10.0 (/opt/ros/humble/share/ament_cmake_ros/cmake)
+[3.819s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[4.450s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[4.502s] -- Found PythonInterp: /usr/bin/python3 (found suitable version "3.10.12", minimum required is "3.6") 
+[4.505s] -- Found python_cmake_module: 0.10.0 (/opt/ros/humble/share/python_cmake_module/cmake)
+[4.578s] -- Found PythonLibs: /usr/lib/x86_64-linux-gnu/libpython3.10.so (found suitable version "3.10.12", minimum required is "3.5") 
+[4.578s] -- Using PYTHON_EXECUTABLE: /usr/bin/python3
+[4.578s] -- Using PYTHON_INCLUDE_DIRS: /usr/include/python3.10
+[4.579s] -- Using PYTHON_LIBRARIES: /usr/lib/x86_64-linux-gnu/libpython3.10.so
+[4.622s] -- Found PythonExtra: .so  
+[4.738s] -- Configuring done
+[4.836s] -- Generating done
+[4.843s] -- Build files have been written to: /home/rafal/kalman_ws/src/kalman_robot/build/kalman_interfaces
+[4.996s] Invoked command in '/home/rafal/kalman_ws/src/kalman_robot/build/kalman_interfaces' returned '0': CMAKE_PREFIX_PATH=/home/rafal/dev_ws/install/my_robot:/opt/ros/humble /usr/bin/cmake /home/rafal/kalman_ws/src/kalman_robot/kalman_interfaces -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces
+[4.996s] Invoking command in '/home/rafal/kalman_ws/src/kalman_robot/build/kalman_interfaces': CMAKE_PREFIX_PATH=/home/rafal/dev_ws/install/my_robot:/opt/ros/humble /usr/bin/cmake --build /home/rafal/kalman_ws/src/kalman_robot/build/kalman_interfaces -- -j16 -l16
+[5.097s] [  1%] [34m[1mGenerating C code for ROS interfaces[0m
+[5.110s] [  2%] [34m[1mGenerating C++ code for ROS interfaces[0m
+[5.130s] [  2%] Built target ament_cmake_python_symlink_kalman_interfaces
+[5.804s] running egg_info
+[5.806s] creating kalman_interfaces.egg-info
+[5.807s] writing kalman_interfaces.egg-info/PKG-INFO
+[5.807s] writing dependency_links to kalman_interfaces.egg-info/dependency_links.txt
+[5.807s] writing top-level names to kalman_interfaces.egg-info/top_level.txt
+[5.808s] writing manifest file 'kalman_interfaces.egg-info/SOURCES.txt'
+[5.813s] reading manifest file 'kalman_interfaces.egg-info/SOURCES.txt'
+[5.814s] writing manifest file 'kalman_interfaces.egg-info/SOURCES.txt'
+[5.863s] [  2%] Built target ament_cmake_python_build_kalman_interfaces_egg
+[7.763s] [  2%] Built target kalman_interfaces__cpp
+[7.800s] [  3%] [34m[1mGenerating C++ introspection for ROS interfaces[0m
+[7.800s] [  4%] [34m[1mGenerating C++ type support for eProsima Fast-RTPS[0m
+[7.800s] [  5%] [34m[1mGenerating C++ type support dispatch for ROS interfaces[0m
+[7.833s] [  6%] [32mBuilding C object CMakeFiles/kalman_interfaces__rosidl_generator_c.dir/rosidl_generator_c/kalman_interfaces/msg/detail/gps_tag__functions.c.o[0m
+[7.840s] [  7%] [32mBuilding C object CMakeFiles/kalman_interfaces__rosidl_generator_c.dir/rosidl_generator_c/kalman_interfaces/msg/detail/gps_tag_array__functions.c.o[0m
+[7.841s] [  8%] [32mBuilding C object CMakeFiles/kalman_interfaces__rosidl_generator_c.dir/rosidl_generator_c/kalman_interfaces/msg/detail/master_message__functions.c.o[0m
+[7.844s] [  9%] [32mBuilding C object CMakeFiles/kalman_interfaces__rosidl_generator_c.dir/rosidl_generator_c/kalman_interfaces/msg/detail/wheel_state__functions.c.o[0m
+[7.872s] [ 10%] [32mBuilding C object CMakeFiles/kalman_interfaces__rosidl_generator_c.dir/rosidl_generator_c/kalman_interfaces/srv/detail/set_ueuos_color__functions.c.o[0m
+[7.886s] [ 11%] [32mBuilding C object CMakeFiles/kalman_interfaces__rosidl_generator_c.dir/rosidl_generator_c/kalman_interfaces/srv/detail/calibrate_compass__functions.c.o[0m
+[7.895s] [ 12%] [32mBuilding C object CMakeFiles/kalman_interfaces__rosidl_generator_c.dir/rosidl_generator_c/kalman_interfaces/srv/detail/set_ueuos_mode__functions.c.o[0m
+[7.904s] [ 13%] [32mBuilding C object CMakeFiles/kalman_interfaces__rosidl_generator_c.dir/rosidl_generator_c/kalman_interfaces/msg/detail/wheel_states__functions.c.o[0m
+[7.940s] [ 14%] [32mBuilding C object CMakeFiles/kalman_interfaces__rosidl_generator_c.dir/rosidl_generator_c/kalman_interfaces/srv/detail/set_ueuos_effect__functions.c.o[0m
+[8.460s] [ 15%] [32m[1mLinking C shared library libkalman_interfaces__rosidl_generator_c.so[0m
+[8.552s] [ 15%] Built target kalman_interfaces__rosidl_generator_c
+[8.576s] [ 18%] [34m[1mGenerating C type support dispatch for ROS interfaces[0m
+[8.577s] [ 18%] [34m[1mGenerating C introspection for ROS interfaces[0m
+[8.577s] [ 18%] [34m[1mGenerating C type support for eProsima Fast-RTPS[0m
+[9.410s] [ 20%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/kalman_interfaces/msg/gps_tag_array__type_support.cpp.o[0m
+[9.411s] [ 21%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/kalman_interfaces/msg/master_message__type_support.cpp.o[0m
+[9.412s] [ 22%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/kalman_interfaces/msg/wheel_states__type_support.cpp.o[0m
+[9.412s] [ 23%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/kalman_interfaces/msg/gps_tag__type_support.cpp.o[0m
+[9.412s] [ 24%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/kalman_interfaces/srv/calibrate_compass__type_support.cpp.o[0m
+[9.413s] [ 25%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/kalman_interfaces/msg/wheel_state__type_support.cpp.o[0m
+[9.414s] [ 26%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/kalman_interfaces/srv/set_ueuos_color__type_support.cpp.o[0m
+[9.425s] [ 28%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/kalman_interfaces/srv/set_ueuos_mode__type_support.cpp.o[0m
+[9.425s] [ 28%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/kalman_interfaces/srv/set_ueuos_effect__type_support.cpp.o[0m
+[9.493s] [ 29%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/kalman_interfaces/msg/detail/master_message__type_support.cpp.o[0m
+[9.528s] [ 31%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/kalman_interfaces/msg/detail/gps_tag__type_support.cpp.o[0m
+[9.528s] [ 31%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/kalman_interfaces/msg/detail/gps_tag_array__type_support.cpp.o[0m
+[10.316s] [ 32%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/kalman_interfaces/msg/detail/wheel_state__type_support.cpp.o[0m
+[10.353s] [ 33%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/kalman_interfaces/msg/detail/wheel_states__type_support.cpp.o[0m
+[10.415s] [ 34%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/kalman_interfaces/srv/detail/calibrate_compass__type_support.cpp.o[0m
+[10.437s] [ 35%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/kalman_interfaces/srv/detail/set_ueuos_color__type_support.cpp.o[0m
+[10.544s] [ 36%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_c.dir/rosidl_typesupport_c/kalman_interfaces/msg/gps_tag_array__type_support.cpp.o[0m
+[10.660s] [ 37%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_c.dir/rosidl_typesupport_c/kalman_interfaces/msg/gps_tag__type_support.cpp.o[0m
+[10.702s] [ 38%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_c.dir/rosidl_typesupport_c/kalman_interfaces/msg/master_message__type_support.cpp.o[0m
+[10.824s] [ 40%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_c.dir/rosidl_typesupport_c/kalman_interfaces/msg/wheel_state__type_support.cpp.o[0m
+[10.886s] [ 41%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_c.dir/rosidl_typesupport_c/kalman_interfaces/srv/calibrate_compass__type_support.cpp.o[0m
+[10.895s] [ 42%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_c.dir/rosidl_typesupport_c/kalman_interfaces/msg/wheel_states__type_support.cpp.o[0m
+[10.975s] [ 43%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_c.dir/rosidl_typesupport_c/kalman_interfaces/srv/set_ueuos_color__type_support.cpp.o[0m
+[11.002s] [ 44%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_c.dir/rosidl_typesupport_c/kalman_interfaces/srv/set_ueuos_effect__type_support.cpp.o[0m
+[11.018s] [ 45%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/kalman_interfaces/srv/detail/set_ueuos_effect__type_support.cpp.o[0m
+[11.024s] [ 46%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_c.dir/rosidl_typesupport_c/kalman_interfaces/srv/set_ueuos_mode__type_support.cpp.o[0m
+[11.075s] [ 47%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/kalman_interfaces/srv/detail/set_ueuos_mode__type_support.cpp.o[0m
+[11.082s] [ 48%] [32mBuilding C object CMakeFiles/kalman_interfaces__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/kalman_interfaces/msg/detail/gps_tag_array__type_support.c.o[0m
+[11.205s] [ 49%] [32mBuilding C object CMakeFiles/kalman_interfaces__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/kalman_interfaces/msg/detail/gps_tag__type_support.c.o[0m
+[11.206s] [ 50%] [32m[1mLinking CXX shared library libkalman_interfaces__rosidl_typesupport_c.so[0m
+[11.233s] [ 51%] [32mBuilding C object CMakeFiles/kalman_interfaces__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/kalman_interfaces/msg/detail/master_message__type_support.c.o[0m
+[11.317s] [ 52%] [32mBuilding C object CMakeFiles/kalman_interfaces__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/kalman_interfaces/msg/detail/wheel_state__type_support.c.o[0m
+[11.341s] [ 53%] [32mBuilding C object CMakeFiles/kalman_interfaces__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/kalman_interfaces/msg/detail/wheel_states__type_support.c.o[0m
+[11.364s] [ 54%] [32mBuilding C object CMakeFiles/kalman_interfaces__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/kalman_interfaces/srv/detail/calibrate_compass__type_support.c.o[0m
+[11.421s] [ 55%] [32mBuilding C object CMakeFiles/kalman_interfaces__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/kalman_interfaces/srv/detail/set_ueuos_color__type_support.c.o[0m
+[11.448s] [ 55%] Built target kalman_interfaces__rosidl_typesupport_c
+[11.461s] [ 56%] [32mBuilding C object CMakeFiles/kalman_interfaces__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/kalman_interfaces/srv/detail/set_ueuos_effect__type_support.c.o[0m
+[11.473s] [ 57%] [32mBuilding C object CMakeFiles/kalman_interfaces__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/kalman_interfaces/srv/detail/set_ueuos_mode__type_support.c.o[0m
+[11.567s] [ 58%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/kalman_interfaces/msg/detail/gps_tag__type_support_c.cpp.o[0m
+[11.594s] [ 60%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/kalman_interfaces/msg/detail/gps_tag_array__type_support_c.cpp.o[0m
+[11.594s] [ 61%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/kalman_interfaces/msg/detail/master_message__type_support_c.cpp.o[0m
+[11.601s] [ 62%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/kalman_interfaces/msg/detail/wheel_state__type_support_c.cpp.o[0m
+[11.604s] [ 63%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/kalman_interfaces/msg/detail/wheel_states__type_support_c.cpp.o[0m
+[11.626s] [ 64%] [32m[1mLinking C shared library libkalman_interfaces__rosidl_typesupport_introspection_c.so[0m
+[11.677s] [ 65%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/kalman_interfaces/srv/detail/calibrate_compass__type_support_c.cpp.o[0m
+[11.690s] [ 66%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/kalman_interfaces/srv/detail/set_ueuos_color__type_support_c.cpp.o[0m
+[11.703s] [ 67%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/kalman_interfaces/srv/detail/set_ueuos_effect__type_support_c.cpp.o[0m
+[11.731s] [ 68%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/kalman_interfaces/srv/detail/set_ueuos_mode__type_support_c.cpp.o[0m
+[11.731s] [ 68%] Built target kalman_interfaces__rosidl_typesupport_introspection_c
+[11.812s] [ 69%] [32m[1mLinking CXX shared library libkalman_interfaces__rosidl_typesupport_cpp.so[0m
+[11.871s] [ 70%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/kalman_interfaces/msg/detail/dds_fastrtps/gps_tag_array__type_support.cpp.o[0m
+[11.922s] [ 71%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/kalman_interfaces/msg/detail/dds_fastrtps/wheel_state__type_support.cpp.o[0m
+[11.971s] [ 72%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/kalman_interfaces/msg/detail/dds_fastrtps/gps_tag__type_support.cpp.o[0m
+[12.046s] [ 72%] Built target kalman_interfaces__rosidl_typesupport_cpp
+[12.058s] [ 73%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/kalman_interfaces/msg/detail/dds_fastrtps/master_message__type_support.cpp.o[0m
+[12.120s] [ 74%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/kalman_interfaces/msg/detail/dds_fastrtps/wheel_states__type_support.cpp.o[0m
+[12.390s] [ 75%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/kalman_interfaces/srv/detail/dds_fastrtps/calibrate_compass__type_support.cpp.o[0m
+[12.503s] [ 76%] [32m[1mLinking CXX shared library libkalman_interfaces__rosidl_typesupport_introspection_cpp.so[0m
+[12.704s] [ 77%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/kalman_interfaces/srv/detail/dds_fastrtps/set_ueuos_color__type_support.cpp.o[0m
+[12.749s] [ 78%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/kalman_interfaces/srv/detail/dds_fastrtps/set_ueuos_effect__type_support.cpp.o[0m
+[12.759s] [ 80%] [32mBuilding CXX object CMakeFiles/kalman_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/kalman_interfaces/srv/detail/dds_fastrtps/set_ueuos_mode__type_support.cpp.o[0m
+[12.844s] [ 80%] Built target kalman_interfaces__rosidl_typesupport_introspection_cpp
+[13.009s] [ 81%] [32m[1mLinking CXX shared library libkalman_interfaces__rosidl_typesupport_fastrtps_c.so[0m
+[13.249s] [ 81%] Built target kalman_interfaces__rosidl_typesupport_fastrtps_c
+[14.243s] [ 82%] [32m[1mLinking CXX shared library libkalman_interfaces__rosidl_typesupport_fastrtps_cpp.so[0m
+[14.387s] [ 82%] Built target kalman_interfaces__rosidl_typesupport_fastrtps_cpp
+[14.427s] [ 82%] Built target kalman_interfaces
+[14.469s] [ 83%] [34m[1mGenerating Python code for ROS interfaces[0m
+[16.925s] [ 83%] Built target kalman_interfaces__py
+[16.959s] [ 84%] [32mBuilding C object CMakeFiles/kalman_interfaces__rosidl_generator_py.dir/rosidl_generator_py/kalman_interfaces/msg/_gps_tag_array_s.c.o[0m
+[16.965s] [ 86%] [32mBuilding C object CMakeFiles/kalman_interfaces__rosidl_generator_py.dir/rosidl_generator_py/kalman_interfaces/msg/_gps_tag_s.c.o[0m
+[16.975s] [ 87%] [32mBuilding C object CMakeFiles/kalman_interfaces__rosidl_generator_py.dir/rosidl_generator_py/kalman_interfaces/msg/_wheel_state_s.c.o[0m
+[16.975s] [ 87%] [32mBuilding C object CMakeFiles/kalman_interfaces__rosidl_generator_py.dir/rosidl_generator_py/kalman_interfaces/msg/_master_message_s.c.o[0m
+[16.976s] [ 88%] [32mBuilding C object CMakeFiles/kalman_interfaces__rosidl_generator_py.dir/rosidl_generator_py/kalman_interfaces/msg/_wheel_states_s.c.o[0m
+[16.976s] [ 89%] [32mBuilding C object CMakeFiles/kalman_interfaces__rosidl_generator_py.dir/rosidl_generator_py/kalman_interfaces/srv/_set_ueuos_mode_s.c.o[0m
+[16.976s] [ 91%] [32mBuilding C object CMakeFiles/kalman_interfaces__rosidl_generator_py.dir/rosidl_generator_py/kalman_interfaces/srv/_calibrate_compass_s.c.o[0m
+[16.977s] [ 91%] [32mBuilding C object CMakeFiles/kalman_interfaces__rosidl_generator_py.dir/rosidl_generator_py/kalman_interfaces/srv/_set_ueuos_color_s.c.o[0m
+[17.003s] [ 92%] [32mBuilding C object CMakeFiles/kalman_interfaces__rosidl_generator_py.dir/rosidl_generator_py/kalman_interfaces/srv/_set_ueuos_effect_s.c.o[0m
+[17.268s] [ 93%] [32m[1mLinking C shared library rosidl_generator_py/kalman_interfaces/libkalman_interfaces__rosidl_generator_py.so[0m
+[17.344s] [ 93%] Built target kalman_interfaces__rosidl_generator_py
+[17.378s] [ 94%] [32mBuilding C object CMakeFiles/kalman_interfaces__rosidl_typesupport_fastrtps_c__pyext.dir/rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c.o[0m
+[17.382s] [ 95%] [32mBuilding C object CMakeFiles/kalman_interfaces__rosidl_typesupport_c__pyext.dir/rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_c.c.o[0m
+[17.393s] [ 96%] [32mBuilding C object CMakeFiles/kalman_interfaces__rosidl_typesupport_introspection_c__pyext.dir/rosidl_generator_py/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_introspection_c.c.o[0m
+[17.613s] [ 97%] [32m[1mLinking C shared library rosidl_generator_py/kalman_interfaces/kalman_interfaces_s__rosidl_typesupport_fastrtps_c.cpython-310-x86_64-linux-gnu.so[0m
+[17.614s] [ 98%] [32m[1mLinking C shared library rosidl_generator_py/kalman_interfaces/kalman_interfaces_s__rosidl_typesupport_c.cpython-310-x86_64-linux-gnu.so[0m
+[17.678s] [ 98%] Built target kalman_interfaces__rosidl_typesupport_fastrtps_c__pyext
+[17.679s] [ 98%] Built target kalman_interfaces__rosidl_typesupport_c__pyext
+[17.705s] [100%] [32m[1mLinking C shared library rosidl_generator_py/kalman_interfaces/kalman_interfaces_s__rosidl_typesupport_introspection_c.cpython-310-x86_64-linux-gnu.so[0m
+[17.795s] [100%] Built target kalman_interfaces__rosidl_typesupport_introspection_c__pyext
+[17.816s] Invoked command in '/home/rafal/kalman_ws/src/kalman_robot/build/kalman_interfaces' returned '0': CMAKE_PREFIX_PATH=/home/rafal/dev_ws/install/my_robot:/opt/ros/humble /usr/bin/cmake --build /home/rafal/kalman_ws/src/kalman_robot/build/kalman_interfaces -- -j16 -l16
+[18.178s] Invoking command in '/home/rafal/kalman_ws/src/kalman_robot/build/kalman_interfaces': CMAKE_PREFIX_PATH=/home/rafal/dev_ws/install/my_robot:/opt/ros/humble /usr/bin/cmake --install /home/rafal/kalman_ws/src/kalman_robot/build/kalman_interfaces
+[18.190s] -- Install configuration: ""
+[18.193s] -- Execute custom install script
+[18.193s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/ament_index/resource_index/rosidl_interfaces/kalman_interfaces
+[18.208s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/detail/gps_tag__functions.h
+[18.222s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/detail/gps_tag__struct.h
+[18.238s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/detail/gps_tag__type_support.h
+[18.273s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/detail/gps_tag_array__functions.h
+[18.292s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/detail/gps_tag_array__struct.h
+[18.312s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/detail/gps_tag_array__type_support.h
+[18.326s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/detail/master_message__functions.h
+[18.339s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/detail/master_message__struct.h
+[18.353s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/detail/master_message__type_support.h
+[18.367s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/detail/wheel_state__functions.h
+[18.380s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/detail/wheel_state__struct.h
+[18.394s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/detail/wheel_state__type_support.h
+[18.408s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/detail/wheel_states__functions.h
+[18.422s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/detail/wheel_states__struct.h
+[18.435s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/detail/wheel_states__type_support.h
+[18.449s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/gps_tag.h
+[18.462s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/gps_tag_array.h
+[18.476s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/master_message.h
+[18.490s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/rosidl_generator_c__visibility_control.h
+[18.503s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/wheel_state.h
+[18.517s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/wheel_states.h
+[18.530s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/srv/calibrate_compass.h
+[18.544s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/srv/detail/calibrate_compass__functions.h
+[18.557s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/srv/detail/calibrate_compass__struct.h
+[18.571s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/srv/detail/calibrate_compass__type_support.h
+[18.584s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/srv/detail/set_ueuos_color__functions.h
+[18.598s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/srv/detail/set_ueuos_color__struct.h
+[18.611s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/srv/detail/set_ueuos_color__type_support.h
+[18.625s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/srv/detail/set_ueuos_effect__functions.h
+[18.638s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/srv/detail/set_ueuos_effect__struct.h
+[18.652s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/srv/detail/set_ueuos_effect__type_support.h
+[18.665s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/srv/detail/set_ueuos_mode__functions.h
+[18.679s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/srv/detail/set_ueuos_mode__struct.h
+[18.692s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/srv/detail/set_ueuos_mode__type_support.h
+[18.709s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/srv/set_ueuos_color.h
+[18.732s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/srv/set_ueuos_effect.h
+[18.750s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/srv/set_ueuos_mode.h
+[18.764s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/environment/library_path.sh
+[18.778s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/environment/library_path.dsv
+[18.793s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/detail/gps_tag__rosidl_typesupport_fastrtps_c.h
+[18.807s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/detail/gps_tag_array__rosidl_typesupport_fastrtps_c.h
+[18.820s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/detail/master_message__rosidl_typesupport_fastrtps_c.h
+[18.838s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/detail/wheel_state__rosidl_typesupport_fastrtps_c.h
+[18.851s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/detail/wheel_states__rosidl_typesupport_fastrtps_c.h
+[18.865s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/rosidl_typesupport_fastrtps_c__visibility_control.h
+[18.879s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/srv/detail/calibrate_compass__rosidl_typesupport_fastrtps_c.h
+[18.903s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/srv/detail/set_ueuos_color__rosidl_typesupport_fastrtps_c.h
+[18.916s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/srv/detail/set_ueuos_effect__rosidl_typesupport_fastrtps_c.h
+[18.930s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/srv/detail/set_ueuos_mode__rosidl_typesupport_fastrtps_c.h
+[18.944s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/detail/gps_tag__rosidl_typesupport_introspection_c.h
+[18.957s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/detail/gps_tag_array__rosidl_typesupport_introspection_c.h
+[18.975s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/detail/master_message__rosidl_typesupport_introspection_c.h
+[19.008s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/detail/wheel_state__rosidl_typesupport_introspection_c.h
+[19.029s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/detail/wheel_states__rosidl_typesupport_introspection_c.h
+[19.045s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/rosidl_typesupport_introspection_c__visibility_control.h
+[19.060s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/srv/detail/calibrate_compass__rosidl_typesupport_introspection_c.h
+[19.074s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/srv/detail/set_ueuos_color__rosidl_typesupport_introspection_c.h
+[19.088s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/srv/detail/set_ueuos_effect__rosidl_typesupport_introspection_c.h
+[19.102s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/srv/detail/set_ueuos_mode__rosidl_typesupport_introspection_c.h
+[19.117s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/detail/gps_tag__builder.hpp
+[19.131s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/detail/gps_tag__struct.hpp
+[19.144s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/detail/gps_tag__traits.hpp
+[19.161s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/detail/gps_tag_array__builder.hpp
+[19.178s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/detail/gps_tag_array__struct.hpp
+[19.215s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/detail/gps_tag_array__traits.hpp
+[19.228s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/detail/master_message__builder.hpp
+[19.242s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/detail/master_message__struct.hpp
+[19.255s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/detail/master_message__traits.hpp
+[19.269s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/detail/wheel_state__builder.hpp
+[19.283s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/detail/wheel_state__struct.hpp
+[19.297s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/detail/wheel_state__traits.hpp
+[19.310s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/detail/wheel_states__builder.hpp
+[19.324s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/detail/wheel_states__struct.hpp
+[19.338s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/detail/wheel_states__traits.hpp
+[19.352s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/gps_tag.hpp
+[19.366s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/gps_tag_array.hpp
+[19.379s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/master_message.hpp
+[19.392s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/wheel_state.hpp
+[19.406s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/wheel_states.hpp
+[19.420s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/srv/calibrate_compass.hpp
+[19.434s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/srv/detail/calibrate_compass__builder.hpp
+[19.448s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/srv/detail/calibrate_compass__struct.hpp
+[19.461s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/srv/detail/calibrate_compass__traits.hpp
+[19.475s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/srv/detail/set_ueuos_color__builder.hpp
+[19.488s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/srv/detail/set_ueuos_color__struct.hpp
+[19.502s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/srv/detail/set_ueuos_color__traits.hpp
+[19.516s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/srv/detail/set_ueuos_effect__builder.hpp
+[19.530s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/srv/detail/set_ueuos_effect__struct.hpp
+[19.544s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/srv/detail/set_ueuos_effect__traits.hpp
+[19.558s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/srv/detail/set_ueuos_mode__builder.hpp
+[19.605s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/srv/detail/set_ueuos_mode__struct.hpp
+[19.627s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/srv/detail/set_ueuos_mode__traits.hpp
+[19.645s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/srv/set_ueuos_color.hpp
+[19.662s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/srv/set_ueuos_effect.hpp
+[19.680s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/srv/set_ueuos_mode.hpp
+[19.699s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/detail/gps_tag__rosidl_typesupport_fastrtps_cpp.hpp
+[19.715s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/detail/gps_tag_array__rosidl_typesupport_fastrtps_cpp.hpp
+[19.729s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/detail/master_message__rosidl_typesupport_fastrtps_cpp.hpp
+[19.746s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/detail/wheel_state__rosidl_typesupport_fastrtps_cpp.hpp
+[19.764s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/detail/wheel_states__rosidl_typesupport_fastrtps_cpp.hpp
+[19.781s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/rosidl_typesupport_fastrtps_cpp__visibility_control.h
+[19.799s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/srv/detail/calibrate_compass__rosidl_typesupport_fastrtps_cpp.hpp
+[19.822s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/srv/detail/set_ueuos_color__rosidl_typesupport_fastrtps_cpp.hpp
+[19.841s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/srv/detail/set_ueuos_effect__rosidl_typesupport_fastrtps_cpp.hpp
+[19.858s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/srv/detail/set_ueuos_mode__rosidl_typesupport_fastrtps_cpp.hpp
+[19.877s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/detail/gps_tag__rosidl_typesupport_introspection_cpp.hpp
+[19.895s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/detail/gps_tag_array__rosidl_typesupport_introspection_cpp.hpp
+[19.913s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/detail/master_message__rosidl_typesupport_introspection_cpp.hpp
+[19.934s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/detail/wheel_state__rosidl_typesupport_introspection_cpp.hpp
+[19.959s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/msg/detail/wheel_states__rosidl_typesupport_introspection_cpp.hpp
+[19.996s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/srv/detail/calibrate_compass__rosidl_typesupport_introspection_cpp.hpp
+[20.014s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/srv/detail/set_ueuos_color__rosidl_typesupport_introspection_cpp.hpp
+[20.037s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/srv/detail/set_ueuos_effect__rosidl_typesupport_introspection_cpp.hpp
+[20.056s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/include/kalman_interfaces/kalman_interfaces/srv/detail/set_ueuos_mode__rosidl_typesupport_introspection_cpp.hpp
+[20.073s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/environment/pythonpath.sh
+[20.091s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/environment/pythonpath.dsv
+[20.111s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages/kalman_interfaces-0.0.0-py3.10.egg-info/PKG-INFO
+[20.134s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages/kalman_interfaces-0.0.0-py3.10.egg-info/SOURCES.txt
+[20.152s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages/kalman_interfaces-0.0.0-py3.10.egg-info/dependency_links.txt
+[20.169s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages/kalman_interfaces-0.0.0-py3.10.egg-info/top_level.txt
+[20.188s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages/kalman_interfaces/__init__.py
+[20.205s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_c.c
+[20.232s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c
+[20.250s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages/kalman_interfaces/_kalman_interfaces_s.ep.rosidl_typesupport_introspection_c.c
+[20.270s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages/kalman_interfaces/kalman_interfaces_s__rosidl_typesupport_c.cpython-310-x86_64-linux-gnu.so
+[20.287s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages/kalman_interfaces/kalman_interfaces_s__rosidl_typesupport_fastrtps_c.cpython-310-x86_64-linux-gnu.so
+[20.314s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages/kalman_interfaces/kalman_interfaces_s__rosidl_typesupport_introspection_c.cpython-310-x86_64-linux-gnu.so
+[20.335s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages/kalman_interfaces/libkalman_interfaces__rosidl_generator_py.so
+[20.364s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages/kalman_interfaces/msg/__init__.py
+[20.382s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages/kalman_interfaces/msg/_gps_tag.py
+[20.421s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages/kalman_interfaces/msg/_gps_tag_array.py
+[20.440s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages/kalman_interfaces/msg/_gps_tag_array_s.c
+[20.469s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages/kalman_interfaces/msg/_gps_tag_s.c
+[20.487s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages/kalman_interfaces/msg/_master_message.py
+[20.507s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages/kalman_interfaces/msg/_master_message_s.c
+[20.529s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages/kalman_interfaces/msg/_wheel_state.py
+[20.565s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages/kalman_interfaces/msg/_wheel_state_s.c
+[20.582s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages/kalman_interfaces/msg/_wheel_states.py
+[20.596s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages/kalman_interfaces/msg/_wheel_states_s.c
+[20.610s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages/kalman_interfaces/srv/__init__.py
+[20.625s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages/kalman_interfaces/srv/_calibrate_compass.py
+[20.665s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages/kalman_interfaces/srv/_calibrate_compass_s.c
+[20.708s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages/kalman_interfaces/srv/_set_ueuos_color.py
+[20.730s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages/kalman_interfaces/srv/_set_ueuos_color_s.c
+[20.749s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages/kalman_interfaces/srv/_set_ueuos_effect.py
+[20.763s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages/kalman_interfaces/srv/_set_ueuos_effect_s.c
+[20.776s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages/kalman_interfaces/srv/_set_ueuos_mode.py
+[20.790s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages/kalman_interfaces/srv/_set_ueuos_mode_s.c
+[20.804s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages/kalman_interfaces/kalman_interfaces_s__rosidl_typesupport_fastrtps_c.cpython-310-x86_64-linux-gnu.so
+[20.805s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages/kalman_interfaces/kalman_interfaces_s__rosidl_typesupport_introspection_c.cpython-310-x86_64-linux-gnu.so
+[20.805s] -- Up-to-date symlink: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages/kalman_interfaces/kalman_interfaces_s__rosidl_typesupport_c.cpython-310-x86_64-linux-gnu.so
+[20.805s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/msg/GpsTagArray.idl
+[20.819s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/msg/GpsTag.idl
+[20.833s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/msg/MasterMessage.idl
+[20.847s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/msg/WheelState.idl
+[20.861s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/msg/WheelStates.idl
+[20.875s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/srv/CalibrateCompass.idl
+[20.889s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/srv/SetUeuosColor.idl
+[20.902s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/srv/SetUeuosEffect.idl
+[20.916s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/srv/SetUeuosMode.idl
+[20.930s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/msg/GpsTagArray.msg
+[20.948s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/msg/GpsTag.msg
+[20.967s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/msg/MasterMessage.msg
+[20.986s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/msg/WheelState.msg
+[21.003s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/msg/WheelStates.msg
+[21.025s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/srv/CalibrateCompass.srv
+[21.042s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/srv/CalibrateCompass_Request.msg
+[21.060s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/srv/CalibrateCompass_Response.msg
+[21.077s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/srv/SetUeuosColor.srv
+[21.093s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/srv/SetUeuosColor_Request.msg
+[21.112s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/srv/SetUeuosColor_Response.msg
+[21.137s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/srv/SetUeuosEffect.srv
+[21.164s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/srv/SetUeuosEffect_Request.msg
+[21.181s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/srv/SetUeuosEffect_Response.msg
+[21.198s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/srv/SetUeuosMode.srv
+[21.226s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/srv/SetUeuosMode_Request.msg
+[21.268s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/srv/SetUeuosMode_Response.msg
+[21.285s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/ament_index/resource_index/package_run_dependencies/kalman_interfaces
+[21.305s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/ament_index/resource_index/parent_prefix_path/kalman_interfaces
+[21.328s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/environment/ament_prefix_path.sh
+[21.348s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/environment/ament_prefix_path.dsv
+[21.365s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/environment/path.sh
+[21.398s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/environment/path.dsv
+[21.444s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/local_setup.bash
+[21.474s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/local_setup.sh
+[21.501s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/local_setup.zsh
+[21.519s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/local_setup.dsv
+[21.536s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/package.dsv
+[21.553s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/ament_index/resource_index/packages/kalman_interfaces
+[21.570s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/cmake/rosidl_cmake-extras.cmake
+[21.587s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/cmake/ament_cmake_export_dependencies-extras.cmake
+[21.605s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/cmake/ament_cmake_export_include_directories-extras.cmake
+[21.628s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/cmake/ament_cmake_export_libraries-extras.cmake
+[21.648s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/cmake/ament_cmake_export_targets-extras.cmake
+[21.685s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/cmake/rosidl_cmake_export_typesupport_targets-extras.cmake
+[21.701s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/cmake/rosidl_cmake_export_typesupport_libraries-extras.cmake
+[21.719s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/cmake/kalman_interfacesConfig.cmake
+[21.736s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/cmake/kalman_interfacesConfig-version.cmake
+[21.753s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/package.xml
+[21.773s] -- Installing: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/lib/libkalman_interfaces__rosidl_generator_c.so
+[21.773s] -- Set runtime path of "/home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/lib/libkalman_interfaces__rosidl_generator_c.so" to ""
+[21.774s] -- Installing: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/lib/libkalman_interfaces__rosidl_typesupport_fastrtps_c.so
+[21.774s] -- Set runtime path of "/home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/lib/libkalman_interfaces__rosidl_typesupport_fastrtps_c.so" to ""
+[21.779s] -- Installing: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/lib/libkalman_interfaces__rosidl_typesupport_introspection_c.so
+[21.785s] -- Set runtime path of "/home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/lib/libkalman_interfaces__rosidl_typesupport_introspection_c.so" to ""
+[21.785s] -- Installing: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/lib/libkalman_interfaces__rosidl_typesupport_c.so
+[21.786s] -- Set runtime path of "/home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/lib/libkalman_interfaces__rosidl_typesupport_c.so" to ""
+[21.786s] -- Installing: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/lib/libkalman_interfaces__rosidl_typesupport_fastrtps_cpp.so
+[21.786s] -- Set runtime path of "/home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/lib/libkalman_interfaces__rosidl_typesupport_fastrtps_cpp.so" to ""
+[21.786s] -- Installing: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/lib/libkalman_interfaces__rosidl_typesupport_introspection_cpp.so
+[21.786s] -- Set runtime path of "/home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/lib/libkalman_interfaces__rosidl_typesupport_introspection_cpp.so" to ""
+[21.786s] -- Installing: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/lib/libkalman_interfaces__rosidl_typesupport_cpp.so
+[21.786s] -- Set runtime path of "/home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/lib/libkalman_interfaces__rosidl_typesupport_cpp.so" to ""
+[21.888s] Listing '/home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages/kalman_interfaces'...
+[21.888s] Compiling '/home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages/kalman_interfaces/__init__.py'...
+[21.888s] Listing '/home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages/kalman_interfaces/msg'...
+[21.888s] Compiling '/home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages/kalman_interfaces/msg/__init__.py'...
+[21.888s] Compiling '/home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages/kalman_interfaces/msg/_gps_tag.py'...
+[21.889s] Compiling '/home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages/kalman_interfaces/msg/_gps_tag_array.py'...
+[21.889s] Compiling '/home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages/kalman_interfaces/msg/_master_message.py'...
+[21.889s] Compiling '/home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages/kalman_interfaces/msg/_wheel_state.py'...
+[21.889s] Compiling '/home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages/kalman_interfaces/msg/_wheel_states.py'...
+[21.889s] Listing '/home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages/kalman_interfaces/srv'...
+[21.889s] Compiling '/home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages/kalman_interfaces/srv/__init__.py'...
+[21.889s] Compiling '/home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages/kalman_interfaces/srv/_calibrate_compass.py'...
+[21.890s] Compiling '/home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages/kalman_interfaces/srv/_set_ueuos_color.py'...
+[21.890s] Compiling '/home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages/kalman_interfaces/srv/_set_ueuos_effect.py'...
+[21.890s] Compiling '/home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages/kalman_interfaces/srv/_set_ueuos_mode.py'...
+[21.896s] -- Installing: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/lib/libkalman_interfaces__rosidl_generator_py.so
+[21.897s] -- Set runtime path of "/home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/lib/libkalman_interfaces__rosidl_generator_py.so" to ""
+[21.897s] -- Installing: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/cmake/export_kalman_interfaces__rosidl_generator_cExport.cmake
+[21.897s] -- Installing: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/cmake/export_kalman_interfaces__rosidl_generator_cExport-noconfig.cmake
+[21.898s] -- Installing: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/cmake/export_kalman_interfaces__rosidl_typesupport_fastrtps_cExport.cmake
+[21.898s] -- Installing: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/cmake/export_kalman_interfaces__rosidl_typesupport_fastrtps_cExport-noconfig.cmake
+[21.898s] -- Installing: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/cmake/kalman_interfaces__rosidl_typesupport_introspection_cExport.cmake
+[21.898s] -- Installing: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/cmake/kalman_interfaces__rosidl_typesupport_introspection_cExport-noconfig.cmake
+[21.899s] -- Installing: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/cmake/kalman_interfaces__rosidl_typesupport_cExport.cmake
+[21.899s] -- Installing: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/cmake/kalman_interfaces__rosidl_typesupport_cExport-noconfig.cmake
+[21.899s] -- Installing: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/cmake/export_kalman_interfaces__rosidl_generator_cppExport.cmake
+[21.900s] -- Installing: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/cmake/export_kalman_interfaces__rosidl_typesupport_fastrtps_cppExport.cmake
+[21.900s] -- Installing: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/cmake/export_kalman_interfaces__rosidl_typesupport_fastrtps_cppExport-noconfig.cmake
+[21.900s] -- Installing: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/cmake/kalman_interfaces__rosidl_typesupport_introspection_cppExport.cmake
+[21.900s] -- Installing: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/cmake/kalman_interfaces__rosidl_typesupport_introspection_cppExport-noconfig.cmake
+[21.900s] -- Installing: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/cmake/kalman_interfaces__rosidl_typesupport_cppExport.cmake
+[21.901s] -- Installing: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/cmake/kalman_interfaces__rosidl_typesupport_cppExport-noconfig.cmake
+[21.901s] -- Installing: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/cmake/export_kalman_interfaces__rosidl_generator_pyExport.cmake
+[21.901s] -- Installing: /home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/share/kalman_interfaces/cmake/export_kalman_interfaces__rosidl_generator_pyExport-noconfig.cmake
+[21.905s] Invoked command in '/home/rafal/kalman_ws/src/kalman_robot/build/kalman_interfaces' returned '0': CMAKE_PREFIX_PATH=/home/rafal/dev_ws/install/my_robot:/opt/ros/humble /usr/bin/cmake --install /home/rafal/kalman_ws/src/kalman_robot/build/kalman_interfaces

@@ -53,10 +53,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/rafal/.ssh/kalman_ws/src/kalman_robot/unity_sim/unity_rs_publisher_msgs
+CMAKE_SOURCE_DIR = /home/rafal/kalman_ws/src/kalman_robot/unity_sim/unity_rs_publisher_msgs
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/unity_rs_publisher_msgs
+CMAKE_BINARY_DIR = /home/rafal/kalman_ws/src/kalman_robot/build/unity_rs_publisher_msgs
 
 # Utility rule file for uninstall.
 
@@ -78,6 +78,6 @@ CMakeFiles/uninstall.dir/clean:
 .PHONY : CMakeFiles/uninstall.dir/clean
 
 CMakeFiles/uninstall.dir/depend:
-	cd /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/unity_rs_publisher_msgs && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/rafal/.ssh/kalman_ws/src/kalman_robot/unity_sim/unity_rs_publisher_msgs /home/rafal/.ssh/kalman_ws/src/kalman_robot/unity_sim/unity_rs_publisher_msgs /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/unity_rs_publisher_msgs /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/unity_rs_publisher_msgs /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/unity_rs_publisher_msgs/CMakeFiles/uninstall.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/rafal/kalman_ws/src/kalman_robot/build/unity_rs_publisher_msgs && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/rafal/kalman_ws/src/kalman_robot/unity_sim/unity_rs_publisher_msgs /home/rafal/kalman_ws/src/kalman_robot/unity_sim/unity_rs_publisher_msgs /home/rafal/kalman_ws/src/kalman_robot/build/unity_rs_publisher_msgs /home/rafal/kalman_ws/src/kalman_robot/build/unity_rs_publisher_msgs /home/rafal/kalman_ws/src/kalman_robot/build/unity_rs_publisher_msgs/CMakeFiles/uninstall.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/uninstall.dir/depend
 

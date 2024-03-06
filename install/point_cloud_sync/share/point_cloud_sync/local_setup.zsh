@@ -1,0 +1,1 @@
+/home/rafal/kalman_ws/src/kalman_robot/build/point_cloud_sync/ament_cmake_environment_hooks/local_setup.zsh

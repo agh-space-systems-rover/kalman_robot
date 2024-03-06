@@ -1,0 +1,4 @@
+[console_scripts]
+simulation = unity_sim:simulation
+version = unity_sim:version
+

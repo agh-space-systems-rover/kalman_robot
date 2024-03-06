@@ -1,0 +1,3 @@
+[console_scripts]
+gazebo_wheel_driver = drivers.gazebo_wheel_driver:main
+

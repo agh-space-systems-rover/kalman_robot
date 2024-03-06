@@ -1,0 +1,25 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from kalman_interfaces/msg/MasterMessage.msg
+// generated code does not contain a copyright notice
+
+
+module kalman_interfaces {
+  module msg {
+    module MasterMessage_Constants {
+      const uint8 UEUOS_SET_STATE = 96;
+      const uint8 UEUOS_SET_COLOR = 97;
+      const uint8 UEUOS_SET_EFFECT = 98;
+      const uint8 MOTOR_SET_WHEELS = 64;
+      const uint8 AUTONOMY_SWITCH = 32;
+    };
+    struct MasterMessage {
+      @verbatim (language="comment", text=
+        "command number")
+      uint8 cmd;
+
+      @verbatim (language="comment", text=
+        "command data")
+      sequence<uint8> data;
+    };
+  };
+};

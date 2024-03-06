@@ -53,10 +53,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/rafal/.ssh/kalman_ws/src/kalman_robot/kalman_interfaces
+CMAKE_SOURCE_DIR = /home/rafal/kalman_ws/src/kalman_robot/kalman_interfaces
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_interfaces
+CMAKE_BINARY_DIR = /home/rafal/kalman_ws/src/kalman_robot/build/kalman_interfaces
 
 # Utility rule file for kalman_interfaces_uninstall.
 
@@ -67,7 +67,7 @@ include CMakeFiles/kalman_interfaces_uninstall.dir/compiler_depend.make
 include CMakeFiles/kalman_interfaces_uninstall.dir/progress.make
 
 CMakeFiles/kalman_interfaces_uninstall:
-	/usr/bin/cmake -P /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_interfaces/ament_cmake_uninstall_target/ament_cmake_uninstall_target.cmake
+	/usr/bin/cmake -P /home/rafal/kalman_ws/src/kalman_robot/build/kalman_interfaces/ament_cmake_uninstall_target/ament_cmake_uninstall_target.cmake
 
 kalman_interfaces_uninstall: CMakeFiles/kalman_interfaces_uninstall
 kalman_interfaces_uninstall: CMakeFiles/kalman_interfaces_uninstall.dir/build.make
@@ -82,6 +82,6 @@ CMakeFiles/kalman_interfaces_uninstall.dir/clean:
 .PHONY : CMakeFiles/kalman_interfaces_uninstall.dir/clean
 
 CMakeFiles/kalman_interfaces_uninstall.dir/depend:
-	cd /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_interfaces && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/rafal/.ssh/kalman_ws/src/kalman_robot/kalman_interfaces /home/rafal/.ssh/kalman_ws/src/kalman_robot/kalman_interfaces /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_interfaces /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_interfaces /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_interfaces/CMakeFiles/kalman_interfaces_uninstall.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/rafal/kalman_ws/src/kalman_robot/build/kalman_interfaces && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/rafal/kalman_ws/src/kalman_robot/kalman_interfaces /home/rafal/kalman_ws/src/kalman_robot/kalman_interfaces /home/rafal/kalman_ws/src/kalman_robot/build/kalman_interfaces /home/rafal/kalman_ws/src/kalman_robot/build/kalman_interfaces /home/rafal/kalman_ws/src/kalman_robot/build/kalman_interfaces/CMakeFiles/kalman_interfaces_uninstall.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/kalman_interfaces_uninstall.dir/depend
 

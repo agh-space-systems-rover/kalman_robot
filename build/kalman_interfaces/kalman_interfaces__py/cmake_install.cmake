@@ -1,8 +1,8 @@
-# Install script for directory: /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/kalman_interfaces/kalman_interfaces__py
+# Install script for directory: /home/rafal/kalman_ws/src/kalman_robot/build/kalman_interfaces/kalman_interfaces__py
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "/home/rafal/.ssh/kalman_ws/src/kalman_robot/install/kalman_interfaces")
+  set(CMAKE_INSTALL_PREFIX "/home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 

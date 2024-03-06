@@ -1,0 +1,111 @@
+[0.441s] Invoking command in '/home/rafal/kalman_ws/src/kalman_robot/build/point_cloud_sync': CMAKE_PREFIX_PATH=/home/rafal/dev_ws/install/my_robot:/opt/ros/humble /usr/bin/cmake /home/rafal/kalman_ws/src/kalman_robot/point_cloud_sync -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/rafal/kalman_ws/src/kalman_robot/install/point_cloud_sync
+[1.846s] -- The C compiler identification is GNU 11.4.0
+[1.847s] -- The CXX compiler identification is GNU 11.4.0
+[1.847s] -- Detecting C compiler ABI info
+[1.847s] -- Detecting C compiler ABI info - done
+[1.847s] -- Check for working C compiler: /usr/bin/cc - skipped
+[1.847s] -- Detecting C compile features
+[1.847s] -- Detecting C compile features - done
+[1.848s] -- Detecting CXX compiler ABI info
+[1.848s] -- Detecting CXX compiler ABI info - done
+[1.848s] -- Check for working CXX compiler: /usr/bin/c++ - skipped
+[1.848s] -- Detecting CXX compile features
+[1.848s] -- Detecting CXX compile features - done
+[1.848s] -- Found ament_cmake: 1.3.8 (/opt/ros/humble/share/ament_cmake/cmake)
+[1.848s] -- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter 
+[1.849s] -- Override CMake install command with custom implementation using symlinks instead of copying resources
+[1.849s] -- Found rclcpp: 16.0.8 (/opt/ros/humble/share/rclcpp/cmake)
+[1.849s] -- Found rosidl_generator_c: 3.1.5 (/opt/ros/humble/share/rosidl_generator_c/cmake)
+[1.849s] -- Found rosidl_adapter: 3.1.5 (/opt/ros/humble/share/rosidl_adapter/cmake)
+[1.849s] -- Found rosidl_generator_cpp: 3.1.5 (/opt/ros/humble/share/rosidl_generator_cpp/cmake)
+[1.849s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[1.850s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[1.958s] -- Found rmw_implementation_cmake: 6.1.1 (/opt/ros/humble/share/rmw_implementation_cmake/cmake)
+[1.966s] -- Found rmw_fastrtps_cpp: 6.2.6 (/opt/ros/humble/share/rmw_fastrtps_cpp/cmake)
+[2.181s] -- Found OpenSSL: /usr/lib/x86_64-linux-gnu/libcrypto.so (found version "3.0.2")  
+[2.236s] -- Found FastRTPS: /opt/ros/humble/include  
+[2.328s] -- Using RMW implementation 'rmw_fastrtps_cpp' as default
+[2.357s] -- Looking for pthread.h
+[2.506s] -- Looking for pthread.h - found
+[2.507s] -- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+[2.671s] -- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+[2.674s] -- Found Threads: TRUE  
+[3.161s] -- Found sensor_msgs: 4.2.3 (/opt/ros/humble/share/sensor_msgs/cmake)
+[3.534s] -- Found message_filters: 4.3.3 (/opt/ros/humble/share/message_filters/cmake)
+[3.548s] -- Found tf2_ros: 0.25.6 (/opt/ros/humble/share/tf2_ros/cmake)
+[4.565s] -- Found pcl_ros: 2.4.0 (/opt/ros/humble/share/pcl_ros/cmake)
+[5.243s] -- Found eigen3_cmake_module: 0.1.1 (/opt/ros/humble/share/eigen3_cmake_module/cmake)
+[5.248s] -- Found Eigen3: TRUE (found version "3.4.0") 
+[5.248s] -- Ensuring Eigen3 include directory is part of orocos-kdl CMake target
+[5.359s] -- Checking for module 'eigen3'
+[5.395s] --   Found eigen3, version 3.4.0
+[5.528s] -- Found Eigen: /usr/include/eigen3 (Required is at least version "3.1") 
+[5.529s] -- Eigen found (include: /usr/include/eigen3, version: 3.4.0)
+[5.661s] -- Checking for module 'flann'
+[5.694s] --   Found flann, version 1.9.1
+[5.879s] -- Found FLANN: /usr/lib/x86_64-linux-gnu/libflann_cpp.so  
+[5.880s] -- FLANN found (include: /usr/include, lib: /usr/lib/x86_64-linux-gnu/libflann_cpp.so)
+[9.176s] -- Checking for module 'libusb-1.0'
+[9.211s] --   Found libusb-1.0, version 1.0.25
+[9.631s] -- Found libusb: /usr/lib/x86_64-linux-gnu/libusb-1.0.so  
+[9.646s] -- OpenNI found (version: 1.5.4.0, include: /usr/include/ni, lib: /usr/lib/libOpenNI.so;libusb::libusb)
+[9.984s] -- OpenNI2 found (version: 2.2.0.33, include: /usr/include/openni2, lib: /usr/lib/x86_64-linux-gnu/libOpenNI2.so;libusb::libusb)
+[10.580s] -- Eigen found (include: /usr/include/eigen3, version: 3.4.0)
+[10.607s] -- OpenNI found (version: 1.5.4.0, include: /usr/include/ni, lib: /usr/lib/libOpenNI.so;libusb::libusb)
+[10.631s] -- OpenNI2 found (version: 2.2.0.33, include: /usr/include/openni2, lib: /usr/lib/x86_64-linux-gnu/libOpenNI2.so;libusb::libusb)
+[11.230s] -- Found Qhull version 8.0.2
+[11.855s] -- OpenNI found (version: 1.5.4.0, include: /usr/include/ni, lib: /usr/lib/libOpenNI.so;libusb::libusb)
+[12.639s] -- Found PCL_COMMON: /usr/lib/x86_64-linux-gnu/libpcl_common.so  
+[12.642s] -- Found PCL_KDTREE: /usr/lib/x86_64-linux-gnu/libpcl_kdtree.so  
+[12.644s] -- Found PCL_OCTREE: /usr/lib/x86_64-linux-gnu/libpcl_octree.so  
+[12.647s] -- Found PCL_SEARCH: /usr/lib/x86_64-linux-gnu/libpcl_search.so  
+[12.649s] -- Found PCL_SAMPLE_CONSENSUS: /usr/lib/x86_64-linux-gnu/libpcl_sample_consensus.so  
+[12.651s] -- Found PCL_FILTERS: /usr/lib/x86_64-linux-gnu/libpcl_filters.so  
+[12.653s] -- Found PCL_2D: /usr/include/pcl-1.12  
+[12.654s] -- Found PCL_GEOMETRY: /usr/include/pcl-1.12  
+[12.656s] -- Found PCL_IO: /usr/lib/x86_64-linux-gnu/libpcl_io.so  
+[12.659s] -- Found PCL_FEATURES: /usr/lib/x86_64-linux-gnu/libpcl_features.so  
+[12.661s] -- Found PCL_ML: /usr/lib/x86_64-linux-gnu/libpcl_ml.so  
+[12.665s] -- Found PCL_SEGMENTATION: /usr/lib/x86_64-linux-gnu/libpcl_segmentation.so  
+[12.670s] -- Found PCL_VISUALIZATION: /usr/lib/x86_64-linux-gnu/libpcl_visualization.so  
+[12.674s] -- Found PCL_SURFACE: /usr/lib/x86_64-linux-gnu/libpcl_surface.so  
+[12.677s] -- Found PCL_REGISTRATION: /usr/lib/x86_64-linux-gnu/libpcl_registration.so  
+[12.681s] -- Found PCL_KEYPOINTS: /usr/lib/x86_64-linux-gnu/libpcl_keypoints.so  
+[12.685s] -- Found PCL_TRACKING: /usr/lib/x86_64-linux-gnu/libpcl_tracking.so  
+[12.689s] -- Found PCL_RECOGNITION: /usr/lib/x86_64-linux-gnu/libpcl_recognition.so  
+[12.692s] -- Found PCL_STEREO: /usr/lib/x86_64-linux-gnu/libpcl_stereo.so  
+[12.695s] -- Found PCL_APPS: /usr/lib/x86_64-linux-gnu/libpcl_apps.so  
+[12.697s] -- Found PCL_IN_HAND_SCANNER: /usr/include/pcl-1.12  
+[12.698s] -- Found PCL_MODELER: /usr/include/pcl-1.12  
+[12.699s] -- Found PCL_POINT_CLOUD_EDITOR: /usr/include/pcl-1.12  
+[12.703s] -- Found PCL_OUTOFCORE: /usr/lib/x86_64-linux-gnu/libpcl_outofcore.so  
+[12.707s] -- Found PCL_PEOPLE: /usr/lib/x86_64-linux-gnu/libpcl_people.so  
+[12.923s] -- Configuring done
+[13.044s] -- Generating done
+[13.052s] -- Build files have been written to: /home/rafal/kalman_ws/src/kalman_robot/build/point_cloud_sync
+[13.232s] Invoked command in '/home/rafal/kalman_ws/src/kalman_robot/build/point_cloud_sync' returned '0': CMAKE_PREFIX_PATH=/home/rafal/dev_ws/install/my_robot:/opt/ros/humble /usr/bin/cmake /home/rafal/kalman_ws/src/kalman_robot/point_cloud_sync -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/rafal/kalman_ws/src/kalman_robot/install/point_cloud_sync
+[13.236s] Invoking command in '/home/rafal/kalman_ws/src/kalman_robot/build/point_cloud_sync': CMAKE_PREFIX_PATH=/home/rafal/dev_ws/install/my_robot:/opt/ros/humble /usr/bin/cmake --build /home/rafal/kalman_ws/src/kalman_robot/build/point_cloud_sync -- -j16 -l16
+[13.337s] [ 50%] [32mBuilding CXX object CMakeFiles/point_cloud_sync.dir/src/main.cpp.o[0m
+[45.418s] [100%] [32m[1mLinking CXX executable point_cloud_sync[0m
+[47.062s] [100%] Built target point_cloud_sync
+[47.073s] Invoked command in '/home/rafal/kalman_ws/src/kalman_robot/build/point_cloud_sync' returned '0': CMAKE_PREFIX_PATH=/home/rafal/dev_ws/install/my_robot:/opt/ros/humble /usr/bin/cmake --build /home/rafal/kalman_ws/src/kalman_robot/build/point_cloud_sync -- -j16 -l16
+[47.109s] Invoking command in '/home/rafal/kalman_ws/src/kalman_robot/build/point_cloud_sync': CMAKE_PREFIX_PATH=/home/rafal/dev_ws/install/my_robot:/opt/ros/humble /usr/bin/cmake --install /home/rafal/kalman_ws/src/kalman_robot/build/point_cloud_sync
+[47.118s] -- Install configuration: ""
+[47.118s] -- Execute custom install script
+[47.119s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/point_cloud_sync/lib/point_cloud_sync/point_cloud_sync
+[47.128s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/point_cloud_sync/share/ament_index/resource_index/package_run_dependencies/point_cloud_sync
+[47.137s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/point_cloud_sync/share/ament_index/resource_index/parent_prefix_path/point_cloud_sync
+[47.146s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/point_cloud_sync/share/point_cloud_sync/environment/ament_prefix_path.sh
+[47.154s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/point_cloud_sync/share/point_cloud_sync/environment/ament_prefix_path.dsv
+[47.162s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/point_cloud_sync/share/point_cloud_sync/environment/path.sh
+[47.171s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/point_cloud_sync/share/point_cloud_sync/environment/path.dsv
+[47.181s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/point_cloud_sync/share/point_cloud_sync/local_setup.bash
+[47.190s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/point_cloud_sync/share/point_cloud_sync/local_setup.sh
+[47.200s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/point_cloud_sync/share/point_cloud_sync/local_setup.zsh
+[47.209s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/point_cloud_sync/share/point_cloud_sync/local_setup.dsv
+[47.217s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/point_cloud_sync/share/point_cloud_sync/package.dsv
+[47.227s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/point_cloud_sync/share/ament_index/resource_index/packages/point_cloud_sync
+[47.235s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/point_cloud_sync/share/point_cloud_sync/cmake/point_cloud_syncConfig.cmake
+[47.244s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/point_cloud_sync/share/point_cloud_sync/cmake/point_cloud_syncConfig-version.cmake
+[47.253s] -- Symlinking: /home/rafal/kalman_ws/src/kalman_robot/install/point_cloud_sync/share/point_cloud_sync/package.xml
+[47.263s] Invoked command in '/home/rafal/kalman_ws/src/kalman_robot/build/point_cloud_sync' returned '0': CMAKE_PREFIX_PATH=/home/rafal/dev_ws/install/my_robot:/opt/ros/humble /usr/bin/cmake --install /home/rafal/kalman_ws/src/kalman_robot/build/point_cloud_sync

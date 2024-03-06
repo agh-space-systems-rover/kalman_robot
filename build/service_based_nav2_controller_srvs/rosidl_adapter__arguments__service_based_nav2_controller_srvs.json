@@ -1,6 +1,6 @@
 {
   "package_name": "service_based_nav2_controller_srvs",
   "non_idl_tuples": [
-    "/home/rafal/.ssh/kalman_ws/src/kalman_robot/service_based_nav2_controller/service_based_nav2_controller_srvs:srv/ComputeVelocityCommands.srv"
+    "/home/rafal/kalman_ws/src/kalman_robot/service_based_nav2_controller/service_based_nav2_controller_srvs:srv/ComputeVelocityCommands.srv"
   ]
 }

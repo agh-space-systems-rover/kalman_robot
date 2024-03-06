@@ -1,9 +1,14 @@
 {
   "package_name": "kalman_interfaces",
   "non_idl_tuples": [
-    "/home/rafal/.ssh/kalman_ws/src/kalman_robot/kalman_interfaces:msg/WheelState.msg",
-    "/home/rafal/.ssh/kalman_ws/src/kalman_robot/kalman_interfaces:msg/WheelStates.msg",
-    "/home/rafal/.ssh/kalman_ws/src/kalman_robot/kalman_interfaces:msg/GpsTag.msg",
-    "/home/rafal/.ssh/kalman_ws/src/kalman_robot/kalman_interfaces:msg/GpsTagArray.msg"
+    "/home/rafal/kalman_ws/src/kalman_robot/kalman_interfaces:msg/GpsTagArray.msg",
+    "/home/rafal/kalman_ws/src/kalman_robot/kalman_interfaces:msg/GpsTag.msg",
+    "/home/rafal/kalman_ws/src/kalman_robot/kalman_interfaces:msg/MasterMessage.msg",
+    "/home/rafal/kalman_ws/src/kalman_robot/kalman_interfaces:msg/WheelState.msg",
+    "/home/rafal/kalman_ws/src/kalman_robot/kalman_interfaces:msg/WheelStates.msg",
+    "/home/rafal/kalman_ws/src/kalman_robot/kalman_interfaces:srv/CalibrateCompass.srv",
+    "/home/rafal/kalman_ws/src/kalman_robot/kalman_interfaces:srv/SetUeuosColor.srv",
+    "/home/rafal/kalman_ws/src/kalman_robot/kalman_interfaces:srv/SetUeuosEffect.srv",
+    "/home/rafal/kalman_ws/src/kalman_robot/kalman_interfaces:srv/SetUeuosMode.srv"
   ]
 }

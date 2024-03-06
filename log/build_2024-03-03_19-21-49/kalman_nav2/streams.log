@@ -1,0 +1,33 @@
+[1.703s] Invoking command in '/home/rafal/kalman_ws/src/kalman_robot/build/kalman_nav2': AMENT_PREFIX_PATH=/home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs:${AMENT_PREFIX_PATH} CMAKE_PREFIX_PATH=/home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs LD_LIBRARY_PATH=/home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/lib:${LD_LIBRARY_PATH} PYTHONPATH=/home/rafal/kalman_ws/src/kalman_robot/build/kalman_nav2/prefix_override:/home/rafal/kalman_ws/src/kalman_robot/install/kalman_nav2/lib/python3.10/site-packages:/home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/local/lib/python3.10/dist-packages:${PYTHONPATH} /usr/bin/python3 setup.py develop --editable --build-directory /home/rafal/kalman_ws/src/kalman_robot/build/kalman_nav2/build --no-deps install_data
+[2.229s] running develop
+[2.520s] running egg_info
+[2.520s] creating kalman_nav2.egg-info
+[2.520s] writing kalman_nav2.egg-info/PKG-INFO
+[2.520s] writing dependency_links to kalman_nav2.egg-info/dependency_links.txt
+[2.520s] writing entry points to kalman_nav2.egg-info/entry_points.txt
+[2.521s] writing top-level names to kalman_nav2.egg-info/top_level.txt
+[2.521s] writing manifest file 'kalman_nav2.egg-info/SOURCES.txt'
+[2.524s] reading manifest file 'kalman_nav2.egg-info/SOURCES.txt'
+[2.525s] writing manifest file 'kalman_nav2.egg-info/SOURCES.txt'
+[2.527s] running build_ext
+[2.527s] Creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_nav2/lib/python3.10/site-packages/kalman-nav2.egg-link (link to .)
+[2.528s] Installing path_follower script to /home/rafal/kalman_ws/src/kalman_robot/install/kalman_nav2/lib/kalman_nav2
+[2.529s] 
+[2.529s] Installed /home/rafal/kalman_ws/src/kalman_robot/build/kalman_nav2
+[2.529s] running install_data
+[2.530s] creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_nav2/share/ament_index
+[2.530s] creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_nav2/share/ament_index/resource_index
+[2.530s] creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_nav2/share/ament_index/resource_index/packages
+[2.530s] copying resource/kalman_nav2 -> /home/rafal/kalman_ws/src/kalman_robot/install/kalman_nav2/share/ament_index/resource_index/packages
+[2.531s] copying package.xml -> /home/rafal/kalman_ws/src/kalman_robot/install/kalman_nav2/share/kalman_nav2
+[2.531s] creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_nav2/share/kalman_nav2/launch
+[2.531s] copying launch/navigation_launch.launch.py -> /home/rafal/kalman_ws/src/kalman_robot/install/kalman_nav2/share/kalman_nav2/launch
+[2.531s] copying launch/nav2.launch.py -> /home/rafal/kalman_ws/src/kalman_robot/install/kalman_nav2/share/kalman_nav2/launch
+[2.532s] creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_nav2/share/kalman_nav2/param
+[2.532s] copying param/nav2.yaml.j2 -> /home/rafal/kalman_ws/src/kalman_robot/install/kalman_nav2/share/kalman_nav2/param
+[2.532s] copying param/obstacles_detection.yaml -> /home/rafal/kalman_ws/src/kalman_robot/install/kalman_nav2/share/kalman_nav2/param
+[2.532s] copying param/path_follower.yaml -> /home/rafal/kalman_ws/src/kalman_robot/install/kalman_nav2/share/kalman_nav2/param
+[2.532s] creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_nav2/share/kalman_nav2/behavior_trees
+[2.533s] copying behavior_trees/nav_through_poses.xml -> /home/rafal/kalman_ws/src/kalman_robot/install/kalman_nav2/share/kalman_nav2/behavior_trees
+[2.533s] copying behavior_trees/nav_to_pose.xml -> /home/rafal/kalman_ws/src/kalman_robot/install/kalman_nav2/share/kalman_nav2/behavior_trees
+[2.601s] Invoked command in '/home/rafal/kalman_ws/src/kalman_robot/build/kalman_nav2' returned '0': AMENT_PREFIX_PATH=/home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs:${AMENT_PREFIX_PATH} CMAKE_PREFIX_PATH=/home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs LD_LIBRARY_PATH=/home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/lib:${LD_LIBRARY_PATH} PYTHONPATH=/home/rafal/kalman_ws/src/kalman_robot/build/kalman_nav2/prefix_override:/home/rafal/kalman_ws/src/kalman_robot/install/kalman_nav2/lib/python3.10/site-packages:/home/rafal/kalman_ws/src/kalman_robot/install/service_based_nav2_controller_srvs/local/lib/python3.10/dist-packages:${PYTHONPATH} /usr/bin/python3 setup.py develop --editable --build-directory /home/rafal/kalman_ws/src/kalman_robot/build/kalman_nav2/build --no-deps install_data

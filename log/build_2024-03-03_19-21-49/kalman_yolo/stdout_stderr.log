@@ -1,0 +1,30 @@
+running develop
+running egg_info
+creating kalman_yolo.egg-info
+writing kalman_yolo.egg-info/PKG-INFO
+writing dependency_links to kalman_yolo.egg-info/dependency_links.txt
+writing entry points to kalman_yolo.egg-info/entry_points.txt
+writing top-level names to kalman_yolo.egg-info/top_level.txt
+writing manifest file 'kalman_yolo.egg-info/SOURCES.txt'
+reading manifest file 'kalman_yolo.egg-info/SOURCES.txt'
+writing manifest file 'kalman_yolo.egg-info/SOURCES.txt'
+running build_ext
+Creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_yolo/lib/python3.10/site-packages/kalman-yolo.egg-link (link to .)
+Installing yolo_detect script to /home/rafal/kalman_ws/src/kalman_robot/install/kalman_yolo/lib/kalman_yolo
+
+Installed /home/rafal/kalman_ws/src/kalman_robot/build/kalman_yolo
+running install_data
+creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_yolo/share/ament_index
+creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_yolo/share/ament_index/resource_index
+creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_yolo/share/ament_index/resource_index/packages
+copying resource/kalman_yolo -> /home/rafal/kalman_ws/src/kalman_robot/install/kalman_yolo/share/ament_index/resource_index/packages
+copying package.xml -> /home/rafal/kalman_ws/src/kalman_robot/install/kalman_yolo/share/kalman_yolo
+creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_yolo/share/kalman_yolo/launch
+copying launch/urc2024.launch.py -> /home/rafal/kalman_ws/src/kalman_robot/install/kalman_yolo/share/kalman_yolo/launch
+creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_yolo/share/kalman_yolo/param
+copying param/urc2024.yaml -> /home/rafal/kalman_ws/src/kalman_robot/install/kalman_yolo/share/kalman_yolo/param
+creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_yolo/share/kalman_yolo/models
+creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_yolo/share/kalman_yolo/models/urc2024
+copying models/urc2024/1699306127.pt -> /home/rafal/kalman_ws/src/kalman_robot/install/kalman_yolo/share/kalman_yolo/models/urc2024
+copying models/urc2024/1698670825.pt -> /home/rafal/kalman_ws/src/kalman_robot/install/kalman_yolo/share/kalman_yolo/models/urc2024
+copying models/urc2024/1698657459.pt -> /home/rafal/kalman_ws/src/kalman_robot/install/kalman_yolo/share/kalman_yolo/models/urc2024

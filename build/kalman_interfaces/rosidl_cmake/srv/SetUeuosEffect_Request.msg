@@ -1,0 +1,4 @@
+uint8 BOOT = 0
+uint8 RAINBOW = 1
+
+uint8 effect

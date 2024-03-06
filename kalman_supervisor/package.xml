@@ -10,6 +10,7 @@
   <exec_depend>ros2launch</exec_depend>
   <exec_depend>xacro</exec_depend>
   <depend>geometry_msgs</depend>
+  <depend>nav2_mgs</depend>
   <exec_depend>joint_state_publisher</exec_depend>
   <exec_depend>robot_state_publisher</exec_depend>
   <build_depend>std_msgs</build_depend>

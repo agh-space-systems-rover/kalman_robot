@@ -1,0 +1,27 @@
+[6.581s] Invoking command in '/home/rafal/kalman_ws/src/kalman_robot/build/unity_sim': AMENT_PREFIX_PATH=/home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces:${AMENT_PREFIX_PATH} CMAKE_PREFIX_PATH=/home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces LD_LIBRARY_PATH=/home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/lib:${LD_LIBRARY_PATH} PYTHONPATH=/home/rafal/kalman_ws/src/kalman_robot/build/unity_sim/prefix_override:/home/rafal/kalman_ws/src/kalman_robot/install/unity_sim/lib/python3.10/site-packages:/home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages:${PYTHONPATH} /usr/bin/python3 setup.py develop --editable --build-directory /home/rafal/kalman_ws/src/kalman_robot/build/unity_sim/build --no-deps install_data
+[7.169s] running develop
+[7.492s] running egg_info
+[7.492s] creating unity_sim.egg-info
+[7.493s] writing unity_sim.egg-info/PKG-INFO
+[7.493s] writing dependency_links to unity_sim.egg-info/dependency_links.txt
+[7.493s] writing entry points to unity_sim.egg-info/entry_points.txt
+[7.493s] writing top-level names to unity_sim.egg-info/top_level.txt
+[7.494s] writing manifest file 'unity_sim.egg-info/SOURCES.txt'
+[7.496s] reading manifest file 'unity_sim.egg-info/SOURCES.txt'
+[7.497s] writing manifest file 'unity_sim.egg-info/SOURCES.txt'
+[7.500s] running build_ext
+[7.500s] Creating /home/rafal/kalman_ws/src/kalman_robot/install/unity_sim/lib/python3.10/site-packages/unity-sim.egg-link (link to .)
+[7.501s] Installing simulation script to /home/rafal/kalman_ws/src/kalman_robot/install/unity_sim/lib/unity_sim
+[7.502s] Installing version script to /home/rafal/kalman_ws/src/kalman_robot/install/unity_sim/lib/unity_sim
+[7.503s] 
+[7.503s] Installed /home/rafal/kalman_ws/src/kalman_robot/build/unity_sim
+[7.503s] running install_data
+[7.503s] creating /home/rafal/kalman_ws/src/kalman_robot/install/unity_sim/share/ament_index
+[7.503s] creating /home/rafal/kalman_ws/src/kalman_robot/install/unity_sim/share/ament_index/resource_index
+[7.504s] creating /home/rafal/kalman_ws/src/kalman_robot/install/unity_sim/share/ament_index/resource_index/packages
+[7.504s] copying resource/unity_sim -> /home/rafal/kalman_ws/src/kalman_robot/install/unity_sim/share/ament_index/resource_index/packages
+[7.504s] copying package.xml -> /home/rafal/kalman_ws/src/kalman_robot/install/unity_sim/share/unity_sim
+[7.504s] copying unity_project_dir -> /home/rafal/kalman_ws/src/kalman_robot/install/unity_sim/share/unity_sim
+[7.504s] creating /home/rafal/kalman_ws/src/kalman_robot/install/unity_sim/share/unity_sim/launch
+[7.504s] copying launch/unity_sim.launch.py -> /home/rafal/kalman_ws/src/kalman_robot/install/unity_sim/share/unity_sim/launch
+[7.587s] Invoked command in '/home/rafal/kalman_ws/src/kalman_robot/build/unity_sim' returned '0': AMENT_PREFIX_PATH=/home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces:${AMENT_PREFIX_PATH} CMAKE_PREFIX_PATH=/home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces LD_LIBRARY_PATH=/home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/lib:${LD_LIBRARY_PATH} PYTHONPATH=/home/rafal/kalman_ws/src/kalman_robot/build/unity_sim/prefix_override:/home/rafal/kalman_ws/src/kalman_robot/install/unity_sim/lib/python3.10/site-packages:/home/rafal/kalman_ws/src/kalman_robot/install/kalman_interfaces/local/lib/python3.10/dist-packages:${PYTHONPATH} /usr/bin/python3 setup.py develop --editable --build-directory /home/rafal/kalman_ws/src/kalman_robot/build/unity_sim/build --no-deps install_data

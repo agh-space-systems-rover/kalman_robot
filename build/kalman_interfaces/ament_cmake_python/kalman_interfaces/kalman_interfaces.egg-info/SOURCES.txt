@@ -4,3 +4,14 @@ kalman_interfaces.egg-info/PKG-INFO
 kalman_interfaces.egg-info/SOURCES.txt
 kalman_interfaces.egg-info/dependency_links.txt
 kalman_interfaces.egg-info/top_level.txt
+kalman_interfaces/msg/__init__.py
+kalman_interfaces/msg/_gps_tag.py
+kalman_interfaces/msg/_gps_tag_array.py
+kalman_interfaces/msg/_master_message.py
+kalman_interfaces/msg/_wheel_state.py
+kalman_interfaces/msg/_wheel_states.py
+kalman_interfaces/srv/__init__.py
+kalman_interfaces/srv/_calibrate_compass.py
+kalman_interfaces/srv/_set_ueuos_color.py
+kalman_interfaces/srv/_set_ueuos_effect.py
+kalman_interfaces/srv/_set_ueuos_mode.py

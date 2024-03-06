@@ -1,8 +1,8 @@
-# Install script for directory: /home/rafal/.ssh/kalman_ws/src/kalman_robot/build/unity_rs_publisher_msgs/unity_rs_publisher_msgs__py
+# Install script for directory: /home/rafal/kalman_ws/src/kalman_robot/build/unity_rs_publisher_msgs/unity_rs_publisher_msgs__py
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "/home/rafal/.ssh/kalman_ws/src/kalman_robot/install/unity_rs_publisher_msgs")
+  set(CMAKE_INSTALL_PREFIX "/home/rafal/kalman_ws/src/kalman_robot/install/unity_rs_publisher_msgs")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 

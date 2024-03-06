@@ -1,0 +1,25 @@
+running develop
+running egg_info
+creating kalman_bringup.egg-info
+writing kalman_bringup.egg-info/PKG-INFO
+writing dependency_links to kalman_bringup.egg-info/dependency_links.txt
+writing top-level names to kalman_bringup.egg-info/top_level.txt
+writing manifest file 'kalman_bringup.egg-info/SOURCES.txt'
+reading manifest file 'kalman_bringup.egg-info/SOURCES.txt'
+writing manifest file 'kalman_bringup.egg-info/SOURCES.txt'
+running build_ext
+Creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_bringup/lib/python3.10/site-packages/kalman-bringup.egg-link (link to .)
+
+Installed /home/rafal/kalman_ws/src/kalman_robot/build/kalman_bringup
+running install_data
+creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_bringup/share/ament_index
+creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_bringup/share/ament_index/resource_index
+creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_bringup/share/ament_index/resource_index/packages
+copying resource/kalman_bringup -> /home/rafal/kalman_ws/src/kalman_robot/install/kalman_bringup/share/ament_index/resource_index/packages
+copying package.xml -> /home/rafal/kalman_ws/src/kalman_robot/install/kalman_bringup/share/kalman_bringup
+creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_bringup/share/kalman_bringup/launch
+copying launch/rviz.launch.py -> /home/rafal/kalman_ws/src/kalman_robot/install/kalman_bringup/share/kalman_bringup/launch
+copying launch/kalman.launch.py -> /home/rafal/kalman_ws/src/kalman_robot/install/kalman_bringup/share/kalman_bringup/launch
+copying launch/compasscal.launch.py -> /home/rafal/kalman_ws/src/kalman_robot/install/kalman_bringup/share/kalman_bringup/launch
+creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_bringup/share/kalman_bringup/rviz
+copying rviz/default.rviz -> /home/rafal/kalman_ws/src/kalman_robot/install/kalman_bringup/share/kalman_bringup/rviz

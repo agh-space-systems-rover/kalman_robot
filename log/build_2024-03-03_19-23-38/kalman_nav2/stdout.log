@@ -1,0 +1,14 @@
+running develop
+running egg_info
+writing kalman_nav2.egg-info/PKG-INFO
+writing dependency_links to kalman_nav2.egg-info/dependency_links.txt
+writing entry points to kalman_nav2.egg-info/entry_points.txt
+writing top-level names to kalman_nav2.egg-info/top_level.txt
+reading manifest file 'kalman_nav2.egg-info/SOURCES.txt'
+writing manifest file 'kalman_nav2.egg-info/SOURCES.txt'
+running build_ext
+Creating /home/rafal/kalman_ws/src/kalman_robot/install/kalman_nav2/lib/python3.10/site-packages/kalman-nav2.egg-link (link to .)
+Installing path_follower script to /home/rafal/kalman_ws/src/kalman_robot/install/kalman_nav2/lib/kalman_nav2
+
+Installed /home/rafal/kalman_ws/src/kalman_robot/build/kalman_nav2
+running install_data
