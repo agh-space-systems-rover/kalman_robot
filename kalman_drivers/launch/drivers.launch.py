@@ -10,7 +10,7 @@ from launch.actions import (
     OpaqueFunction,
 )
 
-from launch_ros.actions import Node, ComposableNodeContainer, SetRemap
+from launch_ros.actions import Node, LoadComposableNodes
 from launch_ros.descriptions import ComposableNode
 from launch.substitutions import LaunchConfiguration
 
@@ -23,6 +23,7 @@ REALSENSE_SERIAL_NUMBERS = {
 
 
 def launch_setup(context):
+    component_container = LaunchConfiguration("component_container").perform(context)
     master = LaunchConfiguration("master").perform(context).lower() == "true"
     rgbd_ids = [
         x
@@ -57,7 +58,17 @@ def launch_setup(context):
                 "Cannot launch without calibration parameters. Please start the compasscal node and invoke the calibration service to generate the required configuration file."
             )
 
+    # Init a container if not provided.
     description = []
+    if component_container == "":
+        description += [
+            Node(
+                package="component_container_mt",
+                executable="component_container",
+                name="kalman_drivers_container",
+            )
+        ]
+        component_container = "kalman_drivers_container"
 
     if master:
         description += [
@@ -76,26 +87,47 @@ def launch_setup(context):
     if len(rgbd_ids) > 0:
         # Those nodes facilitate the communication with the RealSense devices
         # and publish data to ROS topics.
-        for camera_name, serial_no in rgbd_ids_sns:
             description += [
-                IncludeLaunchDescription(
-                    PythonLaunchDescriptionSource(
-                        str(
-                            get_package_share_path("realsense2_camera")
-                            / "launch"
-                            / "rs_launch.py"
-                        )
-                    ),
-                    launch_arguments={
-                        "camera_name": f"{camera_name}",
-                        "serial_no": serial_no,
-                        "config_file": str(  # Must use external config file for non-configurable options.
-                            get_package_share_path("kalman_drivers")
-                            / "param"
-                            / "realsense2_camera.yaml"
-                        ),
-                    }.items(),
-                )
+                # IncludeLaunchDescription(
+                #     PythonLaunchDescriptionSource(
+                #         str(
+                #             get_package_share_path("realsense2_camera")
+                #             / "launch"
+                #             / "rs_launch.py"
+                #         )
+                #     ),
+                #     launch_arguments={
+                #         "camera_name": f"{camera_name}",
+                #         "serial_no": serial_no,
+                #         "config_file": str(  # Must use external config file for non-configurable options.
+                #             get_package_share_path("kalman_drivers")
+                #             / "param"
+                #             / "realsense2_camera.yaml"
+                #         ),
+                #     }.items(),
+                # )
+                LoadComposableNodes(
+                    target_container=component_container,
+                    composable_node_descriptions=[
+                        ComposableNode(
+                            package='realsense2_camera',
+                            plugin='realsense2_camera::RealSenseNodeFactory',
+                            name=camera_name,
+                            parameters=[
+                                {
+                                    'camera_name': camera_name,
+                                    'serial_no': serial_no,
+                                },
+                                str(
+                                    get_package_share_path("kalman_drivers")
+                                    / "param"
+                                    / "realsense2_camera.yaml"
+                                ),
+                            ],
+                            extra_arguments=[{"use_intra_process_comms": True}],
+                        ) for camera_name, serial_no in rgbd_ids_sns
+                    ],
+                ),
             ]
 
         # description += [
@@ -116,11 +148,8 @@ def launch_setup(context):
     # The IMU may also be disabled to allow for compass calibration.
     if imu:
         description += [
-            ComposableNodeContainer(
-                name="phidget_container",
-                namespace="",
-                package="rclcpp_components",
-                executable="component_container",
+            LoadComposableNodes(
+                target_container=component_container,
                 composable_node_descriptions=[
                     ComposableNode(
                         package="phidgets_spatial",
@@ -134,6 +163,7 @@ def launch_setup(context):
                             ),
                             phidgets_spatial_calibration_params_path,
                         ],
+                        extra_arguments=[{'use_intra_process_comms': True}],
                     ),
                 ],
             ),
@@ -164,6 +194,9 @@ def launch_setup(context):
 def generate_launch_description():
     return LaunchDescription(
         [
+            DeclareLaunchArgument(
+                "component_container", default_value="", description="Name of an existing component container to use."
+            ),
             DeclareLaunchArgument(
                 "master", default_value="true", description="Start the master driver."
             ),

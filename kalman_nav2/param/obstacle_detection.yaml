@@ -1,0 +1,14 @@
+obstacle_detection:
+  ros__parameters:
+    queue_size: 10
+
+    world_frame: "odom" # The frame to which transform the point cloud before processing. (default: "odom")
+    normal_estimation_radius: 0.2 # The radius for normal estimation. (default: 0.2)
+    max_ground_angle: 0.436332 # The maximum angle between the ground and the normal for a point to be considered ground. (radians, default: 25 degrees)
+    
+    outlier_removal_radius: 0.2 # The radius for the outlier removal filter. (default: 0.2)
+    outlier_removal_min_neighbors: 10 # The minimum number of neighbors for the outlier removal filter. (default: 10)
+
+    robot_frame: "base_link" # The frame of the robot. (default: "base_link")
+    min_obstacle_height: -1.0 # The minimum height for an obstacle point to be considered. Height is not affected by robot rotation. (default: -1.0)
+    max_obstacle_height: 1.0 # The maximum height for an obstacle point to be considered. (default: 1.0)

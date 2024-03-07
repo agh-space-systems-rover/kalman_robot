@@ -10,6 +10,7 @@ from launch.actions import (
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 
+COMPONENT_CONTAINER_NAME = "kalman_container"
 
 def launch_setup(context):
     unity_sim = LaunchConfiguration("unity_sim").perform(context).lower() == "true"
@@ -26,7 +27,15 @@ def launch_setup(context):
             "Only one of the 'unity_sim', 'gazebo', and 'drivers' arguments can be set to true."
         )
 
-    description = []
+    # Set up the global container.
+    description = [
+        Node(
+            package='rclcpp_components',
+            executable='component_container_mt',
+            name=COMPONENT_CONTAINER_NAME,
+            arguments=["--ros-args", "--log-level", "error"],
+        )
+    ]
 
     if unity_sim:
         description += [
@@ -64,7 +73,10 @@ def launch_setup(context):
                         / "drivers.launch.py"
                     )
                 ),
-                launch_arguments={"rgbd_ids": rgbd_ids}.items(),
+                launch_arguments={
+                    "component_container": COMPONENT_CONTAINER_NAME,
+                    "rgbd_ids": rgbd_ids,
+                }.items(),
             ),
         ]
 
@@ -102,14 +114,20 @@ def launch_setup(context):
             PythonLaunchDescriptionSource(
                 str(get_package_share_path("kalman_slam") / "launch" / "slam.launch.py")
             ),
-            launch_arguments={"rgbd_ids": rgbd_ids}.items(),
+            launch_arguments={
+                "component_container": COMPONENT_CONTAINER_NAME,
+                "rgbd_ids": rgbd_ids
+            }.items(),
         ),
         # Nav2 stack + path follower
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
                 str(get_package_share_path("kalman_nav2") / "launch" / "nav2.launch.py")
             ),
-            launch_arguments={"rgbd_ids": rgbd_ids}.items(),
+            launch_arguments={
+                "component_container": COMPONENT_CONTAINER_NAME,
+                "rgbd_ids": rgbd_ids
+            }.items(),
         ),
         # wheel controller
         Node(

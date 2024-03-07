@@ -1,0 +1,50 @@
+cmake_minimum_required(VERSION 3.8)
+project(point_cloud_utils)
+
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
+
+find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(rclcpp_components REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(message_filters REQUIRED)
+find_package(pcl_conversions REQUIRED)
+find_package(pcl_ros REQUIRED)
+find_package(tf2_ros REQUIRED)
+find_package(tf2_eigen REQUIRED)
+
+add_library(cloud_sync_component SHARED src/cloud_sync.cpp)
+ament_target_dependencies(cloud_sync_component rclcpp rclcpp_components sensor_msgs message_filters tf2_ros pcl_ros)
+rclcpp_components_register_node(
+  cloud_sync_component
+  PLUGIN "point_cloud_utils::CloudSync"
+  EXECUTABLE cloud_sync
+)
+
+add_library(voxel_grid_component SHARED src/voxel_grid.cpp)
+ament_target_dependencies(voxel_grid_component rclcpp rclcpp_components sensor_msgs pcl_conversions pcl_ros)
+rclcpp_components_register_node(
+  voxel_grid_component
+  PLUGIN "point_cloud_utils::VoxelGrid"
+  EXECUTABLE voxel_grid
+)
+
+add_library(obstacle_detection_component SHARED src/obstacle_detection.cpp)
+ament_target_dependencies(obstacle_detection_component rclcpp rclcpp_components sensor_msgs pcl_conversions pcl_ros tf2_ros tf2_eigen)
+rclcpp_components_register_node(
+  obstacle_detection_component
+  PLUGIN "point_cloud_utils::ObstacleDetection"
+  EXECUTABLE obstacle_detection
+)
+
+ament_export_targets(point_cloud_utils-targets)
+install(TARGETS cloud_sync_component voxel_grid_component obstacle_detection_component
+  EXPORT point_cloud_utils-targets
+  RUNTIME DESTINATION bin
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+)
+
+ament_package()

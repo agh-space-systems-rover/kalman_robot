@@ -38,8 +38,9 @@ Kalman's software stack is composed of multiple packages that are meant to be bu
 ## Guidelines
 
 - When committing new code, please follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) specification.
-- When creating new kalman_ packages, the Python modules within them should not always be named after the package name. For example, the `kalman_nav2` package contains the `path_follower` module, not `nav2`. Also `kalman_` prefix should be omitted in the names of modules.
-- The `scripts` directory should contain only tools that are meant to be run from the command line by the developer.
+- When creating new kalman_ packages, the Python modules within them should not always be named after the package name. For example, the `kalman_nav2` package contains the `path_follower` module, not `kalman_nav2` nor `nav2`. Also `kalman_` prefix should be omitted in the names of modules.
+- The `scripts` directory should only contain developer utilities and not ROS-related code.
+- Whenever possible, design your C++ nodes as components. See [this tutorial](https://docs.ros.org/en/iron/Tutorials/Intermediate/Writing-a-Composable-Node.html) for more information.
 
 ## Known Issues; TODOs
 

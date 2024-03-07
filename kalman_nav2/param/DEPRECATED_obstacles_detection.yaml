@@ -1,3 +1,5 @@
+# See rtabmap_utils/obstacles_detection
+
 obstacles_detection:
   ros__parameters:
     frame_id: "base_link"

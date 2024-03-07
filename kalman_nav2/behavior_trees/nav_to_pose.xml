@@ -20,20 +20,15 @@
       </PipelineSequence>
       <ReactiveFallback name="RecoveryFallback">
         <GoalUpdated/>
-        <!-- <RoundRobin name="RecoveryActions">
+        <RoundRobin name="RecoveryActions">
           <Sequence name="ClearingActions">
             <ClearEntireCostmap name="ClearLocalCostmap-Subtree" service_name="local_costmap/clear_entirely_local_costmap"/>
             <ClearEntireCostmap name="ClearGlobalCostmap-Subtree" service_name="global_costmap/clear_entirely_global_costmap"/>
           </Sequence>
           <Spin spin_dist="1.57"/>
-          <Wait wait_duration="5.0"/>
+          <!-- <Wait wait_duration="5.0"/> -->
           <BackUp backup_dist="0.30" backup_speed="0.05"/>
-        </RoundRobin> -->
-        <Sequence name="ClearingActions">
-          <ClearEntireCostmap name="ClearLocalCostmap-Subtree" service_name="local_costmap/clear_entirely_local_costmap"/>
-          <ClearEntireCostmap name="ClearGlobalCostmap-Subtree" service_name="global_costmap/clear_entirely_global_costmap"/>
-        </Sequence>
-        <!-- Replaced all recovery actions with just costmap clearing to eliminate unpredictable behavior. -->
+        </RoundRobin>
       </ReactiveFallback>
     </RecoveryNode>
   </BehaviorTree>
