@@ -4,7 +4,6 @@ from rclpy import Node
 from geometry_msgs.msg import PoseStamped
 from nav2_simple_commander.robot_navigator import BasicNavigator
 import numpy as np
-from std_msgs.msg import Empty
 from .transformer import Transformer
 from nav2_msgs.srv import ClearEntireCostmap
 from functools import partial
@@ -26,10 +25,10 @@ class MoveBase(Node):
 
     def __init__(self):
         self.__transformer = Transformer()
-        #self.__nav = BasicNavigator()
+        self.__nav = BasicNavigator()
         self.__current_goal: Optional[PoseStamped] = None
         self.__status = self.Status.PENDING
-        self.__cached_id: Optional[str] = None  # Prevent duplicate messages
+        #self.__cached_id: Optional[str] = None  # Prevent duplicate messages
         self.clear_costmap_service()
         self.clear_costmap()
 
