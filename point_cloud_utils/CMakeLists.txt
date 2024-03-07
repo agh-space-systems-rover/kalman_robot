@@ -47,4 +47,9 @@ install(TARGETS cloud_sync_component voxel_grid_component obstacle_detection_com
   ARCHIVE DESTINATION lib
 )
 
+if(BUILD_TESTING)
+  find_package(ament_lint_auto REQUIRED)
+  ament_lint_auto_find_test_dependencies()
+endif()
+
 ament_package()

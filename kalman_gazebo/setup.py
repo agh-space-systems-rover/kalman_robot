@@ -16,8 +16,8 @@ setup(
             glob.glob(os.path.join("launch", "*launch.[pxy][yma]*")),
         ),
         (
-            "share/" + package_name + "/param",
-            glob.glob(os.path.join("param", "*")),
+            "share/" + package_name + "/config",
+            glob.glob(os.path.join("config", "*")),
         ),
         (
             "share/" + package_name + "/urdf",
@@ -30,6 +30,7 @@ setup(
     maintainer_email="16748784+FIXMBR@users.noreply.github.com",
     description="TODO: Package description",
     license="TODO: License declaration",
+    tests_require=['pytest'],
     entry_points={
         "console_scripts": ["gazebo_wheel_driver = drivers.gazebo_wheel_driver:main"],
     },

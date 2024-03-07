@@ -25,8 +25,8 @@ setup(
             glob.glob(os.path.join("launch", "*launch.[pxy][yma]*")),
         ),
         (
-            "share/" + package_name + "/param",
-            glob.glob(os.path.join("param", "*")),
+            "share/" + package_name + "/config",
+            glob.glob(os.path.join("config", "*")),
         ),
         (
             "share/" + package_name + "/behavior_trees",
@@ -38,6 +38,7 @@ setup(
     maintainer_email=maintainer_email,
     description=description,
     license=license,
+    tests_require=['pytest'],
     entry_points={
         "console_scripts": [
             "path_follower = path_follower.path_follower_node:main",

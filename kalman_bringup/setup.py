@@ -33,4 +33,5 @@ setup(
     maintainer_email=maintainer_email,
     description=description,
     license=license,
+    tests_require=['pytest'],
 )

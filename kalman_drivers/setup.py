@@ -12,6 +12,8 @@ if not os.path.exists(os.path.join("compasscal_build", "compasscal")):
     compasscal_src_dir = os.path.abspath(os.path.join(src_dir, "compasscal_src"))
     compasscal_build_dir = os.path.abspath(os.path.join(src_dir, "compasscal_build"))
     os.makedirs(compasscal_build_dir, exist_ok=True)
+    with open(os.path.join(compasscal_build_dir, "AMENT_IGNORE"), "w") as f:
+        f.write("")
     distro = os.environ["ROS_DISTRO"]
 
     # Run aclocal, autoconf, automake
@@ -81,8 +83,8 @@ setup(
             glob.glob(os.path.join("launch", "*launch.[pxy][yma]*")),
         ),
         (
-            "share/" + package_name + "/param",
-            glob.glob(os.path.join("param", "*")),
+            "share/" + package_name + "/config",
+            glob.glob(os.path.join("config", "*")),
         ),
     ],
     zip_safe=True,
@@ -90,9 +92,10 @@ setup(
     maintainer_email=maintainer_email,
     description=description,
     license=license,
+    tests_require=["pytest"],
     entry_points={
         "console_scripts": [
-            "compasscal = drivers.compasscal_node:main",
+            "compasscal = kalman_drivers.compasscal_node:main",
         ],
     },
 )

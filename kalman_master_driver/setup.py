@@ -30,6 +30,7 @@ setup(
     maintainer_email=maintainer_email,
     description=description,
     license=license,
+    tests_require=['pytest'],
     entry_points={
         "console_scripts": [
             "master_com = master_driver.master_com_node:main",

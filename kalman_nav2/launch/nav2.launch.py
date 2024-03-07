@@ -7,74 +7,18 @@ from launch.actions import (
     IncludeLaunchDescription,
     DeclareLaunchArgument,
     OpaqueFunction,
-    ExecuteProcess,
 )
 from launch.substitutions import LaunchConfiguration
 import yaml
 import os
 import jinja2
 
+NAV_CONTAINER_NAME = "kalman_nav2_container"
 
-def launch_setup(context):
-    component_container = LaunchConfiguration("component_container").perform(context)
-    rgbd_ids = [
-        x
-        for x in LaunchConfiguration("rgbd_ids").perform(context).split(" ")
-        if x != ""
-    ]
-    obstacle_detection = LaunchConfiguration("obstacle_detection").perform(context).lower() == "true"
-
-    # Init a container if not provided.
-    description = []
-    if component_container == "":
-        description += [
-            Node(
-                package="rclcpp_components",
-                executable="component_container_mt",
-                name="kalman_nav2_container",
-            )
-        ]
-        component_container = "kalman_nav2_container"
-
-    # Obstacle detection
-    if obstacle_detection:
-        description += [
-            # Node(
-            #     package="point_cloud_utils",
-            #     executable="obstacle_detection",
-            #     parameters=[
-            #         str(
-            #             get_package_share_path("kalman_nav2")
-            #             / "param"
-            #             / "obstacle_detection.yaml"
-            #         ),
-            #     ],
-            #     remappings={
-            #         "input": f"/{camera_id}/depth/color/points/filtered",
-            #         "output": f"/{camera_id}/depth/color/points/filtered/obstacles",
-            #     }.items(),
-            # )
-            # for camera_id in rgbd_ids
-            LoadComposableNodes(
-                target_container=component_container,
-                composable_node_descriptions=[
-                    ComposableNode(
-                        package="point_cloud_utils",
-                        plugin="point_cloud_utils::ObstacleDetection",
-                        name=f"{camera_id}_obstacle_detection",
-                        remappings={
-                            "input": f"/{camera_id}/depth/color/points/filtered",
-                            "output": f"/{camera_id}/depth/color/points/filtered/obstacles",
-                        }.items(),
-                    )
-                    for camera_id in rgbd_ids
-                ]
-            ),
-        ]
-
+def load_nav2_config(rgbd_ids, obstacle_detection):
     # Load Nav2 config template
     with open(
-        str(get_package_share_path("kalman_nav2") / "param" / "nav2.yaml.j2"),
+        str(get_package_share_path("kalman_nav2") / "config" / "nav2.yaml.j2"),
     ) as f:
         nav2_config_template = jinja2.Template(f.read())
 
@@ -93,12 +37,66 @@ def launch_setup(context):
     with open(nav2_params_path, "w") as f:
         yaml.dump(nav2_params, f)
 
+    return nav2_params_path
+
+def launch_setup(context):
+    component_container = LaunchConfiguration("component_container").perform(context)
+    rgbd_ids = [
+        x
+        for x in LaunchConfiguration("rgbd_ids").perform(context).split(" ")
+        if x != ""
+    ]
+    obstacle_detection = LaunchConfiguration("obstacle_detection").perform(context).lower() == "true"
+
+    description = []
+
+    # obstacle detection
+    if obstacle_detection:
+        if component_container:
+            description += [
+                LoadComposableNodes(
+                    target_container=component_container,
+                    composable_node_descriptions=[
+                        ComposableNode(
+                            package="point_cloud_utils",
+                            plugin="point_cloud_utils::ObstacleDetection",
+                            name=f"{camera_id}_obstacle_detection",
+                            remappings={
+                                "input": f"/{camera_id}/depth/color/points/filtered",
+                                "output": f"/{camera_id}/depth/color/points/filtered/obstacles",
+                            }.items(),
+                        )
+                        for camera_id in rgbd_ids
+                    ]
+                ),
+            ]
+        else:
+            description += [
+                Node(
+                    package="point_cloud_utils",
+                    executable="obstacle_detection",
+                    parameters=[
+                        str(
+                            get_package_share_path("kalman_nav2")
+                            / "config"
+                            / "obstacle_detection.yaml"
+                        ),
+                    ],
+                    remappings={
+                        "input": f"/{camera_id}/depth/color/points/filtered",
+                        "output": f"/{camera_id}/depth/color/points/filtered/obstacles",
+                    }.items(),
+                )
+                for camera_id in rgbd_ids
+            ]
+
+    nav2_params_path = load_nav2_config(rgbd_ids, obstacle_detection)
     description += [
         # NOTE: It is not possible to load Nav2 into an existing container without having access to its Node definition.
         Node(
             package="rclcpp_components",
             executable="component_container",
-            name="kalman_nav2_container_nav",
+            name=NAV_CONTAINER_NAME,
             parameters=[nav2_params_path],
             # Required due to bugs in rclcpp.
             # See: https://github.com/ros-planning/navigation2/issues/4011
@@ -115,17 +113,22 @@ def launch_setup(context):
             launch_arguments={
                 "params_file": nav2_params_path,
                 "use_composition": "True",
-                "container_name": "kalman_nav2_container_nav",
+                "container_name": NAV_CONTAINER_NAME,
             }.items(),
         ),
-        # path follower
+    ]
+
+    
+    # path follower
+    # This is a Python module and it does not support composition.
+    description += [
         Node(
             package="kalman_nav2",
             executable="path_follower",
             parameters=[
                 str(
                     get_package_share_path("kalman_nav2")
-                    / "param"
+                    / "config"
                     / "path_follower.yaml"
                 ),
             ],
@@ -139,7 +142,9 @@ def generate_launch_description():
     return LaunchDescription(
         [
             DeclareLaunchArgument(
-                "component_container", default_value="", description="Name of an existing component container to use."
+                "component_container",
+                default_value="",
+                description="Name of an existing component container to use. Empty by default to disable composition."
             ),
             DeclareLaunchArgument(
                 "rgbd_ids",

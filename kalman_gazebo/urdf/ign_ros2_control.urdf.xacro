@@ -3,7 +3,7 @@
     <gazebo>
         <plugin filename="ign_ros2_control-system"
             name="ign_ros2_control::IgnitionROS2ControlPlugin">
-            <parameters>$(find kalman_gazebo)/param/ign_ros2_control.yaml</parameters>
+            <parameters>$(find kalman_gazebo)/config/ign_ros2_control.yaml</parameters>
         </plugin>
     </gazebo>
 

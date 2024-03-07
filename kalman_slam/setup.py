@@ -24,8 +24,8 @@ setup(
             glob.glob(os.path.join("launch", "*launch.[pxy][yma]*")),
         ),
         (
-            "share/" + package_name + "/param",
-            glob.glob(os.path.join("param", "*")),
+            "share/" + package_name + "/config",
+            glob.glob(os.path.join("config", "*")),
         ),
     ],
     zip_safe=True,
@@ -33,4 +33,5 @@ setup(
     maintainer_email=maintainer_email,
     description=description,
     license=license,
+    tests_require=['pytest'],
 )
