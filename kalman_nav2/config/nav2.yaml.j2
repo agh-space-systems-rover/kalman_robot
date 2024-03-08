@@ -102,14 +102,14 @@ global_costmap:
           min_obstacle_height: -10000.0 # default 0, meters
           max_obstacle_height: 10000.0  # default 3, meters
           clear_after_reading: true     # default false, clear the buffer after the layer gets readings from it
-          filter: "voxel"               # default passthrough, apply "voxel", "passthrough", or no filter to sensor data, recommended to have at one filter on
+          filter: ""                    # default passthrough, apply "voxel", "passthrough", or no filter to sensor data, recommended to have at one filter on
             
           # Clearing params:
           clearing: true
-          max_z: 5.0                    # default 10, meters
+          max_z: 7.0                    # default 10, meters
           vertical_fov_angle: 1.025     # default 0.7, radians
           horizontal_fov_angle: 1.571   # default 1.04, radians
-          decay_acceleration: 0.5       # default 0, 1/s^2. If laser scanner MUST be 0
+          decay_acceleration: 1.0       # default 0, 1/s^2. If laser scanner MUST be 0
 {% endfor %}
 {% endif %}
 
@@ -187,10 +187,10 @@ local_costmap:
             
           # Clearing params:
           clearing: true
-          max_z: 5.0                    # default 10, meters
+          max_z: 7.0                    # default 10, meters
           vertical_fov_angle: 1.025     # default 0.7, radians
           horizontal_fov_angle: 1.571   # default 1.04, radians
-          decay_acceleration: 0.5       # default 0, 1/s^2. If laser scanner MUST be 0
+          decay_acceleration: 1.0       # default 0, 1/s^2. If laser scanner MUST be 0
 {% endfor %}
 {% endif %}
 

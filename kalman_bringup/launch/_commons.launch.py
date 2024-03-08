@@ -111,6 +111,7 @@ def launch_setup(context):
                         / "rviz"
                         / get_str("rviz.config")
                     ),
+                    "--ros-args", "--log-level", "warn"
                 ],
             ),
         ]
