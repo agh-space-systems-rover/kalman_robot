@@ -11,10 +11,14 @@ def generate_launch_description():
                 str(get_package_share_path("kalman_bringup") / "launch" / "_commons.launch.py")
             ),
             launch_arguments={
-                "composition": "false",
+                "composition": "true",
                 "rgbd_ids": "",
-                "rviz.spawn": "true",
-                "rviz.config": "urc_autonomy.rviz"
+                "component_container.spawn": "true",
+                "drivers.spawn": "true",
+                "drivers.master": "true",
+                "drivers.imu": "false",
+                "drivers.compasscal": "false",
+                "wheel_controller.spawn": "true",
             }.items(),
         ),
     ])
