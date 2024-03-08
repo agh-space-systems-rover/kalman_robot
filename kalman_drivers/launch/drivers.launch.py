@@ -7,7 +7,7 @@ from launch.actions import (
     DeclareLaunchArgument,
     OpaqueFunction,
 )
-from launch_ros.actions import Node, LoadComposableNodes
+from launch_ros.actions import Node, LoadComposableNodes, ComposableNodeContainer
 from launch_ros.descriptions import ComposableNode
 from launch.substitutions import LaunchConfiguration
 
@@ -17,6 +17,7 @@ REALSENSE_SERIAL_NUMBERS = {
     "d455_left": "_231622302763",
     "d455_right": "_231122300896",
 }
+PHIDGETS_CONTAINER_NAME = "phidgets_container"
 
 def launch_setup(context):
     component_container = LaunchConfiguration("component_container").perform(context)
@@ -61,52 +62,28 @@ def launch_setup(context):
     if len(rgbd_ids) > 0:
         # Those nodes facilitate the communication with the RealSense devices
         # and publish data to ROS topics.
-        if component_container:
-            description += [
-                LoadComposableNodes(
-                    target_container=component_container,
-                    composable_node_descriptions=[
-                        ComposableNode(
-                            package='realsense2_camera',
-                            plugin='realsense2_camera::RealSenseNodeFactory',
-                            name=camera_name,
-                            parameters=[
-                                {
-                                    'camera_name': camera_name,
-                                    'serial_no': serial_no,
-                                },
-                                str(
-                                    get_package_share_path("kalman_drivers")
-                                    / "config"
-                                    / "realsense2_camera.yaml"
-                                ),
-                            ],
-                            extra_arguments=[{"use_intra_process_comms": True}],
-                        ) for camera_name, serial_no in rgbd_ids_sns
-                    ],
+        description += [
+            IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(
+                    str(
+                        get_package_share_path("kalman_drivers")
+                        / "launch"
+                        / "rs_launch.py"
+                    )
                 ),
-            ]
-        else:
-            description += [
-                IncludeLaunchDescription(
-                    PythonLaunchDescriptionSource(
-                        str(
-                            get_package_share_path("realsense2_camera")
-                            / "launch"
-                            / "rs_launch.py"
-                        )
+                launch_arguments={
+                    "component_container": component_container,
+                    "camera_name": f"{camera_name}",
+                    "camera_namespace": f"{camera_name}",
+                    "serial_no": serial_no,
+                    "config_file": str(  # Must use external config file for non-configurable options.
+                        get_package_share_path("kalman_drivers")
+                        / "config"
+                        / "realsense2_camera.yaml"
                     ),
-                    launch_arguments={
-                        "camera_name": f"{camera_name}",
-                        "serial_no": serial_no,
-                        "config_file": str(  # Must use external config file for non-configurable options.
-                            get_package_share_path("kalman_drivers")
-                            / "config"
-                            / "realsense2_camera.yaml"
-                        ),
-                    }.items(),
-                ) for camera_name, serial_no in rgbd_ids_sns
-            ]
+                }.items(),
+            ) for camera_name, serial_no in rgbd_ids_sns
+        ]
 
         # description += [
         #     # Compressed re-publishers
@@ -156,7 +133,7 @@ def launch_setup(context):
                                 ),
                                 phidgets_spatial_calibration_params_path,
                             ],
-                            extra_arguments=[{'use_intra_process_comms': True}],
+                            # NOTE: Spatial does not support intra-process communication.
                         ),
                         ComposableNode(
                             package="imu_filter_madgwick",
@@ -175,18 +152,25 @@ def launch_setup(context):
             ]
         else:
             description += [
-                Node(
-                    package="phidgets_spatial",
-                    executable="phidgets_spatial",
-                    name="phidgets_spatial",
-                    parameters=[
-                        str(
-                            get_package_share_path("kalman_drivers")
-                            / "config"
-                            / "phidgets_spatial.yaml"
+                ComposableNodeContainer(
+                    package="rclcpp_components",
+                    executable="component_container",
+                    namespace="",
+                    name=PHIDGETS_CONTAINER_NAME,
+                    composable_node_descriptions=[
+                        ComposableNode(
+                            package="phidgets_spatial",
+                            plugin="phidgets::SpatialRosI",
+                            parameters=[
+                                str(
+                                    get_package_share_path("kalman_drivers")
+                                    / "config"
+                                    / "phidgets_spatial.yaml"
+                                ),
+                                phidgets_spatial_calibration_params_path,
+                            ],
                         ),
-                        phidgets_spatial_calibration_params_path,
-                    ],
+                    ]
                 ),
                 Node(
                     package="imu_filter_madgwick",

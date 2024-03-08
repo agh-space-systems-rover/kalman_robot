@@ -51,7 +51,7 @@ def generate_launch_description():
         [
             DeclareLaunchArgument(
                 "delay",
-                default_value="10",
+                default_value="3",
                 description="Call the calibration service after a delay. (seconds)",
             ),
             DeclareLaunchArgument(

@@ -13,7 +13,7 @@ import yaml
 import os
 import jinja2
 
-NAV_CONTAINER_NAME = "kalman_nav2_container"
+NAV_CONTAINER_NAME = "nav2_container"
 
 def load_nav2_config(rgbd_ids, obstacle_detection):
     # Load Nav2 config template
@@ -97,8 +97,7 @@ def launch_setup(context):
             package="rclcpp_components",
             executable="component_container",
             name=NAV_CONTAINER_NAME,
-            parameters=[nav2_params_path],
-            # Required due to bugs in rclcpp.
+            parameters=[nav2_params_path], # Required due to bugs in rclcpp.
             # See: https://github.com/ros-planning/navigation2/issues/4011
         ),
         # Nav2
