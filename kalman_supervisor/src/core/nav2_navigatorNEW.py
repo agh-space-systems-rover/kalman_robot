@@ -38,8 +38,7 @@ class MoveBase(Node):
             or self.__status == self.Status.ABORTED
         )
     
-    def send_goal(self, frame_id: str, position: Vec2, order):
-        
+    def send_goal(self, frame_id: str, position: Vec2, order): 
         if frame_id == "gps":
             self.get_logger().info("Got GPS as the goal frame, this should never happen, convert it to UTM!")
 
@@ -59,13 +58,22 @@ class MoveBase(Node):
         goal = np.add(np_odom, np_direction)
         goal = (goal[0], goal[1])
         self.send_goal("odom", goal)
+
+    def __convert_goal(self, frame_id: str, position: Vec2) -> PoseStamped:
+        goal = PoseStamped()
+        goal.header.frame_id = frame_id
+        goal.pose.position.x = position[0]
+        goal.pose.position.y = position[1]
+        goal.pose.orientation.w = 1.0
+       
+        return goal
     
     def cancel_goal(self):
         self.__nav.cancelTask()
         self.send_goal("base_link", (0.0, 0.0))
         self.__current_goal = None
+
     ## handling costmap services
-    
     def clear_costmap_service(self):
         self.client = self.create_client(ClearEntireCostmap, 
             "/global_costmap/clear_entirely_global_costmap")
@@ -74,14 +82,14 @@ class MoveBase(Node):
     
     def clear_costmap(self):
         req = ClearEntireCostmap.Request()
-        request = self.client.call_async(request)
+        request = self.client.call_async(req)
         request.add_done_callback(partial(self._callback_clear_costmap))
 
     def _callback_clear_costmap(self, request):
         try:
             response = request.result()
         except Exception as e:
-            self.get_logger().error("Clear_Costmap service call failed: %r" % (e,))
+            self.get_logger().error("Clear_Costmap call failed: %r" % (e,))
             
     ##
     def distance_to_goal(self, odom: Vec2) -> float:
