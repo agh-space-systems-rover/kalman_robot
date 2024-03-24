@@ -1,0 +1,9 @@
+string servo_status
+float64 joint_1
+float64 joint_2
+float64 joint_3
+float64 joint_4
+float64 joint_5
+float64 joint_6
+float64 gripper_moving_joint
+float64 collision_velocity_factor

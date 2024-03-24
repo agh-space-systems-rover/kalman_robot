@@ -1,0 +1,4 @@
+MotorTemperature fr
+MotorTemperature fl
+MotorTemperature br
+MotorTemperature bl

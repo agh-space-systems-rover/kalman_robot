@@ -1,0 +1,35 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 4px;
+  border: 1px solid black;
+}
+
+.container h3 {
+  font-size: 20px;
+}
+
+.science-buttons-grid {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  align-self: center;
+}
+
+.flashing-background {
+  animation: flashing 1s infinite alternate;
+}
+
+@keyframes flashing {
+  0% {
+    background-color: white;
+  }
+  50% {
+    background-color: #fe6565;
+  }
+  100% {
+    background-color: white;
+  }
+}

@@ -1,0 +1,39 @@
+.wrapper {
+    display: grid;
+    grid-gap: 3px;
+
+    background-color: lightgrey;
+
+    grid-template:
+        "nav nav nav" min-content
+        "first second third" 1fr
+        / auto auto auto;
+}
+
+.first {
+    grid-area: first;
+    resize: horizontal;
+    min-width: 200px;
+}
+
+.second {
+    grid-area: second;
+    resize: horizontal;
+    min-width: 400px;
+}
+
+.third {
+    display: flex;
+    flex-direction: column;
+    grid-area: third;
+    grid-template: 
+    "science" min-content;
+    min-width: 400px;
+}
+
+.column {
+    overflow: auto;
+
+    height: 94vh;
+    background-color: #fffe;
+}
