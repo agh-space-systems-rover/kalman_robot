@@ -30,7 +30,7 @@
             <xacro:cylinder_inertial radius="0.1" length="1" mass="1">
                 <!-- This is not the correct intertia of the suspension,
                 but it shuts up the warnings when supsension is dynamic. -->
-                <origin rpy="1.57075 0 0" />
+                <origin rpy="1.5708 0 0" />
             </xacro:cylinder_inertial>
         </link>
         <joint name="suspension_${y_side}_joint" type="fixed">
@@ -77,13 +77,13 @@
                 <material name="white" />
             </visual>
             <collision>
-                <origin rpy="1.57075 0 0" xyz="0 0 0"/>
+                <origin rpy="1.5708 0 0" xyz="0 0 0"/>
                 <geometry>
                     <cylinder radius="0.12" length="0.15" />
                 </geometry>
             </collision>
             <xacro:cylinder_inertial radius="0.12" length="0.15" mass="3.3">
-                <origin rpy="1.57075 0 0" xyz="0 0 0"/>
+                <origin rpy="1.5708 0 0" xyz="0 0 0"/>
             </xacro:cylinder_inertial>
         </link>
         <joint name="wheel_${x_side}${y_side}_joint" type="continuous">

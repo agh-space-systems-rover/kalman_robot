@@ -6,6 +6,7 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 find_package(ament_cmake REQUIRED)
+
 find_package(rclcpp REQUIRED)
 find_package(nav2_core REQUIRED)
 find_package(nav2_util REQUIRED)
@@ -22,5 +23,10 @@ install(TARGETS
 )
 
 pluginlib_export_plugin_description_file(nav2_core ${PROJECT_NAME}.xml)
+
+if(BUILD_TESTING)
+  find_package(ament_lint_auto REQUIRED)
+  ament_lint_auto_find_test_dependencies()
+endif()
 
 ament_package()

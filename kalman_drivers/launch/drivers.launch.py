@@ -19,6 +19,7 @@ REALSENSE_SERIAL_NUMBERS = {
 }
 PHIDGETS_CONTAINER_NAME = "phidgets_container"
 
+
 def launch_setup(context):
     component_container = LaunchConfiguration("component_container").perform(context)
     master = LaunchConfiguration("master").perform(context).lower() == "true"
@@ -50,9 +51,9 @@ def launch_setup(context):
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
                     str(
-                        get_package_share_path("kalman_master_driver")
+                        get_package_share_path("kalman_master")
                         / "launch"
-                        / "master_driver.launch.py"
+                        / "master.launch.py"
                     )
                 )
             )
@@ -82,23 +83,9 @@ def launch_setup(context):
                         / "realsense2_camera.yaml"
                     ),
                 }.items(),
-            ) for camera_name, serial_no in rgbd_ids_sns
+            )
+            for camera_name, serial_no in rgbd_ids_sns
         ]
-
-        # description += [
-        #     # Compressed re-publishers
-        #     Node(
-        #         package="image_transport",
-        #         executable="republish",
-        #         arguments=["raw", "compressed"],
-        #         remappings=[
-        #             ("in", f"/{camera_name}/color/image_raw"),
-        #             ("out/compressed", f"/{camera_name}/color/image_raw/compressed"),
-        #         ],
-        #     )
-        #     for camera_name, serial_no in rgbd_ids_sns
-        # ]
-        # TODO: Use compressed_depth_image_transport for depth images?
 
     # The IMU may also be disabled to allow for compass calibration.
     if imu:
@@ -145,7 +132,7 @@ def launch_setup(context):
                                     / "imu_filter_madgwick.yaml"
                                 ),
                             ],
-                            extra_arguments=[{'use_intra_process_comms': True}],
+                            extra_arguments=[{"use_intra_process_comms": True}],
                         ),
                     ],
                 ),
@@ -170,7 +157,7 @@ def launch_setup(context):
                                 phidgets_spatial_calibration_params_path,
                             ],
                         ),
-                    ]
+                    ],
                 ),
                 Node(
                     package="imu_filter_madgwick",
@@ -203,7 +190,7 @@ def generate_launch_description():
             DeclareLaunchArgument(
                 "component_container",
                 default_value="",
-                description="Name of an existing component container to use. Empty by default to disable composition."
+                description="Name of an existing component container to use. Empty by default to disable composition.",
             ),
             DeclareLaunchArgument(
                 "master", default_value="true", description="Start the master driver."

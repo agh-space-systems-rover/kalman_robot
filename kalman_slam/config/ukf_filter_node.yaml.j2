@@ -4,7 +4,7 @@ ukf_filter_node:
     # The frequency, in Hz, at which the filter will output a position estimate. Note that the filter will not begin
     # computation until it receives at least one message from one of the inputs. It will then run continuously at the
     # frequency specified here, regardless of whether it receives more measurements. Defaults to 30 if unspecified.
-    frequency: 15.0
+    frequency: 30.0
 
     # The period, in seconds, after which we consider a sensor to have timed out. In this event, we carry out a predict
     # cycle on the EKF without correcting it. This parameter can be thought of as the minimum frequency with which the
@@ -77,7 +77,7 @@ ukf_filter_node:
     # sensor_msgs/Imu). To add an input, simply append the next number in the sequence to its "base" name, e.g., odom0,
     # odom1, twist0, twist1, imu0, imu1, imu2, etc. The value should be the topic name. These parameters obviously have no
     # default values, and must be specified.
-    odom{{ loop.index0 }}: /{{ camera_id }}/rgbd_odometry/odom
+    odom{{ loop.index0 }}: {{ camera_id }}/odom
 
     # Each sensor reading updates some or all of the filter's state. These options give you greater control over which
     # values from each measurement are fed to the filter. For example, if you have an odometry message as input, but only
@@ -87,10 +87,10 @@ ukf_filter_node:
     # has no pose information, so the first six values would be meaningless in that case. Each vector defaults to all false
     # if unspecified, effectively making this parameter required for each sensor.
     odom{{ loop.index0 }}_config: [false, false, false,
-                                    false, false, false,
-                                    true,  true,  true,
-                                    false, false, false,
-                                    false, false, false]
+                                   false, false, false,
+                                   true,  true,  true,
+                                   false, false, false,
+                                   false, false, false]
 
     # If you have high-frequency data or are running with a low frequency parameter value, then you may want to increase
     # the size of the subscription queue so that more measurements are fused.
@@ -104,7 +104,7 @@ ukf_filter_node:
     # data is converted to velocity data by differentiating the absolute pose measurements. These velocities are then
     # integrated as usual. NOTE: this only applies to sensors that provide pose measurements; setting differential to true
     # for twist measurements has no effect.
-    odom{{ loop.index0 }}_differential: true
+    odom{{ loop.index0 }}_differential: false
 
     # [ADVANCED] When the node starts, if this parameter is true, then the first measurement is treated as a "zero point"
     # for all future measurements. While you can achieve the same effect with the differential paremeter, the key
@@ -113,7 +113,7 @@ ukf_filter_node:
     odom{{ loop.index0 }}_relative: false
 {% endfor %}
 
-    imu0: /imu/data
+    imu0: imu/data
     imu0_config: [false, false, false,
                   true,  true,  true,
                   false, false, false,
@@ -127,14 +127,15 @@ ukf_filter_node:
     # this to true, and *make sure* your data conforms to REP-103, specifically, that the data is in ENU frame.
     imu0_remove_gravitational_acceleration: true
 
-    pose0: /altimeter/pose
-    pose0_config: [false, false, true,
-                    false, false, false,
-                    false, false, false,
-                    false, false, false,
-                    false, false, false]
-    pose0_relative: true
-    pose0_queue_size: 10
+    # pose0: altimeter/pose
+    # pose0_config: [false, false, true,
+    #                false, false, false,
+    #                false, false, false,
+    #                false, false, false,
+    #                false, false, false]
+    # pose0_relative: true
+    # pose0_queue_size: 10
+    # TODO: Altimeter is disabled for now because we do not yet have this hardware on board.
 
     # [ADVANCED]  The EKF and UKF models follow a standard predict/correct cycle. During prediction, if there is no
     # acceleration reference, the velocity at time t+1 is simply predicted to be the same as the velocity at time t. During

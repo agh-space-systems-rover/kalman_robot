@@ -50,7 +50,7 @@ to_serialize = msg.pose.pose.position # right hand taken from json file
 To test this package on linux:
 1. Create a virtual serial
 2. Make the virtual serial loopback communication
-3. Launch kalman_master_driver
+3. Launch kalman_master
 4. Launch this package in both station and rover mode
 5. Send some data to one of the topics, it should be duplicated
 
@@ -63,8 +63,8 @@ socat -d -d pty,raw,echo=0 pty,raw,echo=0 # Setup virtual serial
 # Start loopback on first serial
 cat /dev/pts/6 | tee /dev/pts/6 | hexdump -C # Loopback with preview
 
-# Launch kalman_master_driver on second serial 
-ros2 launch kalman_master_driver master_com.launch.py serial_port:=/dev/pts/7
+# Launch kalman_master on second serial 
+ros2 launch kalman_master master_com.launch.py serial_port:=/dev/pts/7
 
 # Launch kalman_rosou in station mode
 ros2 launch kalman_rosou rosou.launch.py is_station:=True

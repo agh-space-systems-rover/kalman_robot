@@ -48,7 +48,7 @@ import os
 from kalman_interfaces.srv import CalibrateCompass
 
 
-CMD_VEL_FREQUENCY = 2
+CMD_VEL_RATE = 2
 
 
 def async_read_all(stream):
@@ -154,7 +154,7 @@ class CompasscalNode(Node):
 
         # Now we are sure that sampling has started.
         # Perform rotations by sending cmd_vel messages.
-        n = int(request.duration * CMD_VEL_FREQUENCY)
+        n = int(request.duration * CMD_VEL_RATE)
         for i in range(n):
             self.get_logger().info(f"Rotating the robot: {i+1}/{n}")
 
@@ -168,7 +168,7 @@ class CompasscalNode(Node):
             self.cmd_vel_pub.publish(msg)
 
             # Wait for 1/msg_freq seconds.
-            wait_for_process(process, 1 / CMD_VEL_FREQUENCY)
+            wait_for_process(process, 1 / CMD_VEL_RATE)
 
         # Stop calibration by sending Enter to stdin
         self.get_logger().info("Stopping sampling...")

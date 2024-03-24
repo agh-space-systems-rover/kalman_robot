@@ -15,7 +15,8 @@ import jinja2
 
 NAV_CONTAINER_NAME = "nav2_container"
 
-def load_nav2_config(rgbd_ids, obstacle_detection):
+
+def render_nav2_config(rgbd_ids, static_map):
     # Load Nav2 config template
     with open(
         str(get_package_share_path("kalman_nav2") / "config" / "nav2.yaml.j2"),
@@ -25,7 +26,7 @@ def load_nav2_config(rgbd_ids, obstacle_detection):
     # Render config using camera IDs
     ukf_config_str = nav2_config_template.render(
         rgbd_ids=rgbd_ids,
-        obstacle_detection=obstacle_detection,
+        static_map=static_map,
     )
 
     # Load config
@@ -39,6 +40,7 @@ def load_nav2_config(rgbd_ids, obstacle_detection):
 
     return nav2_params_path
 
+
 def launch_setup(context):
     component_container = LaunchConfiguration("component_container").perform(context)
     rgbd_ids = [
@@ -46,12 +48,12 @@ def launch_setup(context):
         for x in LaunchConfiguration("rgbd_ids").perform(context).split(" ")
         if x != ""
     ]
-    obstacle_detection = LaunchConfiguration("obstacle_detection").perform(context).lower() == "true"
+    static_map = LaunchConfiguration("static_map").perform(context)
 
     description = []
 
     # obstacle detection
-    if obstacle_detection:
+    if len(rgbd_ids) > 0:
         if component_container:
             description += [
                 LoadComposableNodes(
@@ -60,14 +62,15 @@ def launch_setup(context):
                         ComposableNode(
                             package="point_cloud_utils",
                             plugin="point_cloud_utils::ObstacleDetection",
-                            name=f"{camera_id}_obstacle_detection",
+                            namespace=camera_id,
+                            name="voxel_grid",
                             remappings={
-                                "input": f"/{camera_id}/depth/color/points/filtered",
-                                "output": f"/{camera_id}/depth/color/points/filtered/obstacles",
+                                "input": f"depth/color/points/filtered",
+                                "output": f"depth/color/points/filtered/obstacles",
                             }.items(),
                         )
                         for camera_id in rgbd_ids
-                    ]
+                    ],
                 ),
             ]
         else:
@@ -90,16 +93,46 @@ def launch_setup(context):
                 for camera_id in rgbd_ids
             ]
 
-    nav2_params_path = load_nav2_config(rgbd_ids, obstacle_detection)
+    # static map
+    if static_map:
+        description += [
+            Node(
+                package="nav2_map_server",
+                executable="map_server",
+                name="map_server",
+                parameters=[
+                    {
+                        "yaml_filename": str(
+                            get_package_share_path("kalman_nav2")
+                            / "maps"
+                            / f"{static_map}.yaml"
+                        )
+                    }
+                ],
+            ),
+            Node(
+                package="nav2_lifecycle_manager",
+                executable="lifecycle_manager",
+                name="lifecycle_manager_map_server",
+                arguments=["--ros-args", "--log-level", "info"],
+                parameters=[
+                    {"use_sim_time": False},
+                    {"autostart": True},
+                    {"node_names": ["map_server"]},
+                ],
+            ),
+        ]
+
+    nav2_params_path = render_nav2_config(rgbd_ids, static_map)
     description += [
-        # NOTE: It is not possible to load Nav2 into an existing container without having access to its Node definition.
-        Node(
-            package="rclcpp_components",
-            executable="component_container",
-            name=NAV_CONTAINER_NAME,
-            parameters=[nav2_params_path], # Required due to bugs in rclcpp.
-            # See: https://github.com/ros-planning/navigation2/issues/4011
-        ),
+        # NOTE: It is not possible to load Nav2 parameters into an existing container without having access to its Node definition.
+        # Node(
+        #     package="rclcpp_components",
+        #     executable="component_container_mt",
+        #     name=NAV_CONTAINER_NAME,
+        #     parameters=[nav2_params_path],  # Required due to bugs in rclcpp.
+        #     # See: https://github.com/ros-planning/navigation2/issues/4011
+        # ),
         # Nav2
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
@@ -111,13 +144,12 @@ def launch_setup(context):
             ),
             launch_arguments={
                 "params_file": nav2_params_path,
-                "use_composition": "True",
-                "container_name": NAV_CONTAINER_NAME,
+                "use_composition": "False",
+                # "container_name": NAV_CONTAINER_NAME,
             }.items(),
         ),
     ]
 
-    
     # path follower
     # This is a Python module and it does not support composition.
     description += [
@@ -143,7 +175,7 @@ def generate_launch_description():
             DeclareLaunchArgument(
                 "component_container",
                 default_value="",
-                description="Name of an existing component container to use. Empty by default to disable composition."
+                description="Name of an existing component container to use. Empty by default to disable composition.",
             ),
             DeclareLaunchArgument(
                 "rgbd_ids",
@@ -151,9 +183,9 @@ def generate_launch_description():
                 description="Space-separated IDs of the depth cameras to use.",
             ),
             DeclareLaunchArgument(
-                "obstacle_detection",
-                default_value="true",
-                description="Whether to use obstacle detection.",
+                "static_map",
+                default_value="",
+                description="Name of the static map to use. Maps are stored in kalman_nav2/maps. Empty by default to disable static map.",
             ),
             OpaqueFunction(function=launch_setup),
         ]

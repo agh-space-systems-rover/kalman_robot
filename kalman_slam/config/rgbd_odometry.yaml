@@ -1,0 +1,8 @@
+/**:
+  ros__parameters:
+    frame_id: "base_link"
+    publish_tf: False
+    approx_sync: False
+
+    Odom/ResetCountdown: "1"
+    Odom/Strategy: "0"

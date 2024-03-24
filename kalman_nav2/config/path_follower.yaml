@@ -1,8 +1,9 @@
 path_follower:
   ros__parameters:
-    lookahead: 1.0
+    lookahead: 0.5
     linear_velocity: 0.5
     angular_velocity: 0.5
     rotate_in_place_start_angle: 1.4
     rotate_in_place_end_angle: 0.3
     driving_mode: hybrid
+    publish_target: true

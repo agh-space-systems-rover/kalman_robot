@@ -3,9 +3,9 @@
 <package format="3">
   <name>point_cloud_utils</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
+  <description>utilities for working with point clouds; Includes ROS wrappers around PCL filters and an obstacle detection node.</description>
   <maintainer email="63957587+rayferric@users.noreply.github.com">rayferric</maintainer>
-  <license>TODO: License declaration</license>
+  <license>MIT</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
@@ -18,7 +18,7 @@
   <depend>tf2_eigen</depend>
 
   <test_depend>ament_lint_auto</test_depend>
-  <test_depend>ament_cmake_clang_format</test_depend>
+  <test_depend>ament_lint_common</test_depend>
 
   <export>
     <build_type>ament_cmake</build_type>

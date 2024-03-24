@@ -1,0 +1,5 @@
+#!/usr/bin/env python3
+
+from kalman_wheel_controller.wheel_controller_node import main
+if __name__ == '__main__':
+    main()

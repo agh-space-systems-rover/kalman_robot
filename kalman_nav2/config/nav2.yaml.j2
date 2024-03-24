@@ -46,7 +46,7 @@ global_costmap:
       # Time to wait for the transform from robot base frame to global frame to become available. If exceeded, the configuration stage is aborted.
       # transform_timeout: 60.0 # seconds
 
-      # Ordered set of footprint points passed in as a string, must be closed set. For example, the following defines a square base with side lengths of 0.2 meters footprint: “[ [0.1, 0.1], [0.1, -0.1], [-0.1, -0.1], [-0.1, 0.1] ]”. Note that this can also be adjusted over time using the costmap’s ~/footprint topic, which will update the polygon over time as needed due to changes in the robot’s state, such as movement of an attached manipulator, picking up a pallet, or other actions that adjust a robot’s shape.
+      # Ordered set of footprint points passed in as a string, must be closed set. For example, the following defines a square base with side lengths of 0.2 meters footprint: “[ [0.1, 0.1], [0.1, -0.1], [-0.1, -0.1], [-0.1, 0.1] ]”. Note that this can also be adjusted over time using the costmap's ~/footprint topic, which will update the polygon over time as needed due to changes in the robot's state, such as movement of an attached manipulator, picking up a pallet, or other actions that adjust a robot's shape.
       # footprint: []
       # Amount to pad footprint (m).
       # footprint_padding: 0.01
@@ -56,14 +56,35 @@ global_costmap:
       # List of mapped costmap filter names for parameter namespaces and names.
       # filters: []
 
-{% if obstacle_detection %}
       # List of mapped plugin names for parameter namespaces and names.
-      plugins: ["stvl", "inflation_layer"]
-{% else %}
-      plugins: ["inflation_layer"]
+      # - static_layer is enabled if static_map is truthy.
+      # - stvl is enabled if at least one RGBD camera is up.
+      plugins: [
+        {% if static_map %}
+        "static_layer",
+        {% endif %}
+        {% if rgbd_ids %}
+        "stvl",
+        {% endif %}
+        "inflation_layer"
+      ]
+
+{% if static_map %}
+      static_layer:
+        plugin: "nav2_costmap_2d::StaticLayer"
+        # enabled: true
+
+        # Subscribe to static map updates after receiving first.
+        # subscribe_to_updates: false
+        # QoS settings for map topic; Needed to subscribe to latched map topic.
+        # map_subscribe_transient_local: true
+        # TF tolerance.
+        # transform_tolerance: 0.0 # seconds
+        # Map topic to subscribe to. If left empty the map topic will default to the global map_topic parameter in costmap_2d_ros.
+        # map_topic: map
 {% endif %}
 
-{% if obstacle_detection %}
+{% if rgbd_ids %}
       # Why use STVL:
       # - Standard voxel layer only clears obstacles when other obstacles are detected behind them.
       # - STVL on the other hand clears obstacles when they are not detected in the frustum anymore.
@@ -82,19 +103,19 @@ global_costmap:
         
         combination_method: 1           # 1=max, 0=override
         update_footprint_enabled: true  # default off
-        transform_tolerance: 0.2        # seconds
+        transform_tolerance: 1.0        # seconds
 
-        publish_voxel_map: true         # default off
+        publish_voxel_map: false        # default off
         mapping_mode: false             # default off, saves map not for navigation
         map_save_duration: 60.0         # default 60s, how often to autosave
 
         # Multi-camera setup using Jinja2 templating:
         # List of sources of sensors as a string.
         observation_sources: {{ rgbd_ids | join(' ') }}
-{% for camera_id in rgbd_ids %}
-        {{ camera_id }}:
+{% for rgbd_id in rgbd_ids %}
+        {{ rgbd_id }}:
           data_type: PointCloud2
-          topic: /{{ camera_id }}/depth/color/points/filtered/obstacles
+          topic: /{{ rgbd_id }}/depth/color/points/filtered/obstacles # must be absolute topic name
 
           # Marking params:
           marking: true
@@ -116,6 +137,7 @@ global_costmap:
       # This layer places an exponential decay functions around obstacles to increase cost to traverse near collision. It also places a lethal cost around obstacles within the robot's fully inscribed radius - even if a robot is non-circular for optimized first-order collision checking.
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
+        # enable: true
 
         # Radius to inflate costmap around lethal obstacles.
         inflation_radius: 0.8 # default: 0.55
@@ -142,57 +164,57 @@ local_costmap:
       lethal_cost_threshold: 1000000
       robot_radius: 0.7
 
-{% if obstacle_detection %}
-      plugins: ["stvl", "inflation_layer"]
-{% else %}
+# {% if obstacle_detection %}
+#       plugins: ["stvl", "inflation_layer"]
+# {% else %}
       plugins: ["inflation_layer"]
-{% endif %}
+# {% endif %}
 
-{% if obstacle_detection %}
-      stvl:
-        plugin: "spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer"
-        enabled: true
+# {% if rgbd_ids %}
+#       stvl:
+#         plugin: "spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer"
+#         enabled: true
 
-        origin_z: 0.0                   # meters
-        voxel_size: 0.1                 # meters
+#         origin_z: 0.0                   # meters
+#         voxel_size: 0.1                 # meters
         
-        voxel_decay: 5.0                # seconds if linear, e^n if exponential
-        decay_model: 0                  # 0=linear, 1=exponential, -1=persistent
-        mark_threshold: 0               # voxel height
-        track_unknown_space: true       # default space is unknown
+#         voxel_decay: 5.0                # seconds if linear, e^n if exponential
+#         decay_model: 0                  # 0=linear, 1=exponential, -1=persistent
+#         mark_threshold: 0               # voxel height
+#         track_unknown_space: true       # default space is unknown
         
-        combination_method: 1           # 1=max, 0=override
-        update_footprint_enabled: true  # default off
-        transform_tolerance: 0.2        # seconds
+#         combination_method: 1           # 1=max, 0=override
+#         update_footprint_enabled: true  # default off
+#         transform_tolerance: 0.2        # seconds
 
-        publish_voxel_map: true         # default off
-        mapping_mode: false             # default off, saves map not for navigation
-        map_save_duration: 60.0         # default 60s, how often to autosave
+#         publish_voxel_map: true         # default off
+#         mapping_mode: false             # default off, saves map not for navigation
+#         map_save_duration: 60.0         # default 60s, how often to autosave
 
-        # Multi-camera setup using Jinja2 templating:
-        # List of sources of sensors as a string.
-        observation_sources: {{ rgbd_ids | join(' ') }}
-{% for camera_id in rgbd_ids %}
-        {{ camera_id }}:
-          data_type: PointCloud2
-          topic: /{{ camera_id }}/depth/color/points/filtered/obstacles
+#         # Multi-camera setup using Jinja2 templating:
+#         # List of sources of sensors as a string.
+#         observation_sources: {{ rgbd_ids | join(' ') }}
+# {% for rgbd_id in rgbd_ids %}
+#         {{ rgbd_id }}:
+#           data_type: PointCloud2
+#           topic: /{{ rgbd_id }}/depth/color/points/filtered/obstacles # must be absolute topic name
 
-          # Marking params:
-          marking: true
-          obstacle_range: 5.0           # meters
-          min_obstacle_height: -10000.0 # default 0, meters
-          max_obstacle_height: 10000.0  # default 3, meters
-          clear_after_reading: true     # default false, clear the buffer after the layer gets readings from it
-          filter: "voxel"               # default passthrough, apply "voxel", "passthrough", or no filter to sensor data, recommended to have at one filter on
+#           # Marking params:
+#           marking: true
+#           obstacle_range: 5.0           # meters
+#           min_obstacle_height: -10000.0 # default 0, meters
+#           max_obstacle_height: 10000.0  # default 3, meters
+#           clear_after_reading: true     # default false, clear the buffer after the layer gets readings from it
+#           filter: "voxel"               # default passthrough, apply "voxel", "passthrough", or no filter to sensor data, recommended to have at one filter on
             
-          # Clearing params:
-          clearing: true
-          max_z: 7.0                    # default 10, meters
-          vertical_fov_angle: 1.025     # default 0.7, radians
-          horizontal_fov_angle: 1.571   # default 1.04, radians
-          decay_acceleration: 1.0       # default 0, 1/s^2. If laser scanner MUST be 0
-{% endfor %}
-{% endif %}
+#           # Clearing params:
+#           clearing: true
+#           max_z: 7.0                    # default 10, meters
+#           vertical_fov_angle: 1.025     # default 0.7, radians
+#           horizontal_fov_angle: 1.571   # default 1.04, radians
+#           decay_acceleration: 1.0       # default 0, 1/s^2. If laser scanner MUST be 0
+# {% endfor %}
+# {% endif %}
 
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
@@ -384,7 +406,7 @@ controller_server:
   ros__parameters:
     # Frequency to run controller (Hz).
     controller_frequency: 10.0
-    # Adds soft real-time priorization to the controller server to better ensure resources to time sensitive portions of the codebase. This will set the controller’s execution thread to a higher priority than the rest of the system (90) to meet scheduling deadlines to have less missed loop rates. To use this feature, you use set the following inside of /etc/security/limits.conf to give userspace access to elevated prioritization permissions: <username> soft rtprio 99 <username> hard rtprio 99
+    # Adds soft real-time priorization to the controller server to better ensure resources to time sensitive portions of the codebase. This will set the controller's execution thread to a higher priority than the rest of the system (90) to meet scheduling deadlines to have less missed loop rates. To use this feature, you use set the following inside of /etc/security/limits.conf to give userspace access to elevated prioritization permissions: <username> soft rtprio 99 <username> hard rtprio 99
     use_realtime_priority: false
     # The timeout value (in seconds) for action servers to discard a goal handle if a result has not been produced. This used to default to 15 minutes in rcl but was changed to 10 seconds in this PR #1012, which may be less than some actions in Nav2 take to run. For most applications, this should not need to be adjusted as long as the actions within the server do not exceed this deadline. This issue has been raised with OSRF to find another solution to avoid active goal timeouts for bookkeeping, so this is a semi-temporary workaround
     action_server_result_timeout: 86400.0 # 24h
@@ -419,14 +441,14 @@ controller_server:
       plugin: "service_based_nav2_controller::ServiceBasedNav2Controller"
       compute_velocity_commands_service: "/path_follower/compute_velocity_commands"
 
-# The nav2_velocity_smoother is a package containing a lifecycle-component node for smoothing velocities sent by Nav2 to robot controllers. The aim of this package is to implement velocity, acceleration, and deadband smoothing from Nav2 to reduce wear-and-tear on robot motors and hardware controllers by smoothing out the accelerations/jerky movements that might be present with some local trajectory planners’ control efforts. It can also interpolate velocity commands at higher rates than the controller server publishes.
+# The nav2_velocity_smoother is a package containing a lifecycle-component node for smoothing velocities sent by Nav2 to robot controllers. The aim of this package is to implement velocity, acceleration, and deadband smoothing from Nav2 to reduce wear-and-tear on robot motors and hardware controllers by smoothing out the accelerations/jerky movements that might be present with some local trajectory planners' control efforts. It can also interpolate velocity commands at higher rates than the controller server publishes.
 velocity_smoother:
   ros__parameters:
     # Frequency (Hz) to use the last received velocity command to smooth by velocity, acceleration, and deadband constraints. If set approximately to the rate of your local trajectory planner, it should smooth by acceleration constraints velocity commands. If set much higher, it will interpolate and provide a smooth set of commands to the hardware controller.
     smoothing_frequency: 10.0
-    # Whether or not to adjust other components of velocity proportionally to a component’s required changes due to acceleration limits. This will try to adjust all components to follow the same direction, but still enforces acceleration limits to guarantee compliance, even if it means deviating off commanded trajectory slightly.
+    # Whether or not to adjust other components of velocity proportionally to a component's required changes due to acceleration limits. This will try to adjust all components to follow the same direction, but still enforces acceleration limits to guarantee compliance, even if it means deviating off commanded trajectory slightly.
     scale_velocities: false
-    # Type of feedback to use for the current state of the robot’s velocity. In OPEN_LOOP, it will use the last commanded velocity as the next iteration’s current velocity. When acceleration limits are set appropriately, this is a good assumption. In CLOSED_LOOP, it will use the odometry from the odom topic to estimate the robot’s current speed. In closed loop mode, it is important that the odometry is high rate and low latency, relative to the smoothing frequency.
+    # Type of feedback to use for the current state of the robot's velocity. In OPEN_LOOP, it will use the last commanded velocity as the next iteration's current velocity. When acceleration limits are set appropriately, this is a good assumption. In CLOSED_LOOP, it will use the odometry from the odom topic to estimate the robot's current speed. In closed loop mode, it is important that the odometry is high rate and low latency, relative to the smoothing frequency.
     feedback: "OPEN_LOOP"
     # Maximum velocities (m/s) in [x, y, theta] axes.
     max_velocity: [2.0, 2.0, 2.0]

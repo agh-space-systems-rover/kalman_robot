@@ -3,9 +3,12 @@
 <package format="3">
   <name>kalman_nav2</name>
   <version>0.0.0</version>
-  <description>Nav2 configuration and launching</description>
+  <description>configuration and launch files for Nav2 and related modules; Includes a custom path follower.</description>
   <maintainer email="63957587+rayferric@users.noreply.github.com">rayferric</maintainer>
   <license>MIT</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>ament_cmake_python</buildtool_depend>
 
   <!-- Nav2 dependencies -->
   <exec_depend>ros2launch</exec_depend>
@@ -19,12 +22,10 @@
   <exec_depend>python-numpy-quaternion-pip</exec_depend>
   <exec_depend>service_based_nav2_controller_srvs</exec_depend>
 
-  <test_depend>ament_copyright</test_depend>
-  <test_depend>ament_flake8</test_depend>
-  <test_depend>ament_pep257</test_depend>
-  <test_depend>python3-pytest</test_depend>
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
 
   <export>
-    <build_type>ament_python</build_type>
+    <build_type>ament_cmake</build_type>
   </export>
 </package>

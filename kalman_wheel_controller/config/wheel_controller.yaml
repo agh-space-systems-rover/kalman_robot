@@ -1,16 +1,20 @@
 wheel_controller:
   ros__parameters:
-    # Queue size for command subscribers and state publisher.
+    # queue size for command subscribers and state publisher
     queue_size: 10
-    # Frequency of state publisher (Hz).
-    publish_freq: 10
-    # Time to wait before automatically stopping wheels after last issued command (s).
-    stop_timeout: 2.0
-    # Radius of the robot in meters; Used to calculate wheel angles from angular velocity. (m).
+    # update frequency (Hz)
+    rate: 10
+    # time to wait before automatically stopping wheels after last issued command (s)
+    stop_timeout: 3.0
+    # radius of the robot in meters; Used to calculate wheel angles from angular velocity (m)
     robot_radius: 0.5
-    # Angular speed of the swivel when changing wheel orientation; Predicates for how long the robot will wait when adjusting wheels. (rad/s).
-    wheel_turn_vel: 0.8
-    # Minimum difference between current and target wheel swivel angle to adjust wheels in place (rad).
+    # maximum wheel velocity (m/s)
+    max_wheel_vel: 1.0
+    # wheel acceleration (m/s^2)
+    wheel_accel: 1.0
+    # angular speed of the swivel when changing wheel orientation; Predicates for how long the robot will wait when adjusting wheels (rad/s)
+    wheel_turn_vel: 1.57
+    # minimum difference between current and target wheel swivel angle to adjust wheels in place (rad)
     max_wheel_turn_diff: 0.7
-    # Maximum difference between current and target wheel swivel angle to stop adjusting wheels in place (rad).
+    # maximum difference between current and target wheel swivel angle to stop adjusting wheels in place (rad)
     min_wheel_turn_diff: 0.2

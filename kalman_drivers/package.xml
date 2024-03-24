@@ -12,6 +12,7 @@
   <depend>phidgets_drivers</depend> <!-- libphidget22 is required to build compasscal. -->
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>imu_tools</exec_depend>
+  <exec_depend>compressed_image_transport</exec_depend>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>

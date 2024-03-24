@@ -172,7 +172,9 @@ class Rosou(Node):
 
         to_deserialize = eval(config["message_part_serialized"])
 
-        deserialized_part = rclpy.serialization.deserialize_message(data, type(to_deserialize))
+        deserialized_part = rclpy.serialization.deserialize_message(
+            data, type(to_deserialize)
+        )
         exec(config["message_part_serialized"] + "= deserialized_part")
 
         self.publishers_[frame_id].publish(msg)
@@ -207,7 +209,7 @@ class Rosou(Node):
         )
 
         frame = MasterMessage()
-        frame.cmd = frame_header[0] # Frame direction
+        frame.cmd = frame_header[0]  # Frame direction
         frame.data = frame_header[1:] + tuple(bytearray(data.getvalue()))
 
         self.ros_to_master_pub.publish(frame)

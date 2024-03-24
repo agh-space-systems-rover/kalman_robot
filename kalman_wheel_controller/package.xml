@@ -3,20 +3,21 @@
 <package format="3">
   <name>kalman_wheel_controller</name>
   <version>0.0.0</version>
-  <description>controller node that converts Twist messages on `/cmd_vel` and similar topics to the actual wheel state</description>
+  <description>controller node that converts Twist messages on `/cmd_vel` and similar topics to the actual wheel state; Also includes safeguards that can limit the acceleration and velocity or stop the rover to adjust wheel rotation.</description>
   <maintainer email="63957587+rayferric@users.noreply.github.com">rayferric</maintainer>
   <license>MIT</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>ament_cmake_python</buildtool_depend>
 
   <exec_depend>geometry_msgs</exec_depend>
 
   <exec_depend>kalman_interfaces</exec_depend>
 
-  <test_depend>ament_copyright</test_depend>
-  <test_depend>ament_flake8</test_depend>
-  <test_depend>ament_pep257</test_depend>
-  <test_depend>python3-pytest</test_depend>
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
   
   <export>
-    <build_type>ament_python</build_type>
+    <build_type>ament_cmake</build_type>
   </export>
 </package>

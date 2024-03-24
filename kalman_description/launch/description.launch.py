@@ -8,50 +8,25 @@ import xacro
 
 
 def launch_setup(context):
-    component_container = LaunchConfiguration("component_container").perform(context)
-    joint_state_publisher_gui = LaunchConfiguration("joint_state_publisher_gui").perform(context).lower() == "true"
+    joint_state_publisher_gui = (
+        LaunchConfiguration("joint_state_publisher_gui").perform(context).lower()
+        == "true"
+    )
 
     urdf = xacro.process_file(
-        str(
-            get_package_share_path("kalman_description")
-            / "urdf"
-            / "kalman.urdf.xacro"
-        )
+        str(get_package_share_path("kalman_description") / "urdf" / "kalman.urdf.xacro")
     ).toxml()
 
     description = []
 
     # robot structure TF publisher
-    if component_container:
-        description += [
-            LoadComposableNodes(
-                target_container=component_container,
-                composable_node_descriptions=[
-                    ComposableNode(
-                        package="robot_state_publisher",
-                        plugin="robot_state_publisher::RobotStatePublisher",
-                        parameters=[
-                            {
-                                "robot_description": urdf
-                            }
-                        ],
-                        # NOTE: Intra-Process communication is not supported.
-                    )
-                ],
-            )
-        ]
-    else:
-        description += [
-            Node(
-                package="robot_state_publisher",
-                executable="robot_state_publisher",
-                parameters=[
-                    {
-                        "robot_description": urdf
-                    }
-                ],
-            ),
-        ]
+    description += [
+        Node(
+            package="robot_state_publisher",
+            executable="robot_state_publisher",
+            parameters=[{"robot_description": urdf}],
+        ),
+    ]
 
     # joint state publisher
     # Required for 3D model joints to show up.
@@ -61,6 +36,7 @@ def launch_setup(context):
             Node(
                 package="joint_state_publisher",
                 executable="joint_state_publisher",
+                parameters=[{"rate": 30}],
             ),
         ]
 
@@ -75,15 +51,14 @@ def launch_setup(context):
 
     return description
 
+
 def generate_launch_description():
     return LaunchDescription(
         [
             DeclareLaunchArgument(
-                "component_container",
-                default_value="", description="Name of an existing component container to use. Empty by default to disable composition."
-            ),
-            DeclareLaunchArgument(
-                "joint_state_publisher_gui", default_value="true", description="Start the master driver."
+                "joint_state_publisher_gui",
+                default_value="true",
+                description="Start the master driver.",
             ),
             OpaqueFunction(function=launch_setup),
         ]

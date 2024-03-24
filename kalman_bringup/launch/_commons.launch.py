@@ -1,3 +1,17 @@
+# This launch file includes all modules and it allows to selectively launch them by setting appropriate arguments.
+# It allows to quickly create launch files with custom configurations and maintain their readability.
+#
+# Usage:
+# When including this file, please specify all options without periods "." in their names if there are any.
+# All modules have a "{module}.spawn" argument, which is used to enable or disable the module.
+# This argument is always false by default.
+# If you set "{module}.spawn" to "true", please also include all other "{module}.*" arguments.
+# If "{module}.spawn" is not set, "{module}.*" arguments should not be specified.
+# When running multiple launch configurations together, please make sure that each "{module}.spawn" argument is set to "true" at most in only one of them.
+#
+# If any "*.composition" argument is set to "true", please ensure that "component_container.spawn" was also set to "true" in this launch file or in any other one that is running currently.
+# Since any launch file based on this one is meant to be run by the user, it should only declare its own arguments if necessary. In that case, all arguments should also provide sensible default values.
+
 from ament_index_python import get_package_share_path
 from launch import LaunchDescription
 from launch_ros.actions import Node
@@ -11,26 +25,22 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 
 COMPONENT_CONTAINER_NAME = "kalman_container"
-COMPOSITION_BY_DEFAULT = "true"
-DEFAULT_RVIZ_CONFIG = "default.rviz"
-DEFAULT_RGBD_IDS = "d455_front d455_back d455_left d455_right"
+
 
 def launch_setup(context):
     def get_bool(name):
         return LaunchConfiguration(name).perform(context).lower() == "true"
-    
+
     def get_str(name):
         return LaunchConfiguration(name).perform(context)
-    
-    component_container = COMPONENT_CONTAINER_NAME if get_bool("composition") else ""
 
     description = []
 
     if get_bool("component_container.spawn"):
         description += [
             Node(
-                package='rclcpp_components',
-                executable='component_container_mt',
+                package="rclcpp_components",
+                executable="component_container_mt",
                 name=COMPONENT_CONTAINER_NAME,
                 arguments=["--ros-args", "--log-level", "warn"],
             )
@@ -47,8 +57,9 @@ def launch_setup(context):
                     )
                 ),
                 launch_arguments={
-                    "component_container": component_container,
-                    "joint_state_publisher_gui": get_str("description.joint_state_publisher_gui"),
+                    "joint_state_publisher_gui": get_str(
+                        "description.joint_state_publisher_gui"
+                    ),
                 }.items(),
             )
         ]
@@ -90,9 +101,13 @@ def launch_setup(context):
                     )
                 ),
                 launch_arguments={
-                    "component_container": component_container,
+                    "component_container": (
+                        COMPONENT_CONTAINER_NAME
+                        if get_bool("drivers.composition")
+                        else ""
+                    ),
                     "master": get_str("drivers.master"),
-                    "rgbd_ids": get_str("rgbd_ids"),
+                    "rgbd_ids": get_str("drivers.rgbd_ids"),
                     "imu": get_str("drivers.imu"),
                     "compasscal": get_str("drivers.compasscal"),
                 }.items(),
@@ -111,8 +126,23 @@ def launch_setup(context):
                         / "rviz"
                         / get_str("rviz.config")
                     ),
-                    "--ros-args", "--log-level", "warn"
+                    "--ros-args",
+                    "--log-level",
+                    "warn",
                 ],
+            ),
+        ]
+
+    if get_bool("mapviz.spawn"):
+        description += [
+            IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(
+                    str(
+                        get_package_share_path("kalman_mapviz")
+                        / "launch"
+                        / "mapviz.launch.py"
+                    )
+                ),
             ),
         ]
 
@@ -120,11 +150,20 @@ def launch_setup(context):
         description += [
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
-                    str(get_package_share_path("kalman_slam") / "launch" / "slam.launch.py")
+                    str(
+                        get_package_share_path("kalman_slam")
+                        / "launch"
+                        / "slam.launch.py"
+                    )
                 ),
                 launch_arguments={
-                    "component_container": component_container,
-                    "rgbd_ids": get_str("rgbd_ids"),
+                    "component_container": (
+                        COMPONENT_CONTAINER_NAME if get_bool("slam.composition") else ""
+                    ),
+                    "rgbd_ids": get_str("slam.rgbd_ids"),
+                    "gps": get_str("slam.gps"),
+                    "gps_datum": get_str("slam.gps_datum"),
+                    "no_gps_map_odom_offset": get_str("slam.no_gps_map_odom_offset"),
                     "mapping": get_str("slam.mapping"),
                 }.items(),
             ),
@@ -134,11 +173,18 @@ def launch_setup(context):
         description += [
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
-                    str(get_package_share_path("kalman_nav2") / "launch" / "nav2.launch.py")
+                    str(
+                        get_package_share_path("kalman_nav2")
+                        / "launch"
+                        / "nav2.launch.py"
+                    )
                 ),
                 launch_arguments={
-                    "component_container": component_container,
-                    "rgbd_ids": get_str("rgbd_ids")
+                    "component_container": (
+                        COMPONENT_CONTAINER_NAME if get_bool("nav2.composition") else ""
+                    ),
+                    "rgbd_ids": get_str("nav2.rgbd_ids"),
+                    "static_map": get_str("nav2.static_map"),
                 }.items(),
             ),
         ]
@@ -156,22 +202,50 @@ def launch_setup(context):
             ),
         ]
 
+    if get_bool("aruco.spawn"):
+        description += [
+            IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(
+                    str(
+                        get_package_share_path("kalman_aruco")
+                        / "launch"
+                        / "aruco.launch.py"
+                    )
+                ),
+                launch_arguments={
+                    "component_container": (
+                        COMPONENT_CONTAINER_NAME
+                        if get_bool("aruco.composition")
+                        else ""
+                    ),
+                    "rgbd_ids": get_str("aruco.rgbd_ids"),
+                }.items(),
+            ),
+        ]
+
+    if get_bool("yolo.spawn"):
+        description += [
+            IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(
+                    str(
+                        get_package_share_path("kalman_yolo")
+                        / "launch"
+                        / "yolo.launch.py"
+                    )
+                ),
+                launch_arguments={
+                    "rgbd_ids": get_str("yolo.rgbd_ids"),
+                    "config": get_str("yolo.config"),
+                }.items(),
+            ),
+        ]
+
     return description
 
 
 def generate_launch_description():
     return LaunchDescription(
         [
-            DeclareLaunchArgument(
-                "composition",
-                default_value=COMPOSITION_BY_DEFAULT,
-                description="Enable node composition.",
-            ),
-            DeclareLaunchArgument(
-                "rgbd_ids",
-                default_value=DEFAULT_RGBD_IDS,
-                description="Space-separated IDs of the depth cameras to use.",
-            ),
             DeclareLaunchArgument(
                 "component_container.spawn",
                 default_value="false",
@@ -203,13 +277,23 @@ def generate_launch_description():
                 description="Launch with physical sensors and actuators.",
             ),
             DeclareLaunchArgument(
+                "drivers.composition",
+                default_value="false",
+                description="Use node composition.",
+            ),
+            DeclareLaunchArgument(
+                "drivers.rgbd_ids",
+                default_value="",
+                description="Space-separated IDs of the depth cameras to use.",
+            ),
+            DeclareLaunchArgument(
                 "drivers.master",
-                default_value="true",
+                default_value="false",
                 description="Start the master driver.",
             ),
             DeclareLaunchArgument(
                 "drivers.imu",
-                default_value="true",
+                default_value="false",
                 description="Start the IMU driver.",
             ),
             DeclareLaunchArgument(
@@ -224,13 +308,43 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument(
                 "rviz.config",
-                default_value=DEFAULT_RVIZ_CONFIG,
+                default_value="",
                 description="RViz configuration file.",
+            ),
+            DeclareLaunchArgument(
+                "mapviz.spawn",
+                default_value="false",
+                description="Launch MapViz.",
             ),
             DeclareLaunchArgument(
                 "slam.spawn",
                 default_value="false",
                 description="Start up the SLAM module.",
+            ),
+            DeclareLaunchArgument(
+                "slam.composition",
+                default_value="false",
+                description="Use node composition.",
+            ),
+            DeclareLaunchArgument(
+                "slam.rgbd_ids",
+                default_value="",
+                description="Space-separated IDs of the depth cameras to use for localization.",
+            ),
+            DeclareLaunchArgument(
+                "slam.gps",
+                default_value="false",
+                description="Use GPS data to generate map->odom. If disabled, a static transform is used. GPS additionally provides map->utm that allows to send goals in UTM coordinates.",
+            ),
+            DeclareLaunchArgument(
+                "slam.gps_datum",
+                default_value="",
+                description="The 'latitude longitude' of the map frame. Only used if GPS is enabled. Empty to assume first recorded GPS fix.",
+            ),
+            DeclareLaunchArgument(
+                "slam.no_gps_map_odom_offset",
+                default_value="",
+                description="The 'x y' translation from map to odom frame. Only used if GPS is disabled. Empty means zero offset.",
             ),
             DeclareLaunchArgument(
                 "slam.mapping",
@@ -243,9 +357,54 @@ def generate_launch_description():
                 description="Start up the Nav2 stack.",
             ),
             DeclareLaunchArgument(
+                "nav2.composition",
+                default_value="false",
+                description="Use node composition.",
+            ),
+            DeclareLaunchArgument(
+                "nav2.rgbd_ids",
+                default_value="",
+                description="Space-separated IDs of the depth cameras to use.",
+            ),
+            DeclareLaunchArgument(
+                "nav2.static_map",
+                default_value="",
+                description="Name of the static map to use. Maps are stored in kalman_nav2/maps. Empty to disable static map.",
+            ),
+            DeclareLaunchArgument(
                 "wheel_controller.spawn",
                 default_value="false",
                 description="Start up the wheel controller.",
+            ),
+            DeclareLaunchArgument(
+                "aruco.spawn",
+                default_value="false",
+                description="Start up ArUco marker tracking.",
+            ),
+            DeclareLaunchArgument(
+                "aruco.composition",
+                default_value="false",
+                description="Use node composition.",
+            ),
+            DeclareLaunchArgument(
+                "aruco.rgbd_ids",
+                default_value="",
+                description="Space-separated IDs of the depth cameras to use.",
+            ),
+            DeclareLaunchArgument(
+                "yolo.spawn",
+                default_value="false",
+                description="Start up YOLO object detection.",
+            ),
+            DeclareLaunchArgument(
+                "yolo.rgbd_ids",
+                default_value="",
+                description="Space-separated IDs of the depth cameras to use.",
+            ),
+            DeclareLaunchArgument(
+                "yolo.config",
+                default_value="",
+                description="Name of the YOLO configuration file. Configuration files are located in kalman_yolo/config.",
             ),
             OpaqueFunction(function=launch_setup),
         ]
