@@ -1,6 +1,0 @@
-uint8 OFF = 0
-uint8 AUTONOMY = 1
-uint8 TELEOP = 2
-uint8 FINISHED = 3
-
-uint8 mode

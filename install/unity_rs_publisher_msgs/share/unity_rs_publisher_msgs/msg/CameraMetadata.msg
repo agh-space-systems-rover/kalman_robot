@@ -1,1 +1,0 @@
-/home/rafal/kalman_ws/src/kalman_robot/unity_sim/unity_rs_publisher_msgs/msg/CameraMetadata.msg

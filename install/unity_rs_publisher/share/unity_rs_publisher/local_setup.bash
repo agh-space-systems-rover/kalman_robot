@@ -1,1 +1,0 @@
-/home/rafal/kalman_ws/src/kalman_robot/build/unity_rs_publisher/ament_cmake_environment_hooks/local_setup.bash

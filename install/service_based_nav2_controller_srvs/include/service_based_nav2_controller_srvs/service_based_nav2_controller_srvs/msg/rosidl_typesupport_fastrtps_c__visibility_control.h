@@ -1,1 +1,0 @@
-/home/rafal/kalman_ws/src/kalman_robot/build/service_based_nav2_controller_srvs/rosidl_typesupport_fastrtps_c/service_based_nav2_controller_srvs/msg/rosidl_typesupport_fastrtps_c__visibility_control.h

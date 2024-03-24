@@ -1,1 +1,0 @@
-/home/rafal/kalman_ws/src/kalman_robot/build/kalman_interfaces/rosidl_generator_c/kalman_interfaces/srv/detail/set_ueuos_color__functions.h

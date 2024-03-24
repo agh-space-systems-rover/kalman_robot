@@ -1,1 +1,0 @@
-/home/rafal/kalman_ws/src/kalman_robot/build/kalman_description/ament_cmake_core/kalman_descriptionConfig-version.cmake

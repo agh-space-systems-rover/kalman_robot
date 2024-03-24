@@ -1,3 +1,0 @@
-[console_scripts]
-compasscal = drivers.compasscal_node:main
-

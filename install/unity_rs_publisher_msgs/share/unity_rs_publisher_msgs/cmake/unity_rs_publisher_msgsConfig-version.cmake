@@ -1,1 +1,0 @@
-/home/rafal/kalman_ws/src/kalman_robot/build/unity_rs_publisher_msgs/ament_cmake_core/unity_rs_publisher_msgsConfig-version.cmake

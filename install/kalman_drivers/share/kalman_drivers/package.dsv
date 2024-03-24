@@ -1,9 +1,0 @@
-source;share/kalman_drivers/hook/pythonpath.ps1
-source;share/kalman_drivers/hook/pythonpath.dsv
-source;share/kalman_drivers/hook/pythonpath.sh
-source;share/kalman_drivers/hook/ament_prefix_path.ps1
-source;share/kalman_drivers/hook/ament_prefix_path.dsv
-source;share/kalman_drivers/hook/ament_prefix_path.sh
-source;../../build/kalman_drivers/share/kalman_drivers/hook/pythonpath_develop.ps1
-source;../../build/kalman_drivers/share/kalman_drivers/hook/pythonpath_develop.dsv
-source;../../build/kalman_drivers/share/kalman_drivers/hook/pythonpath_develop.sh

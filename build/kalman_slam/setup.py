@@ -1,1 +1,0 @@
-/home/rafal/kalman_ws/src/kalman_robot/kalman_slam/setup.py

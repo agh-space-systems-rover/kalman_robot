@@ -1,1 +1,0 @@
-/home/rafal/kalman_ws/src/kalman_robot/kalman_master_driver/launch/master_driver.launch.py

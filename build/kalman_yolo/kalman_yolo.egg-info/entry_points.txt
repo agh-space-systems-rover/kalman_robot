@@ -1,3 +1,0 @@
-[console_scripts]
-yolo_detect = yolo.detect:main
-

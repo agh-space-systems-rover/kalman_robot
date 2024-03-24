@@ -1,3 +1,0 @@
-[console_scripts]
-rosou_node = kalman_rosou.rosou_node:main
-

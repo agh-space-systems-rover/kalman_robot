@@ -1,1 +1,0 @@
-/home/rafal/kalman_ws/src/kalman_robot/build/unity_rs_publisher_msgs/rosidl_generator_py/unity_rs_publisher_msgs/__init__.py

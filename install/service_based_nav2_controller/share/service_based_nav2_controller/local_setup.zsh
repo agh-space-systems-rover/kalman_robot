@@ -1,1 +1,0 @@
-/home/rafal/kalman_ws/src/kalman_robot/build/service_based_nav2_controller/ament_cmake_environment_hooks/local_setup.zsh

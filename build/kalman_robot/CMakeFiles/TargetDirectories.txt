@@ -1,9 +1,0 @@
-/home/rafal/kalman_ws/src/kalman_robot/build/kalman_robot/CMakeFiles/uninstall.dir
-/home/rafal/kalman_ws/src/kalman_robot/build/kalman_robot/CMakeFiles/kalman_robot_uninstall.dir
-/home/rafal/kalman_ws/src/kalman_robot/build/kalman_robot/CMakeFiles/test.dir
-/home/rafal/kalman_ws/src/kalman_robot/build/kalman_robot/CMakeFiles/edit_cache.dir
-/home/rafal/kalman_ws/src/kalman_robot/build/kalman_robot/CMakeFiles/rebuild_cache.dir
-/home/rafal/kalman_ws/src/kalman_robot/build/kalman_robot/CMakeFiles/list_install_components.dir
-/home/rafal/kalman_ws/src/kalman_robot/build/kalman_robot/CMakeFiles/install.dir
-/home/rafal/kalman_ws/src/kalman_robot/build/kalman_robot/CMakeFiles/install/local.dir
-/home/rafal/kalman_ws/src/kalman_robot/build/kalman_robot/CMakeFiles/install/strip.dir

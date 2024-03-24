@@ -1,4 +1,0 @@
-source;share/kalman_robot/local_setup.bash
-source;share/kalman_robot/local_setup.dsv
-source;share/kalman_robot/local_setup.sh
-source;share/kalman_robot/local_setup.zsh

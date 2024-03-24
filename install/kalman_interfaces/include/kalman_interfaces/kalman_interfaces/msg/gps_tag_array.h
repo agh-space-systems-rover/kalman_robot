@@ -1,1 +1,0 @@
-/home/rafal/kalman_ws/src/kalman_robot/build/kalman_interfaces/rosidl_generator_c/kalman_interfaces/msg/gps_tag_array.h

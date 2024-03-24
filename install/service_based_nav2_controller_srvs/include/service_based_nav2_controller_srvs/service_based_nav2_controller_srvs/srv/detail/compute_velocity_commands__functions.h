@@ -1,1 +1,0 @@
-/home/rafal/kalman_ws/src/kalman_robot/build/service_based_nav2_controller_srvs/rosidl_generator_c/service_based_nav2_controller_srvs/srv/detail/compute_velocity_commands__functions.h
