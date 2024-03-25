@@ -4,3 +4,6 @@
 [submodule "kalman_yolo"]
 	path = kalman_yolo
 	url = git@github.com:agh-space-systems-rover/kalman_yolo.git
+[submodule "ros_aruco_opencv"]
+	path = ros_aruco_opencv
+	url = git@github.com:agh-space-systems-rover/ros_aruco_opencv.git

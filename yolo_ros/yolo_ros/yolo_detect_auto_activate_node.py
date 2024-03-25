@@ -14,6 +14,8 @@ def main():
             node.get_logger().error(f"Failed to auto-activate.")
 
         rclpy.spin(node)
-        rclpy.shutdown()
     except KeyboardInterrupt:
         pass
+    finally:
+        node.destroy_node()
+        rclpy.shutdown()

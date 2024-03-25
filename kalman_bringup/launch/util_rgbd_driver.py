@@ -28,8 +28,8 @@ def generate_launch_description():
                     )
                 ),
                 launch_arguments={
-                    "component_container.spawn": LaunchConfiguration("composition"),
-                    "drivers.spawn": "true",
+                    "component_container": LaunchConfiguration("composition"),
+                    "drivers": "true",
                     "drivers.composition": LaunchConfiguration("composition"),
                     "drivers.rgbd_ids": LaunchConfiguration("rgbd_ids"),
                     "drivers.master": "false",

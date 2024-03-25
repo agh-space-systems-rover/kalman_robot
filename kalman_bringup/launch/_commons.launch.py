@@ -2,14 +2,13 @@
 # It allows to quickly create launch files with custom configurations and maintain their readability.
 #
 # Usage:
-# When including this file, please specify all options without periods "." in their names if there are any.
-# All modules have a "{module}.spawn" argument, which is used to enable or disable the module.
+# All modules have a "{module}" argument, which is used to enable or disable the module.
 # This argument is always false by default.
-# If you set "{module}.spawn" to "true", please also include all other "{module}.*" arguments.
-# If "{module}.spawn" is not set, "{module}.*" arguments should not be specified.
-# When running multiple launch configurations together, please make sure that each "{module}.spawn" argument is set to "true" at most in only one of them.
+# If you set "{module}" to "true", please also include all other "{module}.*" arguments.
+# If "{module}" is not set, "{module}.*" arguments should not be specified.
+# When running multiple launch configurations together, please make sure that each "{module}" argument is set to "true" at most in only one of them.
 #
-# If any "*.composition" argument is set to "true", please ensure that "component_container.spawn" was also set to "true" in this launch file or in any other one that is running currently.
+# If any "*.composition" argument is set to "true", please ensure that "component_container" was also set to "true" in this launch file or in any other one that is currently running.
 # Since any launch file based on this one is meant to be run by the user, it should only declare its own arguments if necessary. In that case, all arguments should also provide sensible default values.
 
 from ament_index_python import get_package_share_path
@@ -36,7 +35,7 @@ def launch_setup(context):
 
     description = []
 
-    if get_bool("component_container.spawn"):
+    if get_bool("component_container"):
         description += [
             Node(
                 package="rclcpp_components",
@@ -46,7 +45,7 @@ def launch_setup(context):
             )
         ]
 
-    if get_bool("description.spawn"):
+    if get_bool("description"):
         description += [
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
@@ -64,7 +63,7 @@ def launch_setup(context):
             )
         ]
 
-    if get_bool("unity_sim.spawn"):
+    if get_bool("unity_sim"):
         description += [
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
@@ -77,7 +76,7 @@ def launch_setup(context):
             ),
         ]
 
-    if get_bool("gazebo.spawn"):
+    if get_bool("gazebo"):
         description += [
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
@@ -90,7 +89,7 @@ def launch_setup(context):
             ),
         ]
 
-    if get_bool("drivers.spawn"):
+    if get_bool("drivers"):
         description += [
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
@@ -114,7 +113,7 @@ def launch_setup(context):
             ),
         ]
 
-    if get_bool("rviz.spawn"):
+    if get_bool("rviz"):
         description += [
             Node(
                 package="rviz2",
@@ -133,7 +132,7 @@ def launch_setup(context):
             ),
         ]
 
-    if get_bool("mapviz.spawn"):
+    if get_bool("mapviz"):
         description += [
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
@@ -146,7 +145,7 @@ def launch_setup(context):
             ),
         ]
 
-    if get_bool("slam.spawn"):
+    if get_bool("slam"):
         description += [
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
@@ -169,7 +168,7 @@ def launch_setup(context):
             ),
         ]
 
-    if get_bool("nav2.spawn"):
+    if get_bool("nav2"):
         description += [
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
@@ -189,7 +188,7 @@ def launch_setup(context):
             ),
         ]
 
-    if get_bool("wheel_controller.spawn"):
+    if get_bool("wheel_controller"):
         description += [
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
@@ -202,7 +201,7 @@ def launch_setup(context):
             ),
         ]
 
-    if get_bool("aruco.spawn"):
+    if get_bool("aruco"):
         description += [
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
@@ -223,7 +222,7 @@ def launch_setup(context):
             ),
         ]
 
-    if get_bool("yolo.spawn"):
+    if get_bool("yolo"):
         description += [
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
@@ -247,12 +246,12 @@ def generate_launch_description():
     return LaunchDescription(
         [
             DeclareLaunchArgument(
-                "component_container.spawn",
+                "component_container",
                 default_value="false",
                 description="Start up the main component container. Must be spawned in order to enable composition.",
             ),
             DeclareLaunchArgument(
-                "description.spawn",
+                "description",
                 default_value="false",
                 description="Start up state publishers for the robot description.",
             ),
@@ -262,17 +261,17 @@ def generate_launch_description():
                 description="Start up the joint state publisher with a GUI.",
             ),
             DeclareLaunchArgument(
-                "unity_sim.spawn",
+                "unity_sim",
                 default_value="false",
                 description="Start up the Unity simulator with virtual sensors and actuators.",
             ),
             DeclareLaunchArgument(
-                "gazebo.spawn",
+                "gazebo",
                 default_value="false",
                 description="Start up the Gazebo simulator with virtual sensors and actuators.",
             ),
             DeclareLaunchArgument(
-                "drivers.spawn",
+                "drivers",
                 default_value="false",
                 description="Launch with physical sensors and actuators.",
             ),
@@ -302,7 +301,7 @@ def generate_launch_description():
                 description="Start the IMU compass calibration node. IMU must be disabled in order to calibrate the compass.",
             ),
             DeclareLaunchArgument(
-                "rviz.spawn",
+                "rviz",
                 default_value="false",
                 description="Launch RViz.",
             ),
@@ -312,12 +311,12 @@ def generate_launch_description():
                 description="RViz configuration file.",
             ),
             DeclareLaunchArgument(
-                "mapviz.spawn",
+                "mapviz",
                 default_value="false",
                 description="Launch MapViz.",
             ),
             DeclareLaunchArgument(
-                "slam.spawn",
+                "slam",
                 default_value="false",
                 description="Start up the SLAM module.",
             ),
@@ -352,7 +351,7 @@ def generate_launch_description():
                 description="Create a 3D point cloud of the terrain as the robot moves.",
             ),
             DeclareLaunchArgument(
-                "nav2.spawn",
+                "nav2",
                 default_value="false",
                 description="Start up the Nav2 stack.",
             ),
@@ -372,12 +371,12 @@ def generate_launch_description():
                 description="Name of the static map to use. Maps are stored in kalman_nav2/maps. Empty to disable static map.",
             ),
             DeclareLaunchArgument(
-                "wheel_controller.spawn",
+                "wheel_controller",
                 default_value="false",
                 description="Start up the wheel controller.",
             ),
             DeclareLaunchArgument(
-                "aruco.spawn",
+                "aruco",
                 default_value="false",
                 description="Start up ArUco marker tracking.",
             ),
@@ -392,7 +391,7 @@ def generate_launch_description():
                 description="Space-separated IDs of the depth cameras to use.",
             ),
             DeclareLaunchArgument(
-                "yolo.spawn",
+                "yolo",
                 default_value="false",
                 description="Start up YOLO object detection.",
             ),

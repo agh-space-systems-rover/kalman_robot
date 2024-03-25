@@ -355,7 +355,10 @@ class YOLODetect(Node):
 def main():
     try:
         rclpy.init()
-        rclpy.spin(YOLODetect())
-        rclpy.shutdown()
+        node = YOLODetect()
+        rclpy.spin(node)
     except KeyboardInterrupt:
         pass
+    finally:
+        node.destroy_node()
+        rclpy.shutdown()

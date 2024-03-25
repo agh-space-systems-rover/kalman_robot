@@ -16,8 +16,8 @@ def generate_launch_description():
                     )
                 ),
                 launch_arguments={
-                    "unity_sim.spawn": "true",
-                    "rviz.spawn": "true",
+                    "unity_sim": "true",
+                    "rviz": "true",
                     "rviz.config": "urc_autonomy.rviz",
                 }.items(),
             ),

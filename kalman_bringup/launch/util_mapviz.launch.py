@@ -16,7 +16,7 @@ def generate_launch_description():
                     )
                 ),
                 launch_arguments={
-                    "mapviz.spawn": "true",
+                    "mapviz": "true",
                 }.items(),
             ),
         ]

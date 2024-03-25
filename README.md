@@ -24,6 +24,9 @@ ros2 launch kalman_bringup urc_autonomy_sim_base.launch.py
 # Before running the next command, make sure that the simulation is started and sensor messages are being published.
 ros2 launch kalman_bringup urc_autonomy_sim_stack.launch.py
 ```
+> [!NOTE]
+> The commands shown above will launch the Unity simulation environment which requires additional installation.
+> Please follow the instructions [here](https://github.com/agh-space-systems-rover/unity_sim#Getting-Started) in order to set up Unity.
 
 In order to run on a physical rover, just one launch file is needed:
 ```bash

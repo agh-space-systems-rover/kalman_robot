@@ -16,7 +16,7 @@ def generate_launch_description():
                     )
                 ),
                 launch_arguments={
-                    "rviz.spawn": "true",
+                    "rviz": "true",
                     "rviz.config": "urc_autonomy.rviz",
                 }.items(),
             ),

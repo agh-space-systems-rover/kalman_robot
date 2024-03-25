@@ -16,12 +16,12 @@ def generate_launch_description():
                     )
                 ),
                 launch_arguments={
-                    "drivers.spawn": "true",
+                    "drivers": "true",
                     "drivers.rgbd_ids": "",
                     "drivers.master": "true",
                     "drivers.imu": "false",
                     "drivers.compasscal": "false",
-                    "wheel_controller.spawn": "true",
+                    "wheel_controller": "true",
                 }.items(),
             ),
         ]
