@@ -323,8 +323,7 @@ def main():
         rclpy.init()
         node = WheelController()
         rclpy.spin(node)
-    except KeyboardInterrupt:
-        pass
-    finally:
         node.destroy_node()
         rclpy.shutdown()
+    except KeyboardInterrupt:
+        pass

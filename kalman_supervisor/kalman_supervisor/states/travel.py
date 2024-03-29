@@ -1,54 +1,38 @@
-from typing import TYPE_CHECKING
-from .state import State
+import time
+import numpy as np
 
-if TYPE_CHECKING:
-    from ..main import Supervisor
+from kalman_supervisor.state import State
+from kalman_supervisor.modules import *
 
-from core import Mode
-
+# Stay in this state for additional STOP_DURATION seconds after stopping navigation.
+STOP_DURATION = 2
 
 class Travel(State):
-    @staticmethod
-    def on_enter(supervisor: "Supervisor") -> None:
-        supervisor.core.tag_detector.reset() # Avoid storing old tags
+    def __init__(self):
+        super().__init__("travel")
 
-    @staticmethod
-    def run(supervisor: "Supervisor") -> None:
-        mode: Mode = supervisor.core.control.get_mode()
+    def enter(self) -> None:
+        if self.supervisor.missions.has_mission():
+            mission = self.supervisor.missions.get_mission()
+            self.supervisor.nav.send_goal(np.array([mission.x, mission.y, 0]), mission.frame)
+        self.travel_end_time: float | None = None
+        self.mission_canceled = False
 
-        tag1, tag2 = supervisor.core.tag_detector.tags
+    def tick(self) -> str | None:
+        # Start stopping timer if the goal was reached.
+        if self.supervisor.missions.has_mission() and not self.travel_end_time and not self.supervisor.nav.has_goal():
+            self.travel_end_time = time.time()
 
-        # If some tag was found, start approach or drive through the gate.
-        # Otherwise start searching for tags.
-        if any((tag1, tag2)):
-            # Only one tag was found. Start approach.
-            if mode == Mode.TAG_GOAL and (tag1 is None or tag2 is None):
-                found_tag = tag1 or tag2
-                supervisor.core.move_base.clear_costmap()
-                supervisor.core.move_base.send_goal(
-                    found_tag.frame_id, found_tag.position
-                )
-                supervisor.to_approach()
-                return
-            # Both tags were found. Drive through the gate.
-            elif mode == Mode.TAG_GATE:
-                supervisor.to_cross()
-                return
+        # Cancel the navigation if missions was ended early.
+        if not self.supervisor.missions.has_mission():
+            self.supervisor.nav.cancel_goal()
+            self.travel_end_time = time.time()
+            # Set a flag to transition to teleop instead of finished.
+            self.mission_canceled = True
 
-        goal_reached: bool = supervisor.core.long_goal_manager.drive()
-
-        if goal_reached:
-
-            if mode == Mode.SIMPLE_GOAL:
-                # TODO: correcting simple goal?
-                supervisor.to_completed()
-                return
-
-            # No tags were found. Start searching for tags.
+        # Transition to finished or teleop once stopped.
+        if self.travel_end_time is not None and time.time() - self.travel_end_time > STOP_DURATION:
+            if self.mission_canceled:
+                return "teleop"
             else:
-                supervisor.to_explore()
-                return
-
-    @staticmethod
-    def on_exit(supervisor: "Supervisor") -> None:
-        pass
+                return "finished"

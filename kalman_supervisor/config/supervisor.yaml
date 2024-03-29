@@ -1,0 +1,18 @@
+supervisor:
+  ros__parameters:
+    # Ticking rate for all states and modules.
+    rate: 3.0
+    position_history:
+      world_frame: map
+      robot_frame: base_footprint
+      # Take a snapshot of the robot's position every 0.5 meters.
+      waypoint_spacing: 0.5
+      # maximum number of waypoints to store in memory
+      max_waypoints: 1000
+    map:
+      # The name of the Nav2 Costmap2D layers to disable in case of emergency.
+      obstacle_layers:
+        - static_layer
+        - stvl
+    nav:
+      robot_frame: base_footprint

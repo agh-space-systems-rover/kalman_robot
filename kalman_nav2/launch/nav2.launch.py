@@ -12,27 +12,57 @@ from launch.substitutions import LaunchConfiguration
 import yaml
 import os
 import jinja2
+import copy
 
 NAV_CONTAINER_NAME = "nav2_container"
 
+def recursive_dict_update(old, new):
+    for k, v in new.items():
+        if isinstance(v, dict):
+            old[k] = recursive_dict_update(old.get(k, {}), v)
+        else:
+            old[k] = copy.deepcopy(v)
+    return old
+
+def render_jinja_config(template_path, **kwargs):
+    # Load template
+    with open(template_path) as f:
+        template = jinja2.Template(f.read())
+    
+    # Render config
+    config_str = template.render(**kwargs)
+
+    # Load and return the rendered config
+    config = yaml.load(config_str, Loader=yaml.FullLoader)
+    return config
 
 def render_nav2_config(rgbd_ids, static_map):
-    # Load Nav2 config template
-    with open(
+    # Render core Nav2 params.
+    nav2_params = render_jinja_config(
         str(get_package_share_path("kalman_nav2") / "config" / "nav2.yaml.j2"),
-    ) as f:
-        nav2_config_template = jinja2.Template(f.read())
-
-    # Render config using camera IDs
-    ukf_config_str = nav2_config_template.render(
         rgbd_ids=rgbd_ids,
         static_map=static_map,
     )
 
-    # Load config
-    nav2_params = yaml.load(ukf_config_str, Loader=yaml.FullLoader)
+    # Render commons costmap params.
+    costmap_params = render_jinja_config(
+        str(get_package_share_path("kalman_nav2") / "config" / "nav2.costmap.yaml.j2"),
+        rgbd_ids=rgbd_ids,
+        static_map=static_map,
+    )
 
-    # Save it to file
+    # Overlay Nav2 local_costmap params onto common costmap params.
+    local_costmap_params = nav2_params["local_costmap"]["local_costmap"]["ros__parameters"]
+    recursive_dict_update(local_costmap_params, costmap_params)
+    # Set local_costmap params in core Nav2 config to the merged params
+    nav2_params["local_costmap"]["local_costmap"]["ros__parameters"] = local_costmap_params
+
+    # Same for global costmap.
+    global_costmap_params = nav2_params["global_costmap"]["global_costmap"]["ros__parameters"]
+    recursive_dict_update(global_costmap_params, costmap_params)
+    nav2_params["global_costmap"]["global_costmap"]["ros__parameters"] = global_costmap_params
+
+    # Save final Nav2 config to a file.
     nav2_params_path = "/tmp/kalman/nav2." + str(os.getpid()) + ".yaml"
     os.makedirs(os.path.dirname(nav2_params_path), exist_ok=True)
     with open(nav2_params_path, "w") as f:

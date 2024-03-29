@@ -1,0 +1,6 @@
+geographic_msgs/GeoPoint initial_location
+string object_class
+---
+---
+string state
+geographic_msgs/GeoPoint object_location

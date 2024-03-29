@@ -1,7 +1,7 @@
 from ament_index_python import get_package_share_path
 from launch import LaunchDescription
 from launch_ros.actions import Node
-from launch.actions import ExecuteProcess
+from launch.actions import ExecuteProcess, TimerAction
 import os
 import shutil
 
@@ -29,19 +29,24 @@ def generate_launch_description():
                     ),
                 ],
             ),
-            Node(
-                package="mapviz",
-                executable="mapviz",
-                parameters=[
-                    {
-                        "config": str(
-                            get_package_share_path("kalman_mapviz")
-                            / "config"
-                            / "mapviz.mvc"
-                        )
-                    }
+            TimerAction(
+                period=2.0,
+                actions=[
+                    Node(
+                        package="mapviz",
+                        executable="mapviz",
+                        parameters=[
+                            {
+                                "config": str(
+                                    get_package_share_path("kalman_mapviz")
+                                    / "config"
+                                    / "mapviz.mvc"
+                                )
+                            }
+                        ],
+                        arguments=["--ros-args", "--log-level", "error"],
+                    ),
                 ],
-                arguments=["--ros-args", "--log-level", "error"],
             ),
         ]
     )

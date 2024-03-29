@@ -6,7 +6,14 @@ The description defines all the TF nodes that are children of base_link. -->
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="kalman">
     <xacro:include filename="$(find realsense2_description)/urdf/_d455.urdf.xacro" />
 
+    <!-- https://www.ros.org/reps/rep-0120.html -->
     <link name="base_link" />
+    <link name="base_footprint" />
+    <joint name="base_footprint_joint" type="fixed">
+        <origin xyz="-0.11 0 -0.45" />
+        <parent link="base_link" />
+        <child link="base_footprint" />
+    </joint>
 
     <!-- IMU -->
     <link name="imu_link" />

@@ -49,13 +49,14 @@ Kalman's software stack is composed of multiple packages that are meant to be bu
 - `kalman_description` - Xacro / URDF descriptions + models for the rover
 - `kalman_drivers` - drivers for the physical hardware; only to be run separately from the simulation
 - `kalman_gazebo` - Ignition Gazebo simulation configs for Kalman
-- `kalman_interfaces` - ROS 2 interfaces used by the other `kalman_` packages
+- `kalman_interfaces` - ROS 2 messages, services and actions used by the other `kalman_` packages
 - `kalman_mapviz` - configuration and launch files for MapViz
 - `kalman_master` - driver for our custom Master device
 - `kalman_nav2` - configuration and launch files for Nav2 and related modules; Includes a custom path follower.
 - `kalman_robot` - a metapackage that depends on all other `kalman_` packages
 - `kalman_rosou` - **WIP** Establishes ROS to ROS communication between the rover and ROS on the ground station. Makes use of the Master device which is the radio communication hub.
 - `kalman_slam` - configuration files for robot_localization and RTAB-Map
+- `kalman_supervisor` - Manages autonomous navigation missions.
 - `kalman_wheel_controller` - a node that converts Twist messages on `/cmd_vel` and similar topics to the actual wheel state; Also includes safeguards that can limit the acceleration and velocity or stop the rover to adjust wheel rotation.
 - `kalman_yolo` - **PRIVATE** YOLO-based object detector and model training toolbox
 
@@ -75,14 +76,14 @@ The launch files are organized in a hierarchical manner. The `kalman_bringup` pa
 
 All `kalman_` packages are designed to work together and exchange data in a complex manner. The following diagram shows the high-level overview of the data flow between top-level modules:
 
-![](https://quickchart.io/graphviz?graph=digraph{kalman_drivers->kalman_slam[label="IMU,%20RGB-D"];kalman_slam->kalman_nav2[label="Odometry"];kalman_nav2->kalman_wheel_controller[label="Twist"];kalman_wheel_controller->kalman_drivers[label="Wheel%20State"];kalman_drivers->kalman_nav2[label="Point%20Clouds"];kalman_supervisor->kalman_nav2[label="Send%20Goal"];kalman_nav2->kalman_supervisor[label="Goal%20Status"];kalman_drivers->kalman_aruco[label="Images"];kalman_aruco->kalman_supervisor[label="Detections"];kalman_gs->kalman_supervisor[label="Objectives"]})
+![](https://quickchart.io/graphviz?graph=digraph{kalman_drivers->kalman_slam[label="IMU,%20RGB-D"];kalman_slam->kalman_nav2[label="Odometry"];kalman_nav2->kalman_wheel_controller[label="Twist"];kalman_wheel_controller->kalman_drivers[label="Wheel%20State"];kalman_drivers->kalman_nav2[label="Point%20Clouds"];kalman_supervisor->kalman_nav2[label="Send%20Goal"];kalman_nav2->kalman_supervisor[label="Goal%20Status"];kalman_drivers->kalman_aruco[label="RGB"];kalman_aruco->kalman_supervisor[label="Detections"];kalman_gs->kalman_supervisor[label="Objectives"];kalman_supervisor->kalman_drivers[label="Mission%20Status"]})
 
 As mentioned in [Launch Hierarchy](#launch-hierarchy), top-level modules may include other modules that are not shown in the diagram. Each module contains a set of nodes that actually perform the data processing and exchange.
 
 ## Guidelines
 
 - When committing new code, please follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) specification.
-- The `scripts` directory should only contain runnable (`chmod +x`) scripts that are meant to be installed as ROS executables.
+- The `scripts` directory should only contain scripts that are meant to be installed as ROS executables.
 - The `tools` directory should only contain developer utilities and not ROS-related code.
 - Whenever possible, design your C++ nodes as components. See [this tutorial](https://docs.ros.org/en/iron/Tutorials/Intermediate/Writing-a-Composable-Node.html) for more information.
 - If a dependency is not available in rosdep, please add it to the `apt_packages.txt` or `requirements.txt` file created next to `package.xml`. Always prefer rosdep over those files.

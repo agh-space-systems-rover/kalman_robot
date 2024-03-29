@@ -35,7 +35,7 @@ def generate_launch_description():
                     "nav2": "true",
                     "nav2.composition": LaunchConfiguration("composition"),
                     "nav2.rgbd_ids": "",
-                    "nav2.static_map": "erc_marsyard",
+                    "nav2.static_map": "erc2023",
                     "wheel_controller": "true",
                     # "aruco": "true",
                     # "aruco.composition": LaunchConfiguration("composition"),

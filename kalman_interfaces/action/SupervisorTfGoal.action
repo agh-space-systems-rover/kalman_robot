@@ -1,0 +1,4 @@
+geometry_msgs/PointStamped location
+---
+---
+string state

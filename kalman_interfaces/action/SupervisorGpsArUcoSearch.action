@@ -1,0 +1,6 @@
+geographic_msgs/GeoPoint initial_location
+uint16 marker_id
+---
+---
+string state
+geographic_msgs/GeoPoint marker_location

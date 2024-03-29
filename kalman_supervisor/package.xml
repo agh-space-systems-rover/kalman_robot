@@ -4,16 +4,18 @@
   <name>kalman_supervisor</name>
   <version>0.0.0</version>
   <description>Manages autonomous navigation missions.</description>
-  <maintainer email="rafalsawczyszyn@gmail.com">Rafal</maintainer>
+  <maintainer email="63957587+rayferric@users.noreply.github.com">rayferric</maintainer>
   <license>MIT</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
   <buildtool_depend>ament_cmake_python</buildtool_depend>
 
   <exec_depend>ros2launch</exec_depend>
-  <exec_depend>rclpy</exec_depend>   
+  <exec_depend>rclpy</exec_depend>
   <exec_depend>geometry_msgs</exec_depend>
-  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>python-utm-pip</exec_depend>
+  <exec_depend>map_msgs</exec_depend>
+  <exec_depend>python3-numpy</exec_depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

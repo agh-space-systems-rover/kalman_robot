@@ -1,0 +1,4 @@
+geographic_msgs/GeoPoint location
+---
+---
+string state

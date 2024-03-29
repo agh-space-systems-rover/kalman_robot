@@ -1,7 +1,8 @@
 path_follower:
   ros__parameters:
-    lookahead: 0.5
-    linear_velocity: 0.5
+    robot_frame: base_footprint
+    lookahead: 1.0
+    linear_velocity: 1.0
     angular_velocity: 0.5
     rotate_in_place_start_angle: 1.4
     rotate_in_place_end_angle: 0.3

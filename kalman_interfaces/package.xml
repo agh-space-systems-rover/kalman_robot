@@ -3,12 +3,16 @@
 <package format="3">
   <name>kalman_interfaces</name>
   <version>0.0.0</version>
-  <description>ROS 2 interfaces used by the other `kalman_` packages</description>
+  <description>ROS 2 messages, services and actions used by the other `kalman_` packages</description>
   <maintainer email="63957587+rayferric@users.noreply.github.com">rayferric</maintainer>
   <license>MIT</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
   <buildtool_depend>rosidl_default_generators</buildtool_depend>
+
+  <depend>std_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>geographic_msgs</depend>
 
   <exec_depend>rosidl_default_runtime</exec_depend>
 
