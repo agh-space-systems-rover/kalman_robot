@@ -213,7 +213,7 @@ class YOLODetect(Node):
                         )
 
             # Start processing images at the specified rate.
-            self.create_timer(1.0 / self.rate, self.detect)
+            self.detect_timer = self.create_timer(1.0 / self.rate, self.detect)
         except Exception as e:
             self.get_logger().error("Error during activation: " + str(e))
             return TransitionCallbackReturn.ERROR
@@ -222,7 +222,7 @@ class YOLODetect(Node):
         return TransitionCallbackReturn.SUCCESS
 
     def on_deactivate(self, state: State) -> TransitionCallbackReturn:
-        self.destroy_timer(self.detect)
+        self.destroy_timer(self.detect_timer)
         if self.publish_tf:
             self.destroy_publisher(self.tf_broadcaster.pub_tf)
         self.destroy_publisher(self.detection_pub)
@@ -359,8 +359,7 @@ def main():
         rclpy.init()
         node = YOLODetect()
         rclpy.spin(node)
-    except KeyboardInterrupt:
-        pass
-    finally:
         node.destroy_node()
         rclpy.shutdown()
+    except KeyboardInterrupt:
+        pass
