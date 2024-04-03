@@ -3,6 +3,7 @@ import numpy as np
 from kalman_supervisor.state import State
 from kalman_supervisor.modules import *
 
+
 class Travel(State):
     def __init__(self):
         super().__init__("travel")
@@ -11,7 +12,9 @@ class Travel(State):
         if self.supervisor.missions.has_mission():
             mission = self.supervisor.missions.get_mission()
             if isinstance(mission, Missions.TfGoal):
-                self.supervisor.nav.send_goal(np.array([mission.x, mission.y, 0]), mission.frame)
+                self.supervisor.nav.send_goal(
+                    np.array([mission.x, mission.y, 0]), mission.frame
+                )
             elif isinstance(mission, Missions.GpsGoal):
                 self.supervisor.nav.send_gps_goal(mission.lat, mission.lon)
             elif isinstance(mission, Missions.GpsArUcoSearch):
@@ -27,7 +30,10 @@ class Travel(State):
             return "stop_to_teleop"
 
         # Go to finished or search if the goal was reached.
-        if self.supervisor.missions.has_mission() and not self.supervisor.nav.has_goal():
+        if (
+            self.supervisor.missions.has_mission()
+            and not self.supervisor.nav.has_goal()
+        ):
             mission = self.supervisor.missions.get_mission()
             if isinstance(mission, Missions.TfGoal):
                 return "stop_to_finished"

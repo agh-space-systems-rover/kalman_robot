@@ -34,9 +34,11 @@ def closest_point_on_segment(v1, v2):
     # https://gdbooks.gitbooks.io/3dcollisions/content/Chapter1/closest_point_on_line.html
     return v1 + np.dot(-v1, v2 - v1) / np.dot(v2 - v1, v2 - v1) * (v2 - v1)
 
+
 def smoothstep(edge0, edge1, x):
     x = np.clip((x - edge0) / (edge1 - edge0), 0, 1)
     return x * x * (3 - 2 * x)
+
 
 def angular_velocity_curve(angle_error, max_vel):
     # return np.clip(angle_error, -max_vel, max_vel)
@@ -45,9 +47,11 @@ def angular_velocity_curve(angle_error, max_vel):
         return smoothstep(0, np.pi / 4, angle_error) * max_vel
     else:
         return -smoothstep(0, np.pi / 4, -angle_error) * max_vel
-    
+
+
 def lerp(a, b, t):
     return a + t * (b - a)
+
 
 def linear_regression(x, y):
     A = np.vstack([x, np.ones(len(x))]).T
@@ -55,13 +59,16 @@ def linear_regression(x, y):
     X = np.linalg.pinv(A) @ B
     return (X[0], X[1])
 
+
 def linear_rss(x, y, a, b):
     return np.sum(np.square(y - (a * x + b)))
+
 
 def fast_inv_uniform_scale_ortho_mat3(m):
     scale = np.linalg.norm(m[:3, 0])
     orthonormal = m / scale
     return orthonormal.T * scale
+
 
 def fast_inv_uniform_scale_transform(m):
     basis = m[:3, :3]
@@ -69,6 +76,7 @@ def fast_inv_uniform_scale_transform(m):
     inv_basis = fast_inv_uniform_scale_ortho_mat3(basis)
     inv_origin = inv_basis @ -origin
     return np.append(np.append(inv_basis, inv_origin, axis=1), [[0, 0, 0, 1]], axis=0)
+
 
 # This node generates twist commands based on the current path and the robot's pose.
 class PathFollower(rclpy.node.Node):
@@ -211,16 +219,22 @@ class PathFollower(rclpy.node.Node):
                 req.path.header.frame_id, robot_frame, rclpy.time.Time()
             )
             xy = robot_frame_to_path[:2, 3]
-            robot_heading = np.array([1.0, 0.0, 0.0, 0.0]) # in robot_frame
+            robot_heading = np.array([1.0, 0.0, 0.0, 0.0])  # in robot_frame
             robot_heading_in_path_frame = (robot_frame_to_path @ robot_heading)[:2]
-            yaw = np.arctan2(robot_heading_in_path_frame[1], robot_heading_in_path_frame[0])
+            yaw = np.arctan2(
+                robot_heading_in_path_frame[1], robot_heading_in_path_frame[0]
+            )
             # NOTE: For some odd reason, np.linalg.inv is causing extremely high CPU usage.
-            path_to_robot_frame_2d = fast_inv_uniform_scale_transform(np.array([
-                [np.cos(yaw), -np.sin(yaw), 0.0, xy[0]],
-                [np.sin(yaw), np.cos(yaw), 0.0, xy[1]],
-                [0.0, 0.0, 1.0, 0.0],
-                [0.0, 0.0, 0.0, 1.0],
-            ]))
+            path_to_robot_frame_2d = fast_inv_uniform_scale_transform(
+                np.array(
+                    [
+                        [np.cos(yaw), -np.sin(yaw), 0.0, xy[0]],
+                        [np.sin(yaw), np.cos(yaw), 0.0, xy[1]],
+                        [0.0, 0.0, 1.0, 0.0],
+                        [0.0, 0.0, 0.0, 1.0],
+                    ]
+                )
+            )
         except tf2_ros.LookupException as e:
             self.get_logger().error(f"TF2 lookup failed: {e}")
             return res
@@ -237,7 +251,9 @@ class PathFollower(rclpy.node.Node):
         for i in range(len(req.path.poses)):
             # Get the position and transform it to robot_frame
             pose = req.path.poses[i]
-            pos = np.array([pose.pose.position.x, pose.pose.position.y, pose.pose.position.z])
+            pos = np.array(
+                [pose.pose.position.x, pose.pose.position.y, pose.pose.position.z]
+            )
             pos = (path_to_robot_frame_2d @ np.append(pos, [1.0]))[:3]
             pos = pos[:2]  # project to 2D
 
@@ -346,7 +362,7 @@ class PathFollower(rclpy.node.Node):
 
             # Choose whether to drive at full speed or at reduced speed.
             # Perform linear regression on points close to the robot to determine how straight the path is.
-            regression_distance = 3.0 # TODO: make this a parameter
+            regression_distance = 3.0  # TODO: make this a parameter
             regression_points = []
             for i in range(prev_index, len(path_vertices)):
                 if np.linalg.norm(path_vertices[i]) > regression_distance:
@@ -377,7 +393,9 @@ class PathFollower(rclpy.node.Node):
 
             # Simultaneously try to minimize the angle between the heading and target direction.
             angular_velocity = self.get_parameter("angular_velocity").value
-            res.cmd_vel.twist.angular.z = angular_velocity_curve(rot_angle, angular_velocity)
+            res.cmd_vel.twist.angular.z = angular_velocity_curve(
+                rot_angle, angular_velocity
+            )
 
             # If the robot is heading in a direction off of the target
             # direction over rotate_in_place_start_angle, it will rotate

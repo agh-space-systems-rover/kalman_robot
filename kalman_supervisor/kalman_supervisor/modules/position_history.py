@@ -3,6 +3,7 @@ import numpy as np
 from kalman_supervisor.modules.map import Map
 from kalman_supervisor.module import Module
 
+
 class PositionHistory(Module):
     def __init__(self):
         super().__init__("position_history")
@@ -15,11 +16,17 @@ class PositionHistory(Module):
         self.waypoints: list[np.ndarray] = []
 
     def tick(self) -> None:
-        waypoint_spacing = self.supervisor.get_parameter("position_history.waypoint_spacing").value
-        max_waypoints = self.supervisor.get_parameter("position_history.max_waypoints").value
+        waypoint_spacing = self.supervisor.get_parameter(
+            "position_history.waypoint_spacing"
+        ).value
+        max_waypoints = self.supervisor.get_parameter(
+            "position_history.max_waypoints"
+        ).value
 
         # If the transform is not available, skip this tick.
-        if not self.supervisor.tf.can_transform(self.supervisor.tf.world_frame(), self.supervisor.tf.robot_frame()):
+        if not self.supervisor.tf.can_transform(
+            self.supervisor.tf.world_frame(), self.supervisor.tf.robot_frame()
+        ):
             return
 
         pos = self.supervisor.tf.robot_pos()
@@ -49,9 +56,10 @@ class PositionHistory(Module):
                 return None
 
             waypoint = self.waypoints[i]
-            occupancy = self.supervisor.map.occupancy(waypoint[:2], self.supervisor.tf.world_frame())
+            occupancy = self.supervisor.map.occupancy(
+                waypoint[:2], self.supervisor.tf.world_frame()
+            )
             if occupancy == Map.Occupancy.FREE:
                 return waypoint, self.supervisor.tf.world_frame()
-        
+
         return None
-    

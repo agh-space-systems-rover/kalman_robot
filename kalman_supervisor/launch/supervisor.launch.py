@@ -7,6 +7,7 @@ from launch.actions import (
 )
 from launch.substitutions import LaunchConfiguration
 
+
 def remap_action(from_name, to_name):
     return [
         (f"{from_name}/_action/send_goal", f"{to_name}/_action/send_goal"),
@@ -15,6 +16,7 @@ def remap_action(from_name, to_name):
         (f"{from_name}/_action/get_result", f"{to_name}/_action/get_result"),
         (f"{from_name}/_action/status", f"{to_name}/_action/status"),
     ]
+
 
 def launch_setup(context):
     aruco_rgbd_ids = [
@@ -48,29 +50,36 @@ def launch_setup(context):
         ("yolo/change_state", "yolo_detect/change_state"),
         ("yolo/detections", "yolo_detections"),
     ]
-    
+
     return [
         Node(
             package="kalman_supervisor",
             executable="supervisor",
-            parameters=[str(
-                get_package_share_path("kalman_supervisor")
-                / "config" / "supervisor.yaml"
-            ), {
-                "aruco": {
-                    "num_cameras": len(aruco_rgbd_ids),
+            parameters=[
+                str(
+                    get_package_share_path("kalman_supervisor")
+                    / "config"
+                    / "supervisor.yaml"
+                ),
+                {
+                    "aruco": {
+                        "num_cameras": len(aruco_rgbd_ids),
+                    },
                 },
-            }],
-            remappings=remappings
+            ],
+            remappings=remappings,
         )
     ]
 
+
 def generate_launch_description():
-    return LaunchDescription([
-        DeclareLaunchArgument(
-            "aruco_rgbd_ids",
-            description="Space-separated IDs of the depth cameras that were configured in kalman_aruco.",
-            default_value="d455_front d455_back d455_left d455_right",
-        ),
-        OpaqueFunction(function=launch_setup),
-    ])
+    return LaunchDescription(
+        [
+            DeclareLaunchArgument(
+                "aruco_rgbd_ids",
+                description="Space-separated IDs of the depth cameras that were configured in kalman_aruco.",
+                default_value="d455_front d455_back d455_left d455_right",
+            ),
+            OpaqueFunction(function=launch_setup),
+        ]
+    )

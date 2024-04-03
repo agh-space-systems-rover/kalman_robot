@@ -211,12 +211,23 @@ def launch_setup(context):
                     Node(
                         package="swri_transform_util",
                         executable="initialize_origin.py",
-                        parameters=[{
-                            "local_xy_origin": "manual", # != "auto"
-                            "local_xy_origins": [gps_datum[0], gps_datum[1], 0.0, 0.0],
-                        } if gps_datum else {
-                            "local_xy_origin": "auto",
-                        }],
+                        parameters=[
+                            (
+                                {
+                                    "local_xy_origin": "manual",  # != "auto"
+                                    "local_xy_origins": [
+                                        gps_datum[0],
+                                        gps_datum[1],
+                                        0.0,
+                                        0.0,
+                                    ],
+                                }
+                                if gps_datum
+                                else {
+                                    "local_xy_origin": "auto",
+                                }
+                            )
+                        ],
                         remappings=[
                             ("fix", "gps/fix"),
                         ],

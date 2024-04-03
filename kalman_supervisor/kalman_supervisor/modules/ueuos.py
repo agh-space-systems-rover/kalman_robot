@@ -4,6 +4,7 @@ from rclpy import Future
 from kalman_supervisor.module import Module
 from kalman_interfaces.srv import SetUeuosState
 
+
 class Ueuos(Module):
     class State(IntEnum):
         OFF = SetUeuosState.Request.OFF
@@ -16,7 +17,7 @@ class Ueuos(Module):
 
     def activate(self) -> None:
         self.__client = self.supervisor.create_client(SetUeuosState, "ueuos/set_state")
-        
+
         # Set a dummy state to avoid None in get_state()
         # It will be instantly overwritten when entering the teleop state.
         self.__state = Ueuos.State.OFF

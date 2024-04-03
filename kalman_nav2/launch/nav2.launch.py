@@ -16,6 +16,7 @@ import copy
 
 NAV_CONTAINER_NAME = "nav2_container"
 
+
 def recursive_dict_update(old, new):
     for k, v in new.items():
         if isinstance(v, dict):
@@ -24,17 +25,19 @@ def recursive_dict_update(old, new):
             old[k] = copy.deepcopy(v)
     return old
 
+
 def render_jinja_config(template_path, **kwargs):
     # Load template
     with open(template_path) as f:
         template = jinja2.Template(f.read())
-    
+
     # Render config
     config_str = template.render(**kwargs)
 
     # Load and return the rendered config
     config = yaml.load(config_str, Loader=yaml.FullLoader)
     return config
+
 
 def render_nav2_config(rgbd_ids, static_map):
     # Render core Nav2 params.
@@ -52,15 +55,23 @@ def render_nav2_config(rgbd_ids, static_map):
     )
 
     # Overlay Nav2 local_costmap params onto common costmap params.
-    local_costmap_params = nav2_params["local_costmap"]["local_costmap"]["ros__parameters"]
+    local_costmap_params = nav2_params["local_costmap"]["local_costmap"][
+        "ros__parameters"
+    ]
     recursive_dict_update(local_costmap_params, costmap_params)
     # Set local_costmap params in core Nav2 config to the merged params
-    nav2_params["local_costmap"]["local_costmap"]["ros__parameters"] = local_costmap_params
+    nav2_params["local_costmap"]["local_costmap"][
+        "ros__parameters"
+    ] = local_costmap_params
 
     # Same for global costmap.
-    global_costmap_params = nav2_params["global_costmap"]["global_costmap"]["ros__parameters"]
+    global_costmap_params = nav2_params["global_costmap"]["global_costmap"][
+        "ros__parameters"
+    ]
     recursive_dict_update(global_costmap_params, costmap_params)
-    nav2_params["global_costmap"]["global_costmap"]["ros__parameters"] = global_costmap_params
+    nav2_params["global_costmap"]["global_costmap"][
+        "ros__parameters"
+    ] = global_costmap_params
 
     # Save final Nav2 config to a file.
     nav2_params_path = "/tmp/kalman/nav2." + str(os.getpid()) + ".yaml"

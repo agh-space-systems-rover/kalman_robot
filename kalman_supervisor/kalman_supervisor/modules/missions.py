@@ -5,7 +5,13 @@ from rclpy.callback_groups import ReentrantCallbackGroup
 from threading import Condition, Lock
 
 from kalman_supervisor.module import Module
-from kalman_interfaces.action import SupervisorTfGoal, SupervisorGpsGoal, SupervisorGpsArUcoSearch, SupervisorGpsYoloSearch
+from kalman_interfaces.action import (
+    SupervisorTfGoal,
+    SupervisorGpsGoal,
+    SupervisorGpsArUcoSearch,
+    SupervisorGpsYoloSearch,
+)
+
 
 class Missions(Module):
     class Mission:
@@ -58,7 +64,7 @@ class Missions(Module):
     def activate(self) -> None:
         self.__mission: Missions.Mission | None = None
         self.__mission_goal_handle: ServerGoalHandle | None = None
-        
+
         self.__queued_mission: Missions.Mission | None = None
         self.__queued_mission_goal_handle: ServerGoalHandle | None = None
 
@@ -70,11 +76,41 @@ class Missions(Module):
         # This will allow them to run on the separate thread and block until the mission is complete.
         self.__callback_group = ReentrantCallbackGroup()
 
-        self.__rviz_tf_goal_sub = self.supervisor.create_subscription(PoseStamped, 'missions/rviz_tf_goal', self.__rviz_tf_goal_cb, 10)
-        self.__tf_goal_server = ActionServer(self.supervisor, SupervisorTfGoal, 'missions/tf_goal', self.__tf_goal_cb, callback_group=self.__callback_group, cancel_callback=self.__action_cancel_cb)
-        self.__gps_goal_server = ActionServer(self.supervisor, SupervisorGpsGoal, 'missions/gps_goal', self.__gps_goal_cb, callback_group=self.__callback_group, cancel_callback=self.__action_cancel_cb)
-        self.__gps_aruco_search_server = ActionServer(self.supervisor, SupervisorGpsArUcoSearch, 'missions/gps_aruco_search', self.__gps_aruco_search_cb, callback_group=self.__callback_group, cancel_callback=self.__action_cancel_cb)
-        self.__gps_yolo_search_server = ActionServer(self.supervisor, SupervisorGpsYoloSearch, 'missions/gps_yolo_search', self.__gps_yolo_search_cb, callback_group=self.__callback_group, cancel_callback=self.__action_cancel_cb)
+        self.__rviz_tf_goal_sub = self.supervisor.create_subscription(
+            PoseStamped, "missions/rviz_tf_goal", self.__rviz_tf_goal_cb, 10
+        )
+        self.__tf_goal_server = ActionServer(
+            self.supervisor,
+            SupervisorTfGoal,
+            "missions/tf_goal",
+            self.__tf_goal_cb,
+            callback_group=self.__callback_group,
+            cancel_callback=self.__action_cancel_cb,
+        )
+        self.__gps_goal_server = ActionServer(
+            self.supervisor,
+            SupervisorGpsGoal,
+            "missions/gps_goal",
+            self.__gps_goal_cb,
+            callback_group=self.__callback_group,
+            cancel_callback=self.__action_cancel_cb,
+        )
+        self.__gps_aruco_search_server = ActionServer(
+            self.supervisor,
+            SupervisorGpsArUcoSearch,
+            "missions/gps_aruco_search",
+            self.__gps_aruco_search_cb,
+            callback_group=self.__callback_group,
+            cancel_callback=self.__action_cancel_cb,
+        )
+        self.__gps_yolo_search_server = ActionServer(
+            self.supervisor,
+            SupervisorGpsYoloSearch,
+            "missions/gps_yolo_search",
+            self.__gps_yolo_search_cb,
+            callback_group=self.__callback_group,
+            cancel_callback=self.__action_cancel_cb,
+        )
 
     def tick(self) -> None:
         # Global lock is the safest option.
@@ -82,8 +118,10 @@ class Missions(Module):
             # If there's no ongoing mission and there's a queued mission,
             # start the queued mission.
             if self.__mission is None and self.__queued_mission is not None:
-                self.supervisor.get_logger().info(f"[Missions] Starting mission #{self.__queued_mission.id}.")
-                
+                self.supervisor.get_logger().info(
+                    f"[Missions] Starting mission #{self.__queued_mission.id}."
+                )
+
                 # Overwrite the current mission with the queued one.
                 self.__mission = self.__queued_mission
                 self.__mission_goal_handle = self.__queued_mission_goal_handle
@@ -97,16 +135,18 @@ class Missions(Module):
             # NOTE: This is done after starting the mission to have one tick
             # without a mission when a new one overwrites the current one.
             if self.__mission is not None and self.__queued_mission is not None:
-                self.supervisor.get_logger().info(f"[Missions] Aborting mission #{self.__mission.id} in favor of #{self.__queued_mission.id}.")
+                self.supervisor.get_logger().info(
+                    f"[Missions] Aborting mission #{self.__mission.id} in favor of #{self.__queued_mission.id}."
+                )
 
                 # Abort current mission's action.
                 if self.__mission_goal_handle is not None:
                     self.__mission_goal_handle.abort()
-                
+
                 # Clear current mission.
                 self.__mission = None
                 self.__mission_goal_handle = None
-                
+
                 # Notify actions waiting for the current mission to end.
                 self.__mission_condition.notify_all()
 
@@ -115,7 +155,9 @@ class Missions(Module):
             if self.__mission is not None and self.__mission_goal_handle is not None:
                 # If the action server wants us to cancel the mission, do so.
                 if self.__mission_goal_handle.is_cancel_requested:
-                    self.supervisor.get_logger().info(f"Mission #{self.__mission.id} was canceled by the client.")
+                    self.supervisor.get_logger().info(
+                        f"Mission #{self.__mission.id} was canceled by the client."
+                    )
 
                     # Cancel current mission's action.
                     self.__mission_goal_handle.canceled()
@@ -158,38 +200,67 @@ class Missions(Module):
         self.__tf_goal_server.destroy()
         self.supervisor.destroy_subscription(self.__rviz_tf_goal_sub)
 
-    def __queue_up_mission(self, mission: Mission, goal_handle: ServerGoalHandle | None) -> None:
+    def __queue_up_mission(
+        self, mission: Mission, goal_handle: ServerGoalHandle | None
+    ) -> None:
         self.__queued_mission = mission
         self.__queued_mission_goal_handle = goal_handle
 
         if goal_handle is not None:
-            self.__mission_condition.wait_for(lambda: (self.__queued_mission is None or self.__queued_mission.id != mission.id) and (self.__mission is None or self.__mission.id != mission.id))
+            self.__mission_condition.wait_for(
+                lambda: (
+                    self.__queued_mission is None
+                    or self.__queued_mission.id != mission.id
+                )
+                and (self.__mission is None or self.__mission.id != mission.id)
+            )
 
     def __rviz_tf_goal_cb(self, msg: PoseStamped) -> None:
-        mission = Missions.TfGoal(msg.pose.position.x, msg.pose.position.y, msg.header.frame_id)
+        mission = Missions.TfGoal(
+            msg.pose.position.x, msg.pose.position.y, msg.header.frame_id
+        )
         with self.__mission_condition:
             self.__queue_up_mission(mission, None)
 
     def __tf_goal_cb(self, goal_handle: ServerGoalHandle) -> SupervisorTfGoal.Result:
-        mission = Missions.TfGoal(goal_handle.request.location.point.x, goal_handle.request.location.point.y, goal_handle.request.location.header.frame_id)
+        mission = Missions.TfGoal(
+            goal_handle.request.location.point.x,
+            goal_handle.request.location.point.y,
+            goal_handle.request.location.header.frame_id,
+        )
         with self.__mission_condition:
             self.__queue_up_mission(mission, goal_handle)
         return SupervisorTfGoal.Result()
-    
+
     def __gps_goal_cb(self, goal_handle: ServerGoalHandle) -> SupervisorGpsGoal.Result:
-        mission = Missions.GpsGoal(goal_handle.request.location.latitude, goal_handle.request.location.longitude)
+        mission = Missions.GpsGoal(
+            goal_handle.request.location.latitude,
+            goal_handle.request.location.longitude,
+        )
         with self.__mission_condition:
             self.__queue_up_mission(mission, goal_handle)
         return SupervisorGpsGoal.Result()
-    
-    def __gps_aruco_search_cb(self, goal_handle: ServerGoalHandle) -> SupervisorGpsArUcoSearch.Result:
-        mission = Missions.GpsArUcoSearch(goal_handle.request.initial_location.latitude, goal_handle.request.initial_location.longitude, goal_handle.request.marker_id)
+
+    def __gps_aruco_search_cb(
+        self, goal_handle: ServerGoalHandle
+    ) -> SupervisorGpsArUcoSearch.Result:
+        mission = Missions.GpsArUcoSearch(
+            goal_handle.request.initial_location.latitude,
+            goal_handle.request.initial_location.longitude,
+            goal_handle.request.marker_id,
+        )
         with self.__mission_condition:
             self.__queue_up_mission(mission, goal_handle)
         return SupervisorGpsArUcoSearch.Result()
-    
-    def __gps_yolo_search_cb(self, goal_handle: ServerGoalHandle) -> SupervisorGpsYoloSearch.Result:
-        mission = Missions.GpsYoloSearch(goal_handle.request.initial_location.latitude, goal_handle.request.initial_location.longitude, goal_handle.request.object_class)
+
+    def __gps_yolo_search_cb(
+        self, goal_handle: ServerGoalHandle
+    ) -> SupervisorGpsYoloSearch.Result:
+        mission = Missions.GpsYoloSearch(
+            goal_handle.request.initial_location.latitude,
+            goal_handle.request.initial_location.longitude,
+            goal_handle.request.object_class,
+        )
         with self.__mission_condition:
             self.__queue_up_mission(mission, goal_handle)
         return SupervisorGpsYoloSearch.Result()
@@ -207,7 +278,9 @@ class Missions(Module):
 
     def succeed_mission(self) -> None:
         with self.__mission_condition:
-            self.supervisor.get_logger().info(f"[Missions] Mission #{self.__mission.id} completed successfully.")
+            self.supervisor.get_logger().info(
+                f"[Missions] Mission #{self.__mission.id} completed successfully."
+            )
 
             # Succeed current mission's action.
             if self.__mission_goal_handle is not None:

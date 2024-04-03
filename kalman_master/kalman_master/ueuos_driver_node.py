@@ -42,7 +42,9 @@ class UeuosNode(Node):
         )
         return response
 
-    def set_state(self, request: SetUeuosState.Request, response: SetUeuosState.Response):
+    def set_state(
+        self, request: SetUeuosState.Request, response: SetUeuosState.Response
+    ):
         self.ueuos_pub.publish(
             MasterMessage(cmd=MasterMessage.UEUOS_SET_STATE, data=[request.state])
         )

@@ -6,6 +6,7 @@ from kalman_supervisor.modules import *
 # Go back to teleop after this many seconds.
 TIMEOUT = 30
 
+
 class Finished(State):
     def __init__(self):
         super().__init__("finished")
@@ -24,4 +25,3 @@ class Finished(State):
         # Teleop will wait for a few seconds before starting to prepare.
         if self.supervisor.missions.has_mission():
             return "teleop"
-        

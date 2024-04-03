@@ -6,6 +6,7 @@ from kalman_supervisor.modules import *
 # Stay in this state for additional STOP_DURATION seconds after stopping navigation.
 STOP_DURATION = 2
 
+
 @disable_state
 class Stop(State):
     def __init__(self, name: str):
@@ -22,11 +23,15 @@ class Stop(State):
             elif isinstance(self, StopToFinished):
                 return "finished"
             else:
-                raise RuntimeError("This kind of stop state does not exist. It should never happen.")
+                raise RuntimeError(
+                    "This kind of stop state does not exist. It should never happen."
+                )
+
 
 class StopToTeleop(Stop):
     def __init__(self):
         super().__init__("stop_to_teleop")
+
 
 class StopToFinished(Stop):
     def __init__(self):

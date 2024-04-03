@@ -7,6 +7,7 @@ from kalman_supervisor.modules import *
 # This is to warn the bystanders that Kalman will start moving autonomously.
 WAIT_DURATION = 1
 
+
 class Prepare(State):
     def __init__(self):
         super().__init__("prepare")

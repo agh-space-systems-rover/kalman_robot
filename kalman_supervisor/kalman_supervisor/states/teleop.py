@@ -7,6 +7,7 @@ from kalman_supervisor.modules import *
 # This is meant to warn bystanders that a mission is being uploaded by the operator.
 MINIMUM_DURATION = 1
 
+
 class Teleop(State):
     def __init__(self):
         super().__init__("teleop")
@@ -19,7 +20,7 @@ class Teleop(State):
         # Stay in this state for at least MINIMUM_DURATION seconds.
         if time.time() - self.entry_time < MINIMUM_DURATION:
             return
-        
+
         # If there's a mission, start preparing.
         if self.supervisor.missions.has_mission():
             return "prepare"
