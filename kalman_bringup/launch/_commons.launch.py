@@ -239,6 +239,23 @@ def launch_setup(context):
             ),
         ]
 
+    if get_bool("supervisor"):
+        description += [
+            IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(
+                    str(
+                        get_package_share_path("kalman_supervisor")
+                        / "launch"
+                        / "supervisor.launch.py"
+                    )
+                ),
+                launch_arguments={
+                    "aruco_rgbd_ids": get_str("aruco.rgbd_ids"),
+                    # NOTE: It is required that kalman_aruco is started from within the same launch file.
+                }.items(),
+            ),
+        ]
+
     return description
 
 
@@ -404,6 +421,11 @@ def generate_launch_description():
                 "yolo.config",
                 default_value="",
                 description="Name of the YOLO configuration file. Configuration files are located in kalman_yolo/config.",
+            ),
+            DeclareLaunchArgument(
+                "supervisor",
+                default_value="false",
+                description="Start up the supervisor.",
             ),
             OpaqueFunction(function=launch_setup),
         ]

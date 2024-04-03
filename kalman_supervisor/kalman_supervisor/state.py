@@ -18,3 +18,9 @@ class State:
 
     def exit(self) -> None:
         pass
+
+disabled_state_classes = set()
+def disable_state(class_):
+    global disabled_state_classes
+    disabled_state_classes.add(class_)
+    return class_

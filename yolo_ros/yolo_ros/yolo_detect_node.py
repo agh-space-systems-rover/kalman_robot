@@ -218,6 +218,7 @@ class YOLODetect(Node):
             self.get_logger().error("Error during activation: " + str(e))
             return TransitionCallbackReturn.ERROR
 
+        self.get_logger().info("Activated.")
         return TransitionCallbackReturn.SUCCESS
 
     def on_deactivate(self, state: State) -> TransitionCallbackReturn:
@@ -233,6 +234,7 @@ class YOLODetect(Node):
             self.destroy_subscription(sub)
         # Never unload the YOLO model because it is expensive to load again.
 
+        self.get_logger().info("Deactivated.")
         return TransitionCallbackReturn.SUCCESS
 
     def on_shutdown(self, state: State) -> TransitionCallbackReturn:

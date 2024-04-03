@@ -3,4 +3,5 @@ string object_class
 ---
 ---
 string state
+bool object_found
 geographic_msgs/GeoPoint object_location

@@ -12,7 +12,7 @@ class Finished(State):
 
     def enter(self) -> None:
         self.supervisor.ueuos.set_state(Ueuos.State.FINISHED)
-        self.supervisor.missions.end_mission()
+        self.supervisor.missions.succeed_mission()
         self.entry_time = time.time()
 
     def tick(self) -> str | None:

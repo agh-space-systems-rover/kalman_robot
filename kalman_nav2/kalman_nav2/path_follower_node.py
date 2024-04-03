@@ -58,6 +58,18 @@ def linear_regression(x, y):
 def linear_rss(x, y, a, b):
     return np.sum(np.square(y - (a * x + b)))
 
+def fast_inv_uniform_scale_ortho_mat3(m):
+    scale = np.linalg.norm(m[:3, 0])
+    orthonormal = m / scale
+    return orthonormal.T * scale
+
+def fast_inv_uniform_scale_transform(m):
+    basis = m[:3, :3]
+    origin = m[:3, 3].reshape(-1, 1)
+    inv_basis = fast_inv_uniform_scale_ortho_mat3(basis)
+    inv_origin = inv_basis @ -origin
+    return np.append(np.append(inv_basis, inv_origin, axis=1), [[0, 0, 0, 1]], axis=0)
+
 # This node generates twist commands based on the current path and the robot's pose.
 class PathFollower(rclpy.node.Node):
     def __init__(self):
@@ -202,14 +214,13 @@ class PathFollower(rclpy.node.Node):
             robot_heading = np.array([1.0, 0.0, 0.0, 0.0]) # in robot_frame
             robot_heading_in_path_frame = (robot_frame_to_path @ robot_heading)[:2]
             yaw = np.arctan2(robot_heading_in_path_frame[1], robot_heading_in_path_frame[0])
-            path_to_robot_frame_2d = np.linalg.inv(np.array(
-                [
-                    [np.cos(yaw), -np.sin(yaw), 0.0, xy[0]],
-                    [np.sin(yaw), np.cos(yaw), 0.0, xy[1]],
-                    [0.0, 0.0, 1.0, 0.0],
-                    [0.0, 0.0, 0.0, 1.0],
-                ]
-            ))
+            # NOTE: For some odd reason, np.linalg.inv is causing extremely high CPU usage.
+            path_to_robot_frame_2d = fast_inv_uniform_scale_transform(np.array([
+                [np.cos(yaw), -np.sin(yaw), 0.0, xy[0]],
+                [np.sin(yaw), np.cos(yaw), 0.0, xy[1]],
+                [0.0, 0.0, 1.0, 0.0],
+                [0.0, 0.0, 0.0, 1.0],
+            ]))
         except tf2_ros.LookupException as e:
             self.get_logger().error(f"TF2 lookup failed: {e}")
             return res

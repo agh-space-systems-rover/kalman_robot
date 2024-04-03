@@ -2,9 +2,11 @@ supervisor:
   ros__parameters:
     # Ticking rate for all states and modules.
     rate: 3.0
+    aruco:
+      # num_cameras: 4
+      # NOTE: This is set in supervisor.launch.py
+      max_detection_distance: 5.0
     position_history:
-      world_frame: map
-      robot_frame: base_footprint
       # Take a snapshot of the robot's position every 0.5 meters.
       waypoint_spacing: 0.5
       # maximum number of waypoints to store in memory
@@ -14,5 +16,10 @@ supervisor:
       obstacle_layers:
         - static_layer
         - stvl
-    nav:
+    tf:
+      # The name of the TF frame to use as the world frame.
+      world_frame: map
+      # The name of the TF frame to use as the robot frame.
       robot_frame: base_footprint
+    yolo:
+      max_detection_distance: 5.0

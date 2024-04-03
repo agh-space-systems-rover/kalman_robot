@@ -34,8 +34,14 @@ class Map(Module):
             reliability=ReliabilityPolicy.RELIABLE,
             durability=DurabilityPolicy.TRANSIENT_LOCAL
         )
+        update_qos = QoSProfile(
+            history=HistoryPolicy.KEEP_LAST,
+            depth=1,
+            reliability=ReliabilityPolicy.RELIABLE,
+            durability=DurabilityPolicy.VOLATILE
+        )
         self.__map_sub = self.supervisor.create_subscription(OccupancyGrid, "map/map", self.__map_cb, map_qos)
-        self.__map_update_sub = None
+        self.__map_update_sub = self.supervisor.create_subscription(OccupancyGridUpdate, "map/map_updates", self.__map_update_cb, update_qos)
 
         self.__frame: str | None = None
         self.__resolution: float | None = None
@@ -55,21 +61,9 @@ class Map(Module):
         # Setting them to different values like this triggers a request to enable layers on activation.
 
     def tick(self) -> None:
-        # Reset param futures once both are done.
-        if self.__global_param_set_future is not None and self.__global_param_set_future.done() and self.__local_param_set_future is not None and self.__local_param_set_future.done():
-            self.__global_param_set_future = None
-            self.__local_param_set_future = None
-            # The request is only ever sent in order to flip the state, so it is safe to
-            # assume that the new state will be opposite to the old one.
-            self.__obstacle_layers_enabled = not self.__obstacle_layers_enabled
-            self.supervisor.get_logger().info(f"[Nav2/Costmap2D] Obstacle layers are now {'enabled' if self.__obstacle_layers_enabled else 'disabled'}.")
-
         # If the obstacle layers should be enabled but they are
-        # not or vice versa, request the parameters to change.
+        # not or vice versa, and a change request is not pending, request the parameters to change.
         if self.__obstacle_layers_enabled != self.__obstacle_layers_should_be_enabled:
-            # Only process the request once the previous ones are done.
-            # Once the current request finishes, the state change should not
-            # be needed anymore and the previous condition will not pass.
             if self.__global_param_set_future is None and self.__local_param_set_future is None:
                 req = SetParameters.Request()
                 for layer in self.obstacle_layers:
@@ -80,6 +74,15 @@ class Map(Module):
                     req.parameters.append(param)
                 self.__global_param_set_future = self.__global_param_set_client.call_async(req)
                 self.__local_param_set_future = self.__local_param_set_client.call_async(req)
+
+        # Reset param futures once both are done.
+        if self.__global_param_set_future is not None and self.__global_param_set_future.done() and self.__local_param_set_future is not None and self.__local_param_set_future.done():
+            self.__global_param_set_future = None
+            self.__local_param_set_future = None
+            # The request is only ever sent in order to flip the state, so it is safe to
+            # assume that the new state will be opposite to the old one.
+            self.__obstacle_layers_enabled = not self.__obstacle_layers_enabled
+            self.supervisor.get_logger().info(f"[Nav2/Costmap2D] Obstacle layers are now {'enabled' if self.__obstacle_layers_enabled else 'disabled'}.")
 
         # # Debug: republish own map.
         # if self.__data_np is not None:
@@ -94,8 +97,7 @@ class Map(Module):
         #     self.__map_pub.publish(msg)
 
     def deactivate(self) -> None:
-        if self.__map_update_sub is not None:
-            self.supervisor.destroy_subscription(self.__map_update_sub)
+        self.supervisor.destroy_subscription(self.__map_update_sub)
         self.supervisor.destroy_subscription(self.__map_sub)
     
     def __map_cb(self, msg: OccupancyGrid) -> None:
@@ -103,17 +105,6 @@ class Map(Module):
         self.__resolution = msg.info.resolution
         self.__origin_np = np.array([msg.info.origin.position.x, msg.info.origin.position.y])
         self.__data_np = np.array(msg.data).reshape(msg.info.height, msg.info.width)
-
-        # Re-subscribe to updates every time a new map is received.
-        update_qos = QoSProfile(
-            history=HistoryPolicy.KEEP_LAST,
-            depth=1,
-            reliability=ReliabilityPolicy.RELIABLE,
-            durability=DurabilityPolicy.VOLATILE
-        )
-        if self.__map_update_sub is not None:
-            self.supervisor.destroy_subscription(self.__map_update_sub)
-        self.__map_update_sub = self.supervisor.create_subscription(OccupancyGridUpdate, "map/map_updates", self.__map_update_cb, update_qos)
 
     def __map_update_cb(self, msg: OccupancyGridUpdate) -> None:
         x0 = msg.x
@@ -162,10 +153,13 @@ class Map(Module):
         else:
             return Map.Occupancy.OCCUPIED
     
-    def frame(self) -> str:
+    def frame(self) -> str | None:
         return self.__frame
 
     def occupancy(self, pos: np.ndarray, frame: str) -> Occupancy:
+        if self.__frame is None:
+            raise RuntimeError("Map was not received yet.")
+
         pos = pos.copy()
         xy = self.__pos_to_grid_coords(pos, frame)
         return self.__occupancy_for_grid_coords(xy)
@@ -174,7 +168,11 @@ class Map(Module):
     # The returned position has the same dimensionality as the input position.
     # The frame of the returned position is the same as the input frame.
     # A 3D position will get snapped to the Z=0 plane of the world.
+    # Return None if no free position was found with the hard-coded tolerance.
     def closest_free(self, pos: np.ndarray, frame: str) -> np.ndarray | None:
+        if self.__frame is None:
+            raise RuntimeError("Map was not received yet.")
+
         pos = pos.copy()
         xy = self.__pos_to_grid_coords(pos, frame) # height over the map frame is discarded
 
@@ -223,6 +221,9 @@ class Map(Module):
     # Specification analogous to closest_free.
     # Dir is in the same frame as pos. It is automatically normalized.
     def closest_free_in_dir(self, pos: np.ndarray, frame: str, dir: np.ndarray) -> np.ndarray | None:
+        if self.__frame is None:
+            raise RuntimeError("Map was not received yet.")
+
         pos = pos.copy()
         xy = self.__pos_to_grid_coords(pos, frame) # height over the map frame is discarded
         xy_dir = self.supervisor.tf.rotate_numpy(dir, self.__frame, frame)[:2]
@@ -230,6 +231,7 @@ class Map(Module):
         # First check if the point is out of bounds.
         if np.any(xy < 0) or np.any(xy >= np.array(self.__data_np.shape)):
             # In this case project it onto the center of the map and start searching from the edge.
+            # TODO: Should be projected along the direction, but this is good enough for now since robot is always in the center.
             center_xy = np.array(self.__data_np.shape) // 2
             from_center = xy - center_xy
             scale_xy = np.abs((np.array(self.__data_np.shape) // 2) / from_center)
@@ -256,11 +258,41 @@ class Map(Module):
         
         return None
     
+    def closest_in_bounds_towards_center(self, pos: np.ndarray, frame: str) -> np.ndarray:
+        if self.__frame is None:
+            raise RuntimeError("Map was not received yet.")
+
+        pos = pos.copy()
+        xy = self.__pos_to_grid_coords(pos, frame)
+
+        if np.any(xy < 0) or np.any(xy >= np.array(self.__data_np.shape)):
+            # In this case project it onto the center of the map and start searching from the edge.
+            # TODO: Should be projected along the direction, but this is good enough for now since robot is always in the center.
+            center_xy = np.array(self.__data_np.shape) // 2
+            from_center = xy - center_xy
+            scale_xy = np.abs((np.array(self.__data_np.shape) // 2) / from_center)
+            scale = np.min(scale_xy)
+            xy = center_xy + (from_center * scale).astype(int)
+            xy = np.clip(xy, 1, np.array(self.__data_np.shape) - 2) # make sure that xy is in bounds
+        
+        xy, new_frame = self.__grid_coords_to_pos(xy)
+        pos = np.append(xy, [0])
+        xy = self.supervisor.tf.transform_numpy(pos, frame, new_frame)
+        return xy
+    
     def obstacle_layers_enabled(self) -> bool:
         return self.__obstacle_layers_enabled
 
-    def request_to_disable_obstacle_layers(self) -> None:
+    # Wait for obstacle_layers_enabled to know when it's done.
+    def disable_obstacle_layers(self) -> None:
         self.__obstacle_layers_should_be_enabled = False
 
-    def request_to_enable_obstacle_layers(self) -> None:
+    # Wait for obstacle_layers_enabled to know when it's done.
+    def enable_obstacle_layers(self) -> None:
         self.__obstacle_layers_should_be_enabled = True
+
+    def metric_size(self) -> np.ndarray:
+        if self.__frame is None:
+            raise RuntimeError("Map was not received yet.")
+
+        return np.array(self.__data_np.shape) * self.__resolution

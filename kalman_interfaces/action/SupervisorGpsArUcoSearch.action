@@ -3,4 +3,5 @@ uint16 marker_id
 ---
 ---
 string state
+bool marker_found
 geographic_msgs/GeoPoint marker_location

@@ -37,9 +37,8 @@ def launch_setup(context):
                 )
             ),
             launch_arguments={
-                "component_container": "true",
                 "drivers": "true",
-                "drivers.composition": "true",
+                "drivers.composition": "false",
                 "drivers.rgbd_ids": "",
                 "drivers.master": "true",
                 "drivers.imu": "false",

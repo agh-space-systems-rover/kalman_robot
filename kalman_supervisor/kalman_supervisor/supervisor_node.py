@@ -3,17 +3,22 @@ import time
 import traceback
 
 from rclpy.lifecycle import Node, TransitionCallbackReturn
+from rclpy.executors import MultiThreadedExecutor
 
 from kalman_supervisor.module import Module
-from kalman_supervisor.state import State
+from kalman_supervisor.state import State, disabled_state_classes
 from kalman_supervisor.modules import *
 from kalman_supervisor.states import *
+
+def all_inherited_classes(cls):
+    return cls.__subclasses__() + [g for s in cls.__subclasses__() for g in all_inherited_classes(s)]
 
 class Supervisor(Node):
     def __init__(self):
         super().__init__("supervisor")
 
         # Set per-module type hints for autocomplete.
+        self.aruco: ArUco
         self.map: Map
         self.missions: Missions
         self.nav: Nav
@@ -22,7 +27,7 @@ class Supervisor(Node):
         self.ueuos: Ueuos
 
         # Initialize modules.
-        module_classes = Module.__subclasses__()
+        module_classes = all_inherited_classes(Module)
         self.__modules = [module_class() for module_class in module_classes]
         for module in self.__modules:
             module.supervisor = self
@@ -31,7 +36,8 @@ class Supervisor(Node):
 
         # Initialize states.
         # state_dict maps state names to State objects. 
-        state_classes = State.__subclasses__()
+        state_classes = all_inherited_classes(State)
+        state_classes = [state_class for state_class in state_classes if state_class not in disabled_state_classes]
         self.__state_dict = [state_class() for state_class in state_classes]
         self.__state_dict = {state.name: state for state in self.__state_dict}
         for state_obj in self.__state_dict.values():
@@ -94,13 +100,14 @@ class Supervisor(Node):
             except Exception as e:
                 self.get_logger().error(f"Error when ticking {module.name}:\n{traceback.format_exc()}\nContinuing to next module. Let there be dragons.")
 
-        # Tick the state and transition if necessary.
+        # Tick the state.
         new_state_name = None
         try:
             new_state_name = self.__state_dict[self.state].tick()
         except Exception as e:
             self.get_logger().error(f"Error when ticking {self.state} state:\n{traceback.format_exc()}\nContinuing to next tick. Let there be dragons.")
 
+        # Transition if requested.
         if new_state_name and new_state_name != self.state:
             try:
                 self.__state_dict[self.state].exit()
@@ -128,19 +135,15 @@ class Supervisor(Node):
 def main():
     try:
         rclpy.init()
+        executor = MultiThreadedExecutor(num_threads=10)
+        # num_threads = max number of concurrent mission requests + 1
 
-        # Retry initializing the supervisor until it succeeds.
-        # This is just a safety measure for unexpected errors.
-        while True:
-            try:
-                supervisor = Supervisor()
-                break
-            except Exception as e:
-                print(f"Failed to initialize supervisor:\n{traceback.format_exc()}\nRetrying...")
-                time.sleep(1)
-
-        rclpy.spin(supervisor)
+        supervisor = Supervisor()
+        executor.add_node(supervisor)
+        executor.spin()
         supervisor.destroy_node()
+
+        executor.shutdown()
         rclpy.shutdown()
     except KeyboardInterrupt:
         pass

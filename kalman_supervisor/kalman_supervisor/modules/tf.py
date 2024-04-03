@@ -24,9 +24,17 @@ class TF(Module):
     def __init__(self):
         super().__init__("tf")
 
+    def configure(self) -> None:
+        self.supervisor.declare_parameter("tf.world_frame", "map")
+        self.supervisor.declare_parameter("tf.robot_frame", "base_link")
+
     def activate(self) -> None:
         self.__buffer = Buffer()
         self.__listener = TransformListener(self.__buffer, self.supervisor)
+
+    def tick(self) -> None:
+        self.__world_frame = self.supervisor.get_parameter("tf.world_frame").value
+        self.__robot_frame = self.supervisor.get_parameter("tf.robot_frame").value
 
     def deactivate(self) -> None:
         self.__listener.unregister()
@@ -80,3 +88,24 @@ class TF(Module):
         else:
             raise ValueError("dir must be a 3D numpy array.")
     
+    def world_frame(self) -> str:
+        if not hasattr(self, "__world_frame"):
+            self.tick()
+        return self.__world_frame
+    
+    def robot_frame(self) -> str:
+        if not hasattr(self, "__robot_frame"):
+            self.tick()
+        return self.__robot_frame
+
+    # Get the robot's position in the world frame or the specified frame.
+    def robot_pos(self, frame: str = "") -> np.ndarray:
+        if frame == "":
+            frame = self.world_frame()
+        return self.transform_numpy(np.zeros(3), frame, self.robot_frame())
+
+    def robot_rot_2d(self, frame: str = "") -> float:
+        if frame == "":
+            frame = self.world_frame()
+        look_vec = self.rotate_numpy(np.array([1, 0, 0]), frame, self.robot_frame())
+        return np.arctan2(look_vec[1], look_vec[0])
