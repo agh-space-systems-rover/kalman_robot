@@ -225,41 +225,6 @@ def launch_setup(context):
             ),
         ]
 
-    # point cloud clean-up
-    if component_container:
-        description += [
-            LoadComposableNodes(
-                target_container=component_container,
-                composable_node_descriptions=[
-                    ComposableNode(
-                        package="point_cloud_utils",
-                        plugin="point_cloud_utils::VoxelGrid",
-                        namespace=camera_id,
-                        name="voxel_grid",
-                        remappings={
-                            "input": f"depth/color/points",
-                            "output": f"depth/color/points/filtered",
-                        }.items(),
-                        extra_arguments=[{"use_intra_process_comms": True}],
-                    )
-                    for camera_id in rgbd_ids
-                ],
-            ),
-        ]
-    else:
-        description += [
-            Node(
-                package="point_cloud_utils",
-                executable="voxel_grid",
-                namespace=camera_id,
-                remappings=[
-                    ("input", f"depth/color/points"),
-                    ("output", f"depth/color/points/filtered"),
-                ],
-            )
-            for camera_id in rgbd_ids
-        ]
-
     # TODO: Finish this
     # if mapping:
     #     description += [
