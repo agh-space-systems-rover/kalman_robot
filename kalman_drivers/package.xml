@@ -13,6 +13,8 @@
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>imu_tools</exec_depend>
   <exec_depend>compressed_image_transport</exec_depend>
+  <exec_depend>nmea_navsat_driver</exec_depend>
+  <exec_depend>python-transforms3d-pip</exec_depend> <!-- required by nmea_navsat_driver -->
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>

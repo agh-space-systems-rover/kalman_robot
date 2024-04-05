@@ -21,6 +21,7 @@ def generate_launch_description():
                     "drivers.master": "true",
                     "drivers.imu": "false",
                     "drivers.compasscal": "false",
+                    "drivers.gps": "false",
                     "wheel_controller": "true",
                 }.items(),
             ),

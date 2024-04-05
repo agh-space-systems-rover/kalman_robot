@@ -1,0 +1,6 @@
+nmea_navsat_driver:
+  ros__parameters:
+    port: "/dev/ttyACM0"
+    baud: 115200
+    time_ref_source: "gps"
+    useRMC: true

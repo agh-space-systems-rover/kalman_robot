@@ -43,6 +43,7 @@ def launch_setup(context):
                 "drivers.master": "true",
                 "drivers.imu": "false",
                 "drivers.compasscal": "true",
+                "drivers.gps": "false",
                 "wheel_controller": "true",
             }.items(),
         ),

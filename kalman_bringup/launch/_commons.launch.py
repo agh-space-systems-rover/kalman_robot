@@ -109,6 +109,7 @@ def launch_setup(context):
                     "rgbd_ids": get_str("drivers.rgbd_ids"),
                     "imu": get_str("drivers.imu"),
                     "compasscal": get_str("drivers.compasscal"),
+                    "gps": get_str("drivers.gps"),
                 }.items(),
             ),
         ]
@@ -316,6 +317,11 @@ def generate_launch_description():
                 "drivers.compasscal",
                 default_value="false",
                 description="Start the IMU compass calibration node. IMU must be disabled in order to calibrate the compass.",
+            ),
+            DeclareLaunchArgument(
+                "drivers.gps",
+                default_value="false",
+                description="Start the GPS driver.",
             ),
             DeclareLaunchArgument(
                 "rviz",

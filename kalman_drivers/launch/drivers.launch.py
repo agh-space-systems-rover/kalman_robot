@@ -30,6 +30,7 @@ def launch_setup(context):
     ]
     imu = LaunchConfiguration("imu").perform(context).lower() == "true"
     compasscal = LaunchConfiguration("compasscal").perform(context).lower() == "true"
+    gps = LaunchConfiguration("gps").perform(context).lower() == "true"
 
     if len(rgbd_ids) > 0:
         rgbd_ids_sns = [
@@ -181,6 +182,27 @@ def launch_setup(context):
             ),
         ]
 
+    if gps:
+        description += [
+            Node(
+                package="nmea_navsat_driver",
+                executable="nmea_serial_driver",
+                parameters=[
+                    str(
+                        get_package_share_path("kalman_drivers")
+                        / "config"
+                        / "nmea_navsat_driver.yaml"
+                    )
+                ],
+                remappings=[
+                    ("fix", "gps/fix"),
+                    ("heading", "gps/heading"),
+                    ("vel", "gps/vel"),
+                    ("time_reference", "gps/time_reference"),
+                ],
+            )
+        ]
+
     return description
 
 
@@ -207,6 +229,9 @@ def generate_launch_description():
                 "compasscal",
                 default_value="false",
                 description="Start the IMU compass calibration service node. IMU must be disabled in order to calibrate the compass.",
+            ),
+            DeclareLaunchArgument(
+                "gps", default_value="true", description="Start the GPS driver."
             ),
             OpaqueFunction(function=launch_setup),
         ]
