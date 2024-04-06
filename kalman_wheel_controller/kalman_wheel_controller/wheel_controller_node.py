@@ -30,6 +30,15 @@ TURN_VECTORS = [
     ]
 ]
 
+def angle_distance(alpha, beta):
+    vec1 = np.array([np.cos(alpha), np.sin(alpha)])
+    vec2 = np.array([np.cos(beta), np.sin(beta)])
+    return np.arccos(np.dot(vec1, vec2))
+
+def flip_angle(angle):
+    angle += np.pi
+    return np.arctan2(np.sin(angle), np.cos(angle))
+
 
 class State:
     pass
@@ -183,13 +192,18 @@ class WheelController(rclpy.node.Node):
         # wheel angles
         wheel_angles = [np.arctan2(vec[1], vec[0]) for vec in wheel_vectors]
 
-        # Flip wheel velocities and angles if the absolute angle exceeds 90 degrees.
+        # Choose either angle or its complement, whichever is closer to the current angle.
+        # When choosing the complement, flip the velocity sign.
         for i in range(len(wheel_angles)):
-            if wheel_angles[i] < -np.pi / 2:
-                wheel_angles[i] += np.pi
+            if angle_distance(wheel_angles[i], self.current_angles[i]) > np.pi / 2:
+                wheel_angles[i] = flip_angle(wheel_angles[i])
                 wheel_velocities[i] *= -1
-            elif wheel_angles[i] > np.pi / 2:
-                wheel_angles[i] -= np.pi
+
+        # Flip wheel velocities and angles if the absolute angle exceeds 100 degrees.
+        # Also flip the velocity sign.
+        for i in range(len(wheel_angles)):
+            if abs(wheel_angles[i]) > np.deg2rad(100):
+                wheel_angles[i] = flip_angle(wheel_angles[i])
                 wheel_velocities[i] *= -1
 
         # Limit wheel velocities.
