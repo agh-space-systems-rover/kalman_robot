@@ -6,6 +6,7 @@ from rclpy.node import Node
 from std_msgs.msg import UInt8MultiArray
 from std_srvs.srv import Empty as EmptySrv
 from typing import List
+from std_msgs.msg import ColorRGBA
 
 # from kalman_rover_uart.srv import intSrv, intSrvRequest
 from kalman_interfaces.srv import SetUeuosColor
@@ -24,6 +25,13 @@ class AutonomyRouter(APIRouter):
         self.ros2uart_publisher = parent_node.create_publisher(
             UInt8MultiArray, "/kalman_rover/ros2uart", qos_profile=10
         )
+
+        self.ueuos_colors = {
+            0 : ColorRGBA(r=1.0, a=1.0),
+            1 : ColorRGBA(g=1.0, a=1.0),
+            2 : ColorRGBA(b=1.0, a=1.0),
+            3 : ColorRGBA(r=1.0, a=1.0),
+        }
 
         # I love web <3
         self.add_api_route(
@@ -117,7 +125,8 @@ class AutonomyRouter(APIRouter):
 
     def set_ueuos_state(self, color: int):
         req = SetUeuosColor.Request()
-        req.color = min(max(color, 0), 3)
+        color_ix = min(max(color, 0), 3)
+        req.color = self.ueuos_colors[color_ix]
         future = self.ueuos_set_state_client.call_async(req)
         rclpy.spin_until_future_complete(self.parent_node, future, timeout_sec=0.1)
         return future.done()

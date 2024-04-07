@@ -6,7 +6,7 @@ import { changeDrivingMode, changeWheelsScalingFactor } from '../../../store/Mot
 import type { WheelScaling } from '../../../store/Motors/motorTypes'
 import { DrivingMode } from '../../../store/Motors/motorTypes'
 import type { GamepadChange, WheelsCommand } from '../gamepadTypes'
-import { Buttons } from './standardMapping'
+import { Axis, Buttons } from './standardMapping'
 
 export const scalingPresets: WheelScaling[] = [
   { forward: 1, turn: 1 },
@@ -66,22 +66,22 @@ const drivingMapping: GamepadChange = (args) => {
   const actions: Action<unknown>[] = []
 
   // map input from triggers to values from range [-1, 1]
-  const x = (-1 - currentValues.axes[2]) / 2 - (-1 - currentValues.axes[5]) / 2
+  const x = (-1 - currentValues.axes[Axis.LT]) / 2 - (-1 - currentValues.axes[Axis.RT]) / 2
 
   let message: WheelsCommand
   if (drivingMode == DrivingMode.Normal) {
     message = {
       mode: 0,
       x: x * scalingFactor.forward,
-      y: -currentValues.axes[0] * scalingFactor.turn,
-      z: 2.0 * -currentValues.axes[3],
+      y: -currentValues.axes[Axis.R3_HORIZONTAL] * scalingFactor.turn,
+      z: 2.0 * -currentValues.axes[Axis.L3_HORIZONTAL],
     }
   } else if (drivingMode == DrivingMode.InPlace) {
     message = {
       mode: 1,
       x: x,
-      y: 2.0 * -currentValues.axes[3] * scalingFactor.turn,
-      z: currentValues.axes[0] * scalingFactor.turn,
+      y: 2.0 * -currentValues.axes[Axis.L3_HORIZONTAL] * scalingFactor.turn,
+      z: currentValues.axes[Axis.R3_HORIZONTAL] * scalingFactor.turn,
     }
   } else {
     message = {
