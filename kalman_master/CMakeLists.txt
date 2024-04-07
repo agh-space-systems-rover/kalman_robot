@@ -8,6 +8,8 @@ ament_python_install_package(${PROJECT_NAME})
 
 install(PROGRAMS
   scripts/master_com
+  scripts/shell_over_master_client
+  scripts/shell_over_master_server
   scripts/ueuos_driver
   scripts/wheel_driver
   DESTINATION lib/${PROJECT_NAME}
