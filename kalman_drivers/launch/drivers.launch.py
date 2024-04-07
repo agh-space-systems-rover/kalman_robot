@@ -68,13 +68,12 @@ def launch_setup(context):
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
                     str(
-                        get_package_share_path("kalman_drivers")
+                        get_package_share_path("realsense2_camera")
                         / "launch"
                         / "rs_launch.py"
                     )
                 ),
                 launch_arguments={
-                    "component_container": component_container,
                     "camera_name": f"{camera_name}",
                     "camera_namespace": f"{camera_name}",
                     "serial_no": serial_no,
