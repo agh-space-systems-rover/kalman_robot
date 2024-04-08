@@ -1,11 +1,6 @@
 # Common configuration of realsense2_camera nodes.
 # This is NOT a well-formed ROS param file.
 
-decimation_filter:
-  enable: true
-  filter_magnitude: 4
-pointcloud:
-  enable: true
 align_depth:
   enable: true
 rgb_camera:

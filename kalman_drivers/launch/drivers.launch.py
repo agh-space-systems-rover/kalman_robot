@@ -74,8 +74,8 @@ def launch_setup(context):
                     )
                 ),
                 launch_arguments={
-                    "camera_name": f"{camera_name}",
-                    "camera_namespace": f"{camera_name}",
+                    "camera_name": camera_name,
+                    "camera_namespace": "",
                     "serial_no": serial_no,
                     "config_file": str(  # Must use external config file for non-configurable options.
                         get_package_share_path("kalman_drivers")
@@ -214,7 +214,7 @@ def generate_launch_description():
                 description="Name of an existing component container to use. Empty by default to disable composition.",
             ),
             DeclareLaunchArgument(
-                "master", default_value="true", description="Start the master driver."
+                "master", default_value="false", description="Start the master driver."
             ),
             DeclareLaunchArgument(
                 "rgbd_ids",
@@ -222,7 +222,7 @@ def generate_launch_description():
                 description="Space-separated IDs of the depth cameras to use.",
             ),
             DeclareLaunchArgument(
-                "imu", default_value="true", description="Start the IMU driver."
+                "imu", default_value="false", description="Start the IMU driver."
             ),
             DeclareLaunchArgument(
                 "compasscal",
@@ -230,7 +230,7 @@ def generate_launch_description():
                 description="Start the IMU compass calibration service node. IMU must be disabled in order to calibrate the compass.",
             ),
             DeclareLaunchArgument(
-                "gps", default_value="true", description="Start the GPS driver."
+                "gps", default_value="false", description="Start the GPS driver."
             ),
             OpaqueFunction(function=launch_setup),
         ]
