@@ -30,10 +30,12 @@ TURN_VECTORS = [
     ]
 ]
 
+
 def angle_distance(alpha, beta):
     vec1 = np.array([np.cos(alpha), np.sin(alpha)])
     vec2 = np.array([np.cos(beta), np.sin(beta)])
     return np.arccos(np.dot(vec1, vec2))
+
 
 def flip_angle(angle):
     angle += np.pi

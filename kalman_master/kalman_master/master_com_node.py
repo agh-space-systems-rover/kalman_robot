@@ -17,17 +17,19 @@ Every ROS message sent on topic master_com/ros_to_master should have MasterMessa
 Message is then encoded as a binary frame and sent out using the serial driver.
 """
 
+
 # Returns first ttyXXXN that includes model string in its ID_MODEL property
 def find_tty_by_model(model: str):
     context = pyudev.Context()
-    for device in context.list_devices(subsystem='tty'):
+    for device in context.list_devices(subsystem="tty"):
         try:
-            id_model = device.properties['ID_MODEL'].strip()
+            id_model = device.properties["ID_MODEL"].strip()
             if model in id_model:
                 return device.device_node
         except KeyError:
             pass
     return None
+
 
 class MasterCom(Node):
     def __init__(self) -> None:
@@ -37,7 +39,9 @@ class MasterCom(Node):
         while True:
             port_name = find_tty_by_model("Master_Autonomy_UART")
             if port_name is None:
-                self.get_logger().error("Master UART port not found. Will retry in 5 seconds.")
+                self.get_logger().error(
+                    "Master UART port not found. Will retry in 5 seconds."
+                )
                 time.sleep(5)
             else:
                 self.get_logger().info(f"Master is connected to {port_name}.")

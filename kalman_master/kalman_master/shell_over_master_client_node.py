@@ -13,6 +13,7 @@ SHELL_OVER_MASTER_ID = 100
 SHELL_INPUT_CHUNK_SIZE = 254
 ESCAPE_SEQUENCE = "qwerty"
 
+
 class ShellOverMasterClient(Node):
     def __init__(self) -> None:
         super().__init__("shell_over_rf_client")
@@ -23,11 +24,14 @@ class ShellOverMasterClient(Node):
         self.old_tty = termios.tcgetattr(sys.stdin)
         tty.setraw(sys.stdin.fileno())
 
-        self.ros_to_master = self.create_publisher(MasterMessage, "master_com/ros_to_master", 10)
+        self.ros_to_master = self.create_publisher(
+            MasterMessage, "master_com/ros_to_master", 10
+        )
         self.master_to_ros = self.create_subscription(
-            MasterMessage, "master_com/master_to_ros/" +
-            hex(MasterMessage.FORWARD_TO_RF)[1:],
-            self.master_to_ros_callback, 10
+            MasterMessage,
+            "master_com/master_to_ros/" + hex(MasterMessage.FORWARD_TO_RF)[1:],
+            self.master_to_ros_callback,
+            10,
         )
 
         self.create_timer(0.5, self.timer_callback)
@@ -43,18 +47,22 @@ class ShellOverMasterClient(Node):
             if sys.stdin in r:
                 # If received input from stdin, forward it to master.
                 i = os.read(sys.stdin.fileno(), SHELL_INPUT_CHUNK_SIZE)
-                
+
                 # Check if the escape code was entered and raise KeyboardInterrupt if so.
                 self.escape_code_window += i.decode()
                 if ESCAPE_SEQUENCE in self.escape_code_window:
                     raise KeyboardInterrupt
-                self.escape_code_window = self.escape_code_window[-len(ESCAPE_SEQUENCE):]
-                
+                self.escape_code_window = self.escape_code_window[
+                    -len(ESCAPE_SEQUENCE) :
+                ]
+
                 data = [int(x) for x in list(i)]
-                self.ros_to_master.publish(MasterMessage(
-                    cmd=MasterMessage.FORWARD_TO_PC,
-                    data=[SHELL_OVER_MASTER_ID] + data
-                ))
+                self.ros_to_master.publish(
+                    MasterMessage(
+                        cmd=MasterMessage.FORWARD_TO_PC,
+                        data=[SHELL_OVER_MASTER_ID] + data,
+                    )
+                )
         except Exception as e:
             # Restore tty settings back.
             termios.tcsetattr(sys.stdin, termios.TCSADRAIN, self.old_tty)
