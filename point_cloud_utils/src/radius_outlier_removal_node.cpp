@@ -1,4 +1,4 @@
-#include <pcl/filters/voxel_grid.h>
+#include <pcl/filters/radius_outlier_removal.h>
 #include <pcl_conversions/pcl_conversions.h>
 
 #include <rclcpp/rclcpp.hpp>
@@ -10,17 +10,18 @@ constexpr float default_leaf_size  = 0.1;
 
 namespace point_cloud_utils {
 
-class VoxelGrid : public rclcpp::Node {
+class RadiusOutlierRemoval : public rclcpp::Node {
   public:
 	rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr    pub;
 	rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr sub;
-	pcl::VoxelGrid<pcl::PointXYZRGB> filter;
+	pcl::RadiusOutlierRemoval<pcl::PointXYZRGB> filter;
 
-	VoxelGrid(const rclcpp::NodeOptions &options)
-	    : Node("voxel_grid", options) {
+	RadiusOutlierRemoval(const rclcpp::NodeOptions &options)
+	    : Node("radius_outlier_removal", options) {
 		// Declare parameters.
 		declare_parameter("queue_size", default_queue_size);
-		declare_parameter("leaf_size", default_leaf_size);
+		declare_parameter("search_radius", 0.1);
+		declare_parameter("min_neighbors", 10);
 
 		// Read static parameters.
 		int queue_size = default_queue_size;
@@ -35,13 +36,14 @@ class VoxelGrid : public rclcpp::Node {
 		sub = create_subscription<sensor_msgs::msg::PointCloud2>(
 		    "input",
 		    queue_size,
-		    std::bind(&VoxelGrid::callback, this, std::placeholders::_1)
+		    std::bind(&RadiusOutlierRemoval::callback, this, std::placeholders::_1)
 		);
 	}
 
 	void callback(const sensor_msgs::msg::PointCloud2::SharedPtr msg) {
 		// Read dynamic parameters.
-		float leaf_size = get_parameter("leaf_size").as_double();
+		float search_radius = get_parameter("search_radius").as_double();
+		int min_neighbors = get_parameter("min_neighbors").as_int();
 
 		// Convert the message to a PCL point cloud.
 		pcl::PointCloud<pcl::PointXYZRGB>::Ptr
@@ -51,7 +53,8 @@ class VoxelGrid : public rclcpp::Node {
 		// Run the filter.
 		if (cloud->size() > 0) {
 			filter.setInputCloud(cloud);
-			filter.setLeafSize(leaf_size, leaf_size, leaf_size);
+			filter.setRadiusSearch(search_radius);
+			filter.setMinNeighborsInRadius(min_neighbors);
 			filter.filter(*cloud);
 		}
 
@@ -65,4 +68,4 @@ class VoxelGrid : public rclcpp::Node {
 
 } // namespace point_cloud_utils
 
-RCLCPP_COMPONENTS_REGISTER_NODE(point_cloud_utils::VoxelGrid)
+RCLCPP_COMPONENTS_REGISTER_NODE(point_cloud_utils::RadiusOutlierRemoval)

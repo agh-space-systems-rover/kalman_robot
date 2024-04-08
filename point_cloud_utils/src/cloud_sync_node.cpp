@@ -11,12 +11,6 @@
 #include <rclcpp_components/register_node_macro.hpp>
 #include <sensor_msgs/msg/point_cloud2.hpp>
 
-constexpr int         default_number_of_inputs = 0;
-constexpr bool        default_approx_sync      = true;
-constexpr int         default_queue_size       = 10;
-constexpr const char *default_output_frame_id  = "base_link";
-constexpr const char *default_fixed_frame_id   = "odom";
-
 // ApproximateTime
 
 template <size_t N, typename... Args> struct approx_policy_n {
@@ -47,11 +41,10 @@ namespace point_cloud_utils {
 class CloudSync : public rclcpp::Node {
   public:
 	// parameters
-	int         number_of_inputs = default_number_of_inputs;
-	int         queue_size       = default_queue_size;
-	bool        approx_sync      = default_approx_sync;
-	std::string output_frame_id  = default_output_frame_id;
-	std::string fixed_frame_id   = default_fixed_frame_id;
+	int         number_of_inputs = 0;
+	int         queue_size       = 10;
+	bool        approx_sync      = true;
+	std::string output_frame_id  = "base_link";
 
 	std::vector<std::shared_ptr<
 	    message_filters::Subscriber<sensor_msgs::msg::PointCloud2>>>
@@ -67,15 +60,16 @@ class CloudSync : public rclcpp::Node {
 	std::shared_ptr<tf2_ros::TransformListener> tf_listener;
 	sensor_msgs::msg::PointCloud2::SharedPtr    output_cloud;
 	sensor_msgs::msg::PointCloud2::SharedPtr    transformed_cloud;
+	rclcpp::Duration                            pc_stamp_offset_sum;
+	size_t                                      pc_stamp_offset_count;
 
 	CloudSync(const rclcpp::NodeOptions &options)
-	    : Node("cloud_sync", options) {
+	    : Node("cloud_sync", options), pc_stamp_offset_sum(0, 0) {
 		// Declare parameters.
-		declare_parameter("number_of_inputs", default_number_of_inputs);
-		declare_parameter("approx_sync", default_approx_sync);
-		declare_parameter("queue_size", default_queue_size);
-		declare_parameter("output_frame_id", default_output_frame_id);
-		declare_parameter("fixed_frame_id", default_fixed_frame_id);
+		declare_parameter("number_of_inputs", number_of_inputs);
+		declare_parameter("approx_sync", approx_sync);
+		declare_parameter("queue_size", queue_size);
+		declare_parameter("output_frame_id", output_frame_id);
 
 		// Read static parameters.
 		get_parameter("number_of_inputs", number_of_inputs);
@@ -137,11 +131,8 @@ class CloudSync : public rclcpp::Node {
 		try {
 			transform = tf_buffer->lookupTransform(
 			    output_cloud->header.frame_id,
-			    output_cloud->header.stamp,
 			    in->header.frame_id,
-			    in->header.stamp,
-			    fixed_frame_id,
-			    rclcpp::Duration::from_seconds(1)
+			    rclcpp::Time(0)
 			);
 		} catch (...) {
 			return false;
@@ -159,6 +150,13 @@ class CloudSync : public rclcpp::Node {
 		    *output_cloud, *transformed_cloud, *output_cloud
 		);
 
+		// Update the timestamp of the output point cloud.
+		pc_stamp_offset_sum =
+		    pc_stamp_offset_sum +
+		    (static_cast<rclcpp::Time>(in->header.stamp) -
+		     static_cast<rclcpp::Time>(output_cloud->header.stamp));
+		pc_stamp_offset_count++;
+
 		if constexpr (sizeof...(other_in) > 0) {
 			concat_clouds(other_in...);
 		}
@@ -174,9 +172,9 @@ class CloudSync : public rclcpp::Node {
 		void sync_callback(Args... point_clouds) {
 			// Read dynamic parameters.
 			node->get_parameter("output_frame_id", node->output_frame_id);
-			node->get_parameter("fixed_frame_id", node->fixed_frame_id);
 
 			// Update the header of the output point cloud.
+			// Stamp is a summy value later changed in concat_clouds.
 			node->output_cloud->header.stamp    = node->get_clock()->now();
 			node->output_cloud->header.frame_id = node->output_frame_id;
 
@@ -188,9 +186,17 @@ class CloudSync : public rclcpp::Node {
 			node->output_cloud->point_step = 0;
 
 			// Merge inputs into the output cloud.
+			node->pc_stamp_offset_sum   = rclcpp::Duration(0, 0);
+			node->pc_stamp_offset_count = 0;
 			if (node->concat_clouds(point_clouds...)) {
 				// Fix row_step
 				node->output_cloud->row_step = node->output_cloud->data.size();
+
+				// Average the timestamp offset.
+				rclcpp::Time new_stamp  = node->output_cloud->header.stamp;
+				new_stamp              += node->pc_stamp_offset_sum *
+				             (1.0 / node->pc_stamp_offset_count);
+				node->output_cloud->header.stamp = new_stamp;
 
 				// Publish the merged point cloud.
 				node->point_cloud_publisher->publish(*(node->output_cloud));
@@ -243,10 +249,10 @@ class CloudSync : public rclcpp::Node {
 		// Register the callback function to be called when all point clouds are
 		// received.
 		using sync_callback_type = typename sync_callback_n<N>::type;
-		auto sync_callback       = sync_callback_type(this);
+		auto sync_callback       = std::make_shared<sync_callback_type>(this);
 		sync_callback_keepalive  = sync_callback;
 		synchronizer_typed->registerCallback(
-		    &sync_callback_type::sync_callback, &sync_callback
+		    &sync_callback_type::sync_callback, sync_callback.get()
 		);
 
 		// Save the synchronizer to std::any so it doesn't get destroyed.
