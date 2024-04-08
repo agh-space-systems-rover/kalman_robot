@@ -13,8 +13,10 @@ Kalman's software stack updated to ROS 2
 > This workspace requires Ubuntu Jammy, but it also fully supports execution and development in a Docker container via Distrobox.
 
 - [Spatio-Temporal Voxel Layer](https://github.com/SteveMacenski/spatio_temporal_voxel_layer) (Currently not available via rosdep and has to be built manually from source.)
-- The latest ROS 2 Rolling version of the [realsense-ros](https://github.com/IntelRealSense/realsense-ros) package which supports way more features and has a working (!) auto-exposure feature.
+- the latest ROS 2 Rolling version of the [realsense-ros](https://github.com/IntelRealSense/realsense-ros) package which supports way more features and has a working (!) auto-exposure feature
 - [ros_aruco_opencv 2.2.0 or later](https://github.com/fictionlab/ros_aruco_opencv/tree/humble) for ROS 2 Humble (Not yet available via rosdep.)
+- a custom version of [compressed_depth_image_transport](https://github.com/agh-space-systems-rover/kalman_ws/tree/main/overlay_ws/src/compressed_depth_image_transport) from [kalman_ws](https://github.com/agh-space-systems-rover/kalman_ws) that supports RVL compression and does not clash with `compressed_image_transport`'s params
+- a custom version of [rtabmap_odom](https://github.com/agh-space-systems-rover/kalman_ws/tree/main/overlay_ws/src/rtabmap_odom) from [kalman_ws](https://github.com/agh-space-systems-rover/kalman_ws) that supports compressed image transports
 - All Python packages listed in the `requirements.txt` files in the directories of some Colcon packages.
 - All APT packages listed in the `apt_packages.txt` files in the directories of some Colcon packages.
 
