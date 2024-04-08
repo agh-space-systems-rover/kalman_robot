@@ -1,0 +1,10 @@
+/**:
+  ros__parameters:
+    # size of the input topic queue
+    queue_size: 10
+    # number of neighbors to analyze
+    # Standard deviation is calculated based on the distances to the k nearest neighbors.
+    num_neighbors: 20
+    # standard deviation multiplier
+    # Points with a distance larger than the standard deviation multiplied by this value are considered outliers.
+    std_dev_mul: 0.5

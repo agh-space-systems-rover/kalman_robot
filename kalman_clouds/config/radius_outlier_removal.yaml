@@ -1,0 +1,8 @@
+/**:
+  ros__parameters:
+    # size of the input topic queue
+    queue_size: 10
+    # search radius
+    search_radius: 0.3
+    # minimum number of neighbors to keep a point
+    min_neighbors: 20
