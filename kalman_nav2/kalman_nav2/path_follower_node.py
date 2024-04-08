@@ -100,7 +100,15 @@ class PathFollower(rclpy.node.Node):
             ),
         )
         self.declare_parameter(
-            "min_linear_velocity",
+            "regression_distance",
+            3.0,
+            ParameterDescriptor(
+                type=ParameterType.PARAMETER_DOUBLE,
+                description="Inspect path curvature ahead at this distance. Switch to slow_linear_velocity when the path is bending or at its end. (m)",
+            ),
+        )
+        self.declare_parameter(
+            "slow_linear_velocity",
             0.5,
             ParameterDescriptor(
                 type=ParameterType.PARAMETER_DOUBLE,
@@ -108,7 +116,7 @@ class PathFollower(rclpy.node.Node):
             ),
         )
         self.declare_parameter(
-            "max_linear_velocity",
+            "fast_linear_velocity",
             1.0,
             ParameterDescriptor(
                 type=ParameterType.PARAMETER_DOUBLE,
@@ -137,14 +145,6 @@ class PathFollower(rclpy.node.Node):
             ParameterDescriptor(
                 type=ParameterType.PARAMETER_DOUBLE,
                 description="Stop rotating in place when the robot is parallel to the target direction within this margin. (rad)",
-            ),
-        )
-        self.declare_parameter(
-            "deceleration_distance",
-            2.0,
-            ParameterDescriptor(
-                type=ParameterType.PARAMETER_DOUBLE,
-                description="Linearly decelerate towards min_linear_velocity when approaching the target within this distance (m).",
             ),
         )
         self.declare_parameter(
@@ -294,9 +294,31 @@ class PathFollower(rclpy.node.Node):
                 target_pos = pos
                 prev_index = closest_vertex_index
 
+        # Determine whether the path ahead is straight.
+        # Perform linear regression on points close to the robot to determine how straight the path is.
+        regression_distance = self.get_parameter("regression_distance").value
+        regression_points = []
+        fitting_to_full_regression_distance = False
+        path_is_straight = False
+        for i in range(prev_index, len(path_vertices)):
+            if np.linalg.norm(path_vertices[i]) > regression_distance:
+                fitting_to_full_regression_distance = True
+                break
+            regression_points.append(path_vertices[i])
+        if len(regression_points) > 1 and fitting_to_full_regression_distance:
+            x = np.array([p[0] for p in regression_points])
+            y = np.array([p[1] for p in regression_points])
+            a, b = linear_regression(np.array(x), np.array(y))
+            rss = linear_rss(x, y, a, b)
+            if rss < 0.1:
+                path_is_straight = True
+
         # Travel on the path until a point at the lookahead distance is found.
         # start_index denotes the first vertex before the robot.
-        lookahead = self.get_parameter("lookahead").value
+        if path_is_straight:
+            lookahead = self.get_parameter("lookahead").value
+        else:
+            lookahead = self.get_parameter("lookahead").value / 2
         if np.linalg.norm(target_pos) < lookahead:  # if inside circle
             while True:
                 # Get the next vertex.
@@ -356,37 +378,10 @@ class PathFollower(rclpy.node.Node):
         # Behave differently depending on the state.
         if isinstance(self.state, FollowState):
             # Drive in the target direction.
-            min_linear_velocity = self.get_parameter("min_linear_velocity").value
-            max_linear_velocity = self.get_parameter("max_linear_velocity").value
-            linear_velocity = min_linear_velocity
-
-            # Choose whether to drive at full speed or at reduced speed.
-            # Perform linear regression on points close to the robot to determine how straight the path is.
-            regression_distance = 3.0  # TODO: make this a parameter
-            regression_points = []
-            for i in range(prev_index, len(path_vertices)):
-                if np.linalg.norm(path_vertices[i]) > regression_distance:
-                    break
-                regression_points.append(path_vertices[i])
-            if len(regression_points) > 5:
-                x = np.array([p[0] for p in regression_points])
-                y = np.array([p[1] for p in regression_points])
-                a, b = linear_regression(np.array(x), np.array(y))
-                rss = linear_rss(x, y, a, b)
-                if rss < 0.1:
-                    linear_velocity = max_linear_velocity
-                else:
-                    linear_velocity = min_linear_velocity
-
-            # Decelerate when approaching the target.
-            last_pos = path_vertices[-1]
-            dist_to_target = np.linalg.norm(last_pos - target_pos)
-            deceleration_distance = self.get_parameter("deceleration_distance").value
-            linear_velocity = lerp(
-                min_linear_velocity,
-                linear_velocity,
-                np.clip(dist_to_target / deceleration_distance, 0.0, 1.0),
-            )
+            if path_is_straight:
+                linear_velocity = self.get_parameter("fast_linear_velocity").value
+            else:
+                linear_velocity = self.get_parameter("slow_linear_velocity").value
 
             res.cmd_vel.twist.linear.x = target_dir[0] * linear_velocity
             res.cmd_vel.twist.linear.y = target_dir[1] * linear_velocity
@@ -397,14 +392,14 @@ class PathFollower(rclpy.node.Node):
                 rot_angle, angular_velocity
             )
 
-            # If the robot is heading in a direction off of the target
-            # direction over rotate_in_place_start_angle, it will rotate
-            # in place instead of translating simultaneously.
-            if (
-                np.abs(rot_angle)
-                > self.get_parameter("rotate_in_place_start_angle").value
-            ):
-                self.state = RotateInPlaceState()
+            # # If the robot is heading in a direction off of the target
+            # # direction over rotate_in_place_start_angle, it will rotate
+            # # in place instead of translating simultaneously.
+            # if (
+            #     np.abs(rot_angle)
+            #     > self.get_parameter("rotate_in_place_start_angle").value
+            # ):
+            #     self.state = RotateInPlaceState()
         elif isinstance(self.state, RotateInPlaceState):
             # Rotate in place to face the target direction.
             angular_velocity = self.get_parameter("angular_velocity").value

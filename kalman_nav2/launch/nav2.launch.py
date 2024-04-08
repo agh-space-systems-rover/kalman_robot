@@ -93,41 +93,6 @@ def launch_setup(context):
 
     description = []
 
-    # point cloud clean-up
-    if component_container:
-        description += [
-            LoadComposableNodes(
-                target_container=component_container,
-                composable_node_descriptions=[
-                    ComposableNode(
-                        package="point_cloud_utils",
-                        plugin="point_cloud_utils::VoxelGrid",
-                        namespace=camera_id,
-                        name="voxel_grid",
-                        remappings={
-                            "input": f"depth/color/points",
-                            "output": f"depth/color/points/filtered",
-                        }.items(),
-                        extra_arguments=[{"use_intra_process_comms": True}],
-                    )
-                    for camera_id in rgbd_ids
-                ],
-            ),
-        ]
-    else:
-        description += [
-            Node(
-                package="point_cloud_utils",
-                executable="voxel_grid",
-                namespace=camera_id,
-                remappings=[
-                    ("input", f"depth/color/points"),
-                    ("output", f"depth/color/points/filtered"),
-                ],
-            )
-            for camera_id in rgbd_ids
-        ]
-
     # obstacle detection
     if component_container:
         description += [
@@ -138,10 +103,9 @@ def launch_setup(context):
                         package="point_cloud_utils",
                         plugin="point_cloud_utils::ObstacleDetection",
                         namespace=camera_id,
-                        name="voxel_grid",
                         remappings={
-                            "input": f"depth/color/points/filtered",
-                            "output": f"depth/color/points/filtered/obstacles",
+                            "input": "point_cloud",
+                            "output": "point_cloud/obstacles",
                         }.items(),
                     )
                     for camera_id in rgbd_ids
@@ -153,6 +117,7 @@ def launch_setup(context):
             Node(
                 package="point_cloud_utils",
                 executable="obstacle_detection",
+                namespace=camera_id,
                 parameters=[
                     str(
                         get_package_share_path("kalman_nav2")
@@ -161,8 +126,8 @@ def launch_setup(context):
                     ),
                 ],
                 remappings={
-                    "input": f"/{camera_id}/depth/color/points/filtered",
-                    "output": f"/{camera_id}/depth/color/points/filtered/obstacles",
+                    "input": "point_cloud",
+                    "output": "point_cloud/obstacles",
                 }.items(),
             )
             for camera_id in rgbd_ids

@@ -114,7 +114,7 @@ stvl:
   track_unknown_space: true       # default space is unknown
   
   combination_method: 1           # 1=max, 0=override
-  update_footprint_enabled: true  # default off
+  update_footprint_enabled: false # default off
   transform_tolerance: 1.0        # seconds
 
   publish_voxel_map: false        # default off
@@ -127,7 +127,7 @@ stvl:
 {% for rgbd_id in rgbd_ids %}
   {{ rgbd_id }}:
     data_type: PointCloud2
-    topic: /{{ rgbd_id }}/depth/color/points/filtered/obstacles # must be absolute topic name
+    topic: /{{ rgbd_id }}/point_cloud/obstacles # must be absolute topic name
 
     # Marking params:
     marking: true
@@ -139,6 +139,7 @@ stvl:
       
     # Clearing params:
     clearing: true
+    min_z: 0.5                    # default 0, meters
     max_z: 7.0                    # default 10, meters
     vertical_fov_angle: 1.025     # default 0.7, radians
     horizontal_fov_angle: 1.571   # default 1.04, radians
