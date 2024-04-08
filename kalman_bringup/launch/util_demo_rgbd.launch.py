@@ -11,7 +11,7 @@ def generate_launch_description():
         [
             DeclareLaunchArgument(
                 "composition",
-                default_value="false",
+                default_value="true",
                 description="Use node composition where applicable.",
             ),
             DeclareLaunchArgument(
@@ -29,6 +29,10 @@ def generate_launch_description():
                 ),
                 launch_arguments={
                     "component_container": LaunchConfiguration("composition"),
+                    "rviz": "true",
+                    "rviz.config": "demo_rgbd.rviz",
+                    "description": "true",
+                    "description.joint_state_publisher_gui": "false",
                     "drivers": "true",
                     "drivers.composition": LaunchConfiguration("composition"),
                     "drivers.rgbd_ids": LaunchConfiguration("rgbd_ids"),
@@ -36,6 +40,9 @@ def generate_launch_description():
                     "drivers.imu": "false",
                     "drivers.compasscal": "false",
                     "drivers.gps": "false",
+                    "clouds": "true",
+                    "clouds.composition": LaunchConfiguration("composition"),
+                    "clouds.rgbd_ids": LaunchConfiguration("rgbd_ids"),
                 }.items(),
             ),
         ]

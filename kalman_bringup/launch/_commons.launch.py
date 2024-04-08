@@ -45,6 +45,38 @@ def launch_setup(context):
             )
         ]
 
+    if get_bool("rviz"):
+        description += [
+            Node(
+                package="rviz2",
+                executable="rviz2",
+                arguments=[
+                    "-d",
+                    str(
+                        get_package_share_path("kalman_bringup")
+                        / "rviz"
+                        / get_str("rviz.config")
+                    ),
+                    "--ros-args",
+                    "--log-level",
+                    "warn",
+                ],
+            ),
+        ]
+
+    if get_bool("mapviz"):
+        description += [
+            IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(
+                    str(
+                        get_package_share_path("kalman_mapviz")
+                        / "launch"
+                        / "mapviz.launch.py"
+                    )
+                ),
+            ),
+        ]
+
     if get_bool("description"):
         description += [
             IncludeLaunchDescription(
@@ -114,35 +146,24 @@ def launch_setup(context):
             ),
         ]
 
-    if get_bool("rviz"):
-        description += [
-            Node(
-                package="rviz2",
-                executable="rviz2",
-                arguments=[
-                    "-d",
-                    str(
-                        get_package_share_path("kalman_bringup")
-                        / "rviz"
-                        / get_str("rviz.config")
-                    ),
-                    "--ros-args",
-                    "--log-level",
-                    "warn",
-                ],
-            ),
-        ]
-
-    if get_bool("mapviz"):
+    if get_bool("clouds"):
         description += [
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
                     str(
-                        get_package_share_path("kalman_mapviz")
+                        get_package_share_path("kalman_clouds")
                         / "launch"
-                        / "mapviz.launch.py"
+                        / "clouds.launch.py"
                     )
                 ),
+                launch_arguments={
+                    "component_container": (
+                        COMPONENT_CONTAINER_NAME
+                        if get_bool("clouds.composition")
+                        else ""
+                    ),
+                    "rgbd_ids": get_str("clouds.rgbd_ids"),
+                }.items(),
             ),
         ]
 
@@ -251,7 +272,8 @@ def launch_setup(context):
                     )
                 ),
                 launch_arguments={
-                    "aruco_rgbd_ids": get_str("aruco.rgbd_ids"),
+                    "aruco_rgbd_ids": get_str("aruco.rgbd_ids") if get_bool("aruco") else "",
+                    "yolo_enabled": get_str("yolo"),
                     # NOTE: It is required that kalman_aruco is started from within the same launch file.
                 }.items(),
             ),
@@ -267,6 +289,21 @@ def generate_launch_description():
                 "component_container",
                 default_value="false",
                 description="Start up the main component container. Must be spawned in order to enable composition.",
+            ),
+            DeclareLaunchArgument(
+                "rviz",
+                default_value="false",
+                description="Launch RViz.",
+            ),
+            DeclareLaunchArgument(
+                "rviz.config",
+                default_value="",
+                description="RViz configuration file.",
+            ),
+            DeclareLaunchArgument(
+                "mapviz",
+                default_value="false",
+                description="Launch MapViz.",
             ),
             DeclareLaunchArgument(
                 "description",
@@ -324,19 +361,19 @@ def generate_launch_description():
                 description="Start the GPS driver.",
             ),
             DeclareLaunchArgument(
-                "rviz",
+                "clouds",
                 default_value="false",
-                description="Launch RViz.",
+                description="Generate point clouds from depth cameras.",
             ),
             DeclareLaunchArgument(
-                "rviz.config",
+                "clouds.composition",
+                default_value="false",
+                description="Use node composition.",
+            ),
+            DeclareLaunchArgument(
+                "clouds.rgbd_ids",
                 default_value="",
-                description="RViz configuration file.",
-            ),
-            DeclareLaunchArgument(
-                "mapviz",
-                default_value="false",
-                description="Launch MapViz.",
+                description="Space-separated IDs of the depth cameras to use.",
             ),
             DeclareLaunchArgument(
                 "slam",

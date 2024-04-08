@@ -8,11 +8,6 @@ from launch.substitutions import LaunchConfiguration
 def generate_launch_description():
     return LaunchDescription(
         [
-            DeclareLaunchArgument(
-                "composition",
-                default_value="false",
-                description="Use node composition where applicable.",
-            ),
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
                     str(
@@ -22,27 +17,30 @@ def generate_launch_description():
                     )
                 ),
                 launch_arguments={
-                    "component_container": LaunchConfiguration("composition"),
+                    "component_container": "true",
                     "description": "true",
                     "description.joint_state_publisher_gui": "false",
+                    "clouds": "true",
+                    "clouds.composition": "true",
+                    "clouds.rgbd_ids": "d455_front d455_back d455_left d455_right",
                     "slam": "true",
-                    "slam.composition": LaunchConfiguration("composition"),
+                    "slam.composition": "true",
                     "slam.rgbd_ids": "d455_front d455_back d455_left d455_right",
                     "slam.gps": "true",
                     "slam.gps_datum": "50.8780616423677 20.642475756324",  # Marsyard S1, Kielce
                     "slam.no_gps_map_odom_offset": "0 0",  # Assuming that the stack will be enabled at S1
                     "slam.mapping": "false",
                     "nav2": "true",
-                    "nav2.composition": LaunchConfiguration("composition"),
+                    "nav2.composition": "false",
                     "nav2.rgbd_ids": "d455_front d455_back d455_left d455_right",
                     "nav2.static_map": "",
                     "wheel_controller": "true",
-                    "aruco": "true",
-                    "aruco.composition": LaunchConfiguration("composition"),
-                    "aruco.rgbd_ids": "d455_front d455_back d455_left d455_right",
-                    "yolo": "true",
-                    "yolo.rgbd_ids": "d455_front d455_back d455_left d455_right",
-                    "yolo.config": "urc2024",
+                    # "aruco": "true",
+                    # "aruco.composition": LaunchConfiguration("composition"),
+                    # "aruco.rgbd_ids": "d455_front d455_back d455_left d455_right",
+                    # "yolo": "true",
+                    # "yolo.rgbd_ids": "d455_front d455_back d455_left d455_right",
+                    # "yolo.config": "urc2024",
                     "supervisor": "true",
                 }.items(),
             ),
