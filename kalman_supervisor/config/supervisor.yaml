@@ -3,6 +3,7 @@ supervisor:
     # Ticking rate for all states and modules.
     rate: 3.0
     aruco:
+      # enabled: true
       # num_cameras: 4
       # NOTE: This is set in supervisor.launch.py
       max_detection_distance: 5.0
@@ -22,4 +23,6 @@ supervisor:
       # The name of the TF frame to use as the robot frame.
       robot_frame: base_footprint
     yolo:
+      # enabled: true
+      # NOTE: This is set in supervisor.launch.py
       max_detection_distance: 5.0

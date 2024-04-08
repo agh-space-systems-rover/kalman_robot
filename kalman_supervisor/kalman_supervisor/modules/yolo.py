@@ -13,9 +13,14 @@ class Yolo(Module):
         super().__init__("yolo")
 
     def configure(self) -> None:
+        self.supervisor.declare_parameter("yolo.enabled", True)
         self.supervisor.declare_parameter("yolo.max_detection_distance", 5.0)
 
     def activate(self) -> None:
+        self.module_enabled = self.supervisor.get_parameter("yolo.enabled").value
+        if not self.module_enabled:
+            return
+
         self.__get_state_client = self.supervisor.create_client(
             GetState, f"yolo/get_state"
         )
@@ -33,6 +38,9 @@ class Yolo(Module):
         self.__detections: dict[str, tuple[np.ndarray, str]] = {}
 
     def tick(self) -> None:
+        if not self.module_enabled:
+            return
+
         # If state change is needed and state requests are not pending, send the get state request.
         if (
             self.__enabled != self.__should_be_enabled
@@ -91,6 +99,9 @@ class Yolo(Module):
             )
 
     def deactivate(self) -> None:
+        if not self.module_enabled:
+            return
+
         self.supervisor.destroy_subscription(self.__detection_sub)
         self.supervisor.destroy_client(self.__change_state_client)
         self.supervisor.destroy_client(self.__get_state_client)

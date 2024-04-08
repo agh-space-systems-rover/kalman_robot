@@ -13,10 +13,15 @@ class ArUco(Module):
         super().__init__("aruco")
 
     def configure(self) -> None:
+        self.supervisor.declare_parameter("aruco.enabled", True)
         self.supervisor.declare_parameter("aruco.num_cameras", 0)
         self.supervisor.declare_parameter("aruco.max_detection_distance", 5.0)
 
     def activate(self) -> None:
+        self.module_enabled = self.supervisor.get_parameter("aruco.enabled").value
+        if not self.module_enabled:
+            return
+
         num_cameras = self.supervisor.get_parameter("aruco.num_cameras").value
 
         self.__get_state_clients = []
@@ -42,6 +47,9 @@ class ArUco(Module):
         self.__detections: dict[int, tuple[np.ndarray, str]] = {}
 
     def tick(self) -> None:
+        if not self.module_enabled:
+            return
+
         # If state change is needed and state requests are not pending, send the get state request.
         if (
             self.__enabled != self.__should_be_enabled
@@ -117,6 +125,9 @@ class ArUco(Module):
             )
 
     def deactivate(self) -> None:
+        if not self.module_enabled:
+            return
+
         for sub in self.__detection_subs:
             self.supervisor.destroy_subscription(sub)
         for client in self.__change_state_clients:

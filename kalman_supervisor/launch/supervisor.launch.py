@@ -24,6 +24,7 @@ def launch_setup(context):
         for x in LaunchConfiguration("aruco_rgbd_ids").perform(context).split(" ")
         if x != ""
     ]
+    yolo_enabled = LaunchConfiguration("yolo_enabled").perform(context).lower() == "true"
 
     remappings = []
 
@@ -63,7 +64,11 @@ def launch_setup(context):
                 ),
                 {
                     "aruco": {
+                        "enabled": len(aruco_rgbd_ids) > 0,
                         "num_cameras": len(aruco_rgbd_ids),
+                    },
+                    "yolo": {
+                        "enabled": yolo_enabled
                     },
                 },
             ],
@@ -79,6 +84,11 @@ def generate_launch_description():
                 "aruco_rgbd_ids",
                 description="Space-separated IDs of the depth cameras that were configured in kalman_aruco.",
                 default_value="d455_front d455_back d455_left d455_right",
+            ),
+            DeclareLaunchArgument(
+                "yolo_enabled",
+                description="Whether YOLO detection is enabled.",
+                default_value="true",
             ),
             OpaqueFunction(function=launch_setup),
         ]

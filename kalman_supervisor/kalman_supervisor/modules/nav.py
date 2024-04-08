@@ -208,62 +208,48 @@ class NavWithRecovery:
                 self.__goal = None
                 self.__last_goal_status = GoalStatus.STATUS_CANCELED
             elif status == GoalStatus.STATUS_ABORTED:
-                # Decide whether to attempt recovery or not.
-                if (
-                    self.supervisor.map.occupancy(
-                        np.zeros(3), self.supervisor.tf.robot_frame()
-                    )
-                    == Map.Occupancy.FREE
-                ):
-                    self.supervisor.get_logger().error(
-                        "Goal has failed, but robot is not stuck. Is the goal unreachable? Will not attempt recovery."
-                    )
-                    self.__goal = None
-                    self.__last_goal_status = GoalStatus.STATUS_SUCCEEDED
-                    return
-                else:
-                    self.supervisor.get_logger().info(
-                        "Goal has failed and robot is stuck in costmap. Attempting recovery..."
-                    )
+                self.supervisor.get_logger().info(
+                    "Goal has failed. Attempting recovery..."
+                )
 
-                    # Find the nearest free position to send the robot there.
-                    robot_pos = self.supervisor.tf.robot_pos(self.__goal[1])
+                # Find the nearest free position to send the robot there.
+                robot_pos = self.supervisor.tf.robot_pos(self.__goal[1])
+                self.__recovery_free_pos = (
+                    self.supervisor.map.closest_free(robot_pos, self.__goal[1]),
+                    self.__goal[1],
+                )
+                if self.__recovery_free_pos is None:
                     self.__recovery_free_pos = (
-                        self.supervisor.map.closest_free(robot_pos, self.__goal[1]),
-                        self.__goal[1],
+                        self.supervisor.position_history.latest_free()
                     )
                     if self.__recovery_free_pos is None:
-                        self.__recovery_free_pos = (
-                            self.supervisor.position_history.latest_free()
+                        self.supervisor.get_logger().error(
+                            "No free cells around the robot and there's no free positions in history. Recovery is impossible."
                         )
-                        if self.__recovery_free_pos is None:
-                            self.supervisor.get_logger().error(
-                                "No free cells around the robot and there's no free positions in history. Recovery is impossible."
-                            )
-                            self.__recovery_state = (
-                                NavWithRecovery.RecoveryState.DISENGAGED
-                            )
-                            self.__goal = None
-                            # Treat this as a finished goal. We are unable to handle this situation.
-                            self.__last_goal_status = GoalStatus.STATUS_SUCCEEDED
-                            return
-                    # NOTE: We prefer to navigate to the nearest free position in order to avoid going back and forth.
+                        self.__recovery_state = (
+                            NavWithRecovery.RecoveryState.DISENGAGED
+                        )
+                        self.__goal = None
+                        # Treat this as a finished goal. We are unable to handle this situation.
+                        self.__last_goal_status = GoalStatus.STATUS_SUCCEEDED
+                        return
+                # NOTE: We prefer to navigate to the nearest free position in order to avoid going back and forth.
 
-                    # Offset the free position one meter away from the robot to have a good margin between the free goal and costmap edge.
-                    robot_to_free = self.__recovery_free_pos[0] - robot_pos
-                    robot_to_free /= np.linalg.norm(
-                        robot_to_free[:2]
-                    )  # The positions should be in map's frame and thus Z can be zeroed.
-                    self.__recovery_free_pos = (
-                        self.__recovery_free_pos[0] + robot_to_free,
-                        self.__recovery_free_pos[1],
-                    )
+                # Offset the free position one meter away from the robot to have a good margin between the free goal and costmap edge.
+                robot_to_free = self.__recovery_free_pos[0] - robot_pos
+                robot_to_free /= np.linalg.norm(
+                    robot_to_free[:2]
+                )  # The positions should be in map's frame and thus Z can be zeroed.
+                self.__recovery_free_pos = (
+                    self.__recovery_free_pos[0] + robot_to_free,
+                    self.__recovery_free_pos[1],
+                )
 
-                    # Before sending the robot to the free position, disable obstacle layers.
-                    self.supervisor.map.disable_obstacle_layers()
-                    self.__recovery_state = (
-                        NavWithRecovery.RecoveryState.REQUESTED_TO_DISABLE_OBSTACLE_LAYERS
-                    )
+                # Before sending the robot to the free position, disable obstacle layers.
+                self.supervisor.map.disable_obstacle_layers()
+                self.__recovery_state = (
+                    NavWithRecovery.RecoveryState.REQUESTED_TO_DISABLE_OBSTACLE_LAYERS
+                )
 
         if (
             self.__recovery_state
