@@ -13,6 +13,8 @@ Kalman's software stack updated to ROS 2
 > This workspace requires Ubuntu Jammy, but it also fully supports execution and development in a Docker container via Distrobox.
 
 - [Spatio-Temporal Voxel Layer](https://github.com/SteveMacenski/spatio_temporal_voxel_layer) (Currently not available via rosdep and has to be built manually from source.)
+- The latest ROS 2 Rolling version of the [realsense-ros](https://github.com/IntelRealSense/realsense-ros) package which supports way more features and has a working (!) auto-exposure feature.
+- [ros_aruco_opencv 2.2.0 or later](https://github.com/fictionlab/ros_aruco_opencv/tree/humble) for ROS 2 Humble (Not yet available via rosdep.)
 - All Python packages listed in the `requirements.txt` files in the directories of some Colcon packages.
 - All APT packages listed in the `apt_packages.txt` files in the directories of some Colcon packages.
 
@@ -46,6 +48,7 @@ Multiple other launch files are available in the `kalman_bringup` package, inclu
 Kalman's software stack is composed of multiple packages that are meant to be built and run together:
 - `kalman_aruco` - AruCo tags detection using aruco_opencv
 - `kalman_bringup` - launch files for the rover and the ground station
+- `kalman_clouds` - point cloud generation and filtering
 - `kalman_description` - Xacro / URDF descriptions + models for the rover
 - `kalman_drivers` - drivers for the physical hardware; only to be run separately from the simulation
 - `kalman_gazebo` - Ignition Gazebo simulation configs for Kalman
@@ -68,15 +71,15 @@ Kalman's software stack is composed of multiple packages that are meant to be bu
 
 ## Launch Hierarchy
 
-The launch files are organized in a hierarchical manner. The `kalman_bringup` package contains the main launch files that are meant to be the only ones used via `ros2 launch`. `kalman_bringup` includes many other launch files from other `kalman_` packages, which in turn may include even more launch files from other packages:
+Launch files are organized in a hierarchical manner. The `kalman_bringup` package contains main launch files that are meant to be the only ones used via `ros2 launch`. `kalman_bringup` includes many other launch files from other `kalman_` packages, which in turn may include even more launch files from other packages:
 
 ![](https://quickchart.io/graphviz?graph=digraph{kalman_bringup->kalman_description;kalman_bringup->kalman_drivers->kalman_master;kalman_bringup->kalman_slam;kalman_bringup->kalman_nav2;kalman_bringup->kalman_wheel_controller;kalman_bringup->"...";})
 
 ## Data Flow
 
-All `kalman_` packages are designed to work together and exchange data in a complex manner. The following diagram shows the high-level overview of the data flow between top-level modules:
+All `kalman_` packages are designed to work together and exchange data in a complex manner. The following diagram shows a high-level overview of the data flow between top-level modules:
 
-![](https://quickchart.io/graphviz?graph=digraph{kalman_drivers->kalman_slam[label="IMU,%20RGB-D"];kalman_slam->kalman_nav2[label="Odometry"];kalman_nav2->kalman_wheel_controller[label="Twist"];kalman_wheel_controller->kalman_drivers[label="Wheel%20State"];kalman_drivers->kalman_nav2[label="Point%20Clouds"];kalman_supervisor->kalman_nav2[label="Send%20Goal"];kalman_nav2->kalman_supervisor[label="Goal%20Status"];kalman_drivers->kalman_aruco[label="RGB"];kalman_aruco->kalman_supervisor[label="Detections"];kalman_gs->kalman_supervisor[label="Objectives"];kalman_supervisor->kalman_drivers[label="Mission%20Status"]})
+![](https://quickchart.io/graphviz?graph=digraph{kalman_drivers->kalman_clouds[label="RGB-D"];kalman_drivers->kalman_slam[label="IMU,%20RGB-D"];kalman_clouds->kalman_slam[label="Point%20Cloud"];kalman_clouds->kalman_nav2[label="Point%20Cloud"];kalman_slam->kalman_nav2[label="Odometry"];kalman_nav2->kalman_wheel_controller[label="Twist"];kalman_wheel_controller->kalman_drivers[label="Wheel%20State"];kalman_supervisor->kalman_nav2[label="Send%20Goal"];kalman_nav2->kalman_supervisor[label="Goal%20Status"];kalman_drivers->kalman_aruco[label="RGB"];kalman_aruco->kalman_supervisor[label="Detections"];kalman_gs->kalman_supervisor[label="Objectives"];kalman_supervisor->kalman_drivers[label="Status%20Signaling"]})
 
 As mentioned in [Launch Hierarchy](#launch-hierarchy), top-level modules may include other modules that are not shown in the diagram. Each module contains a set of nodes that actually perform the data processing and exchange.
 
@@ -91,4 +94,3 @@ As mentioned in [Launch Hierarchy](#launch-hierarchy), top-level modules may inc
 ## Known Issues
 
 - Nav2 (STVL) on random occasions when booting up, starts spamming TF errors and takes up 100% of the CPU. Issue is present both in simulation and on the physical rover.
-- Sometimes at random navsat_transform starts publishing bad odometry/gps data which results in map/odom divergence. It happens despite navsat_transform being started after the simulation has applied static TF transforms.
