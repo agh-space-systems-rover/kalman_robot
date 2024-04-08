@@ -1,8 +1,10 @@
 /**:
   ros__parameters:
-    frame_id: "base_link"
+    frame_id: base_link
     publish_tf: False
     approx_sync: False
+    rgb_transport: compressed
+    depth_transport: compressedDepth
 
     Odom/ResetCountdown: "1"
     Odom/Strategy: "0"

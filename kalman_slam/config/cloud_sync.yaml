@@ -1,0 +1,14 @@
+/**:
+  ros__parameters:
+    # Number of input topics to synchronize.
+    # number_of_inputs: 0
+    # NOTE: This is set in the launch file.
+    # Size of the input topic queue.
+    queue_size: 10
+    # Approximate synchronization of input topics.
+    # Only disable if the messages on all input topics have the exact same timestamps.
+    approx_sync: true
+    # Output frame ID of the synchronized point cloud.
+    # TF time travel is not used, so it's best to use
+    # a frame that is static relative to all input frames.
+    output_frame_id: "base_link"

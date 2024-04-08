@@ -237,44 +237,43 @@ def launch_setup(context):
         ]
 
     # TODO: Finish this
-    # if mapping:
-    #     description += [
-    #         LoadComposableNodes(
-    #             target_container=component_container,
-    #             composable_node_descriptions=[
-    #                 ComposableNode(
-    #                     package="point_cloud_utils",
-    #                     plugin="point_cloud_utils::PointCloudSync",
-    #                     name="point_cloud_sync",
-    #                     parameters=[
-    #                         {
-    #                             "number_of_inputs": len(rgbd_ids),
-    #                         }
-    #                     ],
-    #                     remappings=[
-    #                         (f"input{i}", f"{camera_id}/depth/color/points/filtered")
-    #                         for i, camera_id in enumerate(rgbd_ids)
-    #                     ],
-    #                     extra_arguments=[{"use_intra_process_comms": True}],
-    #                 )
-    #             ],
-    #         ),
-    #         Node(
-    #             namespace=f"rtabmap",
-    #             package="rtabmap_slam",
-    #             executable="rtabmap",
-    #             parameters=[
-    #                 str(
-    #                     get_package_share_path("kalman_slam") / "config" / "rtabmap.yaml"
-    #                 )
-    #             ],
-    #             remappings={
-    #                 "scan_cloud": "point_cloud_sync/points",
-    #                 "odom": "odometry/filtered",
-    #             }.items(),
-    #             arguments=["--delete_db_on_start"],
-    #         ),
-    #     ]
+    if mapping:
+        raise NotImplementedError("Mapping is not implemented yet.")
+        # sync
+        # parameters = [
+        #     str(get_package_share_path("kalman_clouds") / "config" / "cloud_sync.yaml"),
+        #     {
+        #         "number_of_inputs": len(rgbd_ids),
+        #     },
+        # ]
+        # remappings = [("output", "point_cloud/raw")] + (
+        #     [
+        #         (f"input{i}", f"{camera_id}/point_cloud")
+        #         for i, camera_id in enumerate(rgbd_ids)
+        #     ]
+        #     if len(rgbd_ids) > 1
+        #     else [("input", f"{rgbd_ids[0]}/point_cloud")] if len(rgbd_ids) == 1 else []
+        # )
+        # description += [
+        #     launch_point_cloud_utils_node("cloud_sync", parameters, remappings, component_container)
+        # ]
+        # description += [
+        #     Node(
+        #         namespace=f"rtabmap",
+        #         package="rtabmap_slam",
+        #         executable="rtabmap",
+        #         parameters=[
+        #             str(
+        #                 get_package_share_path("kalman_slam") / "config" / "rtabmap.yaml"
+        #             )
+        #         ],
+        #         remappings={
+        #             "scan_cloud": "point_cloud_sync/points",
+        #             "odom": "odometry/filtered",
+        #         }.items(),
+        #         arguments=["--delete_db_on_start"],
+        #     ),
+        # ]
 
     return description
 
