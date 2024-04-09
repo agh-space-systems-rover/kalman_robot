@@ -50,13 +50,13 @@ def launch_setup(context):
     ]
     gps = LaunchConfiguration("gps").perform(context).lower() == "true"
     gps_datum = [
-        float(x) for x in LaunchConfiguration("gps_datum").perform(context).split(" ")
+        float(x) for x in LaunchConfiguration("gps_datum").perform(context).split(" ") if x != ""
     ]
     no_gps_map_odom_offset = [
         float(x)
         for x in LaunchConfiguration("no_gps_map_odom_offset")
         .perform(context)
-        .split(" ")
+        .split(" ") if x != ""
     ]
     mapping = LaunchConfiguration("mapping").perform(context).lower() == "true"
 

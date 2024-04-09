@@ -19,6 +19,11 @@ def generate_launch_description():
                 default_value="",
                 description="Comma separated list of RGBD camera IDs to enable.",
             ),
+            DeclareLaunchArgument(
+                "rviz",
+                default_value="false",
+                description="Launch preconfigured RViz."
+            ),
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
                     str(
@@ -29,7 +34,7 @@ def generate_launch_description():
                 ),
                 launch_arguments={
                     "component_container": LaunchConfiguration("composition"),
-                    "rviz": "true",
+                    "rviz": LaunchConfiguration("rviz"),
                     "rviz.config": "demo_rgbd.rviz",
                     "description": "true",
                     "description.joint_state_publisher_gui": "false",
