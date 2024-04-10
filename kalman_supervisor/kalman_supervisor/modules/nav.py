@@ -215,16 +215,16 @@ class NavWithRecovery:
                 # Find the nearest free position to send the robot there.
                 robot_pos = self.supervisor.tf.robot_pos(self.__goal[1])
                 self.__recovery_free_pos = (
-                    self.supervisor.map.closest_free(robot_pos, self.__goal[1]),
-                    self.__goal[1],
+                    self.supervisor.position_history.latest_free()
                 )
                 if self.__recovery_free_pos is None:
                     self.__recovery_free_pos = (
-                        self.supervisor.position_history.latest_free()
+                        self.supervisor.map.closest_free(robot_pos, self.__goal[1]),
+                        self.__goal[1],
                     )
                     if self.__recovery_free_pos is None:
                         self.supervisor.get_logger().error(
-                            "No free cells around the robot and there's no free positions in history. Recovery is impossible."
+                            "There's no free positions in history and no free cells around the robot. Recovery is impossible."
                         )
                         self.__recovery_state = (
                             NavWithRecovery.RecoveryState.DISENGAGED
