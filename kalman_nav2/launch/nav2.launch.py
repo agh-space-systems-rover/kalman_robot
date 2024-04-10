@@ -14,6 +14,7 @@ import os
 import jinja2
 import copy
 
+
 NAV_CONTAINER_NAME = "nav2_container"
 
 
@@ -164,15 +165,20 @@ def launch_setup(context):
         ]
 
     nav2_params_path = render_nav2_config(rgbd_ids, static_map)
+    if component_container:
+        # We need to spawn a separate container for Nav2.
+        # It is not possible to load Nav2 parameters into an
+        # existing container without having access to its Node definition.
+        description += [
+            Node(
+                package="rclcpp_components",
+                executable="component_container_mt",
+                name=NAV_CONTAINER_NAME,
+                parameters=[nav2_params_path],  # Required due to bugs in rclcpp.
+                # See: https://github.com/ros-planning/navigation2/issues/4011
+            ),
+        ]
     description += [
-        # NOTE: It is not possible to load Nav2 parameters into an existing container without having access to its Node definition.
-        # Node(
-        #     package="rclcpp_components",
-        #     executable="component_container_mt",
-        #     name=NAV_CONTAINER_NAME,
-        #     parameters=[nav2_params_path],  # Required due to bugs in rclcpp.
-        #     # See: https://github.com/ros-planning/navigation2/issues/4011
-        # ),
         # Nav2
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
@@ -184,8 +190,8 @@ def launch_setup(context):
             ),
             launch_arguments={
                 "params_file": nav2_params_path,
-                "use_composition": "False",
-                # "container_name": NAV_CONTAINER_NAME,
+                "use_composition": "True" if component_container else "False",
+                "container_name": NAV_CONTAINER_NAME,
             }.items(),
         ),
     ]
