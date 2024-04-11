@@ -1,9 +1,9 @@
 #ifndef _COMPASS
 #define _COMPASS
 
-#include "../compasscal_lib/compasscal.h"
+#include "compasscal.h"
 #include <stdio.h>
-#include <phidget22.h>
+#include <libphidget22/phidget22.h>
 
 #ifdef WIN32
 #include <Windows.h>

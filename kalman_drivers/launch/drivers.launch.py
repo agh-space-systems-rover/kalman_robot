@@ -29,7 +29,7 @@ def launch_setup(context):
         if x != ""
     ]
     imu = LaunchConfiguration("imu").perform(context).lower() == "true"
-    compasscal = LaunchConfiguration("compasscal").perform(context).lower() == "true"
+    compass_calibration = LaunchConfiguration("compass_calibration").perform(context).lower() == "true"
     gps = LaunchConfiguration("gps").perform(context).lower() == "true"
 
     if len(rgbd_ids) > 0:
@@ -40,9 +40,9 @@ def launch_setup(context):
         ]
 
     if imu:
-        if compasscal:
+        if compass_calibration:
             raise RuntimeError(
-                "IMU cannot be started simultaneously with the compasscal service node. Please start either one of them separately or do not start them at all."
+                "IMU cannot be started simultaneously with the compass_calibration node. Please start either one of them separately or do not start them at all."
             )
 
     description = []
@@ -100,7 +100,7 @@ def launch_setup(context):
         # Throw if the calibration parameters file does not exist.
         if not os.path.exists(phidgets_spatial_calibration_params_path):
             raise RuntimeError(
-                "Cannot launch without calibration parameters. Please start the compasscal node and invoke the calibration service to generate the required configuration file."
+                "Cannot launch without calibration parameters. Please start the compass_calibration node and invoke the calibration service to generate the required configuration file."
             )
 
         # Load IMU driver and filter.
@@ -172,12 +172,15 @@ def launch_setup(context):
                 ),
             ]
 
-    if compasscal:
+    if compass_calibration:
         description += [
-            # Compasscal is written in Python and thus is not composable.
+            # compass_calibration is written in Python and thus is not composable.
             Node(
                 package="kalman_drivers",
-                executable="compasscal",
+                executable="compass_calibration",
+                remappings=[
+                    ("calibrate", "compass_calibration/calibrate")
+                ],
             ),
         ]
 
@@ -225,7 +228,7 @@ def generate_launch_description():
                 "imu", default_value="false", description="Start the IMU driver."
             ),
             DeclareLaunchArgument(
-                "compasscal",
+                "compass_calibration",
                 default_value="false",
                 description="Start the IMU compass calibration service node. IMU must be disabled in order to calibrate the compass.",
             ),

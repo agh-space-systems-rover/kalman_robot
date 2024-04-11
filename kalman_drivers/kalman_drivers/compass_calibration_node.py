@@ -41,7 +41,7 @@ import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
 import yaml
-from ament_index_python.packages import get_package_share_directory
+from ament_index_python.packages import get_package_prefix
 import subprocess
 import os
 
@@ -77,13 +77,13 @@ def wait_for_process(process, duration):
 
 class CompasscalNode(Node):
     def __init__(self):
-        super().__init__("compasscal")
+        super().__init__("compass_calibration")
 
         # Init cmd_vel publisher.
         self.cmd_vel_pub = self.create_publisher(Twist, "cmd_vel", 10)
 
         # Init services.
-        self.create_service(CalibrateCompass, "compasscal/calibrate", self.calibrate)
+        self.create_service(CalibrateCompass, "calibrate", self.calibrate)
 
     def calibrate(
         self, request: CalibrateCompass.Request, response: CalibrateCompass.Response
@@ -92,7 +92,7 @@ class CompasscalNode(Node):
         self.get_logger().info("Starting compasscal.")
         process = subprocess.Popen(
             "stdbuf -o0 "  # Disable buffering. Fixes the problem of not getting any output from compasscal.
-            + os.path.join(get_package_share_directory("kalman_drivers"), "compasscal"),
+            + os.path.join(get_package_prefix("kalman_drivers"), "lib", "kalman_drivers", "compasscal"),
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             universal_newlines=True,
@@ -112,9 +112,13 @@ class CompasscalNode(Node):
                 "compasscal has successfully started:\n" + format_output(output)
             )
 
-        # Choose 3-axis calibration
-        self.get_logger().info("Choosing 3-axis calibration.")
-        process.stdin.write("3\n")
+        # Choose 2 or 3-axis calibration
+        if request.two_d:
+            self.get_logger().info("Choosing 2-axis calibration.")
+            process.stdin.write("2\n")
+        else:
+            self.get_logger().info("Choosing 3-axis calibration.")
+            process.stdin.write("3\n")
         process.stdin.flush()
 
         # Wait until the process has printed the "Press Enter to start sampling..." prompt.
@@ -129,7 +133,7 @@ class CompasscalNode(Node):
             return response
         else:
             self.get_logger().info(
-                "Successfully entered 3D calibration mode:\n" + format_output(output)
+                "Successfully entered calibration mode:\n" + format_output(output)
             )
 
         # Start calibration by sending Enter to stdin

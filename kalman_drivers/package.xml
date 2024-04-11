@@ -7,21 +7,22 @@
   <maintainer email="63957587+rayferric@users.noreply.github.com">rayferric</maintainer>
   <license>MIT</license>
 
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>ament_cmake_python</buildtool_depend>
+
+  <depend>libphidget22</depend> <!-- libphidget22 is required to build compasscal. -->
   <exec_depend>ros2launch</exec_depend>
   <exec_depend>realsense2_camera</exec_depend>
-  <depend>phidgets_drivers</depend> <!-- libphidget22 is required to build compasscal. -->
   <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>phidgets_spatial</exec_depend>
   <exec_depend>imu_tools</exec_depend>
-  <exec_depend>compressed_image_transport</exec_depend>
   <exec_depend>nmea_navsat_driver</exec_depend>
   <exec_depend>python-transforms3d-pip</exec_depend> <!-- required by nmea_navsat_driver -->
 
-  <test_depend>ament_copyright</test_depend>
-  <test_depend>ament_flake8</test_depend>
-  <test_depend>ament_pep257</test_depend>
-  <test_depend>python3-pytest</test_depend>
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
 
   <export>
-    <build_type>ament_python</build_type>
+    <build_type>ament_cmake</build_type>
   </export>
 </package>
