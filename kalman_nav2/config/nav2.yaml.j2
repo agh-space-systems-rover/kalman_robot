@@ -164,6 +164,7 @@ planner_server:
       tolerance: 5.0 # Plan path to a point max meters from goal; Navfn will loop (2 * tolerance / grid resolution)^2 = 10000 times
       use_astar: True # Use A* or Dijkstra's?
       allow_unknown: True # Plan in unknown space?
+      use_final_approach_orientation: False # Last rotation in path aligned with the goal?
     # GridBased:
     #   # This planner implements a cost-aware holonomic A* algorithm within the Smac Planner framework sharing the same code and behaviors as the Hybrid-A* and State Lattice planners.
     #   plugin: "nav2_smac_planner/SmacPlanner2D"
@@ -208,7 +209,9 @@ smoother_server:
     smoother_plugins: ["simple_smoother"]
     simple_smoother:
       # The maximum number of iterations the smoother has to smooth the path, to bound potential computation.
-      max_iterations: 0
+      max_its: 1000
+      # Whether to smooth the smoothed path recursively to refine the quality further
+      do_refinement: True
       # Weight for smoother to apply to smooth out the data points
       w_smooth: 0.3
       # Weight for smoother to apply to retain original data information
