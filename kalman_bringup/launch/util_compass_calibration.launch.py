@@ -17,11 +17,13 @@ import json
 
 def launch_setup(context):
     delay = float(LaunchConfiguration("delay").perform(context))
+    two_d = LaunchConfiguration("two_d").perform(context).lower() == "true"
     duration = float(LaunchConfiguration("duration").perform(context))
     angular_velocity = float(LaunchConfiguration("angular_velocity").perform(context))
 
     req_json_str = json.dumps(
         {
+            "two_d": two_d,
             "duration": duration,
             "angular_velocity": angular_velocity,
         }
@@ -42,7 +44,7 @@ def launch_setup(context):
                 "drivers.rgbd_ids": "",
                 "drivers.master": "true",
                 "drivers.imu": "false",
-                "drivers.compasscal": "true",
+                "drivers.compass_calibration": "true",
                 "drivers.gps": "false",
                 "wheel_controller": "true",
             }.items(),
@@ -56,7 +58,7 @@ def launch_setup(context):
                         "ros2",
                         "service",
                         "call",
-                        "/compasscal/calibrate",
+                        "/compass_calibration/calibrate",
                         "kalman_interfaces/srv/CalibrateCompass",
                         req_json_str,
                     ],
@@ -75,8 +77,13 @@ def generate_launch_description():
                 description="Call the calibration service after a delay. (seconds)",
             ),
             DeclareLaunchArgument(
+                "two_d",
+                default_value="true",
+                description="Only calibrate yaw.",
+            ),
+            DeclareLaunchArgument(
                 "duration",
-                default_value="60",
+                default_value="30",
                 description="Continue rotation for this duration. (seconds)",
             ),
             DeclareLaunchArgument(

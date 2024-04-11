@@ -20,7 +20,7 @@ def generate_launch_description():
                     "drivers.rgbd_ids": "",
                     "drivers.master": "true",
                     "drivers.imu": "false",
-                    "drivers.compasscal": "false",
+                    "drivers.compass_calibration": "false",
                     "drivers.gps": "false",
                     "wheel_controller": "true",
                 }.items(),

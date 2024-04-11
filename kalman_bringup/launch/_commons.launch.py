@@ -140,7 +140,7 @@ def launch_setup(context):
                     "master": get_str("drivers.master"),
                     "rgbd_ids": get_str("drivers.rgbd_ids"),
                     "imu": get_str("drivers.imu"),
-                    "compasscal": get_str("drivers.compasscal"),
+                    "compass_calibration": get_str("drivers.compass_calibration"),
                     "gps": get_str("drivers.gps"),
                 }.items(),
             ),
@@ -351,7 +351,7 @@ def generate_launch_description():
                 description="Start the IMU driver.",
             ),
             DeclareLaunchArgument(
-                "drivers.compasscal",
+                "drivers.compass_calibration",
                 default_value="false",
                 description="Start the IMU compass calibration node. IMU must be disabled in order to calibrate the compass.",
             ),
