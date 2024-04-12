@@ -197,12 +197,22 @@ def launch_setup(context):
                     )
                 ],
                 remappings=[
-                    ("fix", "gps/fix"),
+                    ("fix", "gps/fix/nan"),
                     ("heading", "gps/heading"),
                     ("vel", "gps/vel"),
                     ("time_reference", "gps/time_reference"),
                 ],
-            )
+            ),
+            # NMEA driver correctly publishes NaN values when the values are not available.
+            # However, navsat_transform_node will refuse to work on messages with NaN values.
+            Node(
+                package="kalman_drivers",
+                executable="gps_nan_removal",
+                remappings=[
+                    ("fix", "gps/fix/nan"),
+                    ("fix/filtered", "gps/fix"),
+                ],
+            ),
         ]
 
     return description

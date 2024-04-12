@@ -26,7 +26,9 @@ install(TARGETS compasscal
 
 ament_python_install_package(${PROJECT_NAME})
 
-install(PROGRAMS scripts/compass_calibration
+install(PROGRAMS
+  scripts/compass_calibration
+  scripts/gps_nan_removal
   DESTINATION lib/${PROJECT_NAME}
 )
 

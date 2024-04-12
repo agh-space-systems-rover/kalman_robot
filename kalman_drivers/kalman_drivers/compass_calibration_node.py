@@ -293,8 +293,11 @@ class CompasscalNode(Node):
 
 
 def main():
-    rclpy.init()
-    node = CompasscalNode()
-    rclpy.spin(node)
-    node.destroy_node()
-    rclpy.shutdown()
+    try:
+        rclpy.init()
+        node = CompasscalNode()
+        rclpy.spin(node)
+        node.destroy_node()
+        rclpy.shutdown()
+    except KeyboardInterrupt:
+        pass
