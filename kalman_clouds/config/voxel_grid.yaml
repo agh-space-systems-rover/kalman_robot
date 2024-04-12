@@ -1,6 +1,6 @@
 /**:
   ros__parameters:
-    # Size of the input topic queue.
+    # size of the input topic queue
     queue_size: 10
-    # Leaf size of the voxel grid filter.
+    # leaf size of the voxel grid filter
     leaf_size: 0.1
