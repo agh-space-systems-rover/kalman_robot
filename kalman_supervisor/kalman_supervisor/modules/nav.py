@@ -113,7 +113,7 @@ class BasicNav:
 
         # Correct the goal if it is too far away.
         if self.supervisor.map.occupancy(pos, frame) == Map.Occupancy.OUT_OF_BOUNDS:
-            new_pos = self.supervisor.map.closest_in_bounds_towards_center(pos, frame)
+            pos = self.supervisor.map.closest_in_bounds_towards_center(pos, frame)
 
         # Correct the goal if it is inside an obstacle.
         if self.supervisor.map.occupancy(pos, frame) != Map.Occupancy.FREE:
@@ -308,7 +308,8 @@ class NavWithRecovery:
 
     def has_goal(self) -> bool:
         return (
-            self.__goal is not None
+            self.basic_nav.has_goal()
+            or self.__goal is not None
             or self.__recovery_state != NavWithRecovery.RecoveryState.DISENGAGED
         )
 
@@ -327,6 +328,8 @@ class NavWithRecovery:
         else:
             self.basic_nav.cancel_goal()
             self.__goal = None
+            self.__last_goal_status = GoalStatus.STATUS_CANCELED
+            # NOTE: tick() will not update __last_goal_status to STATUS_CANCELED if __goal was set to None here.
 
     def send_goal(self, pos: np.ndarray, frame: str) -> None:
         pos = pos.copy()
