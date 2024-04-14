@@ -9,8 +9,11 @@ def generate_launch_description():
         [
             Node(
                 package="kalman_master",
+                executable="autonomy_switch_spam",
+            ),
+            Node(
+                package="kalman_master",
                 executable="master_com",
-                name="master_com",
             ),
             Node(
                 package="kalman_master",

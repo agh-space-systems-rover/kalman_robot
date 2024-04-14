@@ -7,6 +7,7 @@ find_package(ament_cmake_python REQUIRED)
 ament_python_install_package(${PROJECT_NAME})
 
 install(PROGRAMS
+  scripts/autonomy_switch_spam
   scripts/master_com
   scripts/shell_over_master_client
   scripts/shell_over_master_server

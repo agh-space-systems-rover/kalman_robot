@@ -9,7 +9,7 @@ from kalman_interfaces.msg import WheelStates, MasterMessage
 METRIC_VELOCITY_TO_MOTOR_VALUE_FACTOR = 100
 
 
-class WheelDriverNode(Node):
+class WheelDriver(Node):
     def __init__(self):
         super().__init__("wheel_driver")
         self.create_subscription(
@@ -18,8 +18,6 @@ class WheelDriverNode(Node):
         self.publisher = self.create_publisher(
             MasterMessage, "master_com/ros_to_master", 10
         )
-
-        self.autonomy_switch(True)
 
     def controller_state_received(self, msg: WheelStates):
         data = [
@@ -38,15 +36,13 @@ class WheelDriverNode(Node):
             MasterMessage(cmd=MasterMessage.MOTOR_SET_WHEELS, data=data)
         )
 
-    def autonomy_switch(self, on: bool):
-        self.publisher.publish(
-            MasterMessage(cmd=MasterMessage.AUTONOMY_SWITCH, data=[int(on) * 2])
-        )
-
 
 def main():
-    rclpy.init()
-    node = WheelDriverNode()
-    rclpy.spin(node)
-    node.destroy_node()
-    rclpy.shutdown()
+    try:
+        rclpy.init()
+        node = WheelDriver()
+        rclpy.spin(node)
+        node.destroy_node()
+        rclpy.shutdown()
+    except KeyboardInterrupt:
+        pass

@@ -1,3 +1,4 @@
+from serial import SerialException
 import rclpy
 import pyudev
 import time
@@ -56,12 +57,21 @@ class MasterCom(Node):
             ascii_mode=False,
         )
 
-        self.create_subscription(
+        self.sub = self.create_subscription(
             MasterMessage, "master_com/ros_to_master", self.ros_to_master, 10
         )
         self.pubs = {}
 
-        self.create_timer(1.0 / 400.0, self.master_to_ros)
+        self.timer = self.create_timer(1.0 / 400.0, self.master_to_ros)
+
+    def destroy_node(self) -> None:
+        self.timer.destroy()
+        for pub in self.pubs.values():
+            pub.destroy()
+        self.sub.destroy()
+        self.driver.destroy()
+
+        super().destroy_node()
 
     def master_to_ros(self) -> None:
         msgs: List[SerialMsg] = self.driver.read_all_msgs()
@@ -79,16 +89,24 @@ class MasterCom(Node):
             self.pubs[msg.cmd].publish(ros_msg)
 
     def ros_to_master(self, ros_msg: MasterMessage) -> None:
+        self.get_logger().info("got message: " + str(ros_msg))
         serial_msg = SerialMsg(ros_msg.cmd, len(ros_msg.data), ros_msg.data)
 
         self.driver.write_msg(serial_msg)
         self.driver.tick()
-
-
-def main(args=None):
-    rclpy.init(args=args)
-
-    node = MasterCom()
-    rclpy.spin(node)
-
-    rclpy.shutdown()
+            
+def main():
+    while True:
+        try:
+            rclpy.init()
+            node = MasterCom()
+            rclpy.spin(node)
+            node.destroy_node()
+            rclpy.shutdown()
+        except KeyboardInterrupt:
+            exit()
+        except SerialException:
+            node.get_logger().error("Serial port has lost connection. Restarting the node...")
+            node.destroy_node()
+            rclpy.shutdown()
+            time.sleep(1)

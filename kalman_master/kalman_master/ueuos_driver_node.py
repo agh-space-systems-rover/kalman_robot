@@ -52,8 +52,11 @@ class UeuosNode(Node):
 
 
 def main():
-    rclpy.init()
-    node = UeuosNode()
-    rclpy.spin(node)
-    node.destroy_node()
-    rclpy.shutdown()
+    try:
+        rclpy.init()
+        node = UeuosNode()
+        rclpy.spin(node)
+        node.destroy_node()
+        rclpy.shutdown()
+    except KeyboardInterrupt:
+        pass

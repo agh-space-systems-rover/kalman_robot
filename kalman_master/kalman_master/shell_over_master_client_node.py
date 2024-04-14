@@ -74,6 +74,7 @@ def main():
         rclpy.init()
         node = ShellOverMasterClient()
         rclpy.spin(node)
+        node.destroy_node()
         rclpy.shutdown()
     except KeyboardInterrupt:
         pass
