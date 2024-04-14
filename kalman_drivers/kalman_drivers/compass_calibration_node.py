@@ -178,6 +178,7 @@ class CompasscalNode(Node):
 
             # Wait for 1/msg_freq seconds.
             wait_for_process(process, 1 / CMD_VEL_RATE)
+        self.cmd_vel_pub.publish(Twist())
 
         # Stop calibration by sending Enter to stdin
         self.get_logger().info("Stopping sampling...")
