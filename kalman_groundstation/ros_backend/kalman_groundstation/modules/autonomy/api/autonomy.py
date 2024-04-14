@@ -28,9 +28,9 @@ class AutonomyRouter(APIRouter):
 
         self.ueuos_colors = {
             0 : ColorRGBA(r=1.0, a=1.0),
-            1 : ColorRGBA(g=1.0, a=1.0),
+            1 : ColorRGBA(r=1.0, a=1.0),
             2 : ColorRGBA(b=1.0, a=1.0),
-            3 : ColorRGBA(r=1.0, a=1.0),
+            3 : ColorRGBA(g=1.0, a=1.0),
         }
 
         # I love web <3
@@ -90,19 +90,19 @@ class AutonomyRouter(APIRouter):
         #     )
 
         self.ueuos_set_state_client = self.parent_node.create_client(
-            SetUeuosColor, "/ueuos/set_state"
+            SetUeuosColor, "/ueuos/set_color"
         )
         while (
             not self.ueuos_set_state_client.wait_for_service(timeout_sec=1.0)
             and retries_so_far < MAX_SERVICE_RETRIES
         ):
             self.parent_node.get_logger().info(
-                "Waiting for service '/ueuos/set_state' ..."
+                f"Waiting for service '{self.ueuos_set_state_client.srv_name}' ..."
             )
             retries_so_far += 1
         else:
             self.parent_node.get_logger().error(
-                "Failed to wait for service: '/ueuos/set_state'"
+                f"Failed to wait for service '{self.ueuos_set_state_client.srv_name}'"
             )
 
     def set_autonomy_on_off(self, autonomy_on: bool):
