@@ -14,7 +14,7 @@ class VoxelGrid : public rclcpp::Node {
   public:
 	rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr    pub;
 	rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr sub;
-	pcl::VoxelGrid<pcl::PointXYZRGB> filter;
+	pcl::VoxelGrid<pcl::PointXYZRGB>                               filter;
 
 	VoxelGrid(const rclcpp::NodeOptions &options)
 	    : Node("voxel_grid", options) {

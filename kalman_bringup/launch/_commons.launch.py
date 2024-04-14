@@ -272,7 +272,9 @@ def launch_setup(context):
                     )
                 ),
                 launch_arguments={
-                    "aruco_rgbd_ids": get_str("aruco.rgbd_ids") if get_bool("aruco") else "",
+                    "aruco_rgbd_ids": get_str("aruco.rgbd_ids")
+                    if get_bool("aruco")
+                    else "",
                     "yolo_enabled": get_str("yolo"),
                     # NOTE: It is required that kalman_aruco is started from within the same launch file.
                 }.items(),

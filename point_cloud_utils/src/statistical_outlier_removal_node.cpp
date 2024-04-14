@@ -14,7 +14,7 @@ class StatisticalOutlierRemoval : public rclcpp::Node {
   public:
 	rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr    pub;
 	rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr sub;
-	pcl::StatisticalOutlierRemoval<pcl::PointXYZRGB> filter;
+	pcl::StatisticalOutlierRemoval<pcl::PointXYZRGB>               filter;
 
 	StatisticalOutlierRemoval(const rclcpp::NodeOptions &options)
 	    : Node("statistical_outlier_removal", options) {
@@ -36,14 +36,18 @@ class StatisticalOutlierRemoval : public rclcpp::Node {
 		sub = create_subscription<sensor_msgs::msg::PointCloud2>(
 		    "input",
 		    queue_size,
-		    std::bind(&StatisticalOutlierRemoval::callback, this, std::placeholders::_1)
+		    std::bind(
+		        &StatisticalOutlierRemoval::callback,
+		        this,
+		        std::placeholders::_1
+		    )
 		);
 	}
 
 	void callback(const sensor_msgs::msg::PointCloud2::SharedPtr msg) {
 		// Read dynamic parameters.
-		int num_neighbors = get_parameter("num_neighbors").as_int();
-		float std_dev_mul = get_parameter("std_dev_mul").as_double();
+		int   num_neighbors = get_parameter("num_neighbors").as_int();
+		float std_dev_mul   = get_parameter("std_dev_mul").as_double();
 
 		// Convert the message to a PCL point cloud.
 		pcl::PointCloud<pcl::PointXYZRGB>::Ptr

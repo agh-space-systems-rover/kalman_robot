@@ -92,7 +92,12 @@ class CompasscalNode(Node):
         self.get_logger().info("Starting compasscal.")
         process = subprocess.Popen(
             "stdbuf -o0 "  # Disable buffering. Fixes the problem of not getting any output from compasscal.
-            + os.path.join(get_package_prefix("kalman_drivers"), "lib", "kalman_drivers", "compasscal"),
+            + os.path.join(
+                get_package_prefix("kalman_drivers"),
+                "lib",
+                "kalman_drivers",
+                "compasscal",
+            ),
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             universal_newlines=True,

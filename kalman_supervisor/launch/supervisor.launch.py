@@ -24,7 +24,9 @@ def launch_setup(context):
         for x in LaunchConfiguration("aruco_rgbd_ids").perform(context).split(" ")
         if x != ""
     ]
-    yolo_enabled = LaunchConfiguration("yolo_enabled").perform(context).lower() == "true"
+    yolo_enabled = (
+        LaunchConfiguration("yolo_enabled").perform(context).lower() == "true"
+    )
 
     remappings = []
 
@@ -67,9 +69,7 @@ def launch_setup(context):
                         "enabled": len(aruco_rgbd_ids) > 0,
                         "num_cameras": len(aruco_rgbd_ids),
                     },
-                    "yolo": {
-                        "enabled": yolo_enabled
-                    },
+                    "yolo": {"enabled": yolo_enabled},
                 },
             ],
             remappings=remappings,

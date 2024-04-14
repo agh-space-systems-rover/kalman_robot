@@ -91,6 +91,26 @@ class SerialDriver:
         self.binary_parser_msg_buffer: list[UInt8] = []
         self.binary_parser_crc_correct = False
 
+        self.on_error_sleep_rate = None
+
+    def destroy(self) -> None:
+        """
+        Finalizes all destryable resources used by the driver.
+        The object should not be used after this step.
+        Please create another instance of SerialDriver instead.
+
+        Returns:
+            None
+        """
+        if self.on_error_sleep_rate is not None:
+            self.on_error_sleep_rate.destroy()
+        self.malformed_packets_pub.destroy()
+        self.baudrate_debug_pub.destroy()
+        self.timer_log_malformed_packets.destroy()
+        self.timer_log_data.destroy()
+        self.tick_sleep_rate.destroy()
+        self.serial.close()
+
     def log_malformed_packets(self) -> None:
         """
         Logs the number of malformed packets received in the last malformed_packets_timer_time seconds.
@@ -165,14 +185,14 @@ class SerialDriver:
         """
         Initialize the serial port.
         """
-        on_error_sleep_rate = self.create_rate(1)
+        self.on_error_sleep_rate = self.create_rate(1)
         while True:
             try:
                 self.serial.open()
                 break
             except SerialException as e:
                 self.get_logger().error(e)
-                on_error_sleep_rate.sleep()
+                self.on_error_sleep_rate.sleep()
 
     def _read_from_serial(self) -> None:
         """

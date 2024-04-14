@@ -29,7 +29,9 @@ def launch_setup(context):
         if x != ""
     ]
     imu = LaunchConfiguration("imu").perform(context).lower() == "true"
-    compass_calibration = LaunchConfiguration("compass_calibration").perform(context).lower() == "true"
+    compass_calibration = (
+        LaunchConfiguration("compass_calibration").perform(context).lower() == "true"
+    )
     gps = LaunchConfiguration("gps").perform(context).lower() == "true"
 
     if len(rgbd_ids) > 0:
@@ -178,9 +180,7 @@ def launch_setup(context):
             Node(
                 package="kalman_drivers",
                 executable="compass_calibration",
-                remappings=[
-                    ("calibrate", "compass_calibration/calibrate")
-                ],
+                remappings=[("calibrate", "compass_calibration/calibrate")],
             ),
         ]
 

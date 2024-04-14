@@ -226,9 +226,7 @@ class NavWithRecovery:
                         self.supervisor.get_logger().error(
                             "There's no free positions in history and no free cells around the robot. Recovery is impossible."
                         )
-                        self.__recovery_state = (
-                            NavWithRecovery.RecoveryState.DISENGAGED
-                        )
+                        self.__recovery_state = NavWithRecovery.RecoveryState.DISENGAGED
                         self.__goal = None
                         # Treat this as a finished goal. We are unable to handle this situation.
                         self.__last_goal_status = GoalStatus.STATUS_SUCCEEDED

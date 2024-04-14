@@ -14,7 +14,7 @@ class RadiusOutlierRemoval : public rclcpp::Node {
   public:
 	rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr    pub;
 	rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr sub;
-	pcl::RadiusOutlierRemoval<pcl::PointXYZRGB> filter;
+	pcl::RadiusOutlierRemoval<pcl::PointXYZRGB>                    filter;
 
 	RadiusOutlierRemoval(const rclcpp::NodeOptions &options)
 	    : Node("radius_outlier_removal", options) {
@@ -36,14 +36,16 @@ class RadiusOutlierRemoval : public rclcpp::Node {
 		sub = create_subscription<sensor_msgs::msg::PointCloud2>(
 		    "input",
 		    queue_size,
-		    std::bind(&RadiusOutlierRemoval::callback, this, std::placeholders::_1)
+		    std::bind(
+		        &RadiusOutlierRemoval::callback, this, std::placeholders::_1
+		    )
 		);
 	}
 
 	void callback(const sensor_msgs::msg::PointCloud2::SharedPtr msg) {
 		// Read dynamic parameters.
 		float search_radius = get_parameter("search_radius").as_double();
-		int min_neighbors = get_parameter("min_neighbors").as_int();
+		int   min_neighbors = get_parameter("min_neighbors").as_int();
 
 		// Convert the message to a PCL point cloud.
 		pcl::PointCloud<pcl::PointXYZRGB>::Ptr

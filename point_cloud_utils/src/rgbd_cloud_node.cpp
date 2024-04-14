@@ -1,6 +1,6 @@
 #include <cv_bridge/cv_bridge.h>
-#include <image_transport/subscriber_filter.hpp>
 #include <image_transport/camera_common.hpp>
+#include <image_transport/subscriber_filter.hpp>
 #include <message_filters/subscriber.h>
 #include <message_filters/time_synchronizer.h>
 #include <random>
@@ -39,19 +39,30 @@ class RgbdCloud : public rclcpp::Node {
 		img_qos.durability(RMW_QOS_POLICY_DURABILITY_VOLATILE);
 		img_qos.reliability(RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT);
 
-		std::string color_topic = get_node_base_interface()->resolve_topic_or_service_name(
-      		"color/image_raw", false, false
-		);
-		std::string depth_topic = get_node_base_interface()->resolve_topic_or_service_name(
-      		"depth/image_raw", false, false
-		);
-    	std::string info_topic = image_transport::getCameraInfoTopic(color_topic);
+		std::string color_topic =
+		    get_node_base_interface()->resolve_topic_or_service_name(
+		        "color/image_raw", false, false
+		    );
+		std::string depth_topic =
+		    get_node_base_interface()->resolve_topic_or_service_name(
+		        "depth/image_raw", false, false
+		    );
+		std::string info_topic =
+		    image_transport::getCameraInfoTopic(color_topic);
 
 		color_sub.subscribe(
-		    this, color_topic, image_transport::TransportHints(this, "raw", "color_transport").getTransport(), img_qos.get_rmw_qos_profile()
+		    this,
+		    color_topic,
+		    image_transport::TransportHints(this, "raw", "color_transport")
+		        .getTransport(),
+		    img_qos.get_rmw_qos_profile()
 		);
 		reg_depth_sub.subscribe(
-		    this, depth_topic, image_transport::TransportHints(this, "raw", "depth_transport").getTransport(), img_qos.get_rmw_qos_profile()
+		    this,
+		    depth_topic,
+		    image_transport::TransportHints(this, "raw", "depth_transport")
+		        .getTransport(),
+		    img_qos.get_rmw_qos_profile()
 		);
 		info_sub.subscribe(this, info_topic);
 
