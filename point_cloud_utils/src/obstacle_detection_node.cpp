@@ -107,7 +107,7 @@ class ObstacleDetection : public rclcpp::Node {
 			    world_frame, msg->header.frame_id, tf2::TimePointZero
 			);
 		} catch (tf2::TransformException &ex) {
-			RCLCPP_ERROR(get_logger(), "%s", ex.what());
+			// RCLCPP_ERROR(get_logger(), "%s", ex.what());
 			return;
 		}
 		Eigen::Isometry3d pc_to_world = tf2::transformToEigen(pc_to_world_tf);
@@ -177,7 +177,7 @@ class ObstacleDetection : public rclcpp::Node {
 				    world_frame, robot_frame, tf2::TimePointZero
 				);
 			} catch (tf2::TransformException &ex) {
-				RCLCPP_ERROR(get_logger(), "%s", ex.what());
+				// RCLCPP_ERROR(get_logger(), "%s", ex.what());
 				return;
 			}
 			Eigen::Isometry3d robot_to_world =
