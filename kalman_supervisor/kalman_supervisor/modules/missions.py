@@ -223,6 +223,17 @@ class Missions(Module):
             self.__queue_up_mission(mission, None)
 
     def __tf_goal_cb(self, goal_handle: ServerGoalHandle) -> SupervisorTfGoal.Result:
+        # Check if the frame exists.
+        if not self.supervisor.tf.can_transform(
+            goal_handle.request.location.header.frame_id,
+            self.supervisor.tf.world_frame(),
+        ):
+            self.supervisor.get_logger().warn(
+                f"[Missions] Frame '{goal_handle.request.location.header.frame_id}' does not exist. Mission aborted."
+            )
+            goal_handle.abort()
+            return SupervisorTfGoal.Result()
+
         mission = Missions.TfGoal(
             goal_handle.request.location.point.x,
             goal_handle.request.location.point.y,
