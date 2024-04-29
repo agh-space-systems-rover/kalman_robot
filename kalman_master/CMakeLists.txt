@@ -9,14 +9,14 @@ ament_python_install_package(${PROJECT_NAME})
 install(PROGRAMS
   scripts/autonomy_switch_spam
   scripts/master_com
-  scripts/shell_over_master_client
-  scripts/shell_over_master_server
+  scripts/master_loopback
+  scripts/ros_link
   scripts/ueuos_driver
   scripts/wheel_driver
   DESTINATION lib/${PROJECT_NAME}
 )
 
-install(DIRECTORY launch
+install(DIRECTORY config launch
   DESTINATION share/${PROJECT_NAME}
 )
 

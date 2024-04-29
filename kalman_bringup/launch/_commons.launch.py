@@ -138,6 +138,7 @@ def launch_setup(context):
                         else ""
                     ),
                     "master": get_str("drivers.master"),
+                    "master_gs_mode": get_str("drivers.master_gs_mode"),
                     "rgbd_ids": get_str("drivers.rgbd_ids"),
                     "imu": get_str("drivers.imu"),
                     "compass_calibration": get_str("drivers.compass_calibration"),
@@ -272,12 +273,21 @@ def launch_setup(context):
                     )
                 ),
                 launch_arguments={
-                    "aruco_rgbd_ids": get_str("aruco.rgbd_ids")
-                    if get_bool("aruco")
-                    else "",
+                    "aruco_rgbd_ids": (
+                        get_str("aruco.rgbd_ids") if get_bool("aruco") else ""
+                    ),
                     "yolo_enabled": get_str("yolo"),
                     # NOTE: It is required that kalman_aruco is started from within the same launch file.
                 }.items(),
+            ),
+        ]
+
+    if get_bool("gs"):
+        description += [
+            IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(
+                    str(get_package_share_path("kalman_gs") / "launch" / "gs.launch.py")
+                ),
             ),
         ]
 
@@ -346,6 +356,11 @@ def generate_launch_description():
                 "drivers.master",
                 default_value="false",
                 description="Start the master driver.",
+            ),
+            DeclareLaunchArgument(
+                "drivers.master_gs_mode",
+                default_value="false",
+                description="Use the baud rate of the RF module.",
             ),
             DeclareLaunchArgument(
                 "drivers.imu",
@@ -471,6 +486,11 @@ def generate_launch_description():
                 "supervisor",
                 default_value="false",
                 description="Start up the supervisor.",
+            ),
+            DeclareLaunchArgument(
+                "gs",
+                default_value="false",
+                description="Start up GS.",
             ),
             OpaqueFunction(function=launch_setup),
         ]

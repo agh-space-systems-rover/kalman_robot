@@ -53,6 +53,7 @@ class SerialDriver:
             tick_sleep_time_s (float, optional): The amount of time to sleep between ticks. Defaults to 0.01.
             ascii_mode (bool, optional): Whether to use ASCII mode. Defaults to False.
         """
+        self.node = node
         self.serial_read_buffer: bytes = b""
         self.serial_write_buffer: deque[bytes] = deque()
         self.ros_msg_read_buffer: list[SerialMsg] = []
@@ -92,6 +93,9 @@ class SerialDriver:
         self.binary_parser_crc_correct = False
 
         self.on_error_sleep_rate = None
+
+    def get_logger(self):
+        return self.node.get_logger()
 
     def destroy(self) -> None:
         """

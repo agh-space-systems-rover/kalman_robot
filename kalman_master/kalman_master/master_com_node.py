@@ -20,13 +20,14 @@ Message is then encoded as a binary frame and sent out using the serial driver.
 
 
 # Returns first ttyXXXN that includes model string in its ID_MODEL property
-def find_tty_by_model(model: str):
+def find_tty_by_model(*id_model_substrings: str) -> str:
     context = pyudev.Context()
     for device in context.list_devices(subsystem="tty"):
         try:
             id_model = device.properties["ID_MODEL"].strip()
-            if model in id_model:
-                return device.device_node
+            for substr in id_model_substrings:
+                if substr in id_model:
+                    return device.device_node
         except KeyError:
             pass
     return None
@@ -36,24 +37,29 @@ class MasterCom(Node):
     def __init__(self) -> None:
         super().__init__("master_com")
 
-        # Attempt to find the Master UART port indefinitely.
-        while True:
-            port_name = find_tty_by_model("Master_Autonomy_UART")
-            if port_name is None:
-                self.get_logger().error(
-                    "Master UART port not found. Will retry in 5 seconds."
-                )
-                time.sleep(5)
-            else:
-                self.get_logger().info(f"Master is connected to {port_name}.")
-                break
+        # Declare params
+        port = self.declare_parameter("port", "").value
+        rf_baud = self.declare_parameter("rf_baud", False).value
+
+        if not port:
+            # Attempt to find the Master UART port indefinitely.
+            while True:
+                port = find_tty_by_model("Master_Autonomy_UART", "USB-RS422_Converter")
+                if port is None:
+                    self.get_logger().error(
+                        "Master UART port not found. Will retry in 5 seconds."
+                    )
+                    time.sleep(5)
+                else:
+                    self.get_logger().info(f"Master is connected to {port}.")
+                    break
 
         self.driver = SerialDriver(
             self,
-            port_name=port_name,
+            port_name=port,
             start_byte="<",
             stop_byte=">",
-            baud_rate=115200,
+            baud_rate=(38400 if rf_baud else 115200),
             ascii_mode=False,
         )
 
@@ -93,7 +99,8 @@ class MasterCom(Node):
 
         self.driver.write_msg(serial_msg)
         self.driver.tick()
-            
+
+
 def main():
     while True:
         try:
@@ -105,7 +112,9 @@ def main():
         except KeyboardInterrupt:
             exit()
         except SerialException:
-            node.get_logger().error("Serial port has lost connection. Restarting the node...")
+            node.get_logger().error(
+                "Serial port has lost connection. Restarting the node..."
+            )
             node.destroy_node()
             rclpy.shutdown()
             time.sleep(1)
