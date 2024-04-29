@@ -15,6 +15,6 @@ wheel_controller:
     # angular speed of the swivel when changing wheel orientation; Predicates for how long the robot will wait when adjusting wheels (rad/s)
     wheel_turn_vel: 1.57
     # minimum difference between current and target wheel swivel angle to adjust wheels in place (rad)
-    max_wheel_turn_diff: 0.7
+    max_wheel_turn_diff: 0.8
     # maximum difference between current and target wheel swivel angle to stop adjusting wheels in place (rad)
     min_wheel_turn_diff: 0.2

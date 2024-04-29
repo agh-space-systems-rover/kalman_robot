@@ -139,7 +139,7 @@ class WheelController(rclpy.node.Node):
         )
         self.declare_parameter(
             "max_wheel_turn_diff",
-            0.7,
+            0.8,
             ParameterDescriptor(
                 type=ParameterType.PARAMETER_DOUBLE,
                 description="minimum difference between current and target wheel swivel angle to adjust wheels in place (rad)",
@@ -168,7 +168,7 @@ class WheelController(rclpy.node.Node):
 
         # Create state publisher.
         self.wheel_state_pub = self.create_publisher(
-            WheelStates, "/wheel_controller/state", queue_size
+            WheelStates, "wheel_states", queue_size
         )
 
         # Create state publisher timer.
