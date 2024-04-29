@@ -12,9 +12,10 @@ Kalman's software stack updated to ROS 2
 > It also includes useful shell macros to facilitate the installation of custom Python and APT packages.
 > This workspace requires Ubuntu Jammy, but it also fully supports execution and development in a Docker container via Distrobox.
 
-- [Spatio-Temporal Voxel Layer](https://github.com/SteveMacenski/spatio_temporal_voxel_layer) (Currently not available via rosdep and has to be built manually from source.)
+- [Spatio-Temporal Voxel Layer](https://github.com/SteveMacenski/spatio_temporal_voxel_layer) (Currently not available via rosdep and has to be built manually from source.) Required by `kalman_nav2`.
 - the latest ROS 2 Rolling version of the [realsense-ros](https://github.com/IntelRealSense/realsense-ros) package which supports way more features and has a working (!) auto-exposure feature
 - [ros_aruco_opencv 2.2.0 or later](https://github.com/fictionlab/ros_aruco_opencv/tree/humble) for ROS 2 Humble (Not yet available via rosdep.)
+- the latest commit of [rosbridge_suite](https://github.com/RobotWebTools/rosbridge_suite) which has support for ROS 2 actions. It is used in `kalman_gs` package.
 - a custom version of [compressed_depth_image_transport](https://github.com/agh-space-systems-rover/kalman_ws/tree/main/overlay_ws/src/compressed_depth_image_transport) from [kalman_ws](https://github.com/agh-space-systems-rover/kalman_ws) that supports RVL compression and does not clash with `compressed_image_transport`'s params
 - a custom version of [rtabmap_odom](https://github.com/agh-space-systems-rover/kalman_ws/tree/main/overlay_ws/src/rtabmap_odom) from [kalman_ws](https://github.com/agh-space-systems-rover/kalman_ws) that supports compressed image transports
 - All Python packages listed in the `requirements.txt` files in the directories of some Colcon packages.
@@ -56,10 +57,9 @@ Kalman's software stack is composed of multiple packages that are meant to be bu
 - `kalman_gazebo` - Ignition Gazebo simulation configs for Kalman
 - `kalman_interfaces` - ROS 2 messages, services and actions used by the other `kalman_` packages
 - `kalman_mapviz` - configuration and launch files for MapViz
-- `kalman_master` - driver for our custom Master device
+- `kalman_master` - drivers for our custom Master device
 - `kalman_nav2` - configuration and launch files for Nav2 and related modules; Includes a custom path follower.
 - `kalman_robot` - a metapackage that depends on all other `kalman_` packages
-- `kalman_rosou` - **WIP** Establishes ROS to ROS communication between the rover and ROS on the ground station. Makes use of the Master device which is the radio communication hub.
 - `kalman_slam` - configuration files for robot_localization and RTAB-Map
 - `kalman_supervisor` - Manages autonomous navigation missions.
 - `kalman_wheel_controller` - a node that converts Twist messages on `/cmd_vel` and similar topics to the actual wheel state; Also includes safeguards that can limit the acceleration and velocity or stop the rover to adjust wheel rotation.
