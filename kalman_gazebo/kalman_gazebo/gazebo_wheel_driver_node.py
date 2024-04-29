@@ -21,7 +21,7 @@ class GazeboWheelDriverNode(Node):
         super().__init__("wheel_driver")
 
         self.create_subscription(
-            WheelStates, "wheel_controller/state", self.controller_state_received, 10
+            WheelStates, "wheel_states", self.controller_state_received, 10
         )
 
         self.velocity_pub = self.create_publisher(
