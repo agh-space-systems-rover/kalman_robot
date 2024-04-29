@@ -1,0 +1,91 @@
+.panel-manager {
+  padding: 5px;
+  flex: 1;
+  background-color: #222;
+  display: flex;
+  flex-direction: column;
+  justify-content: stretch;
+  align-items: stretch;
+}
+
+.layout-container {
+  flex: 1;
+  border-radius: 5px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.horizontal-layout {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  justify-content: stretch;
+}
+
+.vertical-layout {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  justify-content: stretch;
+}
+
+.horizontal-divider {
+  width: 5px;
+  height: 100%;
+  position: relative;
+}
+
+.horizontal-divider-handle {
+  position: absolute;
+  top: 5px;
+  bottom: 5px;
+  left: -5px;
+  right: -5px;
+  cursor: col-resize;
+  z-index: 10;
+}
+
+.vertical-divider {
+  width: 100%;
+  height: 5px;
+  position: relative;
+}
+
+.vertical-divider-handle {
+  position: absolute;
+  top: -5px;
+  bottom: -5px;
+  left: 5px;
+  right: 5px;
+  cursor: row-resize;
+  z-index: 10;
+}
+
+.panel-header {
+  background-color: #333;
+  width: 100%;
+  display: flex;
+}
+
+.panel-header-items {
+  flex: 1;
+}
+
+.panel-controls {
+  display: flex;
+  flex-direction: row;
+}
+
+.panel-container {
+  overflow: hidden;
+  flex: 1;
+  background-color: #333;
+}

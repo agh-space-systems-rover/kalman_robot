@@ -1,0 +1,18 @@
+{
+  "tabWidth": 2,
+  "useTabs": false,
+  "singleQuote": true,
+  "jsxSingleQuote": true,
+  "quoteProps": "preserve",
+  "trailingComma": "none",
+  "semi": true,
+  "plugins": ["@trivago/prettier-plugin-sort-imports"],
+  "importOrderSeparation": true,
+  "importOrder": [
+    "^\\./.+\\.css$",
+    "<THIRD_PARTY_MODULES>",
+    "/components.*",
+    "/modules.*",
+    "/panels.*"
+  ]
+}

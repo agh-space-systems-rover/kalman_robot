@@ -1,0 +1,39 @@
+.input {
+  display: flex;
+  background-color: #222;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  flex: 1;
+  height: calc(1em + 4px);
+  padding: 3px;
+}
+
+.input:first-child {
+  border-top-left-radius: 5px;
+  border-bottom-left-radius: 5px;
+  margin-left: 5px;
+}
+
+.input:last-child {
+  border-top-right-radius: 5px;
+  border-bottom-right-radius: 5px;
+  margin-right: 5px;
+}
+
+.input:not(:last-child) {
+  border-right: 1px solid #333;
+}
+
+.input-field {
+  background-color: transparent;
+  min-width: 0;
+  width: 100%;
+  outline: none;
+  border: none;
+  color: #fff;
+  appearance: textfield;
+  font-family: inherit;
+  padding: 2px 5px 4px 5px;
+  transition: background-color 0.1s;
+  height: calc(100% - 6px);
+}

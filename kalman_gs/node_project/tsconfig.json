@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "target": "esnext", // bleeding edge JavaScript features
+    "jsx": "react-jsx", // "Cannot use JSX unless the '--jsx' flag is provided."
+    "moduleResolution": "node", // "Property 'div' does not exist on type 'JSX.IntrinsicElements'."
+    "allowSyntheticDefaultImports": true, // "Module ... can only be default-imported using the 'allowSyntheticDefaultImports' flag."
+    "resolveJsonModule": true // in order to import .json files
+  }
+}

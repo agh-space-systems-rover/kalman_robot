@@ -1,0 +1,15 @@
+.popup {
+  position: fixed;
+  opacity: 0;
+  z-index: 200;
+  top: 0;
+  left: 0;
+  transition: opacity 0.2s ease-in-out;
+  pointer-events: none;
+  max-width: 300px;
+}
+
+.popup.visible {
+  opacity: 1;
+  pointer-events: auto;
+}

@@ -1,0 +1,35 @@
+.button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #555;
+  padding: 3px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  cursor: pointer;
+  transition: background-color 0.1s;
+  height: calc(1em + 4px);
+  min-width: calc(1em + 4px);
+  user-select: none;
+  position: relative;
+}
+
+.button:first-child {
+  border-top-left-radius: 5px;
+  border-bottom-left-radius: 5px;
+  margin-left: 5px;
+}
+
+.button:last-child {
+  border-top-right-radius: 5px;
+  border-bottom-right-radius: 5px;
+  margin-right: 5px;
+}
+
+.button:hover {
+  background-color: #888;
+}
+
+.button:not(:last-child) {
+  border-right: 1px solid #333;
+}

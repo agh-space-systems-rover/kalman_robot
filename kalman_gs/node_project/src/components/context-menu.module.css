@@ -1,0 +1,42 @@
+.context-menu {
+  background-color: #222;
+  border-radius: 5px;
+  padding: 5px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: stretch;
+  position: relative;
+}
+
+.item {
+  padding: 5px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.1s;
+  display: flex;
+  flex-direction: row;
+}
+
+.item:hover {
+  background-color: #333;
+}
+
+.item-icon {
+  width: 16px;
+  height: 16px;
+  margin-right: 5px;
+}
+
+.item-text {
+  flex: 1;
+}
+
+.context-menu-trigger {
+  cursor: pointer;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}

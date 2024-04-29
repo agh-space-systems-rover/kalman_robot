@@ -1,0 +1,61 @@
+.alerts {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 300px;
+  padding: 10px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: stretch;
+  transition-duration: 200ms;
+  pointer-events: none;
+}
+
+.alerts:global(.focused) {
+  background-color: #0008;
+  pointer-events: all;
+}
+
+.alert {
+  padding: 10px;
+  color: var(--background-color);
+  border-radius: 10px;
+  border: 1px solid;
+  opacity: 0;
+  transition-duration: 300ms;
+  transition-property: opacity;
+  pointer-events: all;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.alert:global(.shown) {
+  opacity: 1;
+}
+
+.alert:global(.error) {
+  border-color: #955c;
+  background-color: #b55c;
+}
+
+.alert:global(.warning) {
+  border-color: #982c;
+  background-color: #a92c;
+}
+
+.alert:global(.success) {
+  border-color: #473c;
+  background-color: #493c;
+}
+
+.icon {
+  width: 1.3em;
+  height: 1.3em;
+  margin-right: 10px;
+}

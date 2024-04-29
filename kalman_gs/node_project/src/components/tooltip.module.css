@@ -1,0 +1,17 @@
+.tooltip-popup {
+  background-color: #222;
+  border-radius: 5px;
+  padding: 10px;
+}
+
+.tooltip-container {
+  position: relative;
+}
+
+.tooltip-anchor {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}

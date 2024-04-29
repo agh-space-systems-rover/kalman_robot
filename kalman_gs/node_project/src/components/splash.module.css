@@ -1,0 +1,97 @@
+.splash-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  cursor: pointer;
+  user-select: none;
+}
+
+.splash-bg.shown {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.splash {
+  width: 500px;
+  height: 400px;
+  background-color: #222;
+  border-radius: 10px;
+  margin: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.splash-header {
+  width: 100%;
+  height: 200px;
+  position: relative;
+}
+
+.splash-header-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  position: relative;
+  border-radius: 10px 10px 0 0;
+}
+
+.splash-header-image-vignette {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(transparent, #000a);
+  border-radius: 10px 10px 0 0;
+}
+
+.splash-header-image-attribution {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  color: #fff4;
+  font-weight: 600;
+  display: flex;
+}
+
+.splash-header-image-attribution-text {
+  margin-left: 5px;
+}
+
+.splash-header-logo {
+  position: absolute;
+  bottom: 0;
+  left: 10px;
+  height: 100px;
+  object-fit: contain;
+}
+
+.splash-content {
+  padding: 20px;
+  color: #aaa;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.splash-content h1 {
+  margin: 0;
+  color: #fff;
+  font-family: 'Bai Jamjuree';
+  font-weight: 600;
+}
+
+.splash-content p {
+  margin: 0;
+}
