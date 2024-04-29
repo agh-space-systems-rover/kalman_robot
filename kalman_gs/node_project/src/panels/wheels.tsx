@@ -60,7 +60,7 @@ function Wheel({
     <div
       className={styles['wheel'] + ' ' + styles[type]}
       style={{
-        transform: `rotate(${(angle * 180 / Math.PI) + (type === 'fr' || type === 'br' ? 180 : 0)}deg)`,
+        transform: `rotate(${(-angle * 180 / Math.PI) + (type === 'fr' || type === 'br' ? 180 : 0)}deg)`,
       }}
     >
       <img
