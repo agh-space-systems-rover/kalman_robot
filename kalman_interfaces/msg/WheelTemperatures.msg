@@ -1,0 +1,4 @@
+WheelTemperature front_left
+WheelTemperature front_right
+WheelTemperature back_left
+WheelTemperature back_right
