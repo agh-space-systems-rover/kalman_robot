@@ -50,6 +50,7 @@
 
 .supervisor-feedback-old {
   opacity: 0.5;
+  z-index: 1; /* without this half-opaque tooltips can sometimes clip behind map panel */
 }
 
 .feedback-row {

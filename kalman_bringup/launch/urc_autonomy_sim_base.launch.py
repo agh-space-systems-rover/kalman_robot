@@ -19,6 +19,8 @@ def generate_launch_description():
                     "unity_sim": "true",
                     "rviz": "true",
                     "rviz.config": "urc_autonomy.rviz",
+                    "gs": "true",
+                    "wheel_controller": "true",
                 }.items(),
             ),
         ]

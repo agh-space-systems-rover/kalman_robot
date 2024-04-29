@@ -33,7 +33,6 @@ def generate_launch_description():
                     "nav2.composition": "false",
                     "nav2.rgbd_ids": "d455_front d455_back d455_left d455_right",
                     "nav2.static_map": "",
-                    "wheel_controller": "true",
                     "aruco": "true",
                     "aruco.composition": "false",
                     "aruco.rgbd_ids": "d455_front d455_back d455_left d455_right",

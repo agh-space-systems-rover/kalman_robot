@@ -5,6 +5,7 @@ const ROTATE_IN_PLACE_SPEED = 0.5;
 
 let speedI = 1;
 let turnRadiusI = 1;
+let lastButtonUpdate: number = 0;
 
 const SPEEDS = [0.2, 0.35, 0.5, 1.0];
 const TURN_RADIUSES = [0.5, 1.0, 2.0, 5.0];
@@ -41,27 +42,31 @@ window.addEventListener('keydown', (event) => {
             turnRadiusI--;
         }
     }
-
-    updateVelocities();
 });
 window.addEventListener('keyup', (event) => {
     if (TRACKED_BUTTONS.includes(event.code)) {
         trackedButtons[event.code] = false;
     }
-
-    updateVelocities();
 });
 
 let rotatingInPlace = false;
+let lastInputs = [0, 0, 0];
 
 // Update cmd_vel based on the tracked buttons.
 function readKey(key: string): number {
     return trackedButtons[key] ? 1 : 0;
 }
-function updateVelocities() {
+setInterval(() => {
     const forward = readKey('KeyW') - readKey('KeyS'); // positive = forward
     const turn = readKey('KeyA') - readKey('KeyD'); // positive = left
     const rotateInPlace = readKey('KeyQ') - readKey('KeyE'); // positive = left
+
+    // If inputs did not change since last update and all of them are 0, stop sending commands.
+    if (lastInputs[0] === forward && lastInputs[1] === turn && lastInputs[2] === rotateInPlace && forward === 0 && turn === 0 && rotateInPlace === 0) {
+        setCmdVel(0, 0, 0, 'keyboard');
+        return;
+    }
+    lastInputs = [forward, turn, rotateInPlace];
 
     if (rotateInPlace !== 0) {
         rotatingInPlace = true;
@@ -87,4 +92,4 @@ function updateVelocities() {
 
         setCmdVel(0, 0, angular, 'keyboard');
     }
-}
+}, 100);
