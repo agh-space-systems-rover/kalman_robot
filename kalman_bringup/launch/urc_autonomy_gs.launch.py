@@ -16,8 +16,8 @@ def generate_launch_description():
                     )
                 ),
                 launch_arguments={
-                    "rviz": "true",
-                    "rviz.config": "urc_autonomy.rviz",
+                    # "rviz": "true",
+                    # "rviz.config": "urc_autonomy.rviz",
                     "drivers": "true",
                     "drivers.composition": "false",
                     "drivers.rgbd_ids": "",
@@ -26,6 +26,8 @@ def generate_launch_description():
                     "drivers.imu": "false",
                     "drivers.compass_calibration": "false",
                     "drivers.gps": "false",
+                    "gs": "true",
+                    "wheel_controller": "true",
                 }.items(),
             ),
         ]

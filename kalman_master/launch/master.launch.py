@@ -9,9 +9,6 @@ def launch_setup(context):
     def get_bool(name):
         return LaunchConfiguration(name).perform(context).lower() == "true"
 
-    def get_str(name):
-        return LaunchConfiguration(name).perform(context)
-
     return [
         Node(
             package="kalman_master",
@@ -20,7 +17,7 @@ def launch_setup(context):
         Node(
             package="kalman_master",
             executable="master_com",
-            parameters=[{"rf_baud": get_str("gs_mode")}],
+            parameters=[{"rf_baud": get_bool("gs_mode")}],
         ),
         Node(
             package="kalman_master",
