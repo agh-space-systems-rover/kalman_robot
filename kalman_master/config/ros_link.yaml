@@ -29,21 +29,21 @@ pc:
             min: -180.0
             max: 180.0
             bytes: 4 # precision = 0.0000001 degrees = 1 cm
-    - name: test_string
-      type: example_interfaces/msg/String
-      string_enum:
-        fallback: unknown
-        values:
-          - teleop
-          - prepare
-          - travel
-          - stop_to_teleop
-          - stop_to_finished
-          - finished
-  services:
-    - name: add_two_ints
-      type: example_interfaces/srv/AddTwoInts
-      retry_rate: 5
+    # - name: test_string
+    #   type: example_interfaces/msg/String
+    #   string_enum:
+    #     fallback: unknown
+    #     values:
+    #       - teleop
+    #       - prepare
+    #       - travel
+    #       - stop_to_teleop
+    #       - stop_to_finished
+    #       - finished
+  # services:
+  #   - name: add_two_ints
+  #     type: example_interfaces/srv/AddTwoInts
+  #     retry_rate: 5
   actions: # actions served by the PC and used by the GS
     # - name: fibonacci
     #   type: example_interfaces/action/Fibonacci
