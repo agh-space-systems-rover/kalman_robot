@@ -1,4 +1,4 @@
-wheel_controller:
+/**:
   ros__parameters:
     # queue size for command subscribers and state publisher
     queue_size: 10

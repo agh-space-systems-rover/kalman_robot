@@ -1,4 +1,4 @@
-navsat_transform_node:
+/**:
   ros__parameters:
     # Frequency of the main run loop. Defaults to 10.
     frequency: 10.0

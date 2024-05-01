@@ -1,4 +1,4 @@
-obstacle_detection:
+/**:
   ros__parameters:
     queue_size: 10
 

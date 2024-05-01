@@ -1,4 +1,4 @@
-path_follower:
+/**:
   ros__parameters:
     robot_frame: base_footprint
     lookahead: 1.0

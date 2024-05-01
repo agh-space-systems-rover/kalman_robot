@@ -1,4 +1,4 @@
-phidgets_spatial:
+/**:
   ros__parameters:
     # * `serial` (int) - The serial number of the phidgets spatial to connect to.  If -1 (the default), connects to any spatial phidget that can be found.
     serial: -1

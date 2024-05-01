@@ -1,4 +1,4 @@
-rtabmap:
+/**:
     ros__parameters:
         subscribe_depth: False
         subscribe_rgbd: False
