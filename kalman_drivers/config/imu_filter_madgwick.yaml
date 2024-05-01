@@ -11,7 +11,7 @@
     yaw_offset: 0.0
     declination: 0.0 # After testing and ocmparing with Google Maps, I'm convinced that Phidgets Spatial automatically corrects for declination. 
     world_frame: "enu"
-    gain: 0.05 # NOTE: Smaller value turned out to work better with the UKF.
+    gain: 0.01 # NOTE: Smaller value turned out to work better with the UKF.
     zeta: 0.0
     mag_bias_x: 0.0
     mag_bias_y: 0.0
