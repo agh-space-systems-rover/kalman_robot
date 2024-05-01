@@ -4,7 +4,6 @@ import { Twist } from './ros.interfaces';
 
 const RATE = 10; // Hz
 const INPUT_TIMEOUT = 1000; // Ignore input group after 1 second of inactivity.
-const ZERO_TIMEOUT = 1000; // Stop sending commands after 1 second of sending zeros.
 
 type CmdVel = {
   x: number;
@@ -31,22 +30,20 @@ window.addEventListener('ros-connect', () => {
     // Sum input from all groups.
     const input: CmdVel = { x: 0, y: 0, angular: 0 };
     const now: number = new Date().getTime();
+    let activeGroups = 0;
     for (const group in inputs) {
       const { x, y, angular, lastUpdate } = inputs[group];
       if (now - lastUpdate < INPUT_TIMEOUT) {
         input.x += x;
         input.y += y;
         input.angular += angular;
+        activeGroups++;
       }
     }
 
-    // Stop sending commands after 1 second of sending zeros.
-    if (input.x === 0 && input.y === 0 && input.angular === 0) {
-      if (now - lastNonZeroUpdate > ZERO_TIMEOUT) {
-        return;
-      }
-    } else {
-      lastNonZeroUpdate = now;
+    // Stop sending commands if all input groups are inactive.
+    if (activeGroups === 0) {
+      return;
     }
 
     // Send command.

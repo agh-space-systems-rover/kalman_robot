@@ -63,7 +63,7 @@ setInterval(() => {
 
     // If inputs did not change since last update and all of them are 0, stop sending commands.
     if (lastInputs[0] === forward && lastInputs[1] === turn && lastInputs[2] === rotateInPlace && forward === 0 && turn === 0 && rotateInPlace === 0) {
-        setCmdVel(0, 0, 0, 'keyboard');
+        // setCmdVel(0, 0, 0, 'keyboard');
         return;
     }
     lastInputs = [forward, turn, rotateInPlace];
