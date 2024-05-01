@@ -244,7 +244,7 @@ class CompasscalNode(Node):
         ) as f:
             yaml.dump(
                 {
-                    "phidgets_spatial": {
+                    "/**": {
                         "ros__parameters": {
                             "cc_mag_field": coeffs[0],
                             "cc_offset0": coeffs[1],

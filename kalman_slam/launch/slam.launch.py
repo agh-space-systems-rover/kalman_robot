@@ -143,6 +143,7 @@ def launch_setup(context):
         Node(
             package="robot_localization",
             executable="ukf_node",
+            name="ukf_filter_node",
             parameters=[load_ukf_config(rgbd_ids)],
             remappings=(
                 []
@@ -163,6 +164,16 @@ def launch_setup(context):
             TimerAction(
                 period=1.0,
                 actions=[
+                    # navsat_transform_node will refuse to work on messages with NaN values, so a custom preprocessor is needed.
+                    # This preprocessor will also set initial covariance to 0 to guarantee fast UKF convergence.
+                    Node(
+                        package="kalman_slam",
+                        executable="gps_preprocessor",
+                        remappings=[
+                            ("fix", "gps/fix"),
+                            ("fix/filtered", "gps/fix/filtered"),
+                        ],
+                    ),
                     Node(
                         package="robot_localization",
                         executable="navsat_transform_node",
@@ -184,17 +195,18 @@ def launch_setup(context):
                             ),
                         ],
                         remappings={
-                            "imu": "imu/data",  # Humble: for some reason the node subscribes to /imu?
+                            "imu": "imu/data",  # For some reason the node subscribes to imu, not imu/data.
                             # IMU is theoretically not used by navsat_transform_node because it has the heading from filtered global odometry.
-                            # "gps/fix", "gps/fix",
-                            # "gps/filtered", "gps/filtered",
-                            # "odometry/gps", "odometry/gps", # Sends raw GPS odometry to ukf_filter_node_gps.
+                            "gps/fix": "gps/fix/filtered",
+                            # "gps/filtered": "gps/filtered",
+                            # "odometry/gps": "odometry/gps", # Sends raw GPS odometry to ukf_filter_node_gps.
                             "odometry/filtered": "odometry/global",  # Receives filtered odometry from ukf_filter_node_gps.
                         }.items(),
                     ),
                     Node(
                         package="robot_localization",
                         executable="ukf_node",
+                        name="ukf_filter_node_gps",
                         parameters=[
                             str(
                                 get_package_share_path("kalman_slam")
@@ -232,7 +244,7 @@ def launch_setup(context):
                             )
                         ],
                         remappings=[
-                            ("fix", "gps/fix"),
+                            ("fix", "gps/fix/filtered"),
                         ],
                     ),
                 ],

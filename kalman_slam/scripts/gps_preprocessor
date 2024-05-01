@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
 
-from kalman_drivers.gps_nan_removal_node import main
+from kalman_slam.gps_preprocessor import main
 if __name__ == '__main__':
     main()
