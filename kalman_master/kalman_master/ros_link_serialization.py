@@ -57,35 +57,44 @@ class FloatQuantizer:
 
     # Compress float into a byte array.
     def compress(self, value: float) -> bytes:
-        # Check if the value is within the range.
-        if value < self.min:
-            raise ValueError(f"Value {value} is below the minimum of {self.min}")
-        if value > self.max:
-            raise ValueError(f"Value {value} is above the maximum of {self.max}")
-
-        # Remap the value to 0..1 range.
-        value -= self.min
-        value /= self.max - self.min
-
         number_of_steps = 2 ** (self.bytes * 8)
-        integer = int(value * (number_of_steps - 1) + 0.5)
+
+        if not math.isnan(value):
+            # Check if the value is within the range.
+            if value < self.min:
+                raise ValueError(f"Value {value} is below the minimum of {self.min}")
+            if value > self.max:
+                raise ValueError(f"Value {value} is above the maximum of {self.max}")
+
+            # Remap the value to 0..1 range.
+            value -= self.min
+            value /= self.max - self.min
+
+            integer = int(value * (number_of_steps - 2) + 0.5)
+            # -2 to make room for NaN=(2^n-1).
+        else:
+            integer = number_of_steps - 1
 
         return integer.to_bytes(self.bytes, "big")
 
     # Decompress bytes into a float.
     def decompress(self, bytes: bytes) -> float:
+        number_of_steps = 2 ** (self.bytes * 8)
+
         # Convert bytes to an integer.
         integer = int.from_bytes(bytes, "big")
 
-        # Remap the integer to 0..1 range.
-        number_of_steps = 2 ** (self.bytes * 8)
-        value = integer / (number_of_steps - 1)
+        if integer == number_of_steps - 1:
+            return math.nan
+        else:
+            # Remap the integer to 0..1 range.
+            value = integer / (number_of_steps - 1)
 
-        # Remap the value to the original range.
-        value *= self.max - self.min
-        value += self.min
+            # Remap the value to the original range.
+            value *= self.max - self.min
+            value += self.min
 
-        return value
+            return value
 
 
 class StringEnum:
