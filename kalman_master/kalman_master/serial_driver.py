@@ -64,8 +64,6 @@ class SerialDriver:
 
         self.serial = Serial(port=port_name, baudrate=baud_rate, timeout=0.01)
 
-        self.tick_sleep_rate = node.create_rate(1 / tick_sleep_time_s)
-
         self.malformed_packets_timer_time = 30
         self.timer_log_data = node.create_timer(1, self.log_data_speed)
         self.timer_log_malformed_packets = node.create_timer(
@@ -112,7 +110,6 @@ class SerialDriver:
         self.baudrate_debug_pub.destroy()
         self.timer_log_malformed_packets.destroy()
         self.timer_log_data.destroy()
-        self.tick_sleep_rate.destroy()
         self.serial.close()
 
     def log_malformed_packets(self) -> None:
@@ -168,7 +165,6 @@ class SerialDriver:
         Read and write bytes from/to the serial device.
         """
         self._write_to_serial()
-        self.tick_sleep_rate.sleep()
         if self.ascii_mode:
             self._read_from_serial()
         else:
