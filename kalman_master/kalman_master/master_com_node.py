@@ -68,7 +68,7 @@ class MasterCom(Node):
         )
         self.pubs = {}
 
-        self.timer = self.create_timer(1.0 / 400.0, self.master_to_ros)
+        self.timer = self.create_timer(1.0 / 10.0, self.master_to_ros)
 
     def destroy_node(self) -> None:
         self.timer.destroy()
@@ -80,6 +80,7 @@ class MasterCom(Node):
         super().destroy_node()
 
     def master_to_ros(self) -> None:
+        self.driver.tick()
         msgs: List[SerialMsg] = self.driver.read_all_msgs()
         for msg in msgs:
             if not msg.cmd in self.pubs:
