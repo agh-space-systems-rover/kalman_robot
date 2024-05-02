@@ -174,6 +174,16 @@ class RosLink(Node):
                                     if quant_key not in field:
                                         field[quant_key] = config[quant_key]
 
+                        # For each field that contains string_enum dict (not list), add fallback=unknown if no fallback is specified.
+                        for field in config[fields_key]:
+                            if "string_enum" in field:
+                                # If string_enum is a list, convert it to a dict with the list as values.
+                                if type(field["string_enum"]) is list:
+                                    field["string_enum"] = {"values": field["string_enum"]}
+                                # If fallback is missing, add it.
+                                if "fallback" not in field["string_enum"]:
+                                    field["string_enum"]["fallback"] = "unknown"
+
                 # Remove common ranges and string enums from the config.
                 for quant_key in ["int_range", "float_range", "string_enum"]:
                     if quant_key in config:

@@ -53,13 +53,18 @@ pc:
       type: kalman_interfaces/action/SupervisorTfGoal
       max_feedback_rate: 1
       goal_fields:
-        - location.header.frame_id
+        - path: location.header.frame_id
+          string_enum: # When serializing a string which can have a limited set of values, use a single byte int instead of storing plain text.
+            - base_link
+            - odom
+            - map
+            - utm
         - location.point # shorthand without quantization
       float_range: # common quantization for all float fields; Affects location.point which does not specify a range.
         min: -10000.0
         max: 10000.0
         bytes: 2 # precision = 0.3 m
-      string_enum: # When serializing a string which can have a limited set of values, use a single byte int instead of storing plain text.
+      string_enum: # This global enum will be used for other fields, in this case for feedback state.
         fallback: unknown # when a string in a field does not match any of the values, fall back to this value
         values:
           - teleop

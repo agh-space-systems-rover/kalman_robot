@@ -23,6 +23,7 @@ import { alertsRef } from '../modules/alerts-ref';
 import { SupervisorGpsArUcoSearch, SupervisorGpsArUcoSearchFeedback, SupervisorGpsGoal, SupervisorGpsGoalFeedback, SupervisorGpsYoloSearch, SupervisorGpsYoloSearchFeedback, SupervisorTfGoal, SupervisorTfGoalFeedback } from '../modules/ros.interfaces';
 
 const NO_FEEDBACK_TIMEOUT = 20000;
+const TF_GOAL_FRAMES = ['base_link', 'odom', 'map', 'utm'];
 
 // Add new mission types here:
 // Search for "Add new mission types here" in the code to find more such places.
@@ -118,6 +119,7 @@ export default function Supervisor({ props }: Props) {
   }, []);
 
   const inputRefs = Array.from({ length: 4 }, () => useRef<Input>(null));
+  const tfGoalFrameIndex = useRef<number>(0);
 
   const setLatLongFromMapMarker = useCallback((latRefI: number, longRefI: number) => {
     if (inputRefs[latRefI].current && inputRefs[longRefI].current) {
@@ -176,10 +178,16 @@ export default function Supervisor({ props }: Props) {
             </div>
             <div className={styles['supervisor-row']}>
               <Label color='#A58'>&nbsp;Frame ID&nbsp;</Label>
-              <Input
-                ref={inputRefs[3]}
+              <Dropdown
                 className={styles['supervisor-row-item']}
-                placeholder='e.g. base_link'
+                tooltip='The frame of reference for the goal location.'
+                items={TF_GOAL_FRAMES.map(frameId => ({
+                  text: frameId
+                }))}
+                defaultItemIndex={tfGoalFrameIndex.current}
+                onChange={i => {
+                  tfGoalFrameIndex.current = i;
+                }}
               />
             </div>
           </>
@@ -290,7 +298,7 @@ export default function Supervisor({ props }: Props) {
                 const x: number = inputRefs[0].current.getValue() || 0;
                 const y: number = inputRefs[1].current.getValue() || 0;
                 const z: number = inputRefs[2].current.getValue() || 0;
-                let frameId: string = inputRefs[3].current.getValue() || 'base_link';
+                let frameId: string = TF_GOAL_FRAMES[tfGoalFrameIndex.current];
 
                 goal = {
                   location: {
