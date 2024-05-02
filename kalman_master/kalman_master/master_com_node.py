@@ -112,7 +112,7 @@ def main():
             rclpy.shutdown()
         except KeyboardInterrupt:
             exit()
-        except SerialException:
+        except (SerialException, OSError):
             node.get_logger().error(
                 "Serial port has lost connection. Restarting the node..."
             )
