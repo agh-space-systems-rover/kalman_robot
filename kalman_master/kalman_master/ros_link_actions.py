@@ -7,6 +7,7 @@ from rclpy.action import ActionClient, ActionServer, CancelResponse
 from rclpy.action.client import GoalStatus, ClientGoalHandle
 from action_msgs.srv import CancelGoal
 from action_msgs.msg import GoalInfo
+from unique_identifier_msgs.msg import UUID
 
 from kalman_master.ros_link_serialization import serialize_message, deserialize_message
 
@@ -15,6 +16,10 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from kalman_master.ros_link_node import RosLink
     from rclpy.action.server import ServerGoalHandle
+
+
+def goal_id_to_hex_str(goal_id: UUID) -> str:
+    return ''.join([f'{byte:02x}' for byte in goal_id.uuid])
 
 
 class IncomingGoalState:
@@ -482,7 +487,7 @@ class RosLinkActions:
                     )
                     goal_info: GoalInfo
                     for goal_info in cancel_response.goals_canceling:
-                        if goal_info.goal_id == state.client_handle.goal_id:
+                        if goal_id_to_hex_str(goal_info.goal_id) == goal_id_to_hex_str(state.client_handle.goal_id):
                             state.cancelled = True
                             break
         try:
@@ -599,7 +604,7 @@ class RosLinkActions:
 
         if self.node.debug_info:
             self.node.get_logger().info(
-                f"Assigned request ID {req_id} to goal {''.join([f'{byte:02x}' for byte in goal_handle.goal_id.uuid])}. Sending request frames until ACK..."
+                f"Assigned request ID {req_id} to goal {goal_id_to_hex_str(goal_handle.goal_id)}. Sending request frames until ACK..."
             )
 
         # Keep publishing the request frame until it is ACKed or until response is received.
@@ -673,7 +678,7 @@ class RosLinkActions:
     ) -> CancelResponse:
         if self.node.debug_info:
             self.node.get_logger().info(
-                f"Received cancel request for action {action_config['name']}."
+                f"Received cancel request for action {action_config['name']}, goal ID {goal_id_to_hex_str(goal_handle.goal_id)}."
             )
 
         # Determine the ID of the action.
@@ -683,15 +688,21 @@ class RosLinkActions:
         req_id: int | None = None
         with self.outgoing_action_goal_states_condition:
             for req_id, state in self.outgoing_action_goal_states.items():
-                if state.server_handle.goal_id == goal_handle.goal_id:
+                if goal_id_to_hex_str(state.server_handle.goal_id) == goal_id_to_hex_str(goal_handle.goal_id):
                     # Get the request ID for this goal handle.
                     req_id = req_id
                     break
 
         if req_id is None:
+            self.node.get_logger().error(
+                f"Received a cancel request for an action that is not pending. Rejecting this request."
+            )
             return CancelResponse.REJECT
 
         # Start sending cancel frames until ACK is received.
+        self.node.get_logger().info(
+            f"Sending cancel requests for action {action_config['name']}#{req_id} until ACK..."
+        )
         self.received_action_sequence_ids_condition.acquire()
         while req_id + 6 not in self.received_action_sequence_ids:
             self.received_action_sequence_ids_condition.release()
@@ -701,6 +712,10 @@ class RosLinkActions:
                 1 / action_config["retry_rate"]
             )
         self.received_action_sequence_ids_condition.release()
+
+        self.node.get_logger().info(
+            f"Received cancel ACK for action {action_config['name']}#{req_id} returning cancel response."
+        )
 
         # Return whether the cancel was successful.
         with self.outgoing_action_goal_states_condition:
