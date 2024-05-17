@@ -64,6 +64,14 @@ class RosLink(Node):
                 description="Log additional debug information on INFO level.",
             ),
         ).value
+        self.arm_mode = self.declare_parameter(
+            "arm_mode",
+            False,
+            ParameterDescriptor(
+                type=ParameterType.PARAMETER_BOOL,
+                description="Use Arm<->GS communication channel instead of PC<->GS.",
+            ),
+        ).value
 
         # Load config.
         with open(config_path, "r") as file:
@@ -201,19 +209,33 @@ class RosLink(Node):
 
     # Get the ID of frames forwarded to this side.
     def get_forward_to_this_side_frame_id(self) -> int:
-        return (
-            MasterMessage.FORWARD_TO_GS
-            if self.side == "gs"
-            else MasterMessage.FORWARD_TO_PC
-        )
+        if self.arm_mode:
+            return (
+                MasterMessage.ARM_TO_GS
+                if self.side == "gs"
+                else MasterMessage.GS_TO_ARM
+            )
+        else:
+            return (
+                MasterMessage.PC_TO_GS
+                if self.side == "gs"
+                else MasterMessage.GS_TO_PC
+            )
 
     # Get the ID of frames forwarded to the opposite side.
     def get_forward_to_opposite_side_frame_id(self) -> int:
-        return (
-            MasterMessage.FORWARD_TO_PC
-            if self.side == "gs"
-            else MasterMessage.FORWARD_TO_GS
-        )
+        if self.arm_mode:
+            return (
+                MasterMessage.GS_TO_ARM
+                if self.side == "gs"
+                else MasterMessage.ARM_TO_GS
+            )
+        else:
+            return (
+                MasterMessage.GS_TO_PC
+                if self.side == "gs"
+                else MasterMessage.PC_TO_GS
+            )
 
     # Sort all names lexically so that each one has a forward ID - the index in the list.
     # Store the sorted names in self.ordered_names.

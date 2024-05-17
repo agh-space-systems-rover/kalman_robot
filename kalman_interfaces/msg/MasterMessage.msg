@@ -5,8 +5,10 @@ uint8 MOTOR_GET_WHEELS = 0x4F
 uint8 UEUOS_SET_STATE = 0x60
 uint8 UEUOS_SET_COLOR = 0x61
 uint8 UEUOS_SET_EFFECT = 0x62
-uint8 FORWARD_TO_PC = 0x80
-uint8 FORWARD_TO_GS = 0x81
+uint8 GS_TO_PC = 0x80
+uint8 PC_TO_GS = 0x81
+uint8 GS_TO_ARM = 0x86
+uint8 ARM_TO_GS = 0x87
 
 # command number
 uint8 cmd

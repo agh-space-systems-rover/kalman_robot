@@ -1,6 +1,7 @@
 # This is not a ROS 2 parameter file, but a custom YAML config.
 
 pc:
+  arm_mode: false
   topics: # topics published by the PC and subscribed by the GS
     - name: imu/data
       type: sensor_msgs/msg/Imu
