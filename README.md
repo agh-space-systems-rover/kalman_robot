@@ -14,7 +14,6 @@ Kalman's software stack updated to ROS 2
 
 - [Spatio-Temporal Voxel Layer](https://github.com/SteveMacenski/spatio_temporal_voxel_layer) (Currently not available via rosdep and has to be built manually from source.) Required by `kalman_nav2`.
 - the latest ROS 2 Rolling version of the [realsense-ros](https://github.com/IntelRealSense/realsense-ros) package which supports way more features and has a working (!) auto-exposure feature
-- [ros_aruco_opencv 2.2.0 or later](https://github.com/fictionlab/ros_aruco_opencv/tree/humble) for ROS 2 Humble (Not yet available via rosdep.)
 - the latest commit of [rosbridge_suite](https://github.com/RobotWebTools/rosbridge_suite) which has support for ROS 2 actions. It is used in `kalman_gs` package.
 - a custom version of [compressed_depth_image_transport](https://github.com/agh-space-systems-rover/kalman_ws/tree/main/overlay_ws/src/compressed_depth_image_transport) from [kalman_ws](https://github.com/agh-space-systems-rover/kalman_ws) that supports RVL compression and does not clash with `compressed_image_transport`'s params
 - a custom version of [rtabmap_odom](https://github.com/agh-space-systems-rover/kalman_ws/tree/main/overlay_ws/src/rtabmap_odom) from [kalman_ws](https://github.com/agh-space-systems-rover/kalman_ws) that supports compressed image transports
