@@ -83,6 +83,7 @@ class Search(State):
 
                 mission.marker_lat = lat
                 mission.marker_lon = lon
+                mission.marker_world_frame_pos = self.supervisor.aruco.marker_pos(mission.marker_id)
 
                 return "approach"
         elif isinstance(mission, Missions.GpsYoloSearch):
@@ -100,6 +101,7 @@ class Search(State):
 
                 mission.obj_lat = lat
                 mission.obj_lon = lon
+                mission.obj_world_frame_pos = self.supervisor.yolo.class_pos(mission.obj_class)
 
                 return "approach"
 

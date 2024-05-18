@@ -1,3 +1,5 @@
+import numpy as np
+
 from geometry_msgs.msg import PoseStamped
 from rclpy.action import ActionServer, CancelResponse
 from rclpy.action.server import ServerGoalHandle
@@ -47,6 +49,8 @@ class Missions(Module):
             self.marker_lat = 0.0
             self.marker_lon = 0.0
 
+            self.marker_world_frame_pos = np.array([0.0, 0.0, 0.0]) # not reported as feedback, used for approach goal
+
     class GpsYoloSearch(Mission):
         def __init__(self, init_lat: float, init_lon: float, obj_class: str):
             super().__init__()
@@ -57,6 +61,8 @@ class Missions(Module):
             self.obj_found = False
             self.obj_lat = 0.0
             self.obj_lon = 0.0
+
+            self.obj_world_frame_pos = np.array([0.0, 0.0, 0.0])
 
     def __init__(self):
         super().__init__("missions")

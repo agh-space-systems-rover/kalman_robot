@@ -10,11 +10,13 @@ class Approach(State):
         if self.supervisor.missions.has_mission():
             mission = self.supervisor.missions.get_mission()
             if isinstance(mission, Missions.GpsArUcoSearch):
-                self.supervisor.nav.send_gps_goal(
-                    mission.marker_lat, mission.marker_lon
-                )
+                # self.supervisor.nav.send_gps_goal(
+                #     mission.marker_lat, mission.marker_lon
+                # )
+                self.supervisor.nav.send_goal(mission.marker_world_frame_pos)
             elif isinstance(mission, Missions.GpsYoloSearch):
-                self.supervisor.nav.send_gps_goal(mission.obj_lat, mission.obj_lon)
+                # self.supervisor.nav.send_gps_goal(mission.obj_lat, mission.obj_lon)
+                self.supervisor.nav.send_goal(mission.obj_world_frame_pos)
 
     def tick(self) -> str | None:
         # Cancel the navigation if missions was ended early.
