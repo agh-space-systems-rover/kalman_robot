@@ -49,7 +49,7 @@ Multiple other launch files are available in the `kalman_bringup` package, inclu
 ## Packages
 
 Kalman's software stack is composed of multiple packages that are meant to be built and run together:
-- `kalman_aruco` - AruCo tags detection using aruco_opencv
+- `kalman_aruco` - ArUco tags detection using aruco_opencv
 - `kalman_bringup` - launch files for the rover and the ground station
 - `kalman_clouds` - point cloud generation and filtering
 - `kalman_description` - Xacro / URDF descriptions + models for the rover
@@ -63,13 +63,14 @@ Kalman's software stack is composed of multiple packages that are meant to be bu
 - `kalman_slam` - configuration files for robot_localization and RTAB-Map
 - `kalman_supervisor` - Manages autonomous navigation missions.
 - `kalman_wheel_controller` - a node that converts Twist messages on `/cmd_vel` and similar topics to the actual wheel state; Also includes safeguards that can limit the acceleration and velocity or stop the rover to adjust wheel rotation.
-- `kalman_yolo` - **PRIVATE** YOLO-based object detector and model training toolbox
+- `kalman_yolo` - **PRIVATE** models and configs for `yolo_ros`
 
 ## Sub-projects
 
 - `point_cloud_utils` - utilities for working with point clouds; Includes ROS wrappers around PCL filters and an obstacle detection node.
 - `service_based_nav2_controller` - a `FollowPath` controller plugin for Nav2 that uses a service to compute velocity commands
 - `unity_sim` - a Unity-based simulation environment that can seamlessly replace the physical hardware of AGH Space Systems' robots
+- `yolo_ros` - YOLO-based object detector; Supports composition and lifecycle management.
 
 ## Launch Hierarchy
 

@@ -1,5 +1,6 @@
 import os.path
 import rclpy
+import cv2
 from rclpy import Parameter
 from rclpy.lifecycle import Node, State, TransitionCallbackReturn
 from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy
@@ -20,9 +21,11 @@ class YOLODetect(Node):
 
         self.declare_parameter("num_cameras", 1)
         self.declare_parameter("subscribe_depth", False)
-        self.declare_parameter("use_compression", True)
+        self.declare_parameter("color_transport", "compressed")
+        self.declare_parameter("depth_transport", "raw")
         self.declare_parameter("rate", 10.0)
         self.declare_parameter("model", "")
+        self.declare_parameter("grayscale", False)
         self.declare_parameter("confidence_threshold", 0.8)
         self.declare_parameter(
             "class_names",
@@ -42,6 +45,7 @@ class YOLODetect(Node):
         self.declare_parameter("temporal_threshold", 3)
         self.declare_parameter("publish_tf", True)
         self.declare_parameter("publish_annotated", True)
+        self.declare_parameter("annotated_transport", "compressed")
 
         result = self.trigger_configure()
         if result != TransitionCallbackReturn.SUCCESS:
@@ -62,9 +66,11 @@ class YOLODetect(Node):
             # Read parameters.
             self.num_cameras = self.get_parameter("num_cameras").value
             self.subscribe_depth = self.get_parameter("subscribe_depth").value
-            self.use_compression = self.get_parameter("use_compression").value
+            self.color_transport = self.get_parameter("color_transport").value
+            self.depth_transport = self.get_parameter("depth_transport").value
             self.rate = self.get_parameter("rate").value
             self.model = os.path.abspath(self.get_parameter("model").value)
+            self.grayscale = self.get_parameter("grayscale").value
             self.confidence_threshold = self.get_parameter("confidence_threshold").value
             self.class_names = self.get_parameter("class_names").value
             self.class_radii = self.get_parameter("class_radii").value
@@ -74,6 +80,7 @@ class YOLODetect(Node):
             self.temporal_threshold = self.get_parameter("temporal_threshold").value
             self.publish_tf = self.get_parameter("publish_tf").value
             self.publish_annotated = self.get_parameter("publish_annotated").value
+            self.annotated_transport = self.get_parameter("annotated_transport").value
 
             # Validate parameters.
             if self.num_cameras < 1:
@@ -81,7 +88,7 @@ class YOLODetect(Node):
                     "num_cameras must be at least 1, got " + str(self.num_cameras)
                 )
                 return TransitionCallbackReturn.ERROR
-            if self.subscribe_depth and self.use_compression:
+            if self.subscribe_depth and self.depth_transport != "raw":
                 self.get_logger().error(
                     "Compression of depth images is currently unsupported."
                 )
@@ -160,8 +167,12 @@ class YOLODetect(Node):
             for i in range(self.num_cameras):
                 self.color_subs.append(
                     self.create_subscription(
-                        CompressedImage if self.use_compression else Image,
-                        f"color{i}/compressed" if self.use_compression else f"color{i}",
+                        CompressedImage if self.color_transport != "raw" else Image,
+                        (
+                            f"color{i}/{self.color_transport}"
+                            if self.color_transport != "raw"
+                            else f"color{i}"
+                        ),
                         lambda color_msg, i=i: self.on_color(color_msg, i),
                         img_qos,
                     )
@@ -169,10 +180,10 @@ class YOLODetect(Node):
                 if self.subscribe_depth:
                     self.depth_subs.append(
                         self.create_subscription(
-                            CompressedImage if self.use_compression else Image,
+                            CompressedImage if self.depth_transport != "raw" else Image,
                             (
-                                f"depth{i}/compressed"
-                                if self.use_compression
+                                f"depth{i}/{self.depth_transport}"
+                                if self.depth_transport != "raw"
                                 else f"depth{i}"
                             ),
                             lambda depth_msg, i=i: self.on_depth(depth_msg, i),
@@ -201,10 +212,12 @@ class YOLODetect(Node):
             if self.publish_annotated:
                 self.annotated_pubs = []
                 for i in range(self.num_cameras):
-                    if self.use_compression:
+                    if self.annotated_transport != "raw":
                         self.annotated_pubs.append(
                             self.create_publisher(
-                                CompressedImage, f"annotated{i}/compressed", img_qos
+                                CompressedImage,
+                                f"annotated{i}/{self.annotated_transport}",
+                                img_qos,
                             )
                         )
                     else:
@@ -281,11 +294,15 @@ class YOLODetect(Node):
 
         # Decode images.
         depth_images = None
-        if self.use_compression:
+        if self.color_transport != "raw":
             color_images = [
                 self.bridge.compressed_imgmsg_to_cv2(msg) for msg in color_msgs
             ]
-            if self.subscribe_depth:
+        else:
+            color_images = [self.bridge.imgmsg_to_cv2(msg) for msg in color_msgs]
+
+        if self.subscribe_depth:
+            if self.depth_transport != "raw":
                 # depth_images = []
                 # for msg in depth_msgs:
                 #     # [:12] removes header inserted by compressed_depth_image_transport.
@@ -299,11 +316,32 @@ class YOLODetect(Node):
                 raise NotImplementedError(
                     "Depth image decompression is not implemented."
                 )
-
-        else:
-            color_images = [self.bridge.imgmsg_to_cv2(msg) for msg in color_msgs]
-            if self.subscribe_depth:
+            else:
                 depth_images = [self.bridge.imgmsg_to_cv2(msg) for msg in depth_msgs]
+
+        # Convert images to grayscale if necessary.
+        if self.grayscale:
+            color_images = [
+                cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) for img in color_images
+            ]
+            color_images = [
+                cv2.cvtColor(img, cv2.COLOR_GRAY2BGR) for img in color_images
+            ]
+
+        # DEBUG: Pad images to square.
+        # def pad_to_square(img):
+        #     height, width = img.shape[:2]
+        #     if height == width:
+        #         return img
+        #     size = max(height, width)
+        #     top = (size - height) // 2
+        #     bottom = size - height - top
+        #     left = (size - width) // 2
+        #     right = size - width - left
+        #     return cv2.resize(cv2.copyMakeBorder(img, top, bottom, left, right, cv2.BORDER_CONSTANT), (640, 640))
+        # color_images = [pad_to_square(img) for img in color_images]
+        # if self.subscribe_depth:
+        #     depth_images = [pad_to_square(img) for img in depth_images]
 
         # Run YOLO.
         results = self.yolo.predict(color_images, conf=self.confidence_threshold)
@@ -314,7 +352,7 @@ class YOLODetect(Node):
             self, results, stamps
         )
 
-        # If anything was detected...
+        # # If anything was detected...
         if len(detections.detections) > 0:
             # Process detections.
             detections = node_impl.add_3d_positions_to_detections(
@@ -344,7 +382,7 @@ class YOLODetect(Node):
             for i, result in enumerate(results):
                 annotated = result.plot()
 
-                if self.use_compression:
+                if self.annotated_transport != "raw":
                     annotated_msg = self.bridge.cv2_to_compressed_imgmsg(annotated)
                 else:
                     annotated_msg = self.bridge.cv2_to_imgmsg(annotated, "bgr8")
