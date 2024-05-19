@@ -1,5 +1,6 @@
 from launch import LaunchDescription
 from launch_ros.actions import Node
+from ament_index_python import get_package_share_path
 
 def generate_launch_description():
     return LaunchDescription([
@@ -27,5 +28,23 @@ def generate_launch_description():
             package="kalman_master",
             executable="master_com",
             parameters=[{"baud_rate": 38400}],
-        )
+        ),
+        Node(
+            package="spacenav_to_master",
+            executable="spacenav_to_master",
+            name="spacenav_to_master"
+        ),
+        Node(
+            package="kalman_master",
+            executable="ros_link",
+            parameters=[
+                {
+                    "config_path": str(
+                        get_package_share_path("kalman_master") / "config/ros_link.yaml"
+                    ),
+                    "side": "station",
+                    "rover_endpoint": "arm",
+                },
+            ],
+        ),
     ])
