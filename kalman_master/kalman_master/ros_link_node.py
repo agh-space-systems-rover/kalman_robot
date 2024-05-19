@@ -15,18 +15,6 @@ from kalman_master.ros_link_actions import RosLinkActions
 # Unique ID that allows to identify ROS link messages in FORWARD frames.
 FORWARD_ID = 47
 
-from example_interfaces.action import Fibonacci
-from sensor_msgs.msg import Imu
-from vision_msgs.msg import Detection2DArray
-
-a = Fibonacci.Result()
-a.sequence
-b = Imu()
-b.orientation_covariance
-c = Detection2DArray()
-c.detections
-
-
 class RosLink(Node):
     def __init__(self):
         super().__init__("ros_link")
@@ -34,7 +22,7 @@ class RosLink(Node):
         # Declare parameters.
         config_path = self.declare_parameter(
             "config_path",
-            None,
+            "",
             ParameterDescriptor(
                 type=ParameterType.PARAMETER_STRING,
                 description="Path to the config file.",
