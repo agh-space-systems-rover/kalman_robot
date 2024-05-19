@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="arm">
+    <xacro:arg name="initial_positions_file" default="$(find kalman_arm_moveit_config)/config/initial_positions.yaml" />
+    <link name="world" />
+    <link name="flange" />
+    <joint name="fix_flange" type="fixed">
+        <parent link="world" />
+        <child link="flange" />        
+    </joint>
+
+
+
+    <joint name="fix_colision" type="fixed">
+        <parent link="world" />
+        <child link="kalman_box" />        
+    </joint>
+
+    <link name="kalman_box">
+        <visual>
+            <geometry>
+                <!-- <mesh filename="package://kalman_arm_controller/meshes/gripper/gripper_bottom.stl" scale="0.001 0.001 0.001"/> -->
+                <box size="1.0 1.0 0.1"/>
+            </geometry>
+        <origin rpy="0 0 0" xyz="-0.04 -0.04 -0.12"/>
+        <material name="white"/>1
+        </visual>
+        <collision>
+            <geometry>
+                <box size="1.0 1.0 0.1"/>
+
+            </geometry>
+        <origin rpy="0 0 0" xyz="-0.04 -0.04 -0.12"/>
+        </collision>
+    </link>
+
+    
+    <xacro:include filename="$(find kalman_arm_moveit_config)/urdf/arm_description.urdf.xacro"/>
+
+    <xacro:arm_description />
+
+    <!-- <xacro:include filename="$(find kalman_arm_moveit_config)/urdf/gripper.urdf.xacro" /> -->
+
+    <xacro:include filename="$(find kalman_arm_moveit_config)/ros2_control/arm.ros2_control.xacro" />
+    <xacro:arm_ros2_control name="kalman_arm" />
+
+</robot>

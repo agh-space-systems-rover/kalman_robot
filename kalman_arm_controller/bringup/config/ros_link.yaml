@@ -1,0 +1,12 @@
+# This is not a ROS 2 parameter file, but a custom YAML config.
+
+# rover: # or 'station'
+  
+station: 
+  topics:
+    - name: gripper_position
+      type: std_msgs/msg/UInt16
+      max_rate: 5
+      int_range:
+        min: 0
+        max: 65535
