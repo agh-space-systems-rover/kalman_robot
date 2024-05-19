@@ -5,9 +5,19 @@ from launch.substitutions import LaunchConfiguration
 from ament_index_python import get_package_share_path
 
 
+BAUD_RATES = {
+    "pc": 115200,
+    "gs": 38400,
+    "arm": 2000000,
+}
+
+
 def launch_setup(context):
     def get_bool(name):
         return LaunchConfiguration(name).perform(context).lower() == "true"
+    
+    def get_str(name):
+        return LaunchConfiguration(name).perform(context)
 
     return [
         Node(
@@ -17,7 +27,7 @@ def launch_setup(context):
         Node(
             package="kalman_master",
             executable="master_com",
-            parameters=[{"rf_baud": get_bool("gs_mode")}],
+            parameters=[{"baud_rate": BAUD_RATES[get_str("mode")]}],
         ),
         Node(
             package="kalman_master",
@@ -27,7 +37,8 @@ def launch_setup(context):
                     "config_path": str(
                         get_package_share_path("kalman_master") / "config/ros_link.yaml"
                     ),
-                    "side": ("gs" if get_bool("gs_mode") else "pc"),
+                    "side": ("station" if get_str("mode") == "gs" else "rover"),
+                    "rover_endpoint": ("arm" if get_str("mode") == "arm" else "pc"),
                 },
             ],
         ),
@@ -46,9 +57,9 @@ def generate_launch_description():
     return LaunchDescription(
         [
             DeclareLaunchArgument(
-                "gs_mode",
-                default_value="false",
-                description="Set to true if master is being run on the ground station.",
+                "mode",
+                default_value="pc",
+                description="Set to 'gs' if master is being run on the ground station or to 'arm' if master is being run on the arm.",
             ),
             OpaqueFunction(function=launch_setup),
         ]

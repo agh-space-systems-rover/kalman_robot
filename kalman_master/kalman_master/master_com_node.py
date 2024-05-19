@@ -39,7 +39,7 @@ class MasterCom(Node):
 
         # Declare params
         port = self.declare_parameter("port", "").value
-        rf_baud = self.declare_parameter("rf_baud", False).value
+        baud_rate = self.declare_parameter("baud_rate", 115200).value
 
         if not port:
             # Attempt to find the Master UART port indefinitely.
@@ -59,7 +59,7 @@ class MasterCom(Node):
             port_name=port,
             start_byte="<",
             stop_byte=">",
-            baud_rate=(38400 if rf_baud else 115200),
+            baud_rate=baud_rate,
             ascii_mode=False,
         )
 
@@ -84,8 +84,10 @@ class MasterCom(Node):
         msgs: List[SerialMsg] = self.driver.read_all_msgs()
         for msg in msgs:
             if not msg.cmd in self.pubs:
+                topic_name = "master_com/master_to_ros/" + hex(msg.cmd)[1:]
+                self.get_logger().info(f"Publishing frames to {topic_name}")
                 self.pubs[msg.cmd] = self.create_publisher(
-                    MasterMessage, "master_com/master_to_ros/" + hex(msg.cmd)[1:], 10
+                    MasterMessage, topic_name, 10
                 )
 
             ros_msg = MasterMessage()

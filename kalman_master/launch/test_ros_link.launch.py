@@ -1,7 +1,5 @@
 from launch import LaunchDescription
 from launch_ros.actions import Node
-from launch.actions import DeclareLaunchArgument
-from launch.substitutions import LaunchConfiguration
 from ament_index_python import get_package_share_path
 
 
@@ -25,7 +23,8 @@ def generate_launch_description():
                             get_package_share_path("kalman_master")
                             / "config/ros_link.yaml"
                         ),
-                        "side": "pc",
+                        "side": "rover",
+                        "rover_endpoint": "pc",
                         "loopback_mangling": True,
                         "debug_info": False,
                     },
@@ -42,7 +41,7 @@ def generate_launch_description():
                             get_package_share_path("kalman_master")
                             / "config/ros_link.yaml"
                         ),
-                        "side": "gs",
+                        "side": "station",
                         "loopback_mangling": True,
                         "debug_info": False,
                     },

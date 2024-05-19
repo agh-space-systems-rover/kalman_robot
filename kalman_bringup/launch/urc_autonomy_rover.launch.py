@@ -23,7 +23,7 @@ def generate_launch_description():
                     "drivers.composition": "false",
                     "drivers.rgbd_ids": "d455_front d455_back d455_left d455_right",
                     "drivers.master": "true",
-                    "drivers.master_gs_mode": "false",
+                    "drivers.master.mode": "pc",
                     "drivers.imu": "true",
                     "drivers.compass_calibration": "false",
                     "drivers.gps": "true",

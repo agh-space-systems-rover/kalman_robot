@@ -42,10 +42,18 @@ class RosLink(Node):
         ).value
         self.side = self.declare_parameter(
             "side",
-            None,
+            'rover',
             ParameterDescriptor(
                 type=ParameterType.PARAMETER_STRING,
-                description="Side of the communication. Must be 'pc' or 'gs'.",
+                description="Side of communication. Must be 'rover' or 'station'.",
+            ),
+        ).value
+        self.rover_endpoint = self.declare_parameter(
+            "rover_endpoint",
+            "pc",
+            ParameterDescriptor(
+                type=ParameterType.PARAMETER_BOOL,
+                description="Use Arm<->GS or PC<->GS, etc. Must be either 'pc' or 'arm'.",
             ),
         ).value
         self.loopback_mangling = self.declare_parameter(
@@ -62,14 +70,6 @@ class RosLink(Node):
             ParameterDescriptor(
                 type=ParameterType.PARAMETER_BOOL,
                 description="Log additional debug information on INFO level.",
-            ),
-        ).value
-        self.arm_mode = self.declare_parameter(
-            "arm_mode",
-            False,
-            ParameterDescriptor(
-                type=ParameterType.PARAMETER_BOOL,
-                description="Use Arm<->GS communication channel instead of PC<->GS.",
             ),
         ).value
 
@@ -108,13 +108,13 @@ class RosLink(Node):
     # I.e. Insert default values into the config whenever a field is missing and more.
     def normalize_config(self) -> None:
         # Replace missing sides with empty objects.
-        if "pc" not in self.config:
-            self.config["pc"] = {}
-        if "gs" not in self.config:
-            self.config["gs"] = {}
+        if "rover" not in self.config:
+            self.config["rover"] = {}
+        if "station" not in self.config:
+            self.config["station"] = {}
 
         # Replace missing topics/services/actions with empty lists.
-        for side in ["pc", "gs"]:
+        for side in ["rover", "station"]:
             if "topics" not in self.config[side]:
                 self.config[side]["topics"] = []
             if "services" not in self.config[side]:
@@ -123,7 +123,7 @@ class RosLink(Node):
                 self.config[side]["actions"] = []
 
         # For each topic/service/action config...
-        for side in ["pc", "gs"]:
+        for side in ["rover", "station"]:
             for config in self.config[side]["topics"]:
                 # Add a default empty field prefix if no fields are provided.
                 # Empty prefix will match any field path.
@@ -155,7 +155,7 @@ class RosLink(Node):
                 if "max_feedback_rate" not in config:
                     config["max_feedback_rate"] = 1
 
-        for side in ["pc", "gs"]:
+        for side in ["rover", "station"]:
             for config in (
                 self.config[side]["topics"]
                 + self.config[side]["services"]
@@ -205,35 +205,35 @@ class RosLink(Node):
     # Get the config for topics subscribed on this side and services used by this side.
     # Equivalently the config for topics published on the opposite side and services provided by the opposite side.
     def get_opposite_side_config(self) -> dict:
-        return self.config["pc" if self.side == "gs" else "gs"]
+        return self.config["rover" if self.side == "station" else "station"]
 
     # Get the ID of frames forwarded to this side.
     def get_forward_to_this_side_frame_id(self) -> int:
-        if self.arm_mode:
+        if self.rover_endpoint == "arm":
             return (
                 MasterMessage.ARM_TO_GS
-                if self.side == "gs"
+                if self.side == "station"
                 else MasterMessage.GS_TO_ARM
             )
         else:
             return (
                 MasterMessage.PC_TO_GS
-                if self.side == "gs"
+                if self.side == "station"
                 else MasterMessage.GS_TO_PC
             )
 
     # Get the ID of frames forwarded to the opposite side.
     def get_forward_to_opposite_side_frame_id(self) -> int:
-        if self.arm_mode:
+        if self.rover_endpoint == "arm":
             return (
                 MasterMessage.GS_TO_ARM
-                if self.side == "gs"
+                if self.side == "station"
                 else MasterMessage.ARM_TO_GS
             )
         else:
             return (
                 MasterMessage.GS_TO_PC
-                if self.side == "gs"
+                if self.side == "station"
                 else MasterMessage.PC_TO_GS
             )
 

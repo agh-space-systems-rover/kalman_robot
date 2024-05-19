@@ -138,7 +138,7 @@ def launch_setup(context):
                         else ""
                     ),
                     "master": get_str("drivers.master"),
-                    "master_gs_mode": get_str("drivers.master_gs_mode"),
+                    "master.mode": get_str("drivers.master.mode"),
                     "rgbd_ids": get_str("drivers.rgbd_ids"),
                     "imu": get_str("drivers.imu"),
                     "compass_calibration": get_str("drivers.compass_calibration"),
@@ -358,9 +358,9 @@ def generate_launch_description():
                 description="Start the master driver.",
             ),
             DeclareLaunchArgument(
-                "drivers.master_gs_mode",
-                default_value="false",
-                description="Use the baud rate of the RF module.",
+                "drivers.master.mode",
+                default_value="pc",
+                description="Run master drivers in 'pc', 'gs' or 'arm' mode.",
             ),
             DeclareLaunchArgument(
                 "drivers.imu",

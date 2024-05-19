@@ -23,9 +23,7 @@ PHIDGETS_CONTAINER_NAME = "phidgets_container"
 def launch_setup(context):
     component_container = LaunchConfiguration("component_container").perform(context)
     master = LaunchConfiguration("master").perform(context).lower() == "true"
-    master_gs_mode = (
-        LaunchConfiguration("master_gs_mode").perform(context).lower() == "true"
-    )
+    master_mode = LaunchConfiguration("master.mode").perform(context)
     rgbd_ids = [
         x
         for x in LaunchConfiguration("rgbd_ids").perform(context).split(" ")
@@ -63,7 +61,7 @@ def launch_setup(context):
                     )
                 ),
                 launch_arguments={
-                    "gs_mode": "true" if master_gs_mode else "false",
+                    "mode": master_mode
                 }.items(),
             )
         ]
@@ -226,8 +224,8 @@ def generate_launch_description():
                 "master", default_value="false", description="Start the master driver."
             ),
             DeclareLaunchArgument(
-                "master_gs_mode",
-                default_value="false",
+                "master.mode",
+                default_value="pc",
                 description="Start the master driver with the RF module baud rate.",
             ),
             DeclareLaunchArgument(

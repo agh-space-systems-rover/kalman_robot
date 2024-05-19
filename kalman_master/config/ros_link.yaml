@@ -1,8 +1,7 @@
 # This is not a ROS 2 parameter file, but a custom YAML config.
 
-pc:
-  arm_mode: false
-  topics: # topics published by the PC and subscribed by the GS
+rover: # or 'station'
+  topics: # topics published by the rover and subscribed by the GS
     - name: imu/data
       type: sensor_msgs/msg/Imu
       max_rate: 5
@@ -45,7 +44,7 @@ pc:
   #   - name: add_two_ints
   #     type: example_interfaces/srv/AddTwoInts
   #     retry_rate: 5
-  actions: # actions served by the PC and used by the GS
+  actions: # actions served by the rover and used by the GS
     # - name: fibonacci
     #   type: example_interfaces/action/Fibonacci
     #   retry_rate: 10

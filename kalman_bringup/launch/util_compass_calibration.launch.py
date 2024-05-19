@@ -43,7 +43,7 @@ def launch_setup(context):
                 "drivers.composition": "false",
                 "drivers.rgbd_ids": "",
                 "drivers.master": "true",
-                "drivers.master_gs_mode": "false",
+                "drivers.master.mode": "pc",
                 "drivers.imu": "false",
                 "drivers.compass_calibration": "true",
                 "drivers.gps": "false",

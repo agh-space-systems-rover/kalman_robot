@@ -40,7 +40,6 @@ def generate_launch_description():
                     "drivers.composition": LaunchConfiguration("composition"),
                     "drivers.rgbd_ids": LaunchConfiguration("rgbd_ids"),
                     "drivers.master": "false",
-                    "drivers.master_gs_mode": "false",
                     "drivers.imu": "false",
                     "drivers.compass_calibration": "false",
                     "drivers.gps": "false",
