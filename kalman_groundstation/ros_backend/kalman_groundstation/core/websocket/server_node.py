@@ -16,6 +16,7 @@ class ServerNode:
 
     def publish_to_websocket(self, topic, type):
         self.subscribers.append((topic, type))
+        print(f"Publish to websocket: {topic} {type}")
 
     def publish_from_websocket(self, topic, type):
         self.publishers.append((topic, type))

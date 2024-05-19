@@ -75,8 +75,8 @@ class WheelContoller(Node):
         if mode == DrivingMode.NORMAL.value:
             msg = GSMovementControl()
             msg.velocity = message.x
-            msg.i_radius = message.y
-            msg.translate = message.z
+            msg.translate = message.y
+            msg.i_radius = message.z
 
             twist = Twist()
             twist.linear.x = message.x
@@ -122,25 +122,28 @@ class WheelContoller(Node):
         if msg.i_radius:
             radius, velocity = -1.0 / (msg.i_radius), msg.velocity  # FIXME
 
-            # TODO: Name us "small_constant, big_constant" we beg you
-            small_constant = np.hypot(np.abs(radius) - self.width / 2, self.length / 2)
-            big_constant = np.hypot(np.abs(radius) + self.width / 2, self.length / 2)
+            small_constant = np.hypot(
+                np.abs(radius) - self.width / 2.0, self.length / 2.0
+            )
+            big_constant = np.hypot(
+                np.abs(radius) + self.width / 2.0, self.length / 2.0
+            )
 
-            inside = np.arcsin(self.length / (2 * small_constant))
+            inside = np.arcsin(self.length / (2.0 * small_constant))
 
-            outside = np.arcsin(self.length / (2 * big_constant))
+            outside = np.arcsin(self.length / (2.0 * big_constant))
 
             omega_inside = velocity / self.wheel_radius * small_constant
 
             omega_outside = velocity / self.wheel_radius * big_constant
 
             if radius > 0:
-                fr, br, fl, bl = -inside, inside, -outside, outside
+                fr, br, fl, bl = -inside, -inside, -outside, -outside
                 if omega_inside and omega_outside:
                     l_vel = velocity
                     r_vel = l_vel * omega_inside / omega_outside
             else:
-                fr, br, fl, bl = outside, -outside, inside, -inside
+                fr, br, fl, bl = outside, outside, inside, inside
                 if omega_inside and omega_outside:
                     r_vel = velocity
                     l_vel = r_vel * omega_inside / omega_outside
@@ -149,8 +152,8 @@ class WheelContoller(Node):
         fl, fr, bl, br = (
             fl + msg.translate,
             fr + msg.translate,
-            bl + msg.translate,
-            br + msg.translate,
+            bl - msg.translate,
+            br - msg.translate,
         )
         fl, fr, bl, br = (
             np.clip(fl, -MAX_ANGLE, MAX_ANGLE),
@@ -159,12 +162,12 @@ class WheelContoller(Node):
             np.clip(br, -MAX_ANGLE, MAX_ANGLE),
         )
 
-        angle_multiplier = 1.0 / 6.0
+        # angle_multiplier = 1.0
 
-        fl *= angle_multiplier
-        fr *= angle_multiplier
-        bl *= angle_multiplier
-        br *= angle_multiplier
+        # fl *= angle_multiplier
+        # fr *= angle_multiplier
+        # bl *= angle_multiplier
+        # br *= angle_multiplier
 
         self.drive(fl=fl, fr=fr, bl=bl, br=br, lvel=l_vel, rvel=r_vel)
 
@@ -239,7 +242,9 @@ class WheelContoller(Node):
         back_vel = np.clip(back_vel, -1, 1)
 
         t_rad = np.deg2rad(msg.translate * MAX_TRANSLATE_ANGLE)
-        clip = lambda v: np.clip(v, MIN_ANGLE, MAX_ANGLE)
+        def clip(v: float) -> float:
+            return np.clip(v, MIN_ANGLE, MAX_ANGLE)
+
         fl = clip(fl + t_rad)
         fr = clip(fr + t_rad)
         bl = clip(bl + t_rad)

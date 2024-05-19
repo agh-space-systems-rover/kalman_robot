@@ -28,6 +28,7 @@ setup(
         "console_scripts": [
             "api_node = kalman_groundstation.api_node:main",
             "websocket_node = kalman_groundstation.websocket_node:main",
+            "bridge_node = kalman_groundstation.bridge_node:main",
         ],
     },
 )

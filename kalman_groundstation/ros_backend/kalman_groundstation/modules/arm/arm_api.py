@@ -4,6 +4,7 @@ from rclpy.node import Node
 from .api.state import ArmStatePublisher
 from .api.goal import ArmGoalRouter
 from .api.positioning import ArmPositioning
+from .api.trajectories import TrajectoriesAPI
 # from .api.positioning import positioning_router
 
 # from .api.trajectories import trajectory_router
@@ -18,6 +19,7 @@ class ArmAPI(APIRouter):
         self.include_router(ArmStatePublisher(parent_node))
         self.include_router(ArmGoalRouter(parent_node))
         self.include_router(ArmPositioning(parent_node))
+        self.include_router(TrajectoriesAPI(parent_node))
 
 
 # router = APIRouter(prefix="/arm", tags=["arm"])

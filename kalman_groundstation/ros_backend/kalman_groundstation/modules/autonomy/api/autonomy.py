@@ -11,7 +11,7 @@ from std_msgs.msg import ColorRGBA
 # from kalman_rover_uart.srv import intSrv, intSrvRequest
 from kalman_interfaces.srv import SetUeuosColor
 
-MAX_SERVICE_RETRIES = 2
+MAX_SERVICE_RETRIES = 5
 
 
 class AutonomyRouter(APIRouter):
@@ -63,47 +63,37 @@ class AutonomyRouter(APIRouter):
             methods=["PUT"],
         )
 
-    def initialize_service_clients(self) -> None:
+    def wait_for_service(self, client, logger) -> None:
         retries_so_far = 0
+        while (
+            (not client.wait_for_service(timeout_sec=1.0))
+            and retries_so_far < MAX_SERVICE_RETRIES
+        ):
+            logger.info(
+                f"Waiting for service '{client.srv_name}' ..."
+            )
+            retries_so_far += 1
+        if not client.service_is_ready():
+            logger.error(
+                f"Failed to wait for service: '{client.srv_name}'"
+            )
+        else:
+            logger.info(
+                f"Service '{client.srv_name}' is available"
+
+            )
+
+    def initialize_service_clients(self) -> None:
         self.clear_costmap_client = self.parent_node.create_client(
             EmptySrv, "/move_base/clear_costmaps"
         )
-        while (
-            not self.clear_costmap_client.wait_for_service(timeout_sec=1.0)
-            and retries_so_far < MAX_SERVICE_RETRIES
-        ):
-            self.parent_node.get_logger().info(
-                "Waiting for service '/move_base/clear_costmaps' ..."
-            )
-            retries_so_far += 1
-        else:
-            self.parent_node.get_logger().error(
-                "Failed to wait for service: '/move_base/clear_costmaps'"
-            )
-
-        # self.max_velocity_client = parent_node.create_client(
-        #     intSrv, "/configurations/path_following/max_velocity"
-        # )
-        # while not self.max_velocity_client.wait_for_service(timeout_sec=1.0):
-        #     parent_node.get_logger().info(
-        #         "Waiting for service '/configurations/path_following/max_velocity' ..."
-        #     )
+        self.wait_for_service(self.clear_costmap_client, self.parent_node.get_logger())
 
         self.ueuos_set_state_client = self.parent_node.create_client(
             SetUeuosColor, "/ueuos/set_color"
         )
-        while (
-            not self.ueuos_set_state_client.wait_for_service(timeout_sec=1.0)
-            and retries_so_far < MAX_SERVICE_RETRIES
-        ):
-            self.parent_node.get_logger().info(
-                f"Waiting for service '{self.ueuos_set_state_client.srv_name}' ..."
-            )
-            retries_so_far += 1
-        else:
-            self.parent_node.get_logger().error(
-                f"Failed to wait for service '{self.ueuos_set_state_client.srv_name}'"
-            )
+        self.wait_for_service(self.ueuos_set_state_client, self.parent_node.get_logger())
+
 
     def set_autonomy_on_off(self, autonomy_on: bool):
         if autonomy_on:
