@@ -18,4 +18,14 @@ def generate_launch_description():
             executable="bridge_node",
             name="ground_station_bridge",
         ),
+        Node(
+            package="spacenav",
+            executable="spacenav_node",
+            name="spacenav",
+        ),
+        Node(
+            package="kalman_master",
+            executable="master_com",
+            parameters=[{"baud_rate": 38400}],
+        )
     ])
