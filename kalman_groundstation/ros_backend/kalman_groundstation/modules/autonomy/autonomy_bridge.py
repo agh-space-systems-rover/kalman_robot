@@ -1,17 +1,17 @@
-from utils.logger import GpsLogger
+# from utils.logger import GpsLogger
 from sensor_msgs.msg import Imu as ImuMsg, NavSatFix
-from tf.transformations import euler_from_quaternion
-from std_msgs.msg import Int8, Float32MultiArray
+from tf_transformations import euler_from_quaternion
 from geometry_msgs.msg import Vector3, Pose
 from threading import Lock
-import rospy
 from std_msgs.msg import Int8, Float32MultiArray, String
-from supervisor.msg import SupervisorStatus
+# from supervisor.msg import SupervisorStatus
 from nav_msgs.msg import Odometry
 from actionlib_msgs.msg import GoalStatusArray
-from united_supervising_protocol.msg import USPConfig
-from big_autonomy_translator.msg import GpsTagArray
+from rclpy.duration import Duration
+# from united_supervising_protocol.msg import USPConfig
+# from big_autonomy_translator.msg import GpsTagArray
 import json
+from rclpy.node import Node
 
 initial_state = {
     "imu": {
@@ -54,56 +54,57 @@ initial_state = {
 
 
 class AutonomyBridge:
-    def __init__(self):
+    def __init__(self, parent_node: Node):
+        self.parent_node = parent_node
         self.state = initial_state
-        self.timestamp = rospy.Time.now().to_sec()
+        self.timestamp = parent_node.get_clock().now()
         self.lock = Lock()
 
-        self.gps_logger = GpsLogger('gps_path')
+        # self.gps_logger = GpsLogger('gps_path')
 
-        self.imu_subscriber = rospy.Subscriber("/imu/data", ImuMsg, self._update_imu)
+        self.imu_subscriber = parent_node.create_subscription(ImuMsg, "/imu/data", self._update_imu, qos_profile=10)
 
-        self.usuos_subscriber = rospy.Subscriber(
-            "/ueuos/state", Int8, self._update_ueuos
+        self.usuos_subscriber = parent_node.create_subscription(
+            Int8, "/ueuos/state", self._update_ueuos, qos_profile=10
         )
 
-        self.gps_subscriber = rospy.Subscriber(
-            "/gps/squashed", Vector3, self._update_gps
+        self.gps_subscriber = parent_node.create_subscription(
+            Vector3, "/gps/squashed", self._update_gps, qos_profile=10
         )
 
-        self.supervisor_subscriber = rospy.Subscriber(
-            "/supervisor/status", SupervisorStatus, self._update_supervisor
+        # self.supervisor_subscriber = parent_node.create_subscription(
+        #     "/supervisor/status", SupervisorStatus, self._update_supervisor
+        # )
+
+        self.odometry_subscriber = parent_node.create_subscription(
+            Odometry, "/odometry/filtered", self._update_odometry, qos_profile=10
         )
 
-        self.odometry_subscriber = rospy.Subscriber(
-            "/odometry/filtered", Odometry, self._update_odometry
+        # self.rover_map_pose_subscriber = parent_node.create_subscription(
+        #     Pose, "/gs_rover_map_pose", self._update_rover_map_pose, qos_profile=10
+        # )
+
+        # self.supervisor_subscriber = parent_node.create_subscription(
+        #     Float32MultiArray, "/supervisor/waypoints", self._update_supervisor, qos_profile=10
+        # )
+
+        # self.usp_subscriber = parent_node.create_subscription(
+        #     "/usp/get/response", USPConfig, self._update_usp
+        # )
+
+        self.move_base_subscriber = parent_node.create_subscription(
+            GoalStatusArray, "/move_base/status", self._update_move_base, qos_profile=10
         )
 
-        self.rover_map_pose_subscriber = rospy.Subscriber(
-            "/gs_rover_map_pose", Pose, self._update_rover_map_pose
-        )
-
-        self.supervisor_subscriber = rospy.Subscriber(
-            "/supervisor/waypoints", Float32MultiArray, self._update_supervisor
-        )
-
-        self.usp_subscriber = rospy.Subscriber(
-            "/usp/get/response", USPConfig, self._update_usp
-        )
-
-        self.move_base_subscriber = rospy.Subscriber(
-            "/move_base/status", GoalStatusArray, self._update_move_base
-        )
-
-        self.ws_publisher = rospy.Publisher(
-            "/station/autonomy/state", String, queue_size=10
+        self.ws_publisher = parent_node.create_publisher(
+            String, "/station/autonomy/state", qos_profile=10
         )
 
     def _publish(self):
         self.lock.acquire()
-        current_time = rospy.Time.now().to_sec()
+        current_time = self.parent_node.get_clock().now()
 
-        if current_time - self.timestamp > 1:
+        if current_time - self.timestamp > Duration(seconds=1):
             self.timestamp = current_time
             msg = String(data=json.dumps(self.state))
             self.ws_publisher.publish(msg)
@@ -139,23 +140,24 @@ class AutonomyBridge:
         self.gps_logger.log(msg)
         self._publish()
 
-    def _update_supervisor(self, msg: SupervisorStatus):
-        mapping = {
-            0: "MANUAL",
-            1: "IDLE",
-            2: "TRAVEL",
-            3: "APPROACH",
-            4: "EXPLORE",
-            5: "LOCATE",
-            6: "CROSS",
-            7: "COMPLETED",
-        }
+    # def _update_supervisor(self, msg: SupervisorStatus):
+    #     mapping = {
+    #         0: "MANUAL",
+    #         1: "IDLE",
+    #         2: "TRAVEL",
+    #         3: "APPROACH",
+    #         4: "EXPLORE",
+    #         5: "LOCATE",
+    #         6: "CROSS",
+    #         7: "COMPLETED",
+    #     }
 
-        try:
-            self.state["supervisorState"] = mapping[msg.status]
-        except KeyError:
-            rospy.logerr("Received invalid supervisor state")
-        self._publish()
+    #     try:
+    #         self.state["supervisorState"] = mapping[msg.status]
+    #     except KeyError:
+    #         # rospy.logerr("Received invalid supervisor state")
+    #         self.parent_node.get_logger().error("Received invalid supervisor state")
+    #     self._publish()
 
     def _update_odometry(self, msg: Odometry):
         pos = msg.pose.pose.position
@@ -167,29 +169,29 @@ class AutonomyBridge:
         self.state["map"] = {"position": {"x": pos.x, "y": pos.y, "z": pos.z}}
         self._publish()
 
-    def _update_tags(self, msg: GpsTagArray):
-        tags = []
-        for tag in msg.tags:
-            tags.append({"id": tag.tag_id, "lat": tag.tag_lat, "lon": tag.tag_lon})
+    # def _update_tags(self, msg: GpsTagArray):
+    #     tags = []
+    #     for tag in msg.tags:
+    #         tags.append({"id": tag.tag_id, "lat": tag.tag_lat, "lon": tag.tag_lon})
 
-        self.state["tags"] = tags
-        self._publish()
+    #     self.state["tags"] = tags
+    #     self._publish()
 
-    def _update_usp(self, msg: USPConfig):
-        usp = {
-            "x": msg.x,
-            "y": msg.y,
-            "autonomousDriving": msg.autonomous_driving,
-            "goalSet": msg.goal_set,
-            "multipleWaypoints": msg.multiple_waypoints,
-            "frame": msg.frame,
-            "mode": msg.mode,
-            "tag1": msg.tag1,
-            "tag2": msg.tag2,
-            "args": msg.args,
-        }
-        self.state["usp"] = usp
-        self._publish()
+    # def _update_usp(self, msg: USPConfig):
+    #     usp = {
+    #         "x": msg.x,
+    #         "y": msg.y,
+    #         "autonomousDriving": msg.autonomous_driving,
+    #         "goalSet": msg.goal_set,
+    #         "multipleWaypoints": msg.multiple_waypoints,
+    #         "frame": msg.frame,
+    #         "mode": msg.mode,
+    #         "tag1": msg.tag1,
+    #         "tag2": msg.tag2,
+    #         "args": msg.args,
+    #     }
+    #     self.state["usp"] = usp
+    #     self._publish()
 
     def _update_move_base(self, msg: GoalStatusArray):
         if msg.status_list:

@@ -44,10 +44,10 @@ class ArmGoalRouter(APIRouter):
             methods=["GET"],
         )
 
-    def get(self):
-        return ArmGoals()
+    def get(self) -> ArmGoals:
+        return ArmGoals(cartesian_space_goals=[], joint_space_goals=[])
 
-    def put(self, goal: ArmCartesianSpaceGoal):
+    def put(self, goal: ArmCartesianSpaceGoal) -> bool:
         return True
         
 

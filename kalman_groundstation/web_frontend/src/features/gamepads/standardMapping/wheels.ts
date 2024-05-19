@@ -73,8 +73,8 @@ const drivingMapping: GamepadChange = (args) => {
     message = {
       mode: 0,
       x: x * scalingFactor.forward,
-      y: -currentValues.axes[Axis.R3_HORIZONTAL] * scalingFactor.turn,
-      z: 2.0 * -currentValues.axes[Axis.L3_HORIZONTAL],
+      y: 2.0 * -currentValues.axes[Axis.R3_HORIZONTAL],
+      z: -currentValues.axes[Axis.L3_HORIZONTAL] * scalingFactor.turn,
     }
   } else if (drivingMode == DrivingMode.InPlace) {
     message = {
@@ -87,10 +87,12 @@ const drivingMapping: GamepadChange = (args) => {
     message = {
       mode: 2,
       x: -x * scalingFactor.forward,
-      y: (x < 0 ? 1 : -1) * currentValues.axes[4],
-      z: -currentValues.axes[1],
+      y: (x < 0 ? 1 : -1) * currentValues.axes[Axis.LT],
+      z: -currentValues.axes[Axis.L3_VERTICAL],
     }
   }
+
+  // console.log('Scaling turn: %f, %f, %f', message.x, message.y, message.z)
 
   actions.push(sendMessage({ topic: '/station/wheels/command', data: message }))
 

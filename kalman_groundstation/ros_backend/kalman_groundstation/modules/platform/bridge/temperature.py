@@ -1,16 +1,15 @@
-import rospy
-
 from kalman_groundstation.msg import MotorsTemperature, MotorTemperature
 from std_msgs.msg import UInt8MultiArray
+from rclpy.node import Node
 
 
 class TemperatureBridge:
-    def __init__(self) -> None:
-        self.uart = rospy.Subscriber(
-            "/kalman_rover/uart2ros/66", UInt8MultiArray, self._update
+    def __init__(self, parent_node: Node) -> None:
+        self.uart = parent_node.create_subscription(
+            UInt8MultiArray, "/kalman_rover/uart2ros/66", self._update, qos_profile=10
         )
-        self.ws = rospy.Publisher(
-            "/station/wheels/temperatures", MotorsTemperature, queue_size=10
+        self.ws = parent_node.create_subscription(
+            MotorsTemperature, "/station/wheels/temperatures", qos_profile=10
         )
 
         self.MAX_TURN_TEMP = 60

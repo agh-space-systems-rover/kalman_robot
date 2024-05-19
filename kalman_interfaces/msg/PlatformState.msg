@@ -1,2 +1,2 @@
-MotorsState target_motors
-MotorsState motors
+WheelStates target_motors
+WheelStates motors
