@@ -124,7 +124,7 @@ public:
 
   double convert_data_to_spacenav(int data)
   {
-    return (double(data) / 127.5) - 1.0;
+    return (double(data) / 100) - 1.0;
   }
 
 private:
