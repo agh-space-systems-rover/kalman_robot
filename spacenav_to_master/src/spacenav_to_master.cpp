@@ -63,7 +63,7 @@ private:
   }
 
   uint8_t convert_twist_data(double twist_data) const {
-    return uint8_t((twist_data + 1.0) / 2.0 * 255 + 0.5);
+    return uint8_t((twist_data + 1.0) / 2.0 * 200 + 0.5);
   }
 
   bool all_zeros(const geometry_msgs::msg::Twist::SharedPtr msg) {
