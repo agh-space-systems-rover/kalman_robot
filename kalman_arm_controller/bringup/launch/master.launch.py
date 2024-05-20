@@ -40,7 +40,7 @@ def generate_launch_description():
         parameters=[
             {
                 "config_path": str(
-                    get_package_share_path("kalman_arm_controller") / "config/ros_link.yaml"
+                    get_package_share_path("kalman_arm_config") / "config/ros_link.yaml"
                 ),
                 "side": "rover",
                 "rover_endpoint": "arm",
