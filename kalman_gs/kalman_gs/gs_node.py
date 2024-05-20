@@ -16,16 +16,20 @@ class GS(Node):
             get_package_share_directory("kalman_gs") + "/node_project"
         )
 
-        # Run npm install if node_modules does not exist
-        if not os.path.exists(self.node_project_dir + "/node_modules"):
+        # Run npm install if dependencies were not installed yet.
+        marker_file = os.path.expanduser("~/.cache/kalman/npm_deps_installed.txt")
+        if not os.path.isfile(marker_file):
             self.get_logger().info("Running 'npm install':")
-            self.run_command("npm install")
+            if self.run_command("npm install") == 0:
+                os.makedirs(os.path.dirname(marker_file), exist_ok=True)
+                with open(marker_file, "w") as f:
+                    f.write("Existence of this file indicates that NPM dependencies were installed successfully.")
 
         # Run npm start
         self.get_logger().info("Running 'npm start':")
         self.run_command("npm start")
 
-    def run_command(self, command):
+    def run_command(self, command: str) -> int:
         # Run and log output line by line
         process = sp.Popen(
             command,
@@ -48,6 +52,9 @@ class GS(Node):
         # Read the remaining output
         for line in process.stdout.readlines():
             self.get_logger().info(line.strip())
+
+        # Return the exit code
+        return process.returncode
 
 
 def main():

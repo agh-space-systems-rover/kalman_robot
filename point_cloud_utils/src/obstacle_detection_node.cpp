@@ -124,7 +124,7 @@ class ObstacleDetection : public rclcpp::Node {
 			ne.setRadiusSearch(normal_estimation_radius);
 			ne.compute(*normals);
 
-			// // Visualize normals using the color of the points.
+			// DEBUG: Visualize normals using the color of the points.
 			// for (size_t i = 0; i < normals->size(); i++) {
 			// 	// Transform the normal to world_frame
 			// 	Eigen::Vector3d normal(normals->points[i].normal_x,
