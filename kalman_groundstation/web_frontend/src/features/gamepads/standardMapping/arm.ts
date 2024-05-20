@@ -4,8 +4,9 @@ import { sendMessage } from '../../../components/Websocket/websocketSlice'
 // import { changeArmMode } from '../../../store/Arm/armSlice'
 import { ArmMode } from '../../../store/Arm/armTypes'
 import { decreaseCamera, increaseCamera } from '../../../store/Feeds/feedsSlice'
+import { translateGamepadAxis, translateGamepadButton } from '../../../store/Keybinds/keybindsSlice'
 import type { GamepadChange } from '../gamepadTypes'
-import { Buttons } from './standardMapping'
+import type { Buttons } from './standardMapping'
 
 export interface ArmFkCommand {
   gripper: number
@@ -27,7 +28,8 @@ export interface ArmIkCommand {
 }
 
 export const armMapping: GamepadChange = (args) => {
-  const { armMode, currentValues, previousValues } = args
+  const { armMode, currentValues, previousValues, gamepadBinds } = args
+  const buttonsProfile = gamepadBinds.buttonFeatures
 
   const actions: Action<unknown>[] = []
 
@@ -47,11 +49,11 @@ export const armMapping: GamepadChange = (args) => {
     // }
 
     // video feed control
-    if (pressed(Buttons.X)) {
+    if (pressed(translateGamepadButton(buttonsProfile, 'videoFeedPreviousArmMode'))) {
       actions.push(decreaseCamera(1))
     }
 
-    if (pressed(Buttons.Y)) {
+    if (pressed(translateGamepadButton(buttonsProfile, 'videoFeedNextArmMode'))) {
       actions.push(increaseCamera(1))
     }
   }
@@ -60,17 +62,17 @@ export const armMapping: GamepadChange = (args) => {
     // Inverse Kinematics
     const messageIK: ArmIkCommand = {
       // eslint-disable-next-line camelcase
-      linear_x: currentValues.axes[4],
+      linear_x: translateGamepadAxis(currentValues, gamepadBinds, 'armLinearX'),
       // eslint-disable-next-line camelcase
-      linear_y: currentValues.axes[3],
+      linear_y: translateGamepadAxis(currentValues, gamepadBinds, 'armLinearY'),
       // eslint-disable-next-line camelcase
-      linear_z: (-1 - currentValues.axes[2]) / 2 - (-1 - currentValues.axes[5]) / 2,
+      linear_z: translateGamepadAxis(currentValues, gamepadBinds, 'armLinearY'),
       // eslint-disable-next-line camelcase
-      angular_x: currentValues.axes[0],
+      angular_x: translateGamepadAxis(currentValues, gamepadBinds, 'armAngularX'),
       // eslint-disable-next-line camelcase
-      angular_y: currentValues.axes[1],
+      angular_y: translateGamepadAxis(currentValues, gamepadBinds, 'armAngularY'),
       // eslint-disable-next-line camelcase
-      angular_z: currentValues.axes[6],
+      angular_z: translateGamepadAxis(currentValues, gamepadBinds, 'armAngularZ'),
     }
     actions.push(sendMessage({ topic: '/station/arm/ik/command', data: messageIK }))
   }
@@ -78,19 +80,21 @@ export const armMapping: GamepadChange = (args) => {
   if (armMode === ArmMode.FK) {
     // Forward Kinematics
     const messageFK = {
-      gripper: currentValues.buttons[Buttons.A] - currentValues.buttons[Buttons.B],
+      gripper:
+        currentValues.buttons[translateGamepadButton(buttonsProfile, 'openGripper')] -
+        currentValues.buttons[translateGamepadButton(buttonsProfile, 'closeGripper')],
       // eslint-disable-next-line camelcase
-      joint_1: -currentValues.axes[0],
+      joint_1: translateGamepadAxis(currentValues, gamepadBinds, 'armJoint1'), // left horizontal, negative
       // eslint-disable-next-line camelcase
-      joint_2: -currentValues.axes[1],
+      joint_2: translateGamepadAxis(currentValues, gamepadBinds, 'armJoint2'), // left vertical, negative
       // eslint-disable-next-line camelcase
-      joint_3: -currentValues.axes[4],
+      joint_3: translateGamepadAxis(currentValues, gamepadBinds, 'armJoint3'), // right horizontal, negative
       // eslint-disable-next-line camelcase
-      joint_4: currentValues.axes[3],
+      joint_4: translateGamepadAxis(currentValues, gamepadBinds, 'armJoint4'), // right vertical, positive
       // eslint-disable-next-line camelcase
-      joint_5: -currentValues.axes[6],
+      joint_5: translateGamepadAxis(currentValues, gamepadBinds, 'armJoint5'), // dpad vertical, negative
       // eslint-disable-next-line camelcase
-      joint_6: (-1 - currentValues.axes[2]) / 2 - (-1 - currentValues.axes[5]) / 2,
+      joint_6: translateGamepadAxis(currentValues, gamepadBinds, 'armJoint6'), // triggers
     }
 
     actions.push(sendMessage({ topic: '/station/arm/fk/command', data: messageFK }))

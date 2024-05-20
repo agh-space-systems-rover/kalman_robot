@@ -1,13 +1,17 @@
 import { useEffect } from 'react'
 
+import { translateScancode } from '../../store/Keybinds/keybindsSlice'
+// import { useTranslateScancode } from '../../store/Keybinds/keybindsSlice'
 import { addKey, removeKey } from '../../store/Keys/keysSlice'
-import { useAppDispatch } from '../../store/storeHooks'
+import { useAppDispatch, useAppSelector } from '../../store/storeHooks'
 
 export const useKeybindings: () => void = () => {
   const dispatch = useAppDispatch()
+  const selectedBinds = useAppSelector((state) => state.keybinds.binds)
 
   useEffect(() => {
-    const handleKeyDown: (e: KeyboardEvent) => void = (e) => {
+    const useHandleKeyDown: (e: KeyboardEvent) => void = (e) => {
+      const translatedKey = translateScancode(selectedBinds, e.code)
       if (e.ctrlKey) {
         if (e.code == 'KeyR') {
           e.preventDefault()
@@ -15,19 +19,20 @@ export const useKeybindings: () => void = () => {
         }
       }
       if (!e.repeat && document.activeElement?.tagName != 'INPUT') {
-        dispatch(addKey(e.code))
+        dispatch(addKey(translatedKey))
       }
     }
 
-    const handleKeyUp: (e: KeyboardEvent) => void = (e: KeyboardEvent) => {
-      dispatch(removeKey(e.code))
+    const useHandleKeyUp: (e: KeyboardEvent) => void = (e: KeyboardEvent) => {
+      const translatedKey = translateScancode(selectedBinds, e.code)
+      dispatch(removeKey(translatedKey))
     }
 
-    document.addEventListener('keydown', handleKeyDown)
-    document.addEventListener('keyup', handleKeyUp)
+    document.addEventListener('keydown', useHandleKeyDown)
+    document.addEventListener('keyup', useHandleKeyUp)
     return () => {
-      document.removeEventListener('keydown', handleKeyDown)
-      document.removeEventListener('keyup', handleKeyUp)
+      document.removeEventListener('keydown', useHandleKeyDown)
+      document.removeEventListener('keyup', useHandleKeyUp)
     }
   }, [])
 }
