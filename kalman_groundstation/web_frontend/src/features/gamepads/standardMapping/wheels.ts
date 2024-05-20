@@ -2,11 +2,12 @@ import type { Action } from '@reduxjs/toolkit'
 
 import { sendMessage } from '../../../components/Websocket/websocketSlice'
 import { decreaseCamera, increaseCamera } from '../../../store/Feeds/feedsSlice'
+import { translateGamepadAxis, translateGamepadButton } from '../../../store/Keybinds/keybindsSlice'
 import { changeDrivingMode, changeWheelsScalingFactor } from '../../../store/Motors/motorsSlice'
 import type { WheelScaling } from '../../../store/Motors/motorTypes'
 import { DrivingMode } from '../../../store/Motors/motorTypes'
 import type { GamepadChange, WheelsCommand } from '../gamepadTypes'
-import { Axis, Buttons } from './standardMapping'
+import { Buttons } from './standardMapping'
 
 export const scalingPresets: WheelScaling[] = [
   { forward: 1, turn: 1 },
@@ -38,6 +39,7 @@ export const wheelsMapping: GamepadChange = (args) => {
 }
 
 const diggingMapping: GamepadChange = (args) => {
+  // olałem
   const { currentValues, previousValues } = args
 
   // map input from triggers to values from range [-1, 1]
@@ -59,40 +61,45 @@ const diggingMapping: GamepadChange = (args) => {
 }
 
 const drivingMapping: GamepadChange = (args) => {
-  const { wheels, currentValues, previousValues } = args
+  const { wheels, currentValues, previousValues, gamepadBinds } = args
+  const buttonsProfile = gamepadBinds.buttonFeatures
 
   const scalingFactor = wheels.scalingFactor
   const drivingMode = wheels.drivingMode
+
   const actions: Action<unknown>[] = []
 
   // map input from triggers to values from range [-1, 1]
-  const x = (-1 - currentValues.axes[Axis.LT]) / 2 - (-1 - currentValues.axes[Axis.RT]) / 2
+  // const x = (-1 - currentValues.axes[2]) / 2 - (-1 - currentValues.axes[5]) / 2
+  // const x = (-1 - currentValues.axes[2]) / 2 - (-1 - currentValues.axes[5]) / 2
+
+  const x = translateGamepadAxis(currentValues, gamepadBinds, 'throttleBrake')
 
   let message: WheelsCommand
   if (drivingMode == DrivingMode.Normal) {
     message = {
       mode: 0,
-      x: x * scalingFactor.forward,
-      y: 2.0 * -currentValues.axes[Axis.R3_HORIZONTAL],
-      z: -currentValues.axes[Axis.L3_HORIZONTAL] * scalingFactor.turn,
+      x: x * scalingFactor.forward, // jazda przód tył, triggery
+      y: translateGamepadAxis(currentValues, gamepadBinds, 'normalTurnAxis') * scalingFactor.turn,
+      z: translateGamepadAxis(currentValues, gamepadBinds, 'offsetAxis'), // *2
     }
   } else if (drivingMode == DrivingMode.InPlace) {
     message = {
       mode: 1,
       x: x,
-      y: 2.0 * -currentValues.axes[Axis.L3_HORIZONTAL] * scalingFactor.turn,
-      z: currentValues.axes[Axis.R3_HORIZONTAL] * scalingFactor.turn,
+      y: translateGamepadAxis(currentValues, gamepadBinds, 'inPlaceTurnAxis') * scalingFactor.turn,
+      z: translateGamepadAxis(currentValues, gamepadBinds, 'inPlaceSomethingAxis') * scalingFactor.turn,
     }
   } else {
+    // sideways
+
     message = {
       mode: 2,
       x: -x * scalingFactor.forward,
-      y: (x < 0 ? 1 : -1) * currentValues.axes[Axis.LT],
-      z: -currentValues.axes[Axis.L3_VERTICAL],
+      y: (x < 0 ? 1 : -1) * translateGamepadAxis(currentValues, gamepadBinds, 'sidewaysTurnAxis'),
+      z: translateGamepadAxis(currentValues, gamepadBinds, 'sidewaysShitAxis'),
     }
   }
-
-  // console.log('Scaling turn: %f, %f, %f', message.x, message.y, message.z)
 
   actions.push(sendMessage({ topic: '/station/wheels/command', data: message }))
 
@@ -106,34 +113,45 @@ const drivingMapping: GamepadChange = (args) => {
     }
 
     // speed scaling
-    if (pressed(Buttons.A)) {
+    if (pressed(translateGamepadButton(buttonsProfile, 'scaleSpeedDown'))) {
       const index = scalingPresets.indexOf(wheels.scalingFactor)
       actions.push(changeWheelsScalingFactor(scalingPresets[Math.min(scalingPresets.length - 1, index + 1)]))
     }
-    if (pressed(Buttons.Y)) {
+    if (pressed(translateGamepadButton(buttonsProfile, 'scaleSpeedUp'))) {
       const index = scalingPresets.indexOf(wheels.scalingFactor)
       actions.push(changeWheelsScalingFactor(scalingPresets[Math.max(0, index - 1)]))
     }
 
     // driving mode
-    if (pressed(Buttons.RB) || pressed(Buttons.LB)) {
+    if (
+      pressed(translateGamepadButton(buttonsProfile, 'drivingModeInPlace')) ||
+      pressed(translateGamepadButton(buttonsProfile, 'drivingModeSideways'))
+    ) {
       let newDrivingMode: DrivingMode = DrivingMode.Normal
 
-      if (pressed(Buttons.RB) && drivingMode !== DrivingMode.InPlace && !holding(Buttons.LB)) {
+      if (
+        pressed(translateGamepadButton(buttonsProfile, 'drivingModeInPlace')) &&
+        drivingMode !== DrivingMode.InPlace &&
+        !holding(translateGamepadButton(buttonsProfile, 'drivingModeSideways'))
+      ) {
         newDrivingMode = DrivingMode.InPlace
       }
-      if (pressed(Buttons.LB) && drivingMode !== DrivingMode.Sideways && !holding(Buttons.RB)) {
+      if (
+        pressed(translateGamepadButton(buttonsProfile, 'drivingModeSideways')) &&
+        drivingMode !== DrivingMode.Sideways &&
+        !holding(translateGamepadButton(buttonsProfile, 'drivingModeInPlace'))
+      ) {
         newDrivingMode = DrivingMode.Sideways
       }
       actions.push(changeDrivingMode(newDrivingMode))
     }
 
     // video feed control
-    if (pressed(Buttons.X)) {
+    if (pressed(translateGamepadButton(buttonsProfile, 'videoFeedPreviousWheelsMode'))) {
       actions.push(decreaseCamera(0))
     }
 
-    if (pressed(Buttons.B)) {
+    if (pressed(translateGamepadButton(buttonsProfile, 'videoFeedNextWheelsMode'))) {
       actions.push(increaseCamera(0))
     }
   }

@@ -32,7 +32,7 @@ class CommandBridge:
 
     def handler_fk(self, message: ArmFkCommand):
         msg = JointJog()
-        msg.header.stamp = self.parent_node.get_clock().now().to_msg()
+        msg.header.stamp = self.parent_node.get_clock().now()
 
         joint_names = []
         joint_velocities = []
@@ -40,8 +40,8 @@ class CommandBridge:
         for name in [f"joint_{i}" for i in range(1, 7)]:
             velocity = getattr(message, name)
 
-            # if name == "joint_5":
-            #     velocity = -velocity
+            if name == "joint_5":
+                velocity = -velocity
 
             if velocity != 0.0:
                 joint_names.append(name)

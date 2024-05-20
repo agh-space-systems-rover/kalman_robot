@@ -7,6 +7,7 @@ import { armReducer } from './Arm/armSlice'
 import { autonomyReducer } from './Autonomy/autonomySlice'
 import { feedReducer } from './Feeds/feedsSlice'
 import { gamepadReducer } from './Gamepads/gamepadSlice'
+import { keybindsReducer } from './Keybinds/keybindsSlice'
 import { keysReducer } from './Keys/keysSlice'
 import { motorsReducer } from './Motors/motorsSlice'
 import { scienceReducer } from './Science/scienceSlice'
@@ -26,6 +27,7 @@ export const store = configureStore({
     autonomy: autonomyReducer,
     feed: feedReducer,
     accessPoint: accessPointReducer,
+    keybinds: keybindsReducer,
   }),
   middleware: [websocketMiddleware],
 })

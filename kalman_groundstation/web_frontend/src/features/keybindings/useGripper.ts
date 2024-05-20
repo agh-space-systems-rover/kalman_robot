@@ -5,8 +5,8 @@ import { selectKeys } from '../../store/Keys/keysSlice'
 import { useAppDispatch, useAppSelector } from '../../store/storeHooks'
 import { Target } from '../gamepads/gamepadTypes'
 
-const rightKey = 'Period'
-const leftKey = 'Comma'
+const rightKey = 'openGripperKey'
+const leftKey = 'closeGripperKey'
 const messageFromTemplate: (value: number) => string = (value) => {
   // eslint-disable-next-line max-len
   return `{"target":1,"data":{"mode":1,"gripper":${value},"data":{"joint_1":0,"joint_2":0,"joint_3":0,"joint_4":0,"joint_5":0,"joint_6":0}}}`

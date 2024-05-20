@@ -32,32 +32,32 @@ export interface AxisLock {
 
 const locks: AxisLock[] = [
   {
-    key: 'KeyA',
+    key: 'axisLockXKey',
     isActive: (conf) => conf.lockX,
     set: (conf, value) => ({ ...conf, lockX: value }),
   },
   {
-    key: 'KeyS',
+    key: 'axisLockYKey',
     isActive: (conf) => conf.lockY,
     set: (conf, value) => ({ ...conf, lockY: value }),
   },
   {
-    key: 'KeyD',
+    key: 'axisLockZKey',
     isActive: (conf) => conf.lockZ,
     set: (conf, value) => ({ ...conf, lockZ: value }),
   },
   {
-    key: 'KeyZ',
+    key: 'axisRotXKey',
     isActive: (conf) => conf.lockRotX,
     set: (conf, value) => ({ ...conf, lockRotX: value }),
   },
   {
-    key: 'KeyX',
+    key: 'axisRotYKey',
     isActive: (conf) => conf.lockRotY,
     set: (conf, value) => ({ ...conf, lockRotY: value }),
   },
   {
-    key: 'KeyC',
+    key: 'axisRotZKey',
     isActive: (conf) => conf.lockRotZ,
     set: (conf, value) => ({ ...conf, lockRotZ: value }),
   },

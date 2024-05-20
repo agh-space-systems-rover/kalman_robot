@@ -18,6 +18,7 @@ const useGamepads: () => void = () => {
   const motors = useAppSelector((s) => s.motors.settings)
   const arm = useAppSelector((s) => s.arm.armMode)
   const refreshRate = useAppSelector((s) => s.settings.refreshRate)
+  const gamepadSettings = useAppSelector((state) => state.keybinds.gamepadBinds)
   const dispatch = useAppDispatch()
 
   useEffect(() => {
@@ -72,6 +73,7 @@ const useGamepads: () => void = () => {
           armMode: arm,
           currentValues,
           previousValues,
+          gamepadBinds: gamepadSettings,
         }
 
         // mapping produces:
@@ -92,9 +94,9 @@ const useGamepads: () => void = () => {
         // dispatch(sendMessage(message))
         buttonsHistory.current.set(gamepad.index, currentValues)
       } else {
-        if (gp.buttons[6].pressed == true) {
+        if (gp.buttons[8].pressed == true) {
           dispatch(changeTarget({ index: gamepad.index, target: Target.Wheels }))
-        } else if (gp.buttons[7].pressed == true) {
+        } else if (gp.buttons[9].pressed == true) {
           dispatch(changeTarget({ index: gamepad.index, target: Target.Arm }))
         }
       }

@@ -1,6 +1,7 @@
 import type { Action } from 'redux'
 
 import type { ArmMode } from '../../store/Arm/armTypes'
+import type { gamepadSettings } from '../../store/Keybinds/keybindsTypes'
 import type { MotorSettings } from '../../store/Motors/motorTypes'
 
 export interface WheelsCommand {
@@ -45,6 +46,7 @@ export interface MappingArguments {
   armMode: ArmMode
   currentValues: GamepadValues
   previousValues: GamepadValues | undefined
+  gamepadBinds: gamepadSettings
 }
 
 export type MappingResult = Action<unknown>[]
