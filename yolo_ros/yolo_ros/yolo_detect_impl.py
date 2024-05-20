@@ -4,7 +4,7 @@ import copy
 from typing import Any
 from vision_msgs.msg import Detection2D, Detection2DArray, ObjectHypothesisWithPose
 from rclpy.time import Time
-from tf2_ros import Buffer, LookupException
+from tf2_ros import Buffer, LookupException, ConnectivityException
 
 import yolo_ros.detection_msg_utils as msg_utils
 from yolo_ros.detection_msg_utils import DetectionGroup
@@ -167,7 +167,7 @@ def add_3d_positions_to_detections(
                 node.tf_buffer, node.world_frame, camera_info.header.frame_id, Time()
             )
             xyz = (to_odom @ np.array([x, y, z, 1]))[:3]
-        except LookupException:
+        except (LookupException, ConnectivityException):
             node.get_logger().error(
                 f"Failed to lookup transform from {camera_info.header.frame_id} to odom. Detection positions won't be in the right frame."
             )
