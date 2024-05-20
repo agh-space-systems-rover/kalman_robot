@@ -37,6 +37,11 @@ def generate_launch_description():
                 name="spacenav_to_master",
             ),
             Node(
+                package="kalman_arm_utils",
+                executable="joint_republisher",
+                name="joint_republisher",
+            ),
+            Node(
                 package="kalman_master",
                 executable="ros_link",
                 parameters=[
