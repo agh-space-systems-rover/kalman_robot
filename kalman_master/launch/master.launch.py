@@ -19,11 +19,7 @@ def launch_setup(context):
     def get_str(name):
         return LaunchConfiguration(name).perform(context)
 
-    return [
-        Node(
-            package="kalman_master",
-            executable="autonomy_switch_spam",
-        ),
+    description = [
         Node(
             package="kalman_master",
             executable="master_com",
@@ -51,6 +47,16 @@ def launch_setup(context):
             executable="wheel_driver",
         ),
     ]
+
+    if get_str("mode") == "pc":
+        description.append(
+            Node(
+                package="kalman_master",
+                executable="autonomy_switch_spam",
+            )
+        )
+    
+    return description
 
 
 def generate_launch_description():
