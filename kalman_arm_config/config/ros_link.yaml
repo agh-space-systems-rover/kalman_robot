@@ -10,3 +10,9 @@ station:
       int_range:
         min: 0
         max: 65535
+    - name: joy_compressed
+      type: kalman_interfaces/msg/ArmCompressed
+      max_rate: 10
+      int_range:
+        min: 0
+        max: 255

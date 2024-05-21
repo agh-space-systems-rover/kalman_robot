@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>kalman_groundstation</name>
+  <version>0.0.0</version>
+  <description>TODO: Package description</description>
+  <maintainer email="kacper.iwi@gmail.com">kiwi</maintainer>
+  <license>MIT</license>
+
+  <!-- <depend>rospy</depend> -->
+  <depend>rclpy</depend>
+  <depend>std_msgs</depend>
+  <depend>kalman_interfaces</depend>
+  <depend>tf_transformations</depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

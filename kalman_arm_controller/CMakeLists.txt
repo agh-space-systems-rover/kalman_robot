@@ -144,11 +144,6 @@ install(
   DESTINATION include/kalman_arm_controller
 )
 
-install(
-  DIRECTORY bringup/launch bringup/config
-  DESTINATION share/kalman_arm_controller
-)
-
 install(TARGETS servo_keyboard_input
     DESTINATION lib/${PROJECT_NAME})
 

@@ -1,0 +1,24 @@
+{
+    "compilerOptions": {
+        "allowSyntheticDefaultImports": true,
+        "allowUnreachableCode": false,
+        "allowUnusedLabels": false,
+        "declaration": true,
+        "declarationMap": true,
+        "esModuleInterop": true,
+        "jsx": "react-jsx",
+        "module": "CommonJS",
+        "moduleResolution": "node",
+        "noImplicitReturns": true,
+        "pretty": true,
+        "skipLibCheck": true,
+        "sourceMap": true,
+        "strict": true,
+        "target": "es2021",
+        "lib": ["es2021", "dom"],
+        "paths": {}
+    },
+    "include": [
+        "src"
+    ]
+}
