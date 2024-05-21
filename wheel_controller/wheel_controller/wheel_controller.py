@@ -22,7 +22,7 @@ class WheelContoller(Node):
     def __init__(self):
         super().__init__("wheel_controller")
         self.wheel_state_pub = self.create_publisher(
-            WheelStates, "/wheel_controller/state", qos_profile=10
+            WheelStates, "/wheel_states", qos_profile=10
         )
         self.wheel_command_sub = self.create_subscription(
             WheelsCommand,
