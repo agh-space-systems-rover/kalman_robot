@@ -30,7 +30,7 @@ def generate_launch_description():
     )
 
     # Get parameters for the Servo node
-    servo_yaml = load_yaml("kalman_arm_controller", "config/servo_config.yaml")
+    servo_yaml = load_yaml("kalman_arm_config", "config/servo_config.yaml")
     servo_params = {"moveit_servo": servo_yaml}
 
     # Launch a standalone Servo node.

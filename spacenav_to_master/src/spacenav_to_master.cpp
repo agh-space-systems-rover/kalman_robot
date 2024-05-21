@@ -27,29 +27,58 @@ private:
   void sub_callback(const geometry_msgs::msg::Twist::SharedPtr msg) {
     auto now = rclcpp::Clock().now();
     if (now - last_time_ > rclcpp::Duration::from_seconds(1.0 / rate_)) {
+      if (all_zeros(msg)) {
+        zeros_counter_++;
+      } else {
+        zeros_counter_ = 0;
+      }
+
+      if (zeros_counter_ > 5){
+        zeros_counter_ = 5;
+        send_ = false;
+      }
+      else {
+        send_ = true;
+      }
+
       last_time_ = now;
       republish_master_msg(msg);
     }
   }
 
   void republish_master_msg(const geometry_msgs::msg::Twist::SharedPtr msg) {
-    auto master_msg = std::make_shared<kalman_interfaces::msg::MasterMessage>();
-    master_msg->cmd =
-        kalman_interfaces::msg::MasterMessage().ARM_SEND_SPACEMOUSE;
-    master_msg->data.resize(6);
-    master_msg->data[0] = convert_twist_data(msg->linear.x);
-    master_msg->data[1] = convert_twist_data(msg->linear.y);
-    master_msg->data[2] = convert_twist_data(msg->linear.z);
-    master_msg->data[3] = convert_twist_data(msg->angular.x);
-    master_msg->data[4] = convert_twist_data(msg->angular.y);
-    master_msg->data[5] = convert_twist_data(msg->angular.z);
-    publisher_->publish(*master_msg);
+    if(send_) {
+      auto master_msg = std::make_shared<kalman_interfaces::msg::MasterMessage>();
+      master_msg->cmd =
+          kalman_interfaces::msg::MasterMessage().ARM_SEND_SPACEMOUSE;
+      master_msg->data.resize(6);
+      master_msg->data[0] = convert_twist_data(msg->linear.x);
+      master_msg->data[1] = convert_twist_data(msg->linear.y);
+      master_msg->data[2] = convert_twist_data(msg->linear.z);
+      master_msg->data[3] = convert_twist_data(msg->angular.x);
+      master_msg->data[4] = convert_twist_data(msg->angular.y);
+      master_msg->data[5] = convert_twist_data(msg->angular.z);
+      publisher_->publish(*master_msg);
+    }
   }
 
   uint8_t convert_twist_data(double twist_data) const {
-    return uint8_t((twist_data + 1.0) / 2.0 * 255 + 0.5);
+    return uint8_t((twist_data + 1.0) / 2.0 * 200 + 0.5);
   }
 
+  bool all_zeros(const geometry_msgs::msg::Twist::SharedPtr msg) {
+    return (
+      msg->linear.x == 0.0 && 
+      msg->linear.y == 0.0 && 
+      msg->linear.z == 0.0 &&
+      msg->angular.x == 0.0 && 
+      msg->angular.y == 0.0 && 
+      msg->angular.z == 0.0
+    );
+  }
+
+  int zeros_counter_ = 0;
+  bool send_ = true;
   double rate_;
   rclcpp::Time last_time_;
   rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr subscription_;

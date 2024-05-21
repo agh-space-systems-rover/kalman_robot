@@ -15,11 +15,13 @@
 #include <rclcpp/utilities.hpp>
 #include <thread>
 #include "kalman_interfaces/msg/master_message.hpp"
+#include "kalman_interfaces/msg/arm_compressed.hpp"
 #include <format>
 
 // We'll just set up parameters here
 const std::string SPACEMOUSE_TOPIC =
     "/master_com/master_to_ros/x" + std::format("{:x}", kalman_interfaces::msg::MasterMessage().ARM_SEND_SPACEMOUSE);
+const std::string JOY_TOPIC = "/joy_compressed";
 const std::string TWIST_TOPIC = "/servo_node/delta_twist_cmds";
 const std::string JOINT_TOPIC = "/servo_node/delta_joint_cmds";
 
@@ -31,15 +33,15 @@ public:
   MasterToServo(const rclcpp::NodeOptions& options) : Node("servo_publisher", options)
   {
     // Setup pub/sub
-    // joy_sub_ = this->create_subscription<kalman_interfaces::msg::MasterMessage>(
-    //     JOY_TOPIC, rclcpp::SystemDefaultsQoS(),
-    //     [this](const kalman_interfaces::msg::MasterMessage::ConstSharedPtr& msg) { return spacemouseCB(msg); });
+    joy_sub_ = this->create_subscription<kalman_interfaces::msg::ArmCompressed>(
+        JOY_TOPIC, rclcpp::SystemDefaultsQoS(),
+        [this](const kalman_interfaces::msg::ArmCompressed::ConstSharedPtr& msg) { return joyCB(msg); });
 
     spacemouse_sub_ = this->create_subscription<kalman_interfaces::msg::MasterMessage>(
         SPACEMOUSE_TOPIC, rclcpp::SystemDefaultsQoS(),
         [this](const kalman_interfaces::msg::MasterMessage::ConstSharedPtr& msg) { return spacemouseCB(msg); });
 
-    // joint_pub_ = this->create_publisher<control_msgs::msg::JointJog>(JOINT_TOPIC, rclcpp::SystemDefaultsQoS());
+    joint_pub_ = this->create_publisher<control_msgs::msg::JointJog>(JOINT_TOPIC, rclcpp::SystemDefaultsQoS());
     twist_pub_ = this->create_publisher<geometry_msgs::msg::TwistStamped>(TWIST_TOPIC, rclcpp::SystemDefaultsQoS());
 
     // Create a service client to start the ServoNode
@@ -54,16 +56,37 @@ public:
   {
   }
 
-  void joyCB(kalman_interfaces::msg::MasterMessage::ConstSharedPtr msg)
+  void joyCB(kalman_interfaces::msg::ArmCompressed::ConstSharedPtr msg)
   {
+    if (current_command_type_ != moveit_msgs::srv::ServoCommandType::Request::JOINT_JOG)
+    {
+      setCommandType(moveit_msgs::srv::ServoCommandType::Request::JOINT_JOG);
+    }
     // Create the messages we might publish
     auto joint_msg = std::make_unique<control_msgs::msg::JointJog>();
 
+    uint8_t mask = msg->joints_mask;
+
+    uint8_t idx = 0;
     for (uint8_t i = 0; i < 6; i++)
     {
       joint_msg->joint_names.push_back("joint_" + std::to_string(i + 1));
-      joint_msg->velocities.push_back(double(msg->data[i] - 128) / 128.0);
+      if (mask & 1)
+      {
+        joint_msg->velocities.push_back((double(msg->joints_data[idx++]) / 100.0) - 1);
+      }
+      else
+      {
+        joint_msg->velocities.push_back(0.0);
+      }
+
+      mask >>= 1;
     }
+
+    joint_msg->header.stamp = this->now();
+    joint_msg->header.frame_id = "arm_link";
+
+    joint_pub_->publish(std::move(joint_msg));
   }
 
   void spacemouseCB(kalman_interfaces::msg::MasterMessage::ConstSharedPtr msg)
@@ -78,12 +101,12 @@ public:
 
     twist_msg->header.stamp = this->now();
     twist_msg->header.frame_id = "ee";
-    twist_msg->twist.linear.x = double(msg->data[0] - 128) / 128.0;
-    twist_msg->twist.linear.y = double(msg->data[1] - 128) / 128.0;
-    twist_msg->twist.linear.z = double(msg->data[2] - 128) / 128.0;
-    twist_msg->twist.angular.x = double(msg->data[3] - 128) / 128.0;
-    twist_msg->twist.angular.y = double(msg->data[4] - 128) / 128.0;
-    twist_msg->twist.angular.z = double(msg->data[5] - 128) / 128.0;
+    twist_msg->twist.linear.x = convert_data_to_spacenav(msg->data[0]);
+    twist_msg->twist.linear.y = convert_data_to_spacenav(msg->data[1]);
+    twist_msg->twist.linear.z = convert_data_to_spacenav(msg->data[2]);
+    twist_msg->twist.angular.x = convert_data_to_spacenav(msg->data[3]);
+    twist_msg->twist.angular.y = convert_data_to_spacenav(msg->data[4]);
+    twist_msg->twist.angular.z = convert_data_to_spacenav(msg->data[5]);
 
     twist_pub_->publish(std::move(twist_msg));
   }
@@ -100,8 +123,13 @@ public:
     }
   }
 
+  double convert_data_to_spacenav(int data)
+  {
+    return (double(data) / 100) - 1.0;
+  }
+
 private:
-  rclcpp::Subscription<kalman_interfaces::msg::MasterMessage>::SharedPtr joy_sub_;
+  rclcpp::Subscription<kalman_interfaces::msg::ArmCompressed>::SharedPtr joy_sub_;
   rclcpp::Subscription<kalman_interfaces::msg::MasterMessage>::SharedPtr spacemouse_sub_;
 
   rclcpp::Publisher<control_msgs::msg::JointJog>::SharedPtr joint_pub_;

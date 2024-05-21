@@ -40,7 +40,7 @@ def generate_launch_description():
 
     robot_controllers = PathJoinSubstitution(
         [
-            FindPackageShare("kalman_arm_controller"),
+            FindPackageShare("kalman_arm_config"),
             "config",
             "arm_controller.yaml",
         ]
