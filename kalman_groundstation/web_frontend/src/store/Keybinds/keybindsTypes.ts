@@ -129,6 +129,8 @@ export const initialUserProfile: userProfile = {
 
       { button: 1, target: 'closeGripper' },
       { button: 0, target: 'openGripper' },
+      { button: 12, target: 'dpadUp' },
+      { button: 13, target: 'dpadDown' },
     ],
     axisFeatures: [
       // driving mode normal

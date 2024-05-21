@@ -92,7 +92,7 @@ export const armMapping: GamepadChange = (args) => {
       // eslint-disable-next-line camelcase
       joint_4: translateGamepadAxis(currentValues, gamepadBinds, 'armJoint4'), // right vertical, positive
       // eslint-disable-next-line camelcase
-      joint_5: translateGamepadAxis(currentValues, gamepadBinds, 'armJoint5'), // dpad vertical, negative
+      joint_5: translateGamepadButton(buttonsProfile, 'dpadUp') - translateGamepadButton(buttonsProfile, 'dpadDown'),
       // eslint-disable-next-line camelcase
       joint_6: translateGamepadAxis(currentValues, gamepadBinds, 'armJoint6'), // triggers
     }
