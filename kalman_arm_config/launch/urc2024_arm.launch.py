@@ -1,4 +1,5 @@
 from ament_index_python.packages import get_package_share_directory
+import os
 
 from launch import LaunchDescription
 from launch.actions import IncludeLaunchDescription
@@ -23,3 +24,9 @@ def generate_launch_description():
          get_package_share_directory('kalman_arm_config'), 'launch'),
          '/servo.launch.py'])
       )
+    
+    return LaunchDescription([
+        arm_controller,
+        master,
+        servo  
+    ])
