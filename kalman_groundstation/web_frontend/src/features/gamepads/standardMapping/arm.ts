@@ -57,6 +57,9 @@ export const armMapping: GamepadChange = (args) => {
       actions.push(increaseCamera(1))
     }
   }
+  const betterPressed = (button: Buttons): number => {
+    return currentValues.buttons[button.valueOf()]
+  }
 
   if (armMode === ArmMode.IK) {
     // Inverse Kinematics
@@ -92,7 +95,9 @@ export const armMapping: GamepadChange = (args) => {
       // eslint-disable-next-line camelcase
       joint_4: translateGamepadAxis(currentValues, gamepadBinds, 'armJoint4'), // right vertical, positive
       // eslint-disable-next-line camelcase
-      joint_5: translateGamepadButton(buttonsProfile, 'dpadUp') - translateGamepadButton(buttonsProfile, 'dpadDown'),
+      joint_5:
+        betterPressed(translateGamepadButton(buttonsProfile, 'dpadUp')) -
+        betterPressed(translateGamepadButton(buttonsProfile, 'dpadDown')),
       // eslint-disable-next-line camelcase
       joint_6: translateGamepadAxis(currentValues, gamepadBinds, 'armJoint6'), // triggers
     }
