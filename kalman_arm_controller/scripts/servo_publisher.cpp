@@ -67,12 +67,13 @@ public:
 
     uint8_t mask = msg->joints_mask;
 
+    uint8_t idx = 0;
     for (uint8_t i = 0; i < 6; i++)
     {
       joint_msg->joint_names.push_back("joint_" + std::to_string(i + 1));
       if (mask & 1)
       {
-        joint_msg->velocities.push_back((double(msg->joints_data[i]) / 100.0) - 1);
+        joint_msg->velocities.push_back((double(msg->joints_data[idx++]) / 100.0) - 1);
       }
       else
       {
