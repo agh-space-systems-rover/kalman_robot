@@ -29,6 +29,20 @@ private:
   void sub_callback(const kalman_interfaces::msg::ArmFkCommand::SharedPtr msg) {
     auto now = rclcpp::Clock().now();
     if (now - last_time_ > rclcpp::Duration::from_seconds(1.0 / rate_)) {
+      if (all_zeros(msg)) {
+        zeros_counter_++;
+      } else {
+        zeros_counter_ = 0;
+      }
+
+      if (zeros_counter_ > 5){
+        zeros_counter_ = 5;
+        send_ = false;
+      }
+      else {
+        send_ = true;
+      }
+
       last_time_ = now;
       republish_compressed_msg(msg);
     }
@@ -36,31 +50,46 @@ private:
 
   void republish_compressed_msg(
       const kalman_interfaces::msg::ArmFkCommand::SharedPtr msg) {
-    auto compressed_msg = kalman_interfaces::msg::ArmCompressed();
+    if(send_) {
+      auto compressed_msg = kalman_interfaces::msg::ArmCompressed();
 
-    uint8_t mask = 0;
+      uint8_t mask = 0;
 
-    uint8_t data[6] = {
-        convert_twist_data(msg->joint_1), convert_twist_data(msg->joint_2),
-        convert_twist_data(msg->joint_3), convert_twist_data(msg->joint_4),
-        convert_twist_data(msg->joint_5), convert_twist_data(msg->joint_6)};
+      uint8_t data[6] = {
+          convert_twist_data(msg->joint_1), convert_twist_data(msg->joint_2),
+          convert_twist_data(msg->joint_3), convert_twist_data(msg->joint_4),
+          convert_twist_data(msg->joint_5), convert_twist_data(msg->joint_6)};
 
-    for (int i = 0; i < 6; i++) {
-      if (data[i] != 100) {
-        mask |= 1 << i;
-        compressed_msg.joints_data.push_back(data[i]);
+      for (int i = 0; i < 6; i++) {
+        if (data[i] != 100) {
+          mask |= 1 << i;
+          compressed_msg.joints_data.push_back(data[i]);
+        }
       }
+
+      compressed_msg.joints_mask = mask;
+
+      compressed_pub_->publish(compressed_msg);
     }
-
-    compressed_msg.joints_mask = mask;
-
-    compressed_pub_->publish(compressed_msg);
   }
 
   uint8_t convert_twist_data(double twist_data) const {
     return uint8_t((twist_data + 1.0) * 100.0 + 0.5);
   }
 
+  bool all_zeros(const kalman_interfaces::msg::ArmFkCommand::SharedPtr msg) {
+    return (
+      msg->joint_1 == 0.0 && 
+      msg->joint_2 == 0.0 && 
+      msg->joint_3 == 0.0 &&
+      msg->joint_4 == 0.0 && 
+      msg->joint_5 == 0.0 && 
+      msg->joint_6 == 0.0
+    );
+  }
+
+  int zeros_counter_ = 0;
+  bool send_ = true;
   double rate_;
   rclcpp::Time last_time_;
   rclcpp::Subscription<kalman_interfaces::msg::ArmFkCommand>::SharedPtr fk_sub_;

@@ -32,7 +32,7 @@ class CommandBridge:
 
     def handler_fk(self, message: ArmFkCommand):
         msg = JointJog()
-        msg.header.stamp = self.parent_node.get_clock().now()
+        msg.header.stamp = self.parent_node.get_clock().now().to_msg()
 
         joint_names = []
         joint_velocities = []
@@ -40,8 +40,8 @@ class CommandBridge:
         for name in [f"joint_{i}" for i in range(1, 7)]:
             velocity = getattr(message, name)
 
-            if name == "joint_5":
-                velocity = -velocity
+            # if name == "joint_5":
+            #     velocity = -velocity
 
             if velocity != 0.0:
                 joint_names.append(name)
@@ -58,7 +58,7 @@ class CommandBridge:
     def handler_ik(self, message: ArmIkCommand):
         msg = TwistStamped()
         msg.header.frame_id = "base_link"
-        msg.header.stamp = self.parent_node.get_clock().now()
+        msg.header.stamp = self.parent_node.get_clock().now().to_msg()
 
         msg.twist.linear.x = message.linear_x * 0.1
         msg.twist.linear.y = message.linear_y * 0.1
