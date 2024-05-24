@@ -13,7 +13,7 @@
 #include <control_msgs/msg/joint_jog.hpp>
 #include <thread>
 #include "kalman_arm_controller/can_libs/can_messages.hpp"
-#include "kalman_interfaces/msg/gripper_increment.hpp"
+#include "std_msgs/msg/int8.hpp"
 extern "C" {
 #include "kalman_arm_controller/can_libs/can_driver.hpp"
 #include "kalman_arm_controller/can_libs/can_handlers.hpp"
@@ -37,11 +37,14 @@ private:
 
   uint16_t gripper_position_;
 
+  uint16_t max_gripper_;
+  uint16_t min_gripper_;
+
   //   std::future<void> writer;
   rclcpp::TimerBase::SharedPtr write_timer_;
   rclcpp::TimerBase::SharedPtr read_timer_;
 
-  rclcpp::Subscription<kalman_interfaces::msg::GripperIncrement>::SharedPtr gripper_sub_;
+  rclcpp::Subscription<std_msgs::msg::Int8>::SharedPtr gripper_sub_;
 
   std::unordered_map<uint8_t, canCmdHandler_t> EXTRA_HANDLES = {
     { CMD_GET_GRIPPER, { CMD_GET_GRIPPER, sizeof(cmdGetGripper_t), CAN_handlers::handle_gripper_status } },
@@ -61,16 +64,16 @@ private:
     gripper_position_ = CAN_vars::gripper_position;
   }
 
-  uint16_t calculate_gripper_position(double position)
+  uint16_t calculate_gripper_position(int8_t position)
   {
-    uint16_t target_position = gripper_position_ + static_cast<int16_t>(position * 100.0);
-    if (target_position > 1250)  // FIXME make this dynamic
+    uint16_t target_position = gripper_position_ + position;
+    if (target_position > max_gripper_)  // FIXME make this dynamic
     {
-      target_position = 1250;
+      target_position = max_gripper_;
     }
-    else if (target_position < 330)
+    else if (target_position < min_gripper_)
     {
-      target_position = 330;
+      target_position = min_gripper_;
     }
     return target_position;
   }
@@ -78,13 +81,17 @@ private:
 public:
   ExtraCanNode(const rclcpp::NodeOptions& options) : Node("extra_can_node", options)
   {
+    this->declare_parameter<uint16_t>("max_gripper", 1250);
+    this->get_parameter("max_gripper", max_gripper_);
+    this->declare_parameter<uint16_t>("min_gripper", 330);
+    this->get_parameter("min_gripper", min_gripper_);
+
     CAN_driver::init(&extra_driver_, "can0");
     CAN_driver::startExtraRead(&extra_driver_, &EXTRA_HANDLES);
 
     // joint_pub_ = this->create_publisher<control_msgs::msg::JointJog>(JOINT_TOPIC, rclcpp::SystemDefaultsQoS());
-    gripper_sub_ = this->create_subscription<kalman_interfaces::msg::GripperIncrement>(
-        "gripper_controller/incremental", rclcpp::SystemDefaultsQoS(),
-        [&](const kalman_interfaces::msg::GripperIncrement::SharedPtr msg) {
+    gripper_sub_ = this->create_subscription<std_msgs::msg::Int8>(
+        "gripper/command_incremental", rclcpp::SystemDefaultsQoS(), [&](const std_msgs::msg::Int8::SharedPtr msg) {
           CAN_driver::write_gripper_position(&extra_driver_, calculate_gripper_position(msg->data));
         });
 

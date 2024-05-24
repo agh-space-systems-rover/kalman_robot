@@ -46,13 +46,12 @@ rover: # or 'station'
 
 station: 
   topics:
-    - name: gripper_controller/incremental
-      type: std_msgs/msg/Float64
+    - name: gripper/command_incremental
+      type: std_msgs/msg/Int8
       max_rate: 5
-      float_range:
-        min: -0.01
-        max: 0.01
-        bytes: 1
+      int_range:
+        min: -128
+        max: 127
     - name: joy_compressed
       type: kalman_interfaces/msg/ArmCompressed
       max_rate: 10
