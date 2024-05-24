@@ -36,6 +36,13 @@ rover: # or 'station'
             min: -3.5
             max: 3.5
             bytes: 1
+  services:
+    - name: servo_node/set_parameters
+      type: rcl_interfaces/srv/SetParameters
+      retry_rate: 2
+
+  # moveit_servo.scale.linear
+  # moveit_servo.scale.rotational
 
 station: 
   topics:
