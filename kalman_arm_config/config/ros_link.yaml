@@ -1,15 +1,51 @@
 # This is not a ROS 2 parameter file, but a custom YAML config.
 
-# rover: # or 'station'
-  
+rover: # or 'station'
+  topics:
+    - name: station/arm/state
+      type: kalman_interfaces/msg/ArmState
+      max_rate: 5
+      fields:
+        - path: joint_1
+          float_range:
+            min: -6.4
+            max: 6.4
+            bytes: 2
+        - path: joint_2
+          float_range:
+            min: -3.2
+            max: 3.2
+            bytes: 1
+        - path: joint_3
+          float_range:
+            min: -3
+            max: 3
+            bytes: 1
+        - path: joint_4
+          float_range:
+            min: -6.4
+            max: 6.4
+            bytes: 2
+        - path: joint_5
+          float_range:
+            min: -2
+            max: 2
+            bytes: 1
+        - path: joint_6
+          float_range:
+            min: -3.5
+            max: 3.5
+            bytes: 1
+
 station: 
   topics:
-    - name: gripper_position
-      type: std_msgs/msg/UInt16
+    - name: gripper_controller/incremental
+      type: std_msgs/msg/Float64
       max_rate: 5
-      int_range:
-        min: 0
-        max: 65535
+      float_range:
+        min: -0.01
+        max: 0.01
+        bytes: 1
     - name: joy_compressed
       type: kalman_interfaces/msg/ArmCompressed
       max_rate: 10

@@ -1,6 +1,7 @@
 #ifndef KALMAN_ARM_CONTROLLER__HARDWARE__CAN_VARS_HPP
 #define KALMAN_ARM_CONTROLLER__HARDWARE__CAN_VARS_HPP
 
+#include <cstdint>
 #include "can_types.hpp"
 #include "arm_config.hpp"
 #define ABS_F(x) (x >= 0 ? (x) : ((x) * (-1.0f)))
@@ -20,6 +21,10 @@ extern jointStatus_t joints[6];
  * NOTE! Joint numbering starts from 1, so joint[0] is not used.
  */
 extern armConfig_t arm_config;
+
+extern "C" {
+extern uint16_t gripper_position;
+};
 
 extern bool received_joint_status[6];
 
