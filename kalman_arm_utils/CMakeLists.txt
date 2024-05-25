@@ -21,6 +21,20 @@ target_compile_features(joint_republisher PUBLIC c_std_99 cxx_std_17)  # Require
 install(TARGETS joint_republisher
   DESTINATION lib/${PROJECT_NAME})
 
+  
+
+add_executable(gripper_republisher src/gripper_republisher.cpp)
+target_include_directories(gripper_republisher PUBLIC
+$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+$<INSTALL_INTERFACE:include>)
+
+ament_target_dependencies(gripper_republisher kalman_interfaces rclcpp)
+target_compile_features(gripper_republisher PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+
+install(TARGETS gripper_republisher
+    DESTINATION lib/${PROJECT_NAME})
+  
+
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights
