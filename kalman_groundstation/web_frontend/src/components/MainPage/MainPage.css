@@ -7,7 +7,7 @@
     grid-template:
         "nav nav nav" min-content
         "first second third" 1fr
-        / auto auto auto;
+        / 1fr 1fr 7fr;
 }
 
 .first {
