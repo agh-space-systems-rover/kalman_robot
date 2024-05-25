@@ -2,7 +2,7 @@
 #include "kalman_interfaces/msg/arm_compressed.hpp"
 #include "kalman_interfaces/msg/arm_fk_command.hpp"
 #include "kalman_interfaces/msg/master_message.hpp"
-#include "sensor_msgs/msg/joy.hpp"
+#include <sensor_msgs/msg/joy.hpp>
 #include "std_msgs/msg/int8.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include <chrono>
@@ -16,7 +16,8 @@ public:
     this->declare_parameter<double>("rate", 10.0);
     this->get_parameter("rate", rate_);
 
-    last_time_ = rclcpp::Clock().now();
+    fk_last_time_ = rclcpp::Clock().now();
+    spacenav_last_time_ = rclcpp::Clock().now();
 
     gripper_pub_ = this->create_publisher<std_msgs::msg::Int8>("/gripper/command_incremental", 10);
 
@@ -56,7 +57,7 @@ private:
       fk_last_time_ = now;
       if (fk_send_)
       {
-        send_gripper_msg(static_cast<int8_t>(msg.gripper));
+        send_gripper_msg(static_cast<int8_t>(msg->gripper));
       }
     }
   }
@@ -95,7 +96,7 @@ private:
 
   void send_gripper_msg(const int8_t increment)
   {
-    auto msg = std_msgs::std::Int8();
+    auto msg = std_msgs::msg::Int8();
     msg.data = increment;
 
     gripper_pub_->publish(msg);
@@ -122,13 +123,13 @@ private:
   rclcpp::Time spacenav_last_time_;
   rclcpp::Subscription<kalman_interfaces::msg::ArmFkCommand>::SharedPtr fk_sub_;
   rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr spacenav_sub_;
-  rclcpp::Publisher<kalman_interfaces::msg::ArmCompressed>::SharedPtr gripper_pub_;
+  rclcpp::Publisher<std_msgs::msg::Int8>::SharedPtr gripper_pub_;
 };
 
 int main(int argc, char* argv[])
 {
   rclcpp::init(argc, argv);
-  auto node = std::make_shared<JointRepublisher>();
+  auto node = std::make_shared<GripperRepublisher>();
   rclcpp::spin(node);
   rclcpp::shutdown();
   return 0;

@@ -2,7 +2,7 @@
 
 rover: # or 'station'
   topics:
-    - name: station/arm/state
+    - name: arm_state
       type: kalman_interfaces/msg/ArmState
       max_rate: 5
       fields:
