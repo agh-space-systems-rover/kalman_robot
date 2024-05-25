@@ -48,7 +48,7 @@ station:
   topics:
     - name: gripper/command_incremental
       type: std_msgs/msg/Int8
-      max_rate: 5
+      max_rate: 10
       int_range:
         min: -128
         max: 127
