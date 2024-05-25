@@ -37,6 +37,10 @@ def generate_launch_description():
                 name="joint_republisher",
             ),
             Node(
+                package="kalman_arm_utils",
+                executable="gripper_republisher",
+            ),
+            Node(
                 package="spacenav_to_master",
                 executable="spacenav_to_master",
             ),
