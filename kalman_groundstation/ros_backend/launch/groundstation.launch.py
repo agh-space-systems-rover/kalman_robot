@@ -42,6 +42,10 @@ def generate_launch_description():
                 parameters=[{"gripper_scale": 15.0}],
             ),
             Node(
+                package="kalman_arm_utils",
+                executable="arm_state_republisher",
+            ),
+            Node(
                 package="spacenav_to_master",
                 executable="spacenav_to_master",
             ),
