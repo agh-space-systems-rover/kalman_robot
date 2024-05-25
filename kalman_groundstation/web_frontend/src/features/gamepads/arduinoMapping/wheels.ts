@@ -17,6 +17,15 @@ export const wheelsMapping: GamepadChange = (args) => {
 const diggingMapping: GamepadChange = (args) => {
   const { currentValues, previousValues } = args
 
+  currentValues.axes = [
+    currentValues.axes[4],
+    currentValues.axes[1],
+    currentValues.axes[0],
+    currentValues.axes[2],
+    currentValues.axes[5],
+    currentValues.axes[3],
+  ]
+
   const pressed = (button: Buttons): boolean => {
     if (!previousValues) return false
     return previousValues.buttons[button.valueOf()] - currentValues.buttons[button.valueOf()] === 1
@@ -35,6 +44,15 @@ const diggingMapping: GamepadChange = (args) => {
 
 const drivingMapping: GamepadChange = (args) => {
   const { wheels, currentValues, previousValues } = args
+
+  currentValues.axes = [
+    currentValues.axes[4],
+    currentValues.axes[1],
+    currentValues.axes[0],
+    currentValues.axes[2],
+    currentValues.axes[5],
+    currentValues.axes[3],
+  ]
 
   const drivingMode = wheels.drivingMode
   const actions: Action<unknown>[] = []
