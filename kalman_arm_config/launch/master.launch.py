@@ -34,6 +34,12 @@ def generate_launch_description():
         parameters=[{"baud_rate": 2000000, "port": "/dev/ttyAMA2"}],
     )
     
+    arm_state_publisher_node = Node(
+        package="kalman_arm_utils",
+        executable="arm_state_publisher",
+        parameters=[{"rate": 5.0}],
+    )
+    
     ros_link_node = Node(
         package="kalman_master",
         executable="ros_link",
@@ -52,6 +58,7 @@ def generate_launch_description():
         [
             master_uart_node,
             ros_link_node,
+            arm_state_publisher_node,
             container,
         ]
     )
