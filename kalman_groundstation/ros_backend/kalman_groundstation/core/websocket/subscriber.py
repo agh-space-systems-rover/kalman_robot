@@ -1,6 +1,6 @@
 import rclpy
 from rclpy.node import Node
-import yaml
+from rclpy_message_converter.message_converter import convert_ros_message_to_dictionary
 
 from .message import Message
 
@@ -33,4 +33,4 @@ class Subscriber:
         self.send(message)
 
     def _msg_to_dict(self, message) -> dict:
-        return yaml.safe_load(str(message))
+        return convert_ros_message_to_dictionary(message)
