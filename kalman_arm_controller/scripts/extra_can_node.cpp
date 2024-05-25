@@ -68,16 +68,16 @@ private:
 
   uint16_t calculate_gripper_position(int8_t position)
   {
-    uint16_t target_position = gripper_position_ + position;
-    if (target_position > max_gripper_)  // FIXME make this dynamic
+    gripper_position_ += position;
+    if (gripper_position_ > max_gripper_)  // FIXME make this dynamic
     {
-      target_position = max_gripper_;
+      gripper_position_ = max_gripper_;
     }
-    else if (target_position < min_gripper_)
+    else if (gripper_position_ < min_gripper_)
     {
-      target_position = min_gripper_;
+      gripper_position_ = min_gripper_;
     }
-    return target_position;
+    return gripper_position_;
   }
 
 public:

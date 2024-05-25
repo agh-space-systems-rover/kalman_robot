@@ -16,6 +16,9 @@ public:
     this->declare_parameter<double>("rate", 10.0);
     this->get_parameter("rate", rate_);
 
+    this->declare_parameter<double>("gripper_scale", 10.0);
+    this->get_parameter("gripper_scale", gripper_scale_);
+
     fk_last_time_ = rclcpp::Clock().now();
     spacenav_last_time_ = rclcpp::Clock().now();
 
@@ -97,7 +100,7 @@ private:
   void send_gripper_msg(const int8_t increment)
   {
     auto msg = std_msgs::msg::Int8();
-    msg.data = increment;
+    msg.data = increment * gripper_scale_;
 
     gripper_pub_->publish(msg);
   }
@@ -117,8 +120,8 @@ private:
   bool fk_send_ = true;
   int spacenav_zeros_counter_ = 0;
   bool spacenav_send_ = true;
-  int8_t gripper_increment_ = 0;
   double rate_;
+  double gripper_scale_;
   rclcpp::Time fk_last_time_;
   rclcpp::Time spacenav_last_time_;
   rclcpp::Subscription<kalman_interfaces::msg::ArmFkCommand>::SharedPtr fk_sub_;
