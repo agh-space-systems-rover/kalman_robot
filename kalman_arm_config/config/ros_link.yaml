@@ -63,10 +63,20 @@ rover: # or 'station'
             min: -180.0
             max: 180.0
             bytes: 4 # precision = 0.0000001 degrees = 1 cm
-  services:
-    - name: servo_node/set_parameters
-      type: rcl_interfaces/srv/SetParameters
-      retry_rate: 2
+    - name: servo/set_linear_scale
+      type: std_msgs/msg/Float64
+      max_rate: 2
+      float_range:
+        min: 0
+        max: 1
+        bytes: 1
+    - name: servo/set_rotational_scale
+      type: std_msgs/msg/Float64
+      max_rate: 2
+      float_range:
+        min: 0
+        max: 1
+        bytes: 1
 
   # moveit_servo.scale.linear
   # moveit_servo.scale.rotational
