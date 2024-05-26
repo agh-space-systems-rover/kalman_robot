@@ -33,8 +33,8 @@ def launch_setup(context):
                     "config_path": str(
                         get_package_share_path("kalman_master") / "config/ros_link.yaml"
                     ),
-                    "side": ("station" if get_str("mode") == "gs" else "rover"),
-                    "rover_endpoint": ("arm" if get_str("mode") == "arm" else "pc"),
+                    "side": ("station" if get_str("mode") == "gs" else "rover"), # station or rover
+                    "rover_endpoint": ("arm" if get_str("mode") == "arm" else "pc"), # arm or pc
                 },
             ],
         ),

@@ -19,7 +19,7 @@ type Props = {
   panelRef: MutableRefObject<Map>;
 };
 
-async function findLatLong(
+async function parseLatLong(
   query: string
 ): Promise<[number, number] | undefined> {
   // Attempt to parse the query as a latitude and longitude pair.
@@ -28,18 +28,15 @@ async function findLatLong(
   if (!/[a-zA-Z]/.test(query)) {
     // 1. Trim the query to remove leading and trailing whitespace.
     const trimmedQuery = query.trim();
-    console.log(trimmedQuery);
     // 2. Replace non-numerics with spaces to then check for numbers.
     const numericQuery = trimmedQuery
       .replace(/[^0-9. -]/g, ' ')
       .replaceAll(/\s+/g, ' ');
-    console.log(numericQuery);
     // 3. Split the query into numbers.
     const numbers = numericQuery
       .split(' ')
       .map(Number)
       .filter((n) => !isNaN(n));
-    console.log(numbers);
     // 3. If there are exactly two numbers, return them as the latitude and longitude.
     if (numbers.length === 2) {
       return [numbers[0], numbers[1]];
@@ -76,7 +73,7 @@ export default function MapHeader({ panelRef }: Props) {
   const goToGeocode = useCallback(async () => {
     const query = inputRef.current?.getValue();
     try {
-      const latLong = await findLatLong(query);
+      const latLong = await parseLatLong(query);
       if (latLong) {
         panelRef.current?.goToLocation(...latLong);
       } else {
