@@ -3,15 +3,15 @@
 from fastapi import APIRouter
 import rclpy
 from rclpy.node import Node
-from rcl_interfaces.srv import SetParameters
-from rcl_interfaces.msg import Parameter, ParameterValue, ParameterType
+from std_msgs.msg import Float64
 
 class ArmConfigurationRouter(APIRouter):
     def __init__(self, parent_node: Node):
         super().__init__(prefix="/configuration", tags=["configuration"])
 
         self.node = parent_node
-        self.servo_client = self.node.create_client(SetParameters, "/servo_node/set_parameters")
+        self.linear_pub = self.node.create_publisher(Float64, 'servo/set_linear_scale', 10)
+        self.rotational_pub = self.node.create_publisher(Float64, 'servo/set_rotational_scale', 10)
         # Webserver stuff
         self.add_api_route(
             "/linear_vel_scale",
@@ -30,42 +30,10 @@ class ArmConfigurationRouter(APIRouter):
         )
 
     def put_linear_vel_scale(self, scale: float) -> bool:
-        while not self.servo_client.wait_for_service(timeout_sec=0.5):
-            self.node.get_logger().info("service not available, waiting again...")
-    
-        request = SetParameters.Request()
-
-        param = Parameter()
-        param.name = "moveit_servo.scale.linear"
-
-        value = ParameterValue()
-        value.type = ParameterType.PARAMETER_DOUBLE
-        value.double_value = scale
-        param.value = value
-
-        request.parameters = [param]
-        
-        self.servo_client.call(request)
-        # rclpy.spin_until_future_complete(self.node, future)
+        self.linear_pub.publish(Float64(data=scale))
         return True
     
     def put_angular_vel_scale(self, scale: float) -> bool:
-        while not self.servo_client.wait_for_service(timeout_sec=0.5):
-            self.node.get_logger().info("service not available, waiting again...")
-    
-        request = SetParameters.Request()
-
-        param = Parameter()
-        param.name = "moveit_servo.scale.rotational"
-        
-        value = ParameterValue()
-        value.type = ParameterType.PARAMETER_DOUBLE
-        value.double_value = scale
-        param.value = value
-
-        request.parameters = [param]
-
-        self.servo_client.call(request)
-        # rclpy.spin_until_future_complete(self.node, future)
+        self.rotational_pub.publish(Float64(data=scale))
         return True
 
