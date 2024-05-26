@@ -1,81 +1,71 @@
-import rospy
+# import rospy
 
 from fastapi import APIRouter
+import rclpy
+from rclpy.node import Node
+from rcl_interfaces.srv import SetParameters
+from rcl_interfaces.msg import Parameter, ParameterValue, ParameterType
 
-from moveit_msgs.srv import ChangeControlDimensions, ChangeControlDimensionsRequest
-from std_srvs.srv import Empty
+class ArmConfigurationRouter(APIRouter):
+    def __init__(self, parent_node: Node):
+        super().__init__(prefix="/configuration", tags=["configuration"])
 
-configuration_router = APIRouter(prefix="/configuration", tags=["configuration"])
+        self.node = parent_node
+        self.servo_client = self.node.create_client(SetParameters, "/servo_node/set_parameters")
+        # Webserver stuff
+        self.add_api_route(
+            "/linear_vel_scale",
+            self.put_linear_vel_scale, # Callable
+            name="Sets linear velocity multiplier",
+            response_model=bool,
+            methods=["PUT"],
+        )
 
+        self.add_api_route(
+            "/angular_vel_scale",
+            self.put_angular_vel_scale, # Callable
+            name="Sets angular velocity multiplier",
+            response_model=bool,
+            methods=["PUT"],
+        )
 
-change_control_dimensions = rospy.ServiceProxy(
-    "/servo_server/change_control_dimensions", ChangeControlDimensions
-)
-reset_servo_status = rospy.ServiceProxy("/servo_server/reset_servo_status", Empty)
+    def put_linear_vel_scale(self, scale: float) -> bool:
+        while not self.servo_client.wait_for_service(timeout_sec=0.5):
+            self.node.get_logger().info("service not available, waiting again...")
+    
+        request = SetParameters.Request()
 
+        param = Parameter()
+        param.name = "moveit_servo.scale.linear"
 
-@configuration_router.put(
-    "/control_dimensions",
-    name="Sets control dimensions of 6dof arm",
-    response_model=bool,
-)
-async def put(
-    control_x_translation: bool,
-    control_y_translation: bool,
-    control_z_translation: bool,
-    control_x_rotation: bool,
-    control_y_rotation: bool,
-    control_z_rotation: bool,
-):
-    msg = ChangeControlDimensionsRequest(
-        control_x_translation,
-        control_y_translation,
-        control_z_translation,
-        control_x_rotation,
-        control_y_rotation,
-        control_z_rotation,
-    )
-    change_control_dimensions(msg)
-    return True
+        value = ParameterValue()
+        value.type = ParameterType.PARAMETER_DOUBLE
+        value.double_value = scale
+        param.value = value
 
+        request.parameters = [param]
+        
+        self.servo_client.call(request)
+        # rclpy.spin_until_future_complete(self.node, future)
+        return True
+    
+    def put_angular_vel_scale(self, scale: float) -> bool:
+        while not self.servo_client.wait_for_service(timeout_sec=0.5):
+            self.node.get_logger().info("service not available, waiting again...")
+    
+        request = SetParameters.Request()
 
-@configuration_router.put(
-    "/reset_servo_status", name="Resets status of servo server", response_model=bool
-)
-async def put():
-    reset_servo_status()
+        param = Parameter()
+        param.name = "moveit_servo.scale.rotational"
+        
+        value = ParameterValue()
+        value.type = ParameterType.PARAMETER_DOUBLE
+        value.double_value = scale
+        param.value = value
 
+        request.parameters = [param]
 
-# @configuration_router.put(
-#     "/linear_vel_scale", name="Sets linear velocity multiplier", response_model=bool
-# )
-# async def put(scale: float):
-#     client = dynamic_reconfigure.client.Client(
-#         "spacenav_to_twist", timeout=30, config_callback=None
-#     )
-#     client.update_configuration({"linear_vel_scale": scale})
-#     return True
+        self.servo_client.call(request)
+        # rclpy.spin_until_future_complete(self.node, future)
+        return True
 
-
-# @configuration_router.put(
-#     "/angular_vel_scale", name="Sets angular velocity multiplier", response_model=bool
-# )
-# async def put(scale: float):
-#     client = dynamic_reconfigure.client.Client(
-#         "spacenav_to_twist", timeout=30, config_callback=None
-#     )
-#     client.update_configuration({"angular_vel_scale": scale})
-#     return True
-
-
-# @configuration_router.put(
-#     "/twist_command_frame",
-#     name="Sets control dimensions of 6dof arm",
-#     response_model=bool,
-# )
-# async def put(frame: str):
-#     client = dynamic_reconfigure.client.Client(
-#         "spacenav_to_twist", timeout=30, config_callback=None
-#     )
-#     client.update_configuration({"twist_command_frame": frame})
-#     return True

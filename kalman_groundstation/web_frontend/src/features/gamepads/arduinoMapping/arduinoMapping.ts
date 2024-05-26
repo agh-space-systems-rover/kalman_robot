@@ -4,8 +4,8 @@ import { Target } from '../gamepadTypes'
 import { wheelsMapping } from './wheels'
 
 export enum Buttons {
-  RB = 5, // toggle inplace
-  LB = 4, // toggle sideways
+  RB = 2, // toggle inplace
+  LB = 18, // toggle sideways
 }
 
 export const arduinoMapping: GamepadChange = (args) => {

@@ -19,6 +19,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/DrillCommand.msg"
   "msg/GpsTagArray.msg"
   "msg/GpsTag.msg"
+  "msg/GripperIncrement.msg"
   "msg/MasterMessage.msg"
   "msg/MotorsState.msg"
   "msg/MotorState.msg"

@@ -7,6 +7,7 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
+find_package(sensor_msgs REQUIRED)
 find_package(kalman_interfaces REQUIRED)
 find_package(rclcpp REQUIRED)
 
@@ -20,6 +21,43 @@ target_compile_features(joint_republisher PUBLIC c_std_99 cxx_std_17)  # Require
 
 install(TARGETS joint_republisher
   DESTINATION lib/${PROJECT_NAME})
+
+
+add_executable(gripper_republisher src/gripper_republisher.cpp)
+target_include_directories(gripper_republisher PUBLIC
+$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+$<INSTALL_INTERFACE:include>)
+
+ament_target_dependencies(gripper_republisher kalman_interfaces rclcpp sensor_msgs)
+target_compile_features(gripper_republisher PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+
+install(TARGETS gripper_republisher
+DESTINATION lib/${PROJECT_NAME})  
+
+
+add_executable(arm_state_republisher src/arm_state_republisher.cpp)
+target_include_directories(arm_state_republisher PUBLIC
+$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+$<INSTALL_INTERFACE:include>)
+
+ament_target_dependencies(arm_state_republisher kalman_interfaces rclcpp sensor_msgs)
+target_compile_features(arm_state_republisher PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+
+install(TARGETS arm_state_republisher
+DESTINATION lib/${PROJECT_NAME})  
+
+
+add_executable(arm_state_publisher src/arm/arm_state_publisher.cpp)
+target_include_directories(arm_state_publisher PUBLIC
+$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+$<INSTALL_INTERFACE:include>)
+
+ament_target_dependencies(arm_state_publisher kalman_interfaces rclcpp sensor_msgs)
+target_compile_features(arm_state_publisher PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+
+install(TARGETS arm_state_publisher
+DESTINATION lib/${PROJECT_NAME})  
+
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

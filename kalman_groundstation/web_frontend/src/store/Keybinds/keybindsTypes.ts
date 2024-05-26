@@ -127,7 +127,7 @@ export const initialUserProfile: userProfile = {
       { button: 1, target: 'videoFeedNextArmMode' },
       { button: 3, target: 'videoFeedPreviousArmMode' },
 
-      { button: 1, target: 'closeGripper' },
+      { button: 2, target: 'closeGripper' },
       { button: 0, target: 'openGripper' },
       { button: 12, target: 'dpadUp' },
       { button: 13, target: 'dpadDown' },
@@ -185,8 +185,8 @@ export const initialUserProfile: userProfile = {
       // arm fk
       { axis: 0, target: 'armJoint1', valueMapping: invertedMapping },
       { axis: 1, target: 'armJoint2', valueMapping: invertedMapping },
-      { axis: 2, target: 'armJoint3', valueMapping: invertedMapping },
-      { axis: 3, target: 'armJoint4', valueMapping: noMapping },
+      { axis: 3, target: 'armJoint3', valueMapping: invertedMapping },
+      { axis: 2, target: 'armJoint4', valueMapping: noMapping },
       { axis: 7, target: 'armJoint5', valueMapping: invertedMapping },
       // armJoint6 is virtual
 

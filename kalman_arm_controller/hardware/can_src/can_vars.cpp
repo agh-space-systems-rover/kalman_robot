@@ -8,6 +8,8 @@ jointStatus_t joints[6] = {};
 
 armConfig_t arm_config = {};
 
+uint16_t gripper_position = 0;
+
 bool received_joint_status[6] = { false, false, false, false, false, false };
 }  // namespace CAN_vars
 

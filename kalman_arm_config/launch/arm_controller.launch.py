@@ -12,13 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
 from launch import LaunchDescription
 from launch.actions import RegisterEventHandler
 from launch.event_handlers import OnProcessExit
 from launch.substitutions import Command, FindExecutable, PathJoinSubstitution
 
-from launch_ros.actions import Node
+from launch_ros.actions import Node, LoadComposableNodes, ComposableNodeContainer
+from launch_ros.descriptions import ComposableNode
 from launch_ros.substitutions import FindPackageShare
+from ament_index_python import get_package_share_path
 
 
 def generate_launch_description():
@@ -95,7 +99,7 @@ def generate_launch_description():
                 on_exit=[robot_controller_spawner, robot_vel_controller_spawner],
             )
         )
-    )
+    )  
 
     nodes = [
         control_node,

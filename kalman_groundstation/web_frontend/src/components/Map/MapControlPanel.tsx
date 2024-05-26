@@ -8,7 +8,7 @@ import { useState } from 'react'
 import { logUserMark } from '../../api/requests'
 import { useAppSelector } from '../../store/storeHooks'
 import type { MapSettings, Markers } from './Map'
-import { mapJumpTo } from './mapUtils'
+import { loadWaypoints, mapJumpTo } from './mapUtils'
 
 interface Props {
   map: MapType
@@ -41,17 +41,21 @@ export const MapControlPanel: React.FC<Props> = ({ map, goalGpsPosition, markers
       >
         Jump to goal
       </button>
-      <span style={{ marginLeft: 3 }}>BLE Signal: {bleSignal}</span>
-      <br />
-      <input
-        id='show-ble'
-        type='checkbox'
-        checked={mapSettings.showBleSignal}
-        onChange={(): void => {
-          setMapSettings((prevSettings) => ({ ...prevSettings, showBleSignal: !prevSettings.showBleSignal }))
-        }}
-      />
-      <label htmlFor='show-ble'>Show BLE signal</label>
+      {/* ############## CIRC only feature ############## */}
+      <div style={{ display: 'none' }}>
+        <span style={{ marginLeft: 3 }}>BLE Signal: {bleSignal}</span>
+        <br />
+        <input
+          id='show-ble'
+          type='checkbox'
+          checked={mapSettings.showBleSignal}
+          onChange={(): void => {
+            setMapSettings((prevSettings) => ({ ...prevSettings, showBleSignal: !prevSettings.showBleSignal }))
+          }}
+        />
+        <label htmlFor='show-ble'>Show BLE signal</label>
+      </div>
+      {/* ############################################## */}
       <input
         id='show-gps-path'
         type='checkbox'
@@ -61,18 +65,28 @@ export const MapControlPanel: React.FC<Props> = ({ map, goalGpsPosition, markers
         }}
       />
       <label htmlFor='show-gps-path'>Show GPS Path</label>
-      <br />
-      <input id='user-marker-id' type='number' value={id} onChange={(e): void => setId(parseInt(e.target.value))} />
-      <label htmlFor='show-gps-path'>UM ID </label>
-      <input id='user-marker-desc' type='text' value={desc} onChange={(e): void => setDesc(e.target.value)} />
-      <label htmlFor='show-gps-path'>UM Desc</label>
-      <br />
+      <div style={{ display: 'none' }}>
+        <br />
+        <input id='user-marker-id' type='number' value={id} onChange={(e): void => setId(parseInt(e.target.value))} />
+        <label htmlFor='show-gps-path'>UM ID </label>
+        <input id='user-marker-desc' type='text' value={desc} onChange={(e): void => setDesc(e.target.value)} />
+        <label htmlFor='show-gps-path'>UM Desc</label>
+        <br />
+        <button
+          onClick={(): void => {
+            logUserMark(markers.userMarkers[id].getLngLat().lat, markers.userMarkers[id].getLngLat().lng, 0, desc)
+          }}
+        >
+          Save point!
+        </button>
+      </div>
+
       <button
         onClick={(): void => {
-          logUserMark(markers.userMarkers[id].getLngLat().lat, markers.userMarkers[id].getLngLat().lng, 0, desc)
+          loadWaypoints(map)
         }}
       >
-        Save point!
+        Load waypoints
       </button>
     </div>
   )

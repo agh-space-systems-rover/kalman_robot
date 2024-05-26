@@ -107,7 +107,7 @@ class WheelContoller(Node):
         # if not self.mode == MODE_ARC_CONTROL:
         #     return
 
-        MAX_ANGLE = np.deg2rad(90)
+        MAX_ANGLE = np.deg2rad(100)
 
         self.turn_in_place_start_time = None
 
@@ -150,10 +150,10 @@ class WheelContoller(Node):
 
         l_vel, r_vel = np.clip(l_vel, -1, 1), np.clip(r_vel, -1, 1)
         fl, fr, bl, br = (
-            fl + msg.translate,
-            fr + msg.translate,
-            bl - msg.translate,
-            br - msg.translate,
+            fl + msg.translate*1.75,
+            fr + msg.translate*1.75,
+            bl - msg.translate*1.75,
+            br - msg.translate*1.75,
         )
         fl, fr, bl, br = (
             np.clip(fl, -MAX_ANGLE, MAX_ANGLE),

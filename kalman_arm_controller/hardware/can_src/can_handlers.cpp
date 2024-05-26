@@ -46,4 +46,10 @@ int handle_joint_fast_status(uint32_t identifier, uint8_t* data, uint8_t len)
   return 0;
 }
 
+int handle_gripper_status(uint32_t identifier, uint8_t* data, uint8_t len)
+{
+  CAN_vars::gripper_position = *((uint16_t*)data);
+  return 0;
+}
+
 }  // namespace CAN_handlers

@@ -13,9 +13,10 @@
 #include <control_msgs/msg/joint_jog.hpp>
 #include <thread>
 #include "kalman_arm_controller/can_libs/can_messages.hpp"
-#include "std_msgs/msg/u_int16.hpp"
+#include "std_msgs/msg/int8.hpp"
 extern "C" {
 #include "kalman_arm_controller/can_libs/can_driver.hpp"
+#include "kalman_arm_controller/can_libs/can_handlers.hpp"
 }
 #include "kalman_arm_controller/can_libs/can_types.hpp"
 #include <map>
@@ -36,82 +37,69 @@ private:
 
   uint16_t gripper_position_;
 
-//   std::future<void> writer;
+  uint16_t max_gripper_;
+  uint16_t min_gripper_;
+  uint16_t start_pose_;
+
+  //   std::future<void> writer;
   rclcpp::TimerBase::SharedPtr write_timer_;
   rclcpp::TimerBase::SharedPtr read_timer_;
 
-  rclcpp::Subscription<std_msgs::msg::UInt16>::SharedPtr gripper_sub_;
+  rclcpp::Subscription<std_msgs::msg::Int8>::SharedPtr gripper_sub_;
 
   //   std::unordered_map<uint8_t, canCmdHandler_t> EXTRA_HANDLES = {
-  //     // { CMD_SET_GRIPPER, { CMD_SET_GRIPPER, sizeof(cmdSetGripper_t), handle_set_gripper } },
-  //     //   { CMD_JOINT_STATUS, { CMD_JOINT_STATUS, sizeof(jointMotorStatus_t), handle_joint_status } },
-  //     //   { CMD_JOINT_FAST_STATUS, { CMD_JOINT_FAST_STATUS, sizeof(jointMotorFastStatus_t), handle_joint_fast_status } }
+  //     { CMD_GET_GRIPPER, { CMD_GET_GRIPPER, sizeof(cmdGetGripper_t), CAN_handlers::handle_gripper_status } },
+  //     //     //   { CMD_JOINT_STATUS, { CMD_JOINT_STATUS, sizeof(jointMotorStatus_t), handle_joint_status } },
+  //     //     //   { CMD_JOINT_FAST_STATUS, { CMD_JOINT_FAST_STATUS, sizeof(jointMotorFastStatus_t),
+  //     handle_joint_fast_status } }
   //   };
 
-  void writeCan()
-  {
-   RCLCPP_INFO(this->get_logger(), "Writing can"); 
-    CAN_driver::write_gripper_position(&extra_driver_, gripper_position_);
-   RCLCPP_INFO(this->get_logger(), "Written can"); 
-    // if (writer.valid() && writer.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
-    // {
-    //   RCLCPP_WARN(this->get_logger(), "Previous write still in progress");
-    // }
-    // else
-    // {
-    //   {
-    //     // std::lock_guard<std::mutex> lock(this->extra_driver_.m_write);
-    //     // Do something related to variables that write uses
-    //   }
-    //   // Run write in a separate thread
-    //   printf("!!!!!! Starting wirter");
-    //   writer = std::async(std::launch::async, [&] { CAN_driver::write_gripper_position(gripper_position_); });
-    // }
-  }
+  //   void writeCan()
+  //   {
+  //     CAN_driver::write_gripper_position(&extra_driver_, gripper_position_);
+  //   }
 
-  void readCan()
-  {
-    // std::lock_guard<std::mutex> lock(this->extra_driver_.m_read);
-    // Do something related to variables that read uses
-    // if ((now() - jointsVelData.lastReceivedTime).seconds() > JOINT_TIMEOUT)
-    // {
-    //   RCLCPP_WARN(rclcpp::get_logger("master_node_logger"), "Joint data timeout");
-    // }
-    // else
-    // {
-    //   auto joint_msg = std::make_unique<control_msgs::msg::JointJog>();
-    //   joint_msg->header.stamp = this->now();
-    //   joint_msg->header.frame_id = "arm_link";
-    //   joint_msg->joint_names.push_back("joint_1");
-    //   joint_msg->joint_names.push_back("joint_2");
-    //   joint_msg->joint_names.push_back("joint_3");
-    //   joint_msg->joint_names.push_back("joint_4");
-    //   joint_msg->joint_names.push_back("joint_5");
-    //   joint_msg->joint_names.push_back("joint_6");
-    //   for (uint8_t i = 0; i < 6; i++)
-    //   {
-    //     joint_msg->velocities.push_back((double)jointsVelData.velocities[i] / 100.0);
-    //   }
+  //   void readCan()
+  //   {
+  //     std::lock_guard<std::mutex> lock(this->extra_driver_.m_read);
+  //     // Do something related to variables that read uses
+  //     gripper_position_ = CAN_vars::gripper_position;
+  //   }
 
-    //   joint_pub_->publish(std::move(joint_msg));
-    // }
+  uint16_t calculate_gripper_position(int8_t position)
+  {
+    gripper_position_ += position;
+    if (gripper_position_ > max_gripper_)  // FIXME make this dynamic
+    {
+      gripper_position_ = max_gripper_;
+    }
+    else if (gripper_position_ < min_gripper_)
+    {
+      gripper_position_ = min_gripper_;
+    }
+    return gripper_position_;
   }
 
 public:
   ExtraCanNode(const rclcpp::NodeOptions& options) : Node("extra_can_node", options)
   {
+    this->declare_parameter<uint16_t>("max_gripper", 1250);
+    this->get_parameter("max_gripper", max_gripper_);
+    this->declare_parameter<uint16_t>("min_gripper", 330);
+    this->get_parameter("min_gripper", min_gripper_);
+    this->declare_parameter<uint16_t>("start_pose", 330);
+    this->get_parameter("start_pose", start_pose_);
+
+    gripper_position_ = start_pose_;
+
     CAN_driver::init(&extra_driver_, "can0");
     // CAN_driver::startExtraRead(&extra_driver_, &EXTRA_HANDLES);
 
     // joint_pub_ = this->create_publisher<control_msgs::msg::JointJog>(JOINT_TOPIC, rclcpp::SystemDefaultsQoS());
-    gripper_sub_ = this->create_subscription<std_msgs::msg::UInt16>("gripper_position", rclcpp::SystemDefaultsQoS(),
-                                                                    [&](const std_msgs::msg::UInt16::SharedPtr msg) {
-                                                                    //   gripper_position_ = msg->data;
-
-   RCLCPP_INFO(this->get_logger(), "Sb called"); 
-    CAN_driver::write_gripper_position(&extra_driver_, msg->data);
-   RCLCPP_INFO(this->get_logger(), "Sb written");
-                                                                    });
+    gripper_sub_ = this->create_subscription<std_msgs::msg::Int8>(
+        "gripper/command_incremental", rclcpp::SystemDefaultsQoS(), [&](const std_msgs::msg::Int8::SharedPtr msg) {
+          CAN_driver::write_gripper_position(&extra_driver_, calculate_gripper_position(msg->data));
+        });
 
     // write_timer_ = create_wall_timer(std::chrono::milliseconds(WRITE_CALLBACK_PERIOD_MS),
     //                                  std::bind(&ExtraCanNode::writeCan, this));

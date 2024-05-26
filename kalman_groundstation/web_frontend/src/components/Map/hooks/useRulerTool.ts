@@ -18,8 +18,11 @@ export const useRulerTool: (map: MapType | undefined) => void = (map) => {
 
   const onClick = useCallback(
     (e: MapMouseEvent) => {
-      if (e.type == 'contextmenu' || features.length >= 2 || !map) {
+      if (features.length >= 2 || !map) {
         cleanRuler()
+        return
+      }
+      if (e.type != 'contextmenu') {
         return
       }
 
@@ -67,11 +70,11 @@ export const useRulerTool: (map: MapType | undefined) => void = (map) => {
 
   useEffect(() => {
     map?.on('click', onClick)
-    map?.on('contextmenu', cleanRuler)
+    map?.on('contextmenu', onClick)
 
     return () => {
       map?.off('click', onClick)
-      map?.off('contextmenu', cleanRuler)
+      map?.off('contextmenu', onClick)
     }
   }, [map, onClick, cleanRuler])
 

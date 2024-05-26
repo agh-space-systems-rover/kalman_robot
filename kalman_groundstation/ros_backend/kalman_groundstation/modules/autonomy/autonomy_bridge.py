@@ -69,7 +69,7 @@ class AutonomyBridge:
         )
 
         self.gps_subscriber = parent_node.create_subscription(
-            Vector3, "/gps/squashed", self._update_gps, qos_profile=10
+            NavSatFix, "/gps/fix", self._update_gps, qos_profile=10
         )
 
         # self.supervisor_subscriber = parent_node.create_subscription(
@@ -132,12 +132,12 @@ class AutonomyBridge:
     def _update_gps(self, msg: Vector3):
         self.state["gps"] = {
             "position": {
-                "latitude": msg.x,
-                "longitude": msg.y,
-                "altitude": msg.z,
+                "latitude": msg.latitude,
+                "longitude": msg.longitude,
+                "altitude": msg.altitude,
             },
         }
-        self.gps_logger.log(msg)
+        # self.gps_logger.log(msg)
         self._publish()
 
     # def _update_supervisor(self, msg: SupervisorStatus):

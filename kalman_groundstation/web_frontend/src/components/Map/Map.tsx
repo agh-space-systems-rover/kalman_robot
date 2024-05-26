@@ -11,7 +11,8 @@ import { useGpsPath } from './hooks/useGpsPath'
 import { useRulerTool } from './hooks/useRulerTool'
 import { useUserMarkers } from './hooks/useUserMarkers'
 // import { mapDataDrumheller } from './locations/Drumheller'
-import { mapDataD1 } from './locations/D1'
+import { mapDataGreenRiver } from './locations/GreenRiver'
+// import { mapDataD1 } from './locations/D1'
 import { MapControlPanel } from './MapControlPanel'
 import { locations, mapJumpTo } from './mapUtils'
 
@@ -63,7 +64,8 @@ export const Map: () => JSX.Element = () => {
   // initial use effect
   useEffect(() => {
     // const newMap = new maplibregl.Map(mapDataDrumheller(mapContainerRef))
-    const newMap = new maplibregl.Map(mapDataD1(mapContainerRef))
+    // const newMap = new maplibregl.Map(mapDataD1(mapContainerRef))
+    const newMap = new maplibregl.Map(mapDataGreenRiver(mapContainerRef))
     newMap.on('drag', () => {
       setMapSettings((prevSettings) => ({ ...prevSettings, followRover: false }))
     })
