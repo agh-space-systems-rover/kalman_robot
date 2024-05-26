@@ -22,6 +22,11 @@ export const sendAutonomy: (autonomyOn: boolean) => void = (autonomyOn: boolean)
   request.then((res) => console.log(res))
 }
 
+export const sendSilentMode: (silentOn: boolean) => void = (silentOn: boolean) => {
+  const request = putRequest(`/station/system/radio/silent_mode_on_off/?silent_on=${silentOn}`)
+  request.then((res) => console.log(res))
+}
+
 export const sendWaypointsSet: (waypoints: [number, number][]) => void = (waypoints: [number, number][]) => {
   const request = putRequest('/station/system/rover/autonomy/waypoints/set/', waypoints.flat())
   request.then((res) => console.log(res))

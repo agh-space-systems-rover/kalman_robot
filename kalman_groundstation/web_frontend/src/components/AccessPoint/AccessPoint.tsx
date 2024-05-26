@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import styled from 'styled-components'
 
-import { sendAutonomy, sendUeuosState } from '../../api/requests'
+import { sendAutonomy, sendSilentMode, sendUeuosState } from '../../api/requests'
 import { updateSsid } from '../../store/AccessPoint/accessPointSlice'
 import { useAppDispatch, useAppSelector } from '../../store/storeHooks'
 import { sendMessage } from '../Websocket/websocketSlice'
@@ -42,6 +42,14 @@ export const AccessPoint: () => JSX.Element = () => {
   const submitAutonomyOff: () => void = () => {
     setAutonomyHint(AutonomyHint.Off)
     sendAutonomy(false)
+  }
+
+  const submitSilentModeOn: () => void = () => {
+    sendSilentMode(true)
+  }
+
+  const submitSilentModeOff: () => void = () => {
+    sendSilentMode(false)
   }
 
   const handleOptionChange: (event: React.ChangeEvent<HTMLSelectElement>) => void = (event) => {
@@ -95,6 +103,16 @@ export const AccessPoint: () => JSX.Element = () => {
           GREEN
         </button>
       </div>
+      Silent mode:
+      <br />
+      <button onClick={(): void => submitSilentModeOn()} style={{ margin: 3 }}>
+        Enable
+      </button>
+      <button onClick={(): void => submitSilentModeOff()} style={{ margin: 3 }}>
+        Disable
+      </button>
+      <br />
+      Autonomy state
       <br />
       <button
         onClick={(): void => submitAutonomyOn()}
