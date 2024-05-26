@@ -161,7 +161,7 @@ planner_server:
     planner_plugins: ["GridBased"]
     GridBased:
       plugin: "nav2_navfn_planner/NavfnPlanner"
-      tolerance: 5.0 # Plan path to a point max meters from goal; Navfn will loop (2 * tolerance / grid resolution)^2 = 10000 times
+      tolerance: 0.5 # Plan path to a point max meters from goal; Navfn will loop (2 * tolerance / grid resolution)^2 = 10000 times
       use_astar: True # Use A* or Dijkstra's?
       allow_unknown: True # Plan in unknown space?
       use_final_approach_orientation: False # Last rotation in path aligned with the goal?
