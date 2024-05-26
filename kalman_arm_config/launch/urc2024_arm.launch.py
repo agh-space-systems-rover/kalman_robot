@@ -25,8 +25,15 @@ def generate_launch_description():
          '/servo.launch.py'])
       )
     
+    drivers = IncludeLaunchDescription(
+      PythonLaunchDescriptionSource([os.path.join(
+         get_package_share_directory('kalman_arm_config'), 'launch'),
+         '/drivers.launch.py'])
+      )
+    
     return LaunchDescription([
         arm_controller,
         master,
-        servo  
+        servo,
+        drivers
     ])
