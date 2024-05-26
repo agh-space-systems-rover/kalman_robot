@@ -1,0 +1,7 @@
+/**:
+  ros__parameters:
+    port: "/dev/ttyAMA3"
+    baud: 115200
+    time_ref_source: gps
+    useRMC: true
+    frame_id: gps_link
