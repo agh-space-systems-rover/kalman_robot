@@ -1,7 +1,7 @@
 import rclpy
 from rclpy.node import Node
 from fastapi import APIRouter
-from std_msgs.msg import UInt8MultiArray
+from kalman_interfaces.msg import MasterMessage
 from struct import pack
 
 
@@ -9,7 +9,7 @@ class VideoConfigurationRouter(APIRouter):
     def __init__(self, parent_node: Node):
         self.parent_node = parent_node
         self.ros2uart_publisher = parent_node.create_publisher(
-            UInt8MultiArray, "/kalman_rover/ros2uart", qos_profile=10
+            MasterMessage, "/master_com/ros_to_master", qos_profile=10
         )
 
         # Web stuffs
@@ -46,10 +46,10 @@ class VideoConfigurationRouter(APIRouter):
             return False
         # transform = [1, 3, 5, 7, 2, 4, 6, 8]
         transform = [1, 2, 3, 4, 5, 6, 7, 8]
-        data = [int(x) for x in [0xB1, 0x02, feed, transform[camera - 1]]]
-        data = list(pack("B" * 2 + "B" * (len(data) - 2), *data))
-        self.parent_node.get_logger().info(f"Set camera: {data}")
-        self.ros2uart_publisher.publish(UInt8MultiArray(data=data))
+        # data = [int(x) for x in [0xB1, 0x02, feed, transform[camera - 1]]]
+        # data = list(pack("B" * 2 + "B" * (len(data) - 2), *data))
+        self.parent_node.get_logger().info(f"Set camera: {[feed, transform[camera - 1]]}")
+        self.ros2uart_publisher.publish(MasterMessage(cmd=0xB1,data=[feed, transform[camera - 1]]))
         return True
 
 
@@ -61,20 +61,20 @@ class VideoConfigurationRouter(APIRouter):
 
         if feed > 2 or feed < 1 or channel < 1 or channel > 40:
             return False
-        data = [int(x) for x in [frame_id, 0x02, feed, channel]]
-        data = list(pack("B" * 2 + "B" * (len(data) - 2), *data))
-        self.parent_node.get_logger().info(f"Set channel: {data}")
-        self.ros2uart_publisher.publish(UInt8MultiArray(data=data))
+        # data = [int(x) for x in [frame_id, 0x02, feed, channel]]
+        # data = list(pack("B" * 2 + "B" * (len(data) - 2), *data))
+        self.parent_node.get_logger().info(f"Set channel: {[feed, channel]}")
+        self.ros2uart_publisher.publish(MasterMessage(cmd=frame_id,data=[feed, channel]))
         return True
 
 
     def set_power(self, feed: int, power: int):
         if feed > 2 or feed < 1 or power < 0 or power > 4:
             return False
-        data = [int(x) for x in [0xB3, 0x02, feed, power]]
-        data = list(pack("B" * 2 + "B" * (len(data) - 2), *data))
-        self.parent_node.get_logger().info(f"Set power: {data}")
-        self.ros2uart_publisher.publish(UInt8MultiArray(data=data))
+        # data = [int(x) for x in [0xB3, 0x02, feed, power]]
+        # data = list(pack("B" * 2 + "B" * (len(data) - 2), *data))
+        self.parent_node.get_logger().info(f"Set power: {[feed, power]}")
+        self.ros2uart_publisher.publish(MasterMessage(cmd=0xB3,data=[feed, power]))
         return True
 
 

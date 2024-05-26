@@ -18,7 +18,7 @@ class ArmConfigurationRouter(APIRouter):
             self.put_linear_vel_scale, # Callable
             name="Sets linear velocity multiplier",
             response_model=bool,
-            methods=["GET"],
+            methods=["PUT"],
         )
 
         self.add_api_route(
@@ -26,7 +26,7 @@ class ArmConfigurationRouter(APIRouter):
             self.put_angular_vel_scale, # Callable
             name="Sets angular velocity multiplier",
             response_model=bool,
-            methods=["GET"],
+            methods=["PUT"],
         )
 
     def put_linear_vel_scale(self, scale: float) -> bool:
