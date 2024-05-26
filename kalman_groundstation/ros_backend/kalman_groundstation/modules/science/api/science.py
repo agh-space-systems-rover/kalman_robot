@@ -1,15 +1,31 @@
 import os
 import yaml
-from fastapi import APIRouter
+from fastapi import APIRouter, Path
 from kalman_groundstation.utils.logger import GpsLogger
 
-# import rospy
-import rclpy
+from kalman_interfaces.msg import MasterMessage
+
+import struct
 from rclpy.node import Node
 from std_msgs.msg import Empty
 from geometry_msgs.msg import Vector3
-from std_msgs.msg import UInt8MultiArray
 import rospkg
+
+from kalman_groundstation.modules.science.universal_module import (
+    CAN_CMD_SET_DIGITAL_OUTPUT,
+    CAN_CMD_SET_PWM_OUTPUT,
+    CAN_CMD_SET_LED_DRIVER,
+    PWNFRAME_Format,
+    CAN_CMD_SET_HBRIDGE,
+    HBridgeFrame_Format,
+    CAN_CMD_SET_STEPPER_POSITION,
+    StepperFrame_Format,
+    CAN_CMD_STEPPER_HOMING_REQUEST,
+    CAN_CMD_WEIGHT_REQUEST,
+    CAN_CMD_ANALOG_INPUT_REQUEST,
+    CAN_CMD_STEPPER_POSITION_REQUEST,
+    GetFrame_Format,
+)
 
 
 class ScienceRouter(APIRouter):
@@ -18,7 +34,7 @@ class ScienceRouter(APIRouter):
         self.parent_node = parent_node
 
         self.ros2uart_pub = parent_node.create_publisher(
-            UInt8MultiArray, "/kalman_rover/ros2uart", qos_profile=10
+            MasterMessage, "/master_com/ros_to_master", qos_profile=10
         )
 
         self.panorama_trigger_publisher = parent_node.create_publisher(
@@ -27,6 +43,69 @@ class ScienceRouter(APIRouter):
 
         self.gps_panorama_logger = GpsLogger("gps_panorama")
         self.gps_user_marker_logger = GpsLogger("gps_user_marker")
+
+        self.add_api_route(
+            "/raw_set_digital_output",
+            self.raw_set_digital_output,
+            name="Use CAN to set digital output",
+            methods=["PUT"],
+        )
+
+        self.add_api_route(
+            "/raw_set_pwm_output",
+            self.raw_set_pwm_output,
+            name="Use CAN to set pwm output",
+            methods=["PUT"],
+        )
+
+        self.add_api_route(
+            "/raw_set_led_driver",
+            self.raw_set_led_driver,
+            name="Use CAN to set led driver output",
+            methods=["PUT"],
+        )
+
+        self.add_api_route(
+            "/raw_set_hbridge",
+            self.raw_set_hbridge,
+            name="Use CAN to set H-bridge output",
+            methods=["PUT"],
+        )
+
+        self.add_api_route(
+            "/raw_set_stepper_position",
+            self.raw_set_stepper_position,
+            name="Use CAN to set stepper position",
+            methods=["PUT"],
+        )
+
+        self.add_api_route(
+            "/raw_stepper_homing_request",
+            self.raw_stepper_homing_request,
+            name="Use CAN to send stepper homing request",
+            methods=["PUT"],
+        )
+
+        self.add_api_route(
+            "/raw_weight_request",
+            self.raw_weight_request,
+            name="Use CAN to send stepper homing request",
+            methods=["PUT"],
+        )
+
+        self.add_api_route(
+            "/raw_analog_input_request",
+            self.raw_analog_input_request,
+            name="Use CAN to send analog input request",
+            methods=["PUT"],
+        )
+
+        self.add_api_route(
+            "/raw_stepper_position_request",
+            self.raw_stepper_position_request,
+            name="Use CAN to send stepper position request",
+            methods=["PUT"],
+        )
 
         self.add_api_route(
             "/lamp_pwm",
@@ -73,68 +152,102 @@ class ScienceRouter(APIRouter):
         )
         self.add_api_route("/set_pump", self.set_pump, name="Set pump", methods=["PUT"])
 
+    def raw_set_digital_output(self, board_id: int, channel_id: int, value: int):
+        assert 0 <= value and value <= 145
+        msg = MasterMessage()
+        msg.cmd = CAN_CMD_SET_DIGITAL_OUTPUT
+        msg.data = struct.pack(PWNFRAME_Format, board_id, channel_id, value)
+        self.ros2uart_pub.publish(msg)
+
+    def raw_set_pwm_output(self, board_id: int, channel_id: int, value: int):
+        assert 0 <= value and value <= 100
+        msg = MasterMessage()
+        msg.cmd = CAN_CMD_SET_PWM_OUTPUT
+        msg.data = struct.pack(PWNFRAME_Format, board_id, channel_id, value)
+        self.ros2uart_pub.publish(msg)
+
+    def raw_set_led_driver(self, board_id: int, channel_id: int, value: int):
+        assert 0 <= value and value <= 100
+        msg = MasterMessage()
+        msg.cmd = CAN_CMD_SET_LED_DRIVER
+        msg.data = struct.pack(PWNFRAME_Format, board_id, channel_id, value)
+        self.ros2uart_pub.publish(msg)
+
+    def raw_set_hbridge(
+        self, board_id: int, channel_id: int, speed: int, direction: int
+    ):
+        assert 0 <= speed and speed <= 100
+        msg = MasterMessage()
+        msg.cmd = CAN_CMD_SET_HBRIDGE
+        msg.data = struct.pack(
+            HBridgeFrame_Format, board_id, channel_id, speed, direction
+        )
+        self.ros2uart_pub.publish(msg)
+
+    def raw_set_stepper_position(
+        self, board_id: int, channel_id: int, target_position: int
+    ):
+        msg = MasterMessage()
+        msg.cmd = CAN_CMD_SET_STEPPER_POSITION
+        msg.data = struct.pack(
+            StepperFrame_Format, board_id, channel_id, target_position
+        )
+        self.ros2uart_pub.publish(msg)
+
+    def raw_stepper_homing_request(self, board_id: int, channel_id: int):
+        msg = MasterMessage()
+        msg.cmd = CAN_CMD_STEPPER_HOMING_REQUEST
+        msg.data = struct.pack(GetFrame_Format, board_id, channel_id)
+        self.ros2uart_pub.publish(msg)
+
+    def raw_weight_request(self, board_id: int, channel_id: int):
+        msg = MasterMessage()
+        msg.cmd = CAN_CMD_WEIGHT_REQUEST
+        msg.data = struct.pack(GetFrame_Format, board_id, channel_id)
+        self.ros2uart_pub.publish(msg)
+
+    def raw_analog_input_request(self, board_id: int, channel_id: int):
+        msg = MasterMessage()
+        msg.cmd = CAN_CMD_ANALOG_INPUT_REQUEST
+        msg.data = struct.pack(GetFrame_Format, board_id, channel_id)
+        self.ros2uart_pub.publish(msg)
+
+    def raw_stepper_position_request(self, board_id: int, channel_id: int):
+        msg = MasterMessage()
+        msg.cmd = CAN_CMD_STEPPER_POSITION_REQUEST
+        msg.data = struct.pack(GetFrame_Format, board_id, channel_id)
+        self.ros2uart_pub.publish(msg)
+
     def set_pump(self, slot: int, value: bool):
-        arg0 = slot
-        arg1 = 0xFF if value else 0x0
-        frame = UInt8MultiArray(data=[0xC0, 0x02, arg0, arg1])
-        self.ros2uart_pub.publish(frame)
+        self.parent_node.get_logger().error("set_pump: implement me")
         return True
 
     def set_heater(self, slot: int, value: bool):
-        arg0 = slot
-        arg1 = 0xFF if value else 0x0
-        frame = UInt8MultiArray(data=[0xC1, 0x02, arg0, arg1])
-        self.ros2uart_pub.publish(frame)
+        self.parent_node.get_logger().error("set_heater: implement me")
         return True
 
     def set_backlight(self, slot: int, value: bool):
-        arg0 = slot
-        arg1 = 0xFF if value else 0x0
-        frame = UInt8MultiArray(data=[0xC2, 0x02, arg0, arg1])
-        self.ros2uart_pub.publish(frame)
+        self.parent_node.get_logger().error("set_backlight: implement me")
         return True
 
     def set_aux(self, slot: int, value: bool):
-        arg0 = slot
-        arg1 = 0xFF if value else 0x0
-        frame = UInt8MultiArray(data=[0xC3, 0x02, arg0, arg1])
-        self.ros2uart_pub.publish(frame)
+        self.parent_node.get_logger().error("set_aux: implement me")
         return True
 
     def set_servo(self, slot: int, angle_deg: int):
-        if angle_deg < 0 or angle_deg > 180:
-            self.parent_node.get_logger().error(
-                "Service did not process request: bad servo angle"
-            )
-            return False
-
-        arg0 = slot
-        arg1 = angle_deg
-        frame = UInt8MultiArray(data=[0xC4, 0x02, arg0, arg1])
-        self.ros2uart_pub.publish(frame)
+        self.parent_node.get_logger().error("set_servo: implement me")
         return True
 
     def set_carousel(self, value: int):
-        frame = UInt8MultiArray(
-            data=[0x71, 0x06, 0x01, 0x02, value, value, value, value]
-        )
-
-        self.ros2uart_pub.publish(frame)
+        self.parent_node.get_logger().error("set_carousel: implement me")
         return True
 
     def open_close_sample(self, open: bool):
-        value = 50 if open else 100
-
-        frame = UInt8MultiArray(
-            data=[0x71, 0x06, 0x01, 0x01, value, value, value, value]
-        )
-
-        self.ros2uart_pub.publish(frame)
+        self.parent_node.get_logger().error("open_close_sample: implement me")
         return True
 
     def get_weight(self):
-        frame = UInt8MultiArray(data=[0x74, 0x01, 0x01])
-        self.ros2uart_pub.publish(frame)
+        self.parent_node.get_logger().error("get_weight: implement me")
         return True
 
     def tare_weight(self):
@@ -154,23 +267,21 @@ class ScienceRouter(APIRouter):
         return True
 
     def get_smart_probe(self):
-        frame = UInt8MultiArray(data=[0xFD, 0])
-        self.ros2uart_pub.publish(frame)
+        self.parent_node.get_logger().error("get_smart_probe: implement me")
         return True
 
     def get_panorama(self, lat: float, lon: float, alt: float):
-        msg = Vector3(lat, lon, alt)
+        msg = Vector3(x=lat, y=lon, z=alt)
         self.gps_panorama_logger.log(msg)
 
         self.panorama_trigger_publisher.publish(Empty())
         return True
 
     def log_user_marker(self, lat: float, lon: float, alt: float, desc: str):
-        msg = Vector3(lat, lon, alt)
+        msg = Vector3(x=lat, y=lon, z=alt)
         self.gps_user_marker_logger.log(msg, desc)
         return True
 
     def lamp_pwm(self, value: int):
-        frame = UInt8MultiArray(data=[0x72, 8, 1, 8, 0, 0, 0, value, 0, 0])
-        self.ros2uart_pub.publish(frame)
+        self.parent_node.get_logger().error("lamp_pwm: implement me")
         return True
