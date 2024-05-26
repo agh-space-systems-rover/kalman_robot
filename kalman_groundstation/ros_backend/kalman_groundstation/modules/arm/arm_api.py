@@ -9,7 +9,7 @@ from .api.trajectories import TrajectoriesAPI
 
 # from .api.trajectories import trajectory_router
 # from .api.autoclick import autoclick_router
-# from .api.configuration import configuration_router
+from .api.configuration import ArmConfigurationRouter
 
 
 class ArmAPI(APIRouter):
@@ -20,6 +20,7 @@ class ArmAPI(APIRouter):
         self.include_router(ArmGoalRouter(parent_node))
         self.include_router(ArmPositioning(parent_node))
         self.include_router(TrajectoriesAPI(parent_node))
+        self.include_router(ArmConfigurationRouter(parent_node))
 
 
 # router = APIRouter(prefix="/arm", tags=["arm"])
