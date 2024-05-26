@@ -4,7 +4,7 @@ from fastapi import APIRouter
 import rclpy
 from rclpy.node import Node
 from rcl_interfaces.srv import SetParameters
-from rcl_interfaces.msg import Parameter, ParameterValue
+from rcl_interfaces.msg import Parameter, ParameterValue, ParameterType
 
 class ArmConfigurationRouter(APIRouter):
     def __init__(self, parent_node: Node):
@@ -39,13 +39,14 @@ class ArmConfigurationRouter(APIRouter):
         param.name = "moveit_servo.scale.linear"
 
         value = ParameterValue()
-        value.type = 2
+        value.type = ParameterType.PARAMETER_DOUBLE
         value.double_value = scale
         param.value = value
 
         request.parameters = [param]
-
-        self.servo_client.call_async(request)
+        
+        self.servo_client.call(request)
+        # rclpy.spin_until_future_complete(self.node, future)
         return True
     
     def put_angular_vel_scale(self, scale: float) -> bool:
@@ -58,12 +59,13 @@ class ArmConfigurationRouter(APIRouter):
         param.name = "moveit_servo.scale.rotational"
         
         value = ParameterValue()
-        value.type = 2
+        value.type = ParameterType.PARAMETER_DOUBLE
         value.double_value = scale
         param.value = value
 
         request.parameters = [param]
 
-        self.servo_client.call_async(request)
+        self.servo_client.call(request)
+        # rclpy.spin_until_future_complete(self.node, future)
         return True
 
