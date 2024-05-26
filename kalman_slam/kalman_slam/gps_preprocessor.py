@@ -16,7 +16,7 @@ class GpsNanRemoval(Node):
             "initial_covariance", 0.0
         ).value
         self.covariance_override = self.declare_parameter(
-            "covariance_override", 100.0
+            "covariance_override", 0.0
         ).value
 
         self.sub = self.create_subscription(
