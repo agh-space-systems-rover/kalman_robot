@@ -11,6 +11,9 @@ import threading
 from kalman_groundstation.modules.arm.arm_api import ArmAPI
 from kalman_groundstation.modules.platform.platform_api import PlatformAPI
 
+
+from kalman_groundstation.modules.radio.radio_api import RadioAPI
+
 from kalman_groundstation.modules.video.video_api import VideoAPI
 # from kalman_groundstation.modules.video.video_api import router as video_router
 
@@ -40,6 +43,7 @@ class GroundstationAPI(Node):
         # self.arm_api = ArmAPI(self, self.router)
         self.router.include_router(ArmAPI(self))
         self.router.include_router(PlatformAPI(self))
+        self.router.include_router(RadioAPI(self))
         self.router.include_router(VideoAPI(self))
         self.router.include_router(AutonomyAPI(self))
         self.router.include_router(ScienceAPI(self))
