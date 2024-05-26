@@ -1,5 +1,5 @@
-from kalman_groundstation.msg import ScienceState as ScienceStateMsg
-from core.models.ros_model import RosModel
+from kalman_interfaces.msg import ScienceState as ScienceStateMsg
+from kalman_groundstation.core.models.ros_model import RosModel
 from std_msgs.msg import Float32
 
 

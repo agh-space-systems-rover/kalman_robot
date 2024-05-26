@@ -3,7 +3,7 @@
 from kalman_groundstation.modules.arm import arm_bridge
 from kalman_groundstation.modules.platform import platform_bridge
 from kalman_groundstation.modules.autonomy import autonomy_bridge
-# from modules.science import science_service, science_bridge
+from kalman_groundstation.modules.science import science_service, science_bridge
 # from modules.access_point import access_point_bridge
 import rclpy
 
@@ -19,8 +19,8 @@ BRIDGES = [
     arm_bridge.ArmBridge,
     platform_bridge.PlatformBridge,
     autonomy_bridge.AutonomyBridge,
-    # science_service.Science,
-    # science_bridge.ScienceBridge,
+    science_service.Science,
+    science_bridge.ScienceBridge,
     # access_point_bridge.AccessPointBridge,
 ]
 

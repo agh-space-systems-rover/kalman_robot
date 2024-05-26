@@ -1,18 +1,18 @@
 import numpy as np
-import rospy
-from std_msgs.msg import UInt8MultiArray
-from kalman_groundstation.msg import SmartProbe
-
+# import rospy
+# from std_msgs.msg import UInt8MultiArray
+# from kalman_groundstation.msg import SmartProbe
+from kalman_interfaces.msg import MasterMessage, SmartProbe
+from rclpy.node import Node
 
 class SmartProbeService:
-    def __init__(self):
-        self.uart2ros_sub = rospy.Subscriber(
-            "/kalman_rover/uart2ros/252", UInt8MultiArray, self.update_measurements
+    def __init__(self, parent_node: Node):
+        self.uart2ros_sub = parent_node.create_subscription(
+            MasterMessage, "/master_com/master_to_ros/xfc", self.update_measurements, qos_profile=10
         )
 
-        self.smart_probe_publisher = rospy.Publisher(
-            "/station/science/smart_probe", SmartProbe,
-            queue_size=10
+        self.smart_probe_publisher = parent_node.create_publisher(
+            SmartProbe, "/station/science/smart_probe", qos_profile=10
         )
 
         self.HUM_MAX = 3162
@@ -27,8 +27,8 @@ class SmartProbeService:
         msg = SmartProbe()
         msg.temperature = self.calculate_temp(raw_temperature)
         msg.humidity = self.calculate_humidity(raw_humidity)
-        rospy.logerr(arr)
-        rospy.logerr(msg)
+        # rospy.logerr(arr)
+        # rospy.logerr(msg)
         self.smart_probe_publisher.publish(msg)
 
     def calculate_humidity(self, raw_humidity: int) -> float:

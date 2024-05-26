@@ -1,28 +1,35 @@
 import yaml
 import rospkg
 import os
-import rospy
+# import rospy
 from std_msgs.msg import UInt8MultiArray, Float32
-from kalman_groundstation.msg import ScienceState as ScienceStateMsg
+from kalman_interfaces.msg import MasterMessage, ScienceState as ScienceStateMsg
 from ..model.science import ScienceState
+from rclpy.node import Node
 
+import struct
+
+from kalman_groundstation.modules.science.universal_module import (
+    CAN_CMD_WEIGHT_RESPONSE,
+    WeightValueFrame_Format,
+)
 
 class WeightService:
-    def __init__(self):
-        self.uart2ros_sub = rospy.Subscriber(
-            "/kalman_rover/uart2ros/143", UInt8MultiArray, self.update_weight
+    def __init__(self, parent_node: Node):
+        self.uart2ros_sub = parent_node.create_subscription(
+            MasterMessage, "/master_com/master_to_ros/x6c", self.update_weight, qos_profile=10
         )
 
-        self.weight_publisher = rospy.Publisher(
-            "/station/science/weight", Float32,
-            queue_size=10
+        self.weight_publisher = parent_node.create_publisher(
+            Float32, "/station/science/weight",
+            qos_profile=10
         )
 
     def update_weight(self, msg):
-        arr = msg.data
-        raw_weight = arr[-1] + arr[-2] * 2**8 + \
-            arr[-3] * 2**16 + arr[-4] * 2**24
-        rospy.logerr(raw_weight)
+        data = struct.unpack(WeightValueFrame_Format, msg.data)
+        raw_weight = data[2]
+
+        # rospy.logerr(raw_weight)
         # load raw_zero from file
         r = rospkg.RosPack()
         pkg_path = r.get_path('kalman_groundstation')
