@@ -101,5 +101,13 @@ def generate_launch_description():
                     },
                 ],
             ),
+            Node(
+                package='kalman_groundstation_frontend_launcher',
+                executable='launcher',
+                name='kalman_groundstation_frontend_launcher',
+                output='screen',
+                emulate_tty=True,
+                arguments=[('__log_level:=debug')]
+            ),
         ]
     )

@@ -2,24 +2,24 @@ import { useState } from 'react'
 import styled from 'styled-components'
 
 import { sendAutonomy, sendSilentMode, sendUeuosState } from '../../api/requests'
-import { updateSsid } from '../../store/AccessPoint/accessPointSlice'
-import { useAppDispatch, useAppSelector } from '../../store/storeHooks'
-import { sendMessage } from '../Websocket/websocketSlice'
+// import { updateSsid } from '../../store/AccessPoint/accessPointSlice'
+// import { useAppDispatch, useAppSelector } from '../../store/storeHooks'
+// import { sendMessage } from '../Websocket/websocketSlice'
 
 const Wrapper = styled.div`
   padding: 10px;
 `
-const Button = styled.button`
-  display: box;
-  padding: 5px 10px 5px 10px;
-  border-radius: 10px;
-  margin: 5px 5px 5px 0px;
-`
+// const Button = styled.button`
+//   display: box;
+//   padding: 5px 10px 5px 10px;
+//   border-radius: 10px;
+//   margin: 5px 5px 5px 0px;
+// `
 
-const Select = styled.select`
-  padding: 5px;
-  border-radius: 5px;
-`
+// const Select = styled.select`
+//   padding: 5px;
+//   border-radius: 5px;
+// `
 
 const enum AutonomyHint {
   Unknown,
@@ -28,10 +28,10 @@ const enum AutonomyHint {
 }
 
 export const AccessPoint: () => JSX.Element = () => {
-  const state = useAppSelector((state) => state.accessPoint)
-  const dispatch = useAppDispatch()
+  // const state = useAppSelector((state) => state.accessPoint)
+  // const dispatch = useAppDispatch()
 
-  const options = ['Isaac_Asimov', 'Reactor']
+  // const options = ['Isaac_Asimov', 'Reactor']
 
   const [autonomyHint, setAutonomyHint] = useState<AutonomyHint>(AutonomyHint.Unknown)
 
@@ -52,23 +52,23 @@ export const AccessPoint: () => JSX.Element = () => {
     sendSilentMode(false)
   }
 
-  const handleOptionChange: (event: React.ChangeEvent<HTMLSelectElement>) => void = (event) => {
-    dispatch(updateSsid(event.target.value))
-  }
+  // const handleOptionChange: (event: React.ChangeEvent<HTMLSelectElement>) => void = (event) => {
+  //   dispatch(updateSsid(event.target.value))
+  // }
 
-  const connect: () => void = () => {
-    dispatch(sendMessage({ topic: '/access_point/connect', data: { data: state.ssid } }))
-  }
+  // const connect: () => void = () => {
+  //   dispatch(sendMessage({ topic: '/access_point/connect', data: { data: state.ssid } }))
+  // }
 
-  const transfer: () => void = () => {
-    dispatch(sendMessage({ topic: '/access_point/transfer', data: { data: state.ssid } }))
-  }
+  // const transfer: () => void = () => {
+  //   dispatch(sendMessage({ topic: '/access_point/transfer', data: { data: state.ssid } }))
+  // }
 
-  const lines = state.content.split('\n').map((s, i) => <div key={i}>{s}</div>)
+  // const lines = state.content.split('\n').map((s, i) => <div key={i}>{s}</div>)
 
   return (
     <Wrapper>
-      <div>SSID</div>
+      {/* <div>SSID</div>
       <Select value={state.ssid} onChange={handleOptionChange}>
         <option value=''>Select an option</option>
         {options.map((option, index) => (
@@ -76,8 +76,8 @@ export const AccessPoint: () => JSX.Element = () => {
             {option}
           </option>
         ))}
-      </Select>
-      <div style={{ display: 'flex' }}>
+      </Select> */}
+      {/* <div style={{ display: 'flex' }}>
         <Button onClick={connect} disabled={state.ssid === ''}>
           Connect
         </Button>
@@ -89,7 +89,7 @@ export const AccessPoint: () => JSX.Element = () => {
         <div>Status: {state.status}</div>
         <div>Content:</div>
         <div>{lines}</div>
-      </Wrapper>
+      </Wrapper> */}
       UEUOS:
       <br />
       <div>

@@ -2,7 +2,7 @@ import './MainPage.css'
 
 import React from 'react'
 
-// import { AccessPoint } from '../AccessPoint/AccessPoint'
+import { AccessPoint } from '../AccessPoint/AccessPoint'
 import { Arm } from '../Arm/Arm'
 import { AutonomyFront } from '../AutonomyFront/AutonomyFront'
 import { FeedIndicator } from '../FeedControl/FeedIndicator'
@@ -50,7 +50,7 @@ export const MainPage: React.FC = () => {
           {autonomyView ? null : (
             <div style={{ display: 'flex' }}>
               <Science />
-              {/* <AccessPoint /> */}
+              <AccessPoint />
 
               <textarea
                 id='gps-waypoints-data'
