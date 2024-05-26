@@ -7,9 +7,17 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_python REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(kalman_interfaces REQUIRED)
 find_package(rclcpp REQUIRED)
+
+ament_python_install_package(${PROJECT_NAME})
+
+install(PROGRAMS
+  scripts/servo_param_setter
+  DESTINATION lib/${PROJECT_NAME}
+)
 
 add_executable(joint_republisher src/joint_republisher.cpp)
 target_include_directories(joint_republisher PUBLIC

@@ -51,7 +51,12 @@ class ServoParamSetter(Node):
         self.client.call(request)
         
         
-        
-        
-        
-            
+def main():
+    try:
+        rclpy.init()
+        node = ServoParamSetter()
+        rclpy.spin(node)
+        node.destroy_node()
+        rclpy.shutdown()
+    except KeyboardInterrupt:
+        pass         

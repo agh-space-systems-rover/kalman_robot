@@ -1,0 +1,5 @@
+#!/usr/bin/python3
+from kalman_arm_utils.servo_param_setter_node import main
+
+if __name__ == '__main__':
+    main()

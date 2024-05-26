@@ -47,9 +47,15 @@ def generate_launch_description():
         output="screen",
         # arguments = ['--ros-args', '--log-level', 'DEBUG', '--log-level','rcl:=INFO'],
     )
+    
+    param_setter_node = Node(
+        package="kalman_arm_utils",
+        executable="servo_param_setter",
+    )
 
     return LaunchDescription(
         [
             servo_node,
+            param_setter_node
         ]
     )
