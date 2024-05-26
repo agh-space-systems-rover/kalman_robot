@@ -31,14 +31,15 @@ private:
     if (now - last_time_ > rclcpp::Duration::from_seconds(1.0 / rate_))
     {
       auto joint_msg = sensor_msgs::msg::JointState();
-      joint_msg.name = { "joint_1", "joint_2", "joint_3", "joint_4", "joint_5", "joint_6" };
-      joint_msg.position.resize(6, 0);
+      joint_msg.name = { "joint_1", "joint_2", "joint_3", "joint_4", "joint_5", "joint_6", "gripper_moving_joint" };
+      joint_msg.position.resize(7, 0);
       joint_msg.position[0] = msg->joint_1;
       joint_msg.position[1] = msg->joint_2;
       joint_msg.position[2] = msg->joint_3;
       joint_msg.position[3] = msg->joint_4;
       joint_msg.position[4] = msg->joint_5;
       joint_msg.position[5] = msg->joint_6;
+      joint_msg.position[6] = 0;
 
       joint_state_pub_->publish(joint_msg);
     }

@@ -1,11 +1,41 @@
 from launch import LaunchDescription
 from launch_ros.actions import Node
 
+from launch.substitutions import Command, FindExecutable, PathJoinSubstitution
+from launch_ros.substitutions import FindPackageShare
+
 from ament_index_python import get_package_share_path
 
 def generate_launch_description():
+    robot_description_content = Command(
+        [
+            PathJoinSubstitution([FindExecutable(name="xacro")]),
+            " ",
+            PathJoinSubstitution(
+                [
+                    FindPackageShare("kalman_arm_moveit_config"),
+                    "urdf",
+                    "arm.urdf.xacro",
+                ]
+            ),
+        ]
+    )
+    robot_description = {"robot_description": robot_description_content}
+
+    robot_state_publisher = Node(
+        package="robot_state_publisher",
+        executable="robot_state_publisher",
+        output="both",
+        parameters=[robot_description, {"ignore_timestamp": True}],
+        remappings=[
+            ('/joint_states', '/arm_controllers/joint_states'),
+        ]
+    )
+
+
     return LaunchDescription(
         [
+            robot_state_publisher,
             Node(
                 package="kalman_groundstation",
                 executable="api_node",
@@ -40,6 +70,10 @@ def generate_launch_description():
                 package="kalman_arm_utils",
                 executable="gripper_republisher",
                 parameters=[{"gripper_scale": 15.0}],
+            ),
+            Node(
+                package="kalman_arm_utils",
+                executable="arm_state_republisher",
             ),
             Node(
                 package="spacenav_to_master",
