@@ -53,7 +53,7 @@ def generate_launch_description():
                     plugin="phidgets::SpatialRosI",
                     parameters=[
                         str(
-                            get_package_share_path("kalman_drivers")
+                            get_package_share_path("kalman_arm_config")
                             / "config"
                             / "phidgets_spatial.yaml"
                         ),
