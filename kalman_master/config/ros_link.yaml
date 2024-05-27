@@ -151,3 +151,5 @@ rover: # or 'station'
           - finished
           - search_for_yolo
           - approach
+          - mallet
+          - bottle

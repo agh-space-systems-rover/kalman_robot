@@ -4,7 +4,7 @@ import { setAutoclick } from '../../api/requests'
 import { selectKeys } from '../../store/Keys/keysSlice'
 import { useAppSelector } from '../../store/storeHooks'
 
-const autoclickKey = 'Backquote'
+const autoclickKey = 'autoclickKey'
 
 export const useAutoclick: () => void = () => {
   const [autoclickOffMessages, setAutoclickOffMessages] = useState<number>(0)

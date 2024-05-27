@@ -114,6 +114,11 @@ export const initialUserProfile: userProfile = {
 
     { target: 'openGripperKey', key: 'Period' },
     { target: 'closeGripperKey', key: 'Comma' },
+
+    { target: 'screwdriverRight', key: 'BracketRight' },
+    { target: 'screwdriverLeft', key: 'BracketLeft' },
+
+    { target: 'autoclickKey', key: 'Backquote' },
   ],
   gamepadBinds: {
     buttonFeatures: [

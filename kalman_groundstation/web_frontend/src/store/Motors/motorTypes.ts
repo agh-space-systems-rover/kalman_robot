@@ -9,17 +9,17 @@ export interface WheelScaling {
 }
 
 export interface Wheels {
-  targetMotors: {
-    fr: Wheel
-    br: Wheel
-    bl: Wheel
-    fl: Wheel
+  target_motors: {
+    front_right: Wheel
+    back_right: Wheel
+    back_left: Wheel
+    front_left: Wheel
   }
   motors: {
-    fr: Wheel
-    br: Wheel
-    bl: Wheel
-    fl: Wheel
+    front_right: Wheel
+    back_right: Wheel
+    back_left: Wheel
+    front_left: Wheel
   }
 }
 
