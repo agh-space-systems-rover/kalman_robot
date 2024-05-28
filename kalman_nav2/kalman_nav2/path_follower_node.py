@@ -44,9 +44,12 @@ def angular_velocity_curve(angle_error, max_vel):
     # return np.clip(angle_error, -max_vel, max_vel)
     # return (2 / np.pi) * np.power(np.abs(angle_error), 2) * np.sign(angle_error) * max_vel
     if angle_error > 0:
-        return smoothstep(0, np.pi / 4, angle_error) * max_vel
+        ss = smoothstep(0, np.pi / 4, angle_error) * max_vel
     else:
-        return -smoothstep(0, np.pi / 4, -angle_error) * max_vel
+        ss = -smoothstep(0, np.pi / 4, -angle_error) * max_vel
+
+    lin = np.clip(angle_error / (np.pi / 4), -1, 1) * max_vel
+    return lerp(ss, lin, 0.3)
 
 
 def lerp(a, b, t):
@@ -392,14 +395,14 @@ class PathFollower(rclpy.node.Node):
                 rot_angle, angular_velocity
             )
 
-            # # If the robot is heading in a direction off of the target
-            # # direction over rotate_in_place_start_angle, it will rotate
-            # # in place instead of translating simultaneously.
-            # if (
-            #     np.abs(rot_angle)
-            #     > self.get_parameter("rotate_in_place_start_angle").value
-            # ):
-            #     self.state = RotateInPlaceState()
+            # If the robot is heading in a direction off of the target
+            # direction over rotate_in_place_start_angle, it will rotate
+            # in place instead of translating simultaneously.
+            if (
+                np.abs(rot_angle)
+                > self.get_parameter("rotate_in_place_start_angle").value
+            ):
+                self.state = RotateInPlaceState()
         elif isinstance(self.state, RotateInPlaceState):
             # Rotate in place to face the target direction.
             angular_velocity = self.get_parameter("angular_velocity").value
