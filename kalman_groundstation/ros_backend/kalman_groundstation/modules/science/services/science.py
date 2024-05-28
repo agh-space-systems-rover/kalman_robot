@@ -9,9 +9,9 @@ from rclpy.node import Node
 
 class ScienceService:
     def __init__(self, parent_node: Node):
-        self.uart2ros_sub = parent_node.create_subscription(
-            MasterMessage, "/master_com/master_to_ros/xc5", self.update_temperature, qos_profile=10
-        )
+        # self.uart2ros_sub = parent_node.create_subscription(
+        #     MasterMessage, "/master_com/master_to_ros/xc5", self.update_temperature, qos_profile=10
+        # )
 
         self.state_publisher = parent_node.create_publisher(
             ScienceStateMsg, "/station/science/state", qos_profile=10
