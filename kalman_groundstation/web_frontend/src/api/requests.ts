@@ -211,13 +211,13 @@ export const setScienceServo: (slot: number, angle_deg: number) => void = (slot,
   putRequest(`/station/system/rover/science/set_servo?slot=${slot}&angle_deg=${angleDeg}`).catch((e) => console.log(e))
 }
 
-export const setAutoclick: (on: boolean) => void = (on) => {
-  const value = on ? 180 : 0
+export const setAutoclick: (value: number) => void = (value) => {
+  // const value = on ? 180 : 0
   putRequest(`/station/system/rover/arm/autoclick/autoclick?value=${value}`).catch((e) => console.log(e))
 }
 
-export const setScrewdriver: (on: boolean, spinRight: boolean) => void = (on, spinRight) => {
-  const value = on ? (spinRight ? 30 : -30) : 0
+export const setScrewdriver: (value: number, spinRight: boolean) => void = (value, spinRight) => {
+  value = spinRight ? value : -value
   putRequest(`/station/system/rover/arm/autoclick/screwdriver?value=${value}`).catch((e) => console.log(e))
 }
 

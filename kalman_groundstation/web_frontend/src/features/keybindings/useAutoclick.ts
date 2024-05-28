@@ -5,8 +5,10 @@ import { selectKeys } from '../../store/Keys/keysSlice'
 import { useAppSelector } from '../../store/storeHooks'
 
 const autoclickKey = 'autoclickKey'
+const autoclickExtendKey = 'autoclickExtendKey'
 const screwdriverRight = 'screwdriverRight'
 const screwdriverLeft = 'screwdriverLeft'
+const screwdriverSpeedupKey = 'screwdriverSpeedupKey'
 
 export const useAutoclick: () => void = () => {
   const [autoclickOffMessages, setAutoclickOffMessages] = useState<number>(0)
@@ -19,12 +21,12 @@ export const useAutoclick: () => void = () => {
     if (pressedKeys.includes(autoclickKey)) {
       setAutoclickOffMessages(5)
       intervalRef.current = setInterval(() => {
-        setAutoclick(true)
+        setAutoclick(pressedKeys.includes(autoclickExtendKey) ? 180 : 90)
       }, 250)
     } else {
       if (autoclickOffMessages > 0) {
         intervalRef.current = setInterval(() => {
-          setAutoclick(false)
+          setAutoclick(0)
           setAutoclickOffMessages((prev) => prev - 1)
         }, 250)
       }
@@ -33,12 +35,12 @@ export const useAutoclick: () => void = () => {
     if (pressedKeys.includes(screwdriverRight) || pressedKeys.includes(screwdriverLeft)) {
       setScrewdriverOffMessages(5)
       screwdriverIntervalRef.current = setInterval(() => {
-        setScrewdriver(true, pressedKeys.includes(screwdriverRight))
+        setScrewdriver(pressedKeys.includes(screwdriverSpeedupKey) ? 45 : 20, pressedKeys.includes(screwdriverRight))
       }, 250)
     } else {
       if (screwdriverOffMessages > 0) {
         screwdriverIntervalRef.current = setInterval(() => {
-          setScrewdriver(false, pressedKeys.includes(screwdriverRight))
+          setScrewdriver(0, pressedKeys.includes(screwdriverRight))
           setScrewdriverOffMessages((prev) => prev - 1)
         }, 250)
       }

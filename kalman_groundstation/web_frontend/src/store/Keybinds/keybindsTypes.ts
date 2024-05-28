@@ -119,6 +119,8 @@ export const initialUserProfile: userProfile = {
     { target: 'screwdriverLeft', key: 'BracketLeft' },
 
     { target: 'autoclickKey', key: 'Backquote' },
+    { target: 'autoclickExtendKey', key: 'ShiftLeft' },
+    { target: 'screwdriverSpeedupKey', key: 'ShiftRight' },
   ],
   gamepadBinds: {
     buttonFeatures: [

@@ -58,7 +58,7 @@ class AutoclickRouter(APIRouter):
     def handle_autoclick(self,value: int):
         if value < 0 or value > 180:
             return False
-        frame = MasterMessage(cmd=0x50, data=[value])
+        frame = MasterMessage(cmd=0x50, data=[0,0,value])
 
         self.ros2uart_publisher.publish(frame)
         return True
