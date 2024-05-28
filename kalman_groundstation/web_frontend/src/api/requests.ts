@@ -212,8 +212,13 @@ export const setScienceServo: (slot: number, angle_deg: number) => void = (slot,
 }
 
 export const setAutoclick: (on: boolean) => void = (on) => {
-  const value = on ? 255 : 0
+  const value = on ? 180 : 0
   putRequest(`/station/system/rover/arm/autoclick/autoclick?value=${value}`).catch((e) => console.log(e))
+}
+
+export const setScrewdriver: (on: boolean, spinRight: boolean) => void = (on, spinRight) => {
+  const value = on ? (spinRight ? 30 : -30) : 0
+  putRequest(`/station/system/rover/arm/autoclick/screwdriver?value=${value}`).catch((e) => console.log(e))
 }
 
 export const setCarousel: (value: number) => void = (value: number) => {

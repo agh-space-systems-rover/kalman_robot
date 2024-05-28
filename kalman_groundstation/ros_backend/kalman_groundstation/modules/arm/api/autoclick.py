@@ -40,16 +40,33 @@ class AutoclickRouter(APIRouter):
         self.add_api_route(
             "/autoclick",
             self.handle_autoclick, # Callable
-            name="Sets silent mode",
+            name="Controls autoclick",
+            response_model=bool,
+            methods=["PUT"],
+        )
+        
+        
+        self.add_api_route(
+            "/screwdriver",
+            self.handle_screwdriver, # Callable
+            name="Controls screwdriver",
             response_model=bool,
             methods=["PUT"],
         )
 
 
     def handle_autoclick(self,value: int):
-        if value < 0 or value > 255:
+        if value < 0 or value > 180:
             return False
-        frame = MasterMessage(cmd=0xE3, data=[value])
+        frame = MasterMessage(cmd=0x50, data=[value])
+
+        self.ros2uart_publisher.publish(frame)
+        return True
+    
+    def handle_screwdriver(self,value: int):
+        if value < -100 or value > 100:
+            return False
+        frame = MasterMessage(cmd=0x53, data=[0,1,abs(value),(0 if value < 0 else 1)])
 
         self.ros2uart_publisher.publish(frame)
         return True
