@@ -98,6 +98,7 @@ def generate_launch_description():
                         ),
                         "side": "station",
                         "rover_endpoint": "arm",
+                        "debug_info": True,
                     },
                 ],
             ),

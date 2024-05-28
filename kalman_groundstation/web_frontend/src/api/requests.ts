@@ -23,7 +23,7 @@ export const sendAutonomy: (autonomyOn: boolean) => void = (autonomyOn: boolean)
 }
 
 export const sendSilentMode: (silentOn: boolean) => void = (silentOn: boolean) => {
-  const request = putRequest(`/station/system/radio/silent_mode_on_off/?silent_on=${silentOn}`)
+  const request = putRequest(`/station/system/rover/radio/silent_mode_on_off/silent_on?target_state=${silentOn}`)
   request.then((res) => console.log(res))
 }
 
