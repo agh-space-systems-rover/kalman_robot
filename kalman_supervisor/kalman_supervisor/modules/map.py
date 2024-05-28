@@ -2,7 +2,6 @@ import numpy as np
 
 from enum import Enum
 from rclpy import Future
-from rclpy.time import Time
 from rclpy.qos import QoSProfile, HistoryPolicy, ReliabilityPolicy, DurabilityPolicy
 from nav_msgs.msg import OccupancyGrid
 from map_msgs.msg import OccupancyGridUpdate
