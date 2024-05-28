@@ -13,6 +13,11 @@ export const URCScience: () => JSX.Element = () => {
         {modules.map((module, idx) => (
           <URCModule module={module} moduleId={idx} key={idx} />
         ))}
+
+        {/* <div className='container'>
+          <h3>Nalewanie</h3>
+          <hr style={{ backgroundColor: 'black', height: 1, width: '100%' }} />
+        </div> */}
       </div>
       <URCProbilab />
     </div>

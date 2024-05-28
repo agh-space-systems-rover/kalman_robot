@@ -220,6 +220,12 @@ export const setCarousel: (value: number) => void = (value: number) => {
   putRequest(`/station/system/rover/science/set_carousel?value=${value}`).catch((e) => console.log(e))
 }
 
+export const setCarouselWithOffset: (value: number, offset: number) => void = (value: number, offset: number) => {
+  putRequest(`/station/system/rover/science/set_carousel_with_offset?value=${value}&offset=${offset}`).catch((e) =>
+    console.log(e),
+  )
+}
+
 export const openCloseSampleERC: (open: boolean) => void = (open: boolean) => {
   putRequest(`/station/system/rover/science/open_close_sample?open=${open}`).catch((e) => console.log(e))
 }
@@ -248,4 +254,30 @@ export const logUserMark: (lat: number, lon: number, alt: number, desc: string) 
 
 export const requestLampPWM: (value: number) => void = (value) => {
   putRequest(`/station/system/rover/science/lamp_pwm?value=${value}`).catch((e) => console.log(e))
+}
+
+export const requestLEDState: (channel: number, value: number) => void = (channel, value) => {
+  putRequest(`/station/system/rover/science/led_state?channel=${channel}&value=${value}`).catch((e) => console.log(e))
+}
+
+export const requestHBridgeState: (channel: number, speed: number, direction: number) => void = (
+  channel,
+  speed,
+  direction,
+) => {
+  putRequest(
+    `/station/system/rover/science/set_h_bridge?channel=${channel}&speed=${speed}&direction=${direction}`,
+  ).catch((e) => console.log(e))
+}
+
+export const requestPWMState: (channel: number, value: number) => void = (channel, value) => {
+  putRequest(`/station/system/rover/science/set_pwm?channel=${channel}&value=${value}`).catch((e) => console.log(e))
+}
+
+export const requestSequenceBegin: (sequenceId: number) => void = (sequenceId: number) => {
+  putRequest(`/station/system/rover/science/sequence_begin?sequence_id=${sequenceId}`).catch((e) => console.log(e))
+}
+
+export const requestSequenceState: (sequenceId: number) => void = (sequenceId: number) => {
+  putRequest(`/station/system/rover/science/sequence_state?sequence_id=${sequenceId}`).catch((e) => console.log(e))
 }

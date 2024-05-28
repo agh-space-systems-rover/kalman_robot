@@ -1,31 +1,36 @@
 import os
+import struct
+
+import rospkg
 import yaml
 from fastapi import APIRouter, Path
+from geometry_msgs.msg import Vector3
+from kalman_groundstation.modules.science.universal_module import (
+    CAN_CMD_INPUT_REQUEST,
+    CAN_CMD_SET_DIGITAL_OUTPUT,
+    CAN_CMD_SET_HBRIDGE,
+    CAN_CMD_SET_LED_DRIVER,
+    CAN_CMD_SET_PWM_OUTPUT,
+    CAN_CMD_SET_STEPPER_POSITION,
+    CAN_CMD_STEPPER_HOMING_REQUEST,
+    CAN_CMD_STEPPER_POSITION_REQUEST,
+    CAN_CMD_WEIGHT_REQUEST,
+    CAN_CMD_AUTOMATION_SEQUENCE_BEGIN_REQUEST,
+    CAN_CMD_AUTOMATION_SEQUENCE_STATE_REQUEST,
+    SequenceManagerFrame_Format,
+    HBridgeFrame_Format,
+    PWMFrame_Format,
+    RequestFrame_Format,
+    StepperFrame_Format,
+    PWMFrame,
+    HBridgeFrame,
+    create_HBridgeFrame,
+    create_PWMFrame,
+)
 from kalman_groundstation.utils.logger import GpsLogger
-
 from kalman_interfaces.msg import MasterMessage
-
-import struct
 from rclpy.node import Node
 from std_msgs.msg import Empty
-from geometry_msgs.msg import Vector3
-import rospkg
-
-from kalman_groundstation.modules.science.universal_module import (
-    CAN_CMD_SET_DIGITAL_OUTPUT,
-    CAN_CMD_SET_PWM_OUTPUT,
-    CAN_CMD_SET_LED_DRIVER,
-    PWNFRAME_Format,
-    CAN_CMD_SET_HBRIDGE,
-    HBridgeFrame_Format,
-    CAN_CMD_SET_STEPPER_POSITION,
-    StepperFrame_Format,
-    CAN_CMD_STEPPER_HOMING_REQUEST,
-    CAN_CMD_WEIGHT_REQUEST,
-    CAN_CMD_ANALOG_INPUT_REQUEST,
-    CAN_CMD_STEPPER_POSITION_REQUEST,
-    GetFrame_Format,
-)
 
 
 class ScienceRouter(APIRouter):
@@ -87,6 +92,34 @@ class ScienceRouter(APIRouter):
         )
 
         self.add_api_route(
+            "/set_h_bridge",
+            self.set_h_bridge,
+            name="Set value for h_bridge with specified channel",
+            methods=["PUT"],
+        )
+
+        self.add_api_route(
+            "/led_state",
+            self.led_state,
+            name="Set LED state on selected channel",
+            methods=["PUT"],
+        )
+
+        self.add_api_route(
+            "/sequence_begin",
+            self.sequence_begin,
+            name="Request start sequence corresponding to id",
+            methods=["PUT"],
+        )
+
+        self.add_api_route(
+            "/sequence_state",
+            self.sequence_state,
+            name="Request sequence state corresponding to id",
+            methods=["PUT"],
+        )
+
+        self.add_api_route(
             "/raw_weight_request",
             self.raw_weight_request,
             name="Use CAN to send stepper homing request",
@@ -94,8 +127,8 @@ class ScienceRouter(APIRouter):
         )
 
         self.add_api_route(
-            "/raw_analog_input_request",
-            self.raw_analog_input_request,
+            "/raw_input_request",
+            self.raw_input_request,
             name="Use CAN to send analog input request",
             methods=["PUT"],
         )
@@ -108,9 +141,29 @@ class ScienceRouter(APIRouter):
         )
 
         self.add_api_route(
+            "/raw_sequence_begin",
+            self.raw_sequence_begin,
+            name="Use CAN to send sequence begin request",
+            methods=["PUT"],
+        )
+
+        self.add_api_route(
+            "/raw_sequence_state_req",
+            self.raw_sequence_state_req,
+            name="Use CAN to send sequence state request",
+            methods=["PUT"],
+        )
+
+        self.add_api_route(
             "/lamp_pwm",
             self.lamp_pwm,
             name="Set PWM for turning on lamp",
+            methods=["PUT"],
+        )
+        self.add_api_route(
+            "/set_pwm",
+            self.set_pwm,
+            name="Set pwm on selected channel",
             methods=["PUT"],
         )
         self.add_api_route(
@@ -141,6 +194,9 @@ class ScienceRouter(APIRouter):
             "/set_carousel", self.set_carousel, name="Set carousel", methods=["PUT"]
         )
         self.add_api_route(
+            "/set_carousel_with_offset", self.set_carousel_with_offset, name="Set carousel with offset", methods=["PUT"]
+        )
+        self.add_api_route(
             "/set_servo", self.set_servo, name="Set servo", methods=["PUT"]
         )
         self.add_api_route("/set_aux", self.set_aux, name="Set AUX", methods=["PUT"])
@@ -156,36 +212,31 @@ class ScienceRouter(APIRouter):
         assert 0 <= value and value <= 145
         msg = MasterMessage()
         msg.cmd = CAN_CMD_SET_DIGITAL_OUTPUT
-        msg.data = struct.pack(PWNFRAME_Format, board_id, channel_id, value)
+        msg.data = create_PWMFrame(board_id, channel_id, value).pack()
         self.ros2uart_pub.publish(msg)
 
     def raw_set_pwm_output(self, board_id: int, channel_id: int, value: int):
-        assert 0 <= value and value <= 100
         msg = MasterMessage()
         msg.cmd = CAN_CMD_SET_PWM_OUTPUT
-        msg.data = struct.pack(PWNFRAME_Format, board_id, channel_id, value)
+        msg.data = create_PWMFrame(board_id, channel_id, value).pack()
         self.ros2uart_pub.publish(msg)
 
     def raw_set_led_driver(self, board_id: int, channel_id: int, value: int):
-        assert 0 <= value and value <= 100
         msg = MasterMessage()
         msg.cmd = CAN_CMD_SET_LED_DRIVER
-        msg.data = struct.pack(PWNFRAME_Format, board_id, channel_id, value)
+        msg.data = create_PWMFrame(board_id, channel_id, value).pack()
         self.ros2uart_pub.publish(msg)
 
     def raw_set_hbridge(
         self, board_id: int, channel_id: int, speed: int, direction: int
     ):
-        assert 0 <= speed and speed <= 100
         msg = MasterMessage()
         msg.cmd = CAN_CMD_SET_HBRIDGE
-        msg.data = struct.pack(
-            HBridgeFrame_Format, board_id, channel_id, speed, direction
-        )
+        msg.data = create_HBridgeFrame(board_id, channel_id, speed, direction).pack()
         self.ros2uart_pub.publish(msg)
 
     def raw_set_stepper_position(
-        self, board_id: int, channel_id: int, target_position: int
+        self, board_id: int, channel_id: int, target_position: float
     ):
         msg = MasterMessage()
         msg.cmd = CAN_CMD_SET_STEPPER_POSITION
@@ -197,27 +248,56 @@ class ScienceRouter(APIRouter):
     def raw_stepper_homing_request(self, board_id: int, channel_id: int):
         msg = MasterMessage()
         msg.cmd = CAN_CMD_STEPPER_HOMING_REQUEST
-        msg.data = struct.pack(GetFrame_Format, board_id, channel_id)
+        msg.data = struct.pack(RequestFrame_Format, board_id, channel_id)
         self.ros2uart_pub.publish(msg)
 
     def raw_weight_request(self, board_id: int, channel_id: int):
         msg = MasterMessage()
         msg.cmd = CAN_CMD_WEIGHT_REQUEST
-        msg.data = struct.pack(GetFrame_Format, board_id, channel_id)
+        msg.data = struct.pack(RequestFrame_Format, board_id, channel_id)
         self.ros2uart_pub.publish(msg)
 
-    def raw_analog_input_request(self, board_id: int, channel_id: int):
+    def raw_input_request(self, board_id: int, channel_id: int):
         msg = MasterMessage()
-        msg.cmd = CAN_CMD_ANALOG_INPUT_REQUEST
-        msg.data = struct.pack(GetFrame_Format, board_id, channel_id)
+        msg.cmd = CAN_CMD_INPUT_REQUEST
+        msg.data = struct.pack(RequestFrame_Format, board_id, channel_id)
         self.ros2uart_pub.publish(msg)
 
     def raw_stepper_position_request(self, board_id: int, channel_id: int):
         msg = MasterMessage()
         msg.cmd = CAN_CMD_STEPPER_POSITION_REQUEST
-        msg.data = struct.pack(GetFrame_Format, board_id, channel_id)
+        msg.data = struct.pack(RequestFrame_Format, board_id, channel_id)
         self.ros2uart_pub.publish(msg)
 
+    def raw_sequence_begin(self, board_id: int, sequence_id: int):
+        msg = MasterMessage()
+        msg.cmd = CAN_CMD_AUTOMATION_SEQUENCE_BEGIN_REQUEST
+        msg.data = struct.pack(SequenceManagerFrame_Format, board_id, sequence_id)
+        self.ros2uart_pub.publish(msg)
+
+    def raw_sequence_state_req(self, board_id: int, sequence_id: int):
+        msg = MasterMessage()
+        msg.cmd = CAN_CMD_AUTOMATION_SEQUENCE_STATE_REQUEST
+        msg.data = struct.pack(SequenceManagerFrame_Format, board_id, sequence_id)
+        self.ros2uart_pub.publish(msg)
+
+    def set_h_bridge(self, channel: int, speed: int, direction: int):
+        assert(0 <= direction and direction <= 1)
+        self.raw_set_hbridge(0, channel, speed, direction)
+        return True
+
+    def led_state(self, channel: int, value: int):
+        self.raw_set_led_driver(0, channel, value)
+        return True
+    
+    def sequence_begin(self, sequence_id: int):
+        self.raw_sequence_begin(0, sequence_id)
+        return True
+
+    def sequence_state(self, sequence_id: int):
+        self.raw_sequence_state_req(0, sequence_id)
+        return True
+    
     def set_pump(self, slot: int, value: bool):
         self.parent_node.get_logger().error("set_pump: implement me")
         return True
@@ -240,6 +320,15 @@ class ScienceRouter(APIRouter):
 
     def set_carousel(self, value: int):
         self.parent_node.get_logger().error("set_carousel: implement me")
+        return True
+
+    def set_pwm(self, channel: int, value: int):
+        self.raw_set_pwm_output(0, channel_id=channel, value=value)
+        return True
+
+    def set_carousel_with_offset(self, value: int, offset: int):
+        position = (value * 360.0 / 8.0) + offset
+        self.raw_set_stepper_position(0, 0, position)
         return True
 
     def open_close_sample(self, open: bool):
