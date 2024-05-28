@@ -9,9 +9,7 @@ import {
   requestPWMState,
   requestSequenceBegin,
   requestSequenceState,
-  requestWeightERC,
   setCarouselWithOffset,
-  tareWeight,
 } from '../../../api/requests'
 import { useAppSelector } from '../../../store/storeHooks'
 import { SmartProbe } from '../SmartProbe'
@@ -21,6 +19,7 @@ const ColumnWrapper = styled.div`
   display: flex;
   flex-direction: column;
   gap: 8px;
+  min-width: 250px;
   text-align: center;
   & > h5 {
     font-size: 24px;
@@ -37,7 +36,7 @@ const ColumnWrapper = styled.div`
   }
 `
 const ThreeColumnBox = styled.div`
-  display: flex;
+  display: block;
   justify-content: space-between;
   margin-bottom: 5px;
   border: 1px solid #ddd;
@@ -45,7 +44,7 @@ const ThreeColumnBox = styled.div`
 
 const Column = styled.div`
   flex: 1;
-  padding: 10px;
+  // padding: 5px;
   border: 1px solid #ccc;
   &:first-child {
     margin-left: 0;
@@ -55,10 +54,16 @@ const Column = styled.div`
   }
 `
 
+const Button = styled.button`
+  margin: 5px;
+  margin-top: 0;
+  margin-bottom: 0;
+  border: 1px solid #ccc;
+`
+
 export const ERCScience: () => JSX.Element = () => {
   const [carouselValue, setCarouselValue] = useState<number>(8)
   const [carouselOffset, setCarouselOffset] = useState<number>(0)
-  const weight = useAppSelector((state) => state.science.ERCWeight)
 
   const leds = useAppSelector((state) => state.science.universal.leds)
   const heatingDown = useAppSelector((state) => state.science.universal.heatingDown)
@@ -95,7 +100,6 @@ export const ERCScience: () => JSX.Element = () => {
 
   return (
     <div>
-      <h1>Science</h1>
       <div style={{ display: 'flex', flex: 1, justifyContent: 'space-around' }}>
         <ColumnWrapper>
           <h3>
@@ -103,36 +107,36 @@ export const ERCScience: () => JSX.Element = () => {
           </h3>
           <br />
           <div>
-            <button onClick={(): void => requestLEDState(0, 255)}>LED1 ON</button>
-            <button onClick={(): void => requestLEDState(0, 0)}>LED1 OFF</button>
+            <Button onClick={(): void => requestLEDState(0, 255)}>LED1 ON</Button>
+            <Button onClick={(): void => requestLEDState(0, 0)}>LED1 OFF</Button>
           </div>
 
           <div>
-            <button onClick={(): void => requestLEDState(1, 255)}>LED2 ON</button>
-            <button onClick={(): void => requestLEDState(1, 0)}>LED2 OFF</button>
+            <Button onClick={(): void => requestLEDState(1, 255)}>LED2 ON</Button>
+            <Button onClick={(): void => requestLEDState(1, 0)}>LED2 OFF</Button>
           </div>
           <br />
           <h3>White LED {leds[2]}</h3>
           <div>
-            <button onClick={(): void => requestLEDState(2, 255)}>LED3 ON</button>
-            <button onClick={(): void => requestLEDState(2, 0)}>LED3 OFF</button>
+            <Button onClick={(): void => requestLEDState(2, 255)}>LED3 ON</Button>
+            <Button onClick={(): void => requestLEDState(2, 0)}>LED3 OFF</Button>
           </div>
           <h3>Heating</h3>
           <div>
             State: {heatingUp}
-            <button onClick={(): void => requestHBridgeState(1, 100, 0)}>UP ON</button>
-            <button onClick={(): void => requestHBridgeState(1, 0, 0)}>UP OFF</button>
+            <Button onClick={(): void => requestHBridgeState(1, 100, 0)}>UP ON</Button>
+            <Button onClick={(): void => requestHBridgeState(1, 0, 0)}>UP OFF</Button>
           </div>
           <div>
             State: {heatingDown}
-            <button onClick={(): void => requestHBridgeState(0, 100, 0)}>DOWN ON</button>
-            <button onClick={(): void => requestHBridgeState(0, 0, 0)}>DOWN OFF</button>
+            <Button onClick={(): void => requestHBridgeState(0, 100, 0)}>DWN ON</Button>
+            <Button onClick={(): void => requestHBridgeState(0, 0, 0)}>DWN OFF</Button>
           </div>
           <h3>Washer</h3>
           <div>
             State: {washer}
-            <button onClick={(): void => requestPWMState(1, 255)}>ON</button>
-            <button onClick={(): void => requestPWMState(1, 0)}>OFF</button>
+            <Button onClick={(): void => requestPWMState(1, 255)}>ON</Button>
+            <Button onClick={(): void => requestPWMState(1, 0)}>OFF</Button>
           </div>
         </ColumnWrapper>
         <ColumnWrapper>
@@ -149,65 +153,58 @@ export const ERCScience: () => JSX.Element = () => {
                 setCarouselValue(parseInt(e.target.value))
               }}
             />
-            <button
+            <Button
               onClick={(): void => setCarouselWithOffset(carouselValue, carouselOffset)}
               style={{ margin: 2, padding: 4 }}
             >
               ReSubmit
-            </button>
+            </Button>
           </div>
           <div>
             <span style={{ marginRight: 10, width: 50 }}>Offset {carouselOffset} &deg;</span>
-            <button onClick={(): void => decrementOffset()} style={{ margin: 2, padding: 4 }}>
+            <Button onClick={(): void => decrementOffset()} style={{ margin: 2, padding: 4 }}>
               &lt;-
-            </button>
-            <button onClick={(): void => incrementOffset()} style={{ margin: 2, padding: 4 }}>
+            </Button>
+            <Button onClick={(): void => incrementOffset()} style={{ margin: 2, padding: 4 }}>
               -&gt;
-            </button>
-            <button onClick={(): void => resetOffset()} style={{ margin: 2, padding: 4 }}>
+            </Button>
+            <Button onClick={(): void => resetOffset()} style={{ margin: 2, padding: 4 }}>
               zero
-            </button>
+            </Button>
           </div>
           <br />
           <div>
-            {/* <button onClick={(): void => openCloseSampleERC(true)} style={{ margin: 2, padding: 4 }}>
+            {/* <Button onClick={(): void => openCloseSampleERC(true)} style={{ margin: 2, padding: 4 }}>
               Open
-            </button>
-            <button onClick={(): void => openCloseSampleERC(false)} style={{ margin: 2, padding: 4 }}>
+            </Button>
+            <Button onClick={(): void => openCloseSampleERC(false)} style={{ margin: 2, padding: 4 }}>
               Close
-            </button> */}
+            </Button> */}
 
             <h3>Pouring</h3>
             <ThreeColumnBox>
               <Column>
                 <p>Sample 1</p>
-                <button onClick={(): void => requestSequenceBegin(1)}>Start seq</button>
-                <button onClick={(): void => requestSequenceState(1)}>Seq state</button>
+                <Button onClick={(): void => requestSequenceBegin(1)}>Start seq</Button>
+                <Button onClick={(): void => requestSequenceState(1)}>Seq state</Button>
                 State: {sequenceStates[0].state}/{sequenceStates[0].stage}
               </Column>
+
               <Column>
                 <p>Sample 2</p>
-                <button onClick={(): void => requestSequenceBegin(2)}>Start seq</button>
-                <button onClick={(): void => requestSequenceState(2)}>Seq state</button>
+                <Button onClick={(): void => requestSequenceBegin(2)}>Start seq</Button>
+                <Button onClick={(): void => requestSequenceState(2)}>Seq state</Button>
                 State: {sequenceStates[1].state}/{sequenceStates[1].stage}
               </Column>
+
               <Column>
                 <p>Sample 3</p>
-                <button onClick={(): void => requestSequenceBegin(3)}>Start seq</button>
-                <button onClick={(): void => requestSequenceState(3)}>Seq state</button>
+                <Button onClick={(): void => requestSequenceBegin(3)}>Start seq</Button>
+                <Button onClick={(): void => requestSequenceState(3)}>Seq state</Button>
                 State: {sequenceStates[2].state}/{sequenceStates[2].stage}
               </Column>
             </ThreeColumnBox>
-            <h3>Weight</h3>
-
-            <button onClick={requestWeightERC} style={{ margin: 2, padding: 4 }}>
-              Request weight
-            </button>
-            <button onClick={tareWeight} style={{ margin: 2, padding: 4 }}>
-              Tare weight
-            </button>
           </div>
-          <span style={{ fontSize: 25 }}>Weight: {weight}g</span>
         </ColumnWrapper>
         <SmartProbe />
       </div>
