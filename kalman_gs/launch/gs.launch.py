@@ -4,6 +4,7 @@ from launch.actions import ExecuteProcess
 from ament_index_python.packages import get_package_share_path
 import os
 import shutil
+import yaml
 
 # for DEBUG wheel_controller
 from launch.actions import IncludeLaunchDescription
@@ -19,6 +20,19 @@ def generate_launch_description():
             raise FileNotFoundError(
                 "mapproxy-util not found. Please ensure it is available in PATH or at ~/.local/bin."
             )
+        
+    # Load config/mapproxy.yaml and insert cache dir.
+    with open(str(get_package_share_path("kalman_gs") / "config" / "mapproxy.yaml")) as f:
+        mapproxy_yaml = yaml.load(f, Loader=yaml.SafeLoader)
+    mapproxy_yaml["globals"] = {}
+    mapproxy_yaml["globals"]["cache"] = {}
+    mapproxy_yaml["globals"]["cache"]["base_dir"] = os.path.expanduser("~/.cache/kalman/mapproxy_cache")
+    
+    # Save mapproxy config to a temp file.
+    mapproxy_yaml_path = "/tmp/kalman/mapproxy." + str(os.getpid()) + ".yaml"
+    os.makedirs(os.path.dirname(mapproxy_yaml_path), exist_ok=True)
+    with open(mapproxy_yaml_path, "w") as f:
+        yaml.dump(mapproxy_yaml, f)
 
     return LaunchDescription(
         [
@@ -26,9 +40,7 @@ def generate_launch_description():
                 cmd=[
                     mapproxy_util,
                     "serve-develop",
-                    str(
-                        get_package_share_path("kalman_gs") / "config" / "mapproxy.yaml"
-                    ),
+                    mapproxy_yaml_path,
                     "-blocalhost:8065",
                 ],
             ),

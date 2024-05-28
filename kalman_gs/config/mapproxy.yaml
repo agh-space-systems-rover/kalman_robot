@@ -31,5 +31,3 @@ grids:
   gm_grid:
     base: GLOBAL_MERCATOR
     origin: ul
-
-globals:
