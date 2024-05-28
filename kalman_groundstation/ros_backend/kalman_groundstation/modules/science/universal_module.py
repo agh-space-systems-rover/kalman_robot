@@ -54,8 +54,8 @@ def create_HBridgeFrame(board_id: int, channel_id: int, speed: int, direction: i
 
 CAN_CMD_SET_STEPPER_POSITION = 0x54  # UART = 0x54
 # typedef struct _packed_ {
-#     uint8_t board_id;           // 0, 1, 2
-#     uint8_t channel_id;         // 0, 1
+#     uint8_t board_id;          // 0, 1, 2
+#     uint8_t channel_id;        // 0, 1
 #     float target_position;     // signed position in degrees relative to homing position (either starting position or limit switch)
 # } StepperFrame;
 StepperFrame_Format = "<BBf"

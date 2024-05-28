@@ -26,6 +26,9 @@ from kalman_groundstation.modules.science.universal_module import (
     HBridgeFrame,
     create_HBridgeFrame,
     create_PWMFrame,
+    create_StepperFrame,
+    create_RequestFrame,
+    create_SequenceManagerFrame,
 )
 from kalman_groundstation.utils.logger import GpsLogger
 from kalman_interfaces.msg import MasterMessage
@@ -240,45 +243,43 @@ class ScienceRouter(APIRouter):
     ):
         msg = MasterMessage()
         msg.cmd = CAN_CMD_SET_STEPPER_POSITION
-        msg.data = struct.pack(
-            StepperFrame_Format, board_id, channel_id, target_position
-        )
+        msg.data = create_StepperFrame(board_id, channel_id, target_position).pack()
         self.ros2uart_pub.publish(msg)
 
     def raw_stepper_homing_request(self, board_id: int, channel_id: int):
         msg = MasterMessage()
         msg.cmd = CAN_CMD_STEPPER_HOMING_REQUEST
-        msg.data = struct.pack(RequestFrame_Format, board_id, channel_id)
+        msg.data = create_RequestFrame(board_id, channel_id).pack()
         self.ros2uart_pub.publish(msg)
 
     def raw_weight_request(self, board_id: int, channel_id: int):
         msg = MasterMessage()
         msg.cmd = CAN_CMD_WEIGHT_REQUEST
-        msg.data = struct.pack(RequestFrame_Format, board_id, channel_id)
+        msg.data = create_RequestFrame(board_id, channel_id).pack()
         self.ros2uart_pub.publish(msg)
 
     def raw_input_request(self, board_id: int, channel_id: int):
         msg = MasterMessage()
         msg.cmd = CAN_CMD_INPUT_REQUEST
-        msg.data = struct.pack(RequestFrame_Format, board_id, channel_id)
+        msg.data = create_RequestFrame(board_id, channel_id).pack()
         self.ros2uart_pub.publish(msg)
 
     def raw_stepper_position_request(self, board_id: int, channel_id: int):
         msg = MasterMessage()
         msg.cmd = CAN_CMD_STEPPER_POSITION_REQUEST
-        msg.data = struct.pack(RequestFrame_Format, board_id, channel_id)
+        msg.data = create_RequestFrame(board_id, channel_id).pack()
         self.ros2uart_pub.publish(msg)
 
     def raw_sequence_begin(self, board_id: int, sequence_id: int):
         msg = MasterMessage()
         msg.cmd = CAN_CMD_AUTOMATION_SEQUENCE_BEGIN_REQUEST
-        msg.data = struct.pack(SequenceManagerFrame_Format, board_id, sequence_id)
+        msg.data = create_SequenceManagerFrame(board_id, sequence_id).pack()
         self.ros2uart_pub.publish(msg)
 
     def raw_sequence_state_req(self, board_id: int, sequence_id: int):
         msg = MasterMessage()
         msg.cmd = CAN_CMD_AUTOMATION_SEQUENCE_STATE_REQUEST
-        msg.data = struct.pack(SequenceManagerFrame_Format, board_id, sequence_id)
+        msg.data = create_SequenceManagerFrame(board_id, sequence_id).pack()
         self.ros2uart_pub.publish(msg)
 
     def set_h_bridge(self, channel: int, speed: int, direction: int):

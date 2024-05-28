@@ -6,8 +6,8 @@ import { updateJoints } from '../../store/Arm/armSlice'
 import { convertJointPositions } from '../../store/Arm/armTypes'
 import { updateAutonomy, updateBleSignal } from '../../store/Autonomy/autonomySlice'
 import { updateTemperature, updateWheels } from '../../store/Motors/motorsSlice'
-import { updateModules, updateSmartProbe, updateWeight } from '../../store/Science/scienceSlice'
-import { mapScience, mapSmartProbe } from '../../store/Science/scienceTypes'
+import { updateModules, updateSmartProbe, updateUniversal, updateWeight } from '../../store/Science/scienceSlice'
+import { mapScience, mapScienceUniversal, mapSmartProbe } from '../../store/Science/scienceTypes'
 import {
   connectionEstablished,
   connectionTerminated,
@@ -64,6 +64,11 @@ const accessPointStatusHandler: (data: any) => Action = (data: any) => {
 const bleSignalHandler: (data: any) => Action = (data: any) => {
   return updateBleSignal(data.data)
 }
+
+const scienceRespHandler: (data: any) => Action = (data: any) => {
+  return updateUniversal(mapScienceUniversal(data))
+}
+
 const handlers: any = {
   '/station/wheels/state': wheelHandler,
   '/station/arm/state': armHandler,
@@ -75,6 +80,7 @@ const handlers: any = {
   '/access_point/webpage/joined': accessPointContentHandler,
   '/access_point/status': accessPointStatusHandler,
   '/kalman_rover/ble_beacon_signal': bleSignalHandler,
+  '/station/science/resp': scienceRespHandler,
 }
 
 const URL = 'ws://localhost:8001/ws'

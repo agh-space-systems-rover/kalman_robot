@@ -60,6 +60,12 @@ export const ERCScience: () => JSX.Element = () => {
   const [carouselOffset, setCarouselOffset] = useState<number>(0)
   const weight = useAppSelector((state) => state.science.ERCWeight)
 
+  const leds = useAppSelector((state) => state.science.universal.leds)
+  const heatingDown = useAppSelector((state) => state.science.universal.heatingDown)
+  const heatingUp = useAppSelector((state) => state.science.universal.heatingUp)
+  const washer = useAppSelector((state) => state.science.universal.washer)
+  const sequenceStates = useAppSelector((state) => state.science.universal.sequenceStates)
+
   const offsetSetter = useCallback(
     _.throttle((value: number) => {
       setCarouselWithOffset(carouselValue, value)
@@ -92,7 +98,9 @@ export const ERCScience: () => JSX.Element = () => {
       <h1>Science</h1>
       <div style={{ display: 'flex', flex: 1, justifyContent: 'space-around' }}>
         <ColumnWrapper>
-          <h3>UVC LED</h3>
+          <h3>
+            UVC LED ({leds[0]}, {leds[1]})
+          </h3>
           <br />
           <div>
             <button onClick={(): void => requestLEDState(0, 255)}>LED1 ON</button>
@@ -104,22 +112,25 @@ export const ERCScience: () => JSX.Element = () => {
             <button onClick={(): void => requestLEDState(1, 0)}>LED2 OFF</button>
           </div>
           <br />
-          <h3>White LED</h3>
+          <h3>White LED {leds[2]}</h3>
           <div>
             <button onClick={(): void => requestLEDState(2, 255)}>LED3 ON</button>
             <button onClick={(): void => requestLEDState(2, 0)}>LED3 OFF</button>
           </div>
           <h3>Heating</h3>
           <div>
+            State: {heatingUp}
             <button onClick={(): void => requestHBridgeState(1, 100, 0)}>UP ON</button>
             <button onClick={(): void => requestHBridgeState(1, 0, 0)}>UP OFF</button>
           </div>
           <div>
+            State: {heatingDown}
             <button onClick={(): void => requestHBridgeState(0, 100, 0)}>DOWN ON</button>
             <button onClick={(): void => requestHBridgeState(0, 0, 0)}>DOWN OFF</button>
           </div>
           <h3>Washer</h3>
           <div>
+            State: {washer}
             <button onClick={(): void => requestPWMState(1, 255)}>ON</button>
             <button onClick={(): void => requestPWMState(1, 0)}>OFF</button>
           </div>
@@ -172,16 +183,19 @@ export const ERCScience: () => JSX.Element = () => {
                 <p>Sample 1</p>
                 <button onClick={(): void => requestSequenceBegin(1)}>Start seq</button>
                 <button onClick={(): void => requestSequenceState(1)}>Seq state</button>
+                State: {sequenceStates[0].state}/{sequenceStates[0].stage}
               </Column>
               <Column>
                 <p>Sample 2</p>
                 <button onClick={(): void => requestSequenceBegin(2)}>Start seq</button>
                 <button onClick={(): void => requestSequenceState(2)}>Seq state</button>
+                State: {sequenceStates[1].state}/{sequenceStates[1].stage}
               </Column>
               <Column>
                 <p>Sample 3</p>
                 <button onClick={(): void => requestSequenceBegin(3)}>Start seq</button>
                 <button onClick={(): void => requestSequenceState(3)}>Seq state</button>
+                State: {sequenceStates[2].state}/{sequenceStates[2].stage}
               </Column>
             </ThreeColumnBox>
             <h3>Weight</h3>
