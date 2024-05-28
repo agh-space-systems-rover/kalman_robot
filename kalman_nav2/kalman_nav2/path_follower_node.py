@@ -112,7 +112,7 @@ class PathFollower(rclpy.node.Node):
         )
         self.declare_parameter(
             "approach_distance",
-            1.0,
+            1.5,
             ParameterDescriptor(
                 type=ParameterType.PARAMETER_DOUBLE,
                 description="Switch to slow_linear_velocity when at the end of the path. (m)",

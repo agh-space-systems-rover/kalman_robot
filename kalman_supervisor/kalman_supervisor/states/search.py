@@ -8,7 +8,7 @@ from geometry_msgs.msg import PoseStamped
 
 # the distance between the revolutions of the spiral
 SPIRAL_REVOLUTION_WIDTH = 3
-MIN_DISTANCE_TO_GOAL = 1.0
+MIN_DISTANCE_TO_GOAL = 1.5
 PROGRESS_INCREMENT = 0.001
 
 def spiral_tr(progress: float, angle: float, revolutions: int) -> np.ndarray:

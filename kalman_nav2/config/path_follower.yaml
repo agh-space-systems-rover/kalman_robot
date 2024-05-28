@@ -3,7 +3,7 @@
     robot_frame: base_footprint
     lookahead: 1.0
     regression_distance: 3.0
-    approach_distance: 1.0
+    approach_distance: 1.5
     slow_linear_velocity: 0.5
     fast_linear_velocity: 1.0
     angular_velocity: 0.5
