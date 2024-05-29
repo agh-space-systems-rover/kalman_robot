@@ -19,7 +19,7 @@ class SmartProbeService:
         self.HUM_MIN = 1626
 
     def update_measurements(self, data):
-        arr = data.data[2:]
+        arr = data.data
 
         raw_temperature = arr[1] << 8 | arr[0]
         raw_humidity = arr[3] << 8 | arr[2]

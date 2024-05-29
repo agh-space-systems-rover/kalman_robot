@@ -357,7 +357,7 @@ class ScienceRouter(APIRouter):
         return True
 
     def get_smart_probe(self):
-        self.parent_node.get_logger().error("get_smart_probe: implement me")
+        self.ros2uart_pub.publish(MasterMessage(cmd=0xFD, data=[]))
         return True
 
     def get_panorama(self, lat: float, lon: float, alt: float):
