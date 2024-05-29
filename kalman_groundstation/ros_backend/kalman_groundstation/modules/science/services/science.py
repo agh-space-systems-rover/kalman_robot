@@ -81,7 +81,8 @@ class ScienceService:
         self.response_pub.publish(self.new_state)
 
     def update_seq_response(self, msg: MasterMessage):
-        frame = SequenceManagerStateFrame().parse(msg.data)
+        frame = SequenceManagerStateFrame()
+        frame.unpack_from(msg.data.tobytes())
         state = frame.sequence_state
         stage = frame.current_stage
         if frame.sequence_id == 0:
