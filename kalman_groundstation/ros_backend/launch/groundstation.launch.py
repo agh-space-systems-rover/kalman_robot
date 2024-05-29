@@ -59,7 +59,8 @@ def generate_launch_description():
             Node(
                 package="kalman_master",
                 executable="master_com",
-                parameters=[{"baud_rate": 38400}],
+                # parameters=[{"baud_rate": 38400}],
+                parameters=[{"baud_rate": 115200}],
             ),
             Node(
                 package="kalman_arm_utils",

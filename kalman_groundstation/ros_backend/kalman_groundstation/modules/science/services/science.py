@@ -38,7 +38,7 @@ class ScienceService:
         )
 
         self.response_pub = parent_node.create_publisher(
-            NewScienceResp, "/station/science/resp", qos_profile=10
+            NewScienceResp, "/station/science/universal", qos_profile=10
         )
 
         self.state = ScienceState().dict()
@@ -58,11 +58,12 @@ class ScienceService:
         self.state_publisher.publish(msg)
 
     def update_set_response(self, msg: MasterMessage):
-        frame = SetResponseFrame.parse(msg.data)
+        frame = SetResponseFrame()
+        frame.unpack_from(msg.data.tobytes())
         if frame.command_id == CAN_CMD_SET_PWM_OUTPUT:
             if frame.channel_id == 1:
                 self.new_state.washer.data = float(frame.state.byte_state)
-        elif frame.command == CAN_CMD_SET_LED_DRIVER:
+        elif frame.command_id == CAN_CMD_SET_LED_DRIVER:
             value = float(frame.state.byte_state)
             if frame.channel_id == 0:
                 self.new_state.led1.data = value
@@ -70,7 +71,7 @@ class ScienceService:
                 self.new_state.led2.data = value
             elif frame.channel_id == 2:
                 self.new_state.led3.data = value
-        elif frame.command == CAN_CMD_SET_HBRIDGE:
+        elif frame.command_id == CAN_CMD_SET_HBRIDGE:
             value = float(frame.state.speed)
             if frame.channel_id == 0:
                 self.new_state.heating_down.data = value
