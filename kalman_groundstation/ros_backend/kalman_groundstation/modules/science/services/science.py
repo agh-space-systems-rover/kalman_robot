@@ -21,9 +21,9 @@ from kalman_groundstation.modules.science.universal_module import (
 
 class ScienceService:
     def __init__(self, parent_node: Node):
-        self.uart2ros_sub = parent_node.create_subscription(
-            MasterMessage, "/master_com/master_to_ros/xc5", self.update_temperature, qos_profile=10
-        )
+        # self.uart2ros_sub = parent_node.create_subscription(
+        #     MasterMessage, "/master_com/master_to_ros/xc5", self.update_temperature, qos_profile=10
+        # )
 
         self.set_response_sub = parent_node.create_subscription(
             MasterMessage, f"/master_com/master_to_ros/{hex(CAN_CMD_SET_RESPONSE)[1:]}", self.update_set_response, qos_profile=10

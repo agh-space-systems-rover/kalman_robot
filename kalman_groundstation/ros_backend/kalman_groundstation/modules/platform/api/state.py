@@ -41,7 +41,11 @@ class PlatformStateRouter(APIRouter):
         self.parent_node = parent_node
 
         self.motor_state_subscription = parent_node.create_subscription(
-            WheelStatesMsg, "/wheel_controller/state", self.motor_state_callback, qos_profile=10
+            WheelStatesMsg, "/wheel_states/return", self.motor_state_callback, qos_profile=10
+        )
+
+        self.motor_target_subscription = parent_node.create_subscription(
+            WheelStatesMsg, "/wheel_states", self.motor_target_callback, qos_profile=10
         )
 
         self.platform_state_publisher = parent_node.create_publisher(
@@ -50,9 +54,12 @@ class PlatformStateRouter(APIRouter):
     
     def motor_state_callback(self, msg: WheelStatesMsg):
         self.platform_state.motors = WheelStates.from_ros_msg(msg)
-        # self.platform_state_publisher.publish(self.platform_state.to_ros_msg())
-        self.parent_node.get_logger().info("Hey, I got a wheelStates msg!")
-        print("I got a wheelStates msg")
+
+
+    def motor_target_callback(self, msg: WheelStatesMsg):
+        self.platform_state.target_motors = WheelStates.from_ros_msg(msg)
+
+        self.platform_state_publisher.publish(self.platform_state.to_ros_msg())
 
     def get(self) -> PlatformState:
         return self.platform_state

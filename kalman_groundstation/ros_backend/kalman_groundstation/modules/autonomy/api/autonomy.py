@@ -10,6 +10,7 @@ from std_msgs.msg import ColorRGBA
 
 # from kalman_rover_uart.srv import intSrv, intSrvRequest
 from kalman_interfaces.srv import SetUeuosColor
+from kalman_interfaces.msg import MasterMessage
 
 MAX_SERVICE_RETRIES = 5
 
@@ -23,7 +24,7 @@ class AutonomyRouter(APIRouter):
         self.initialize_service_clients()
 
         self.ros2uart_publisher = parent_node.create_publisher(
-            UInt8MultiArray, "/kalman_rover/ros2uart", qos_profile=10
+            MasterMessage, "/master_com/ros_to_master", qos_profile=10
         )
 
         self.ueuos_colors = {
@@ -41,21 +42,21 @@ class AutonomyRouter(APIRouter):
             methods=["PUT"],
         )
 
-        self.add_api_route(
-            "/clear_costmap",
-            self.clear_costmap,  # Callable
-            name="Clears the costmap",
-            response_model=bool,
-            methods=["PUT"],
-        )
+        # self.add_api_route(
+        #     "/clear_costmap",
+        #     self.clear_costmap,  # Callable
+        #     name="Clears the costmap",
+        #     response_model=bool,
+        #     methods=["PUT"],
+        # )
 
-        self.add_api_route(
-            "/max_velocity",
-            self.set_max_velocity,  # Callable
-            name="Set max robot velocity",
-            response_model=bool,
-            methods=["PUT"],
-        )
+        # self.add_api_route(
+        #     "/max_velocity",
+        #     self.set_max_velocity,  # Callable
+        #     name="Set max robot velocity",
+        #     response_model=bool,
+        #     methods=["PUT"],
+        # )
 
         self.add_api_route(
             "/ueuos_state",
@@ -97,9 +98,12 @@ class AutonomyRouter(APIRouter):
 
     def set_autonomy_on_off(self, autonomy_on: bool):
         if autonomy_on:
-            self.ros2uart_publisher.publish(UInt8MultiArray(data=[0x20, 0x01, 0x02]))
+            # self.ros2uart_publisher.publish(UInt8MultiArray(data=[0x20, 0x01, 0x02]))
+            self.ros2uart_publisher.publish(MasterMessage(cmd=0x20, data=[1, 2]))
         else:
-            self.ros2uart_publisher.publish(UInt8MultiArray(data=[0x20, 0x01, 0x00]))
+            # self.ros2uart_publisher.publish(UInt8MultiArray(data=[0x20, 0x01, 0x00]))
+            self.ros2uart_publisher.publish(MasterMessage(cmd=0x20, data=[1, 0]))
+        return True
 
     def clear_costmap(self):
         req = EmptySrv.Request()

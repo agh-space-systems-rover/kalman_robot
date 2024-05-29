@@ -23,7 +23,7 @@ export const sendAutonomy: (autonomyOn: boolean) => void = (autonomyOn: boolean)
 }
 
 export const sendSilentMode: (silentOn: boolean) => void = (silentOn: boolean) => {
-  const request = putRequest(`/station/system/radio/silent_mode_on_off/?silent_on=${silentOn}`)
+  const request = putRequest(`/station/system/rover/radio/silent_mode_on_off/silent_on?target_state=${silentOn}`)
   request.then((res) => console.log(res))
 }
 
@@ -211,9 +211,14 @@ export const setScienceServo: (slot: number, angle_deg: number) => void = (slot,
   putRequest(`/station/system/rover/science/set_servo?slot=${slot}&angle_deg=${angleDeg}`).catch((e) => console.log(e))
 }
 
-export const setAutoclick: (on: boolean) => void = (on) => {
-  const value = on ? 255 : 0
+export const setAutoclick: (value: number) => void = (value) => {
+  // const value = on ? 180 : 0
   putRequest(`/station/system/rover/arm/autoclick/autoclick?value=${value}`).catch((e) => console.log(e))
+}
+
+export const setScrewdriver: (value: number, spinRight: boolean) => void = (value, spinRight) => {
+  value = spinRight ? value : -value
+  putRequest(`/station/system/rover/arm/autoclick/screwdriver?value=${value}`).catch((e) => console.log(e))
 }
 
 export const setCarousel: (value: number) => void = (value: number) => {

@@ -62,7 +62,7 @@ const WheelDisplay = styled.div<WheelDisplayProps>`
   position: absolute;
   ${({ wheelId }): FlattenSimpleInterpolation => getWheelPosition(wheelId)}
   ${({ velocity, angle }): FlattenSimpleInterpolation => css`
-    transform: rotate(${angle}deg);
+    transform: rotate(${3.14 - angle}rad);
     & > div {
       top: calc(35px - 2.5px - ${(velocity * (35 - 2.5)) / 100}px);
     }
@@ -76,20 +76,21 @@ const SpeedIndicator = styled.div`
   position: absolute;
 `
 
-export const RoverDisplay: React.FC<Wheels> = ({ targetMotors, motors }) => {
+/* eslint-disable camelcase */
+export const RoverDisplay: React.FC<Wheels> = ({ target_motors, motors }) => {
   return (
     <Rover>
       <WheelDisplay
         wheelId={WheelId.fl}
         displayType={DisplayType.Actual}
-        velocity={motors.fl.velocity}
-        angle={motors.fl.angle}
+        velocity={motors.front_left.velocity}
+        angle={motors.front_left.angle}
       />
       <WheelDisplay
         wheelId={WheelId.fl}
         displayType={DisplayType.Target}
-        velocity={targetMotors.fl.velocity}
-        angle={targetMotors.fl.angle}
+        velocity={target_motors.front_left.velocity}
+        angle={target_motors.front_left.angle}
       >
         <SpeedIndicator />
       </WheelDisplay>
@@ -97,14 +98,14 @@ export const RoverDisplay: React.FC<Wheels> = ({ targetMotors, motors }) => {
       <WheelDisplay
         wheelId={WheelId.br}
         displayType={DisplayType.Actual}
-        velocity={motors.br.velocity}
-        angle={motors.br.angle}
+        velocity={motors.back_right.velocity}
+        angle={motors.back_right.angle}
       />
       <WheelDisplay
         wheelId={WheelId.br}
         displayType={DisplayType.Target}
-        velocity={targetMotors.br.velocity}
-        angle={targetMotors.br.angle}
+        velocity={target_motors.back_right.velocity}
+        angle={target_motors.back_right.angle}
       >
         <SpeedIndicator />
       </WheelDisplay>
@@ -112,14 +113,14 @@ export const RoverDisplay: React.FC<Wheels> = ({ targetMotors, motors }) => {
       <WheelDisplay
         wheelId={WheelId.bl}
         displayType={DisplayType.Actual}
-        velocity={motors.bl.velocity}
-        angle={motors.bl.angle}
+        velocity={motors.back_left.velocity}
+        angle={motors.back_left.angle}
       />
       <WheelDisplay
         wheelId={WheelId.bl}
         displayType={DisplayType.Target}
-        velocity={targetMotors.bl.velocity}
-        angle={targetMotors.bl.angle}
+        velocity={target_motors.back_left.velocity}
+        angle={target_motors.back_left.angle}
       >
         <SpeedIndicator />
       </WheelDisplay>
@@ -127,14 +128,14 @@ export const RoverDisplay: React.FC<Wheels> = ({ targetMotors, motors }) => {
       <WheelDisplay
         wheelId={WheelId.fr}
         displayType={DisplayType.Actual}
-        velocity={motors.fr.velocity}
-        angle={motors.fr.angle}
+        velocity={motors.front_right.velocity}
+        angle={motors.front_right.angle}
       />
       <WheelDisplay
         wheelId={WheelId.fr}
         displayType={DisplayType.Target}
-        velocity={targetMotors.fr.velocity}
-        angle={targetMotors.fr.angle}
+        velocity={target_motors.front_right.velocity}
+        angle={target_motors.front_right.angle}
       >
         <SpeedIndicator />
       </WheelDisplay>

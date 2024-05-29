@@ -30,7 +30,7 @@ class ServoParamSetter(Node):
 
         request.parameters = [param]
         
-        self.client.call(request)
+        self.client.call_async(request)
         
     def rotational_callback(self, msg):
         while not self.client.wait_for_service(timeout_sec=0.5):
@@ -48,7 +48,7 @@ class ServoParamSetter(Node):
 
         request.parameters = [param]
         
-        self.client.call(request)
+        self.client.call_async(request)
         
         
 def main():

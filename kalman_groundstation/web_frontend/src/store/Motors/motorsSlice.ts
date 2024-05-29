@@ -12,17 +12,26 @@ export const initialWheelsState: MotorsState = {
     scalingFactor: scalingPresets[0],
   },
   wheels: {
-    targetMotors: {
-      fr: { velocity: 0, angle: 0 },
-      br: { velocity: 0, angle: 0 },
-      bl: { velocity: 0, angle: 0 },
-      fl: { velocity: 0, angle: 0 },
+    // eslint-disable-next-line camelcase
+    target_motors: {
+      // eslint-disable-next-line camelcase
+      front_right: { velocity: 0, angle: 0 },
+      // eslint-disable-next-line camelcase
+      back_right: { velocity: 0, angle: 0 },
+      // eslint-disable-next-line camelcase
+      back_left: { velocity: 0, angle: 0 },
+      // eslint-disable-next-line camelcase
+      front_left: { velocity: 0, angle: 0 },
     },
     motors: {
-      fr: { velocity: 0, angle: 0 },
-      br: { velocity: 0, angle: 0 },
-      bl: { velocity: 0, angle: 0 },
-      fl: { velocity: 0, angle: 0 },
+      // eslint-disable-next-line camelcase
+      front_right: { velocity: 0, angle: 0 },
+      // eslint-disable-next-line camelcase
+      back_right: { velocity: 0, angle: 0 },
+      // eslint-disable-next-line camelcase
+      back_left: { velocity: 0, angle: 0 },
+      // eslint-disable-next-line camelcase
+      front_left: { velocity: 0, angle: 0 },
     },
   },
   temperature: null,
