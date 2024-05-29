@@ -212,7 +212,7 @@ class ScienceRouter(APIRouter):
         self.add_api_route("/set_pump", self.set_pump, name="Set pump", methods=["PUT"])
 
     def raw_set_digital_output(self, board_id: int, channel_id: int, value: int):
-        assert 0 <= value and value <= 145
+        assert 0 <= value and value <= 180
         msg = MasterMessage()
         msg.cmd = CAN_CMD_SET_DIGITAL_OUTPUT
         msg.data = create_PWMFrame(board_id, channel_id, value).pack()

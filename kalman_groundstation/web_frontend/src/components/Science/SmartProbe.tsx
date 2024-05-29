@@ -1,6 +1,6 @@
 import styled from 'styled-components'
 
-import { requestProbeMeasurement } from '../../api/requests'
+import { requestProbeMeasurement, setRawDigitalOutput } from '../../api/requests'
 import { useAppSelector } from '../../store/storeHooks'
 
 const ColumnWrapper = styled.div`
@@ -29,10 +29,17 @@ export const SmartProbe: () => JSX.Element = () => {
 
   return (
     <ColumnWrapper>
-      <h5>Probe</h5>
+      <h6>Probe</h6>
       <button onClick={requestProbeMeasurement}>Request probe</button>
       <div style={{ fontSize: 16 }}>Temperature: {smartProbe.temperature.toFixed(2)}C</div>
       <div style={{ fontSize: 16 }}>Humidity: {smartProbe.hummidity.toFixed(2)}%</div>
+
+      <h6>Sample1</h6>
+      <button onClick={(): void => setRawDigitalOutput(0, 180)}>Open</button>
+      <button onClick={(): void => setRawDigitalOutput(0, 0)}>Close</button>
+      <h6>Sample2</h6>
+      <button onClick={(): void => setRawDigitalOutput(1, 180)}>Open</button>
+      <button onClick={(): void => setRawDigitalOutput(1, 0)}>Close</button>
     </ColumnWrapper>
   )
 }
