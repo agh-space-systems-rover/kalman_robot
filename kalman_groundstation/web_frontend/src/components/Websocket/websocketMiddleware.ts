@@ -66,6 +66,7 @@ const bleSignalHandler: (data: any) => Action = (data: any) => {
 }
 
 const scienceRespHandler: (data: any) => Action = (data: any) => {
+  console.log(data)
   return updateUniversal(mapScienceUniversal(data))
 }
 
@@ -75,12 +76,12 @@ const handlers: any = {
   '/station/autonomy/state': autonomyHandler,
   '/station/science/state': scienceHandler,
   '/station/science/weight': weightHandler,
+  '/station/science/universal': scienceRespHandler,
   '/station/science/smart_probe': smartProbeHandler,
   '/station/wheels/temperatures': temperatureHandler,
   '/access_point/webpage/joined': accessPointContentHandler,
   '/access_point/status': accessPointStatusHandler,
   '/kalman_rover/ble_beacon_signal': bleSignalHandler,
-  '/station/science/resp': scienceRespHandler,
 }
 
 const URL = 'ws://localhost:8001/ws'
@@ -104,6 +105,7 @@ export const websocketMiddleware: Middleware = (store) => {
 
       socket.onmessage = (e: MessageEvent): void => {
         const obj: ReceivedMessage = JSON.parse(e.data)
+        console.log(obj)
 
         if (obj.topic in handlers) {
           store.dispatch(handlers[obj.topic](obj.data))
