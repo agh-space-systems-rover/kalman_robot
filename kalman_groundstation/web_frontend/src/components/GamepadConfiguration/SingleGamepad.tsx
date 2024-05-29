@@ -1,4 +1,5 @@
 import type React from 'react'
+import styled from 'styled-components'
 
 import type { GamepadConfig } from '../../features/gamepads/gamepadTypes'
 import { Target } from '../../features/gamepads/gamepadTypes'
@@ -6,6 +7,13 @@ import { changeTarget } from '../../store/Gamepads/gamepadSlice'
 import { changeDrivingMode } from '../../store/Motors/motorsSlice'
 import { DrivingMode } from '../../store/Motors/motorTypes'
 import { useAppDispatch } from '../../store/storeHooks'
+
+const Button = styled.button`
+  margin: 5px;
+  margin-top: 0;
+  margin-bottom: 0;
+  border: 1px solid #ccc;
+`
 
 interface Props {
   gamepad: GamepadConfig
@@ -26,18 +34,18 @@ const SingleGamepad: React.FC<Props> = (props) => {
       <p>Target: {props.gamepad.target}</p>
       <div>
         Output:
-        <button onClick={setTarget(Target.Wheels)}>wheels</button>
-        <button onClick={setTarget(Target.Arm)}>arm</button>
-        <button onClick={setTarget(Target.Drill)}>drill</button>
-        <button onClick={setTarget(Target.None)}>disabled</button>
+        <Button onClick={setTarget(Target.Wheels)}>wheels</Button>
+        <Button onClick={setTarget(Target.Arm)}>arm</Button>
+        <Button onClick={setTarget(Target.Drill)}>drill</Button>
+        <Button onClick={setTarget(Target.None)}>disabled</Button>
       </div>
       <div>
-        <button
+        <Button
           hidden={props.gamepad.target !== Target.Wheels}
           onClick={(): void => dispatch(changeDrivingMode(DrivingMode.Digging))}
         >
           Enable digging
-        </button>
+        </Button>
       </div>
     </div>
   )

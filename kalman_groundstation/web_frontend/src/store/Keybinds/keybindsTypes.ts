@@ -194,6 +194,10 @@ export const initialUserProfile: userProfile = {
       { axis: 3, target: 'messageY', valueMapping: noMapping },
       { axis: 2, target: 'messageZ', valueMapping: noMapping }, // SPRAWDZIĆ, TO JEST NA CZUJA!!!
 
+      // Drillin'
+      { axis: 1, target: 'drillHeight', valueMapping: noMapping },
+      { axis: 3, target: 'drillHeight2', valueMapping: noMapping },
+
       // virtual axes components
       {
         axis: 4,
@@ -241,6 +245,11 @@ export const initialUserProfile: userProfile = {
       },
       {
         target: 'armJoint6',
+        sourceAxes: ['_negativeTriggerAxis', '_positiveTriggerAxis'],
+        clipping: false,
+      },
+      {
+        target: 'drillSpin',
         sourceAxes: ['_negativeTriggerAxis', '_positiveTriggerAxis'],
         clipping: false,
       },
