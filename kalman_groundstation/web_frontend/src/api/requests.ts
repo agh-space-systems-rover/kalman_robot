@@ -211,6 +211,12 @@ export const setScienceServo: (slot: number, angle_deg: number) => void = (slot,
   putRequest(`/station/system/rover/science/set_servo?slot=${slot}&angle_deg=${angleDeg}`).catch((e) => console.log(e))
 }
 
+export const setRawDigitalOutput: (slot: number, angle_deg: number) => void = (slot, angleDeg) => {
+  putRequest(
+    `/station/system/rover/science/raw_set_digital_output?board_id=0&channel_id=${slot}&value=${angleDeg}`,
+  ).catch((e) => console.log(e))
+}
+
 export const setAutoclick: (value: number) => void = (value) => {
   // const value = on ? 180 : 0
   putRequest(`/station/system/rover/arm/autoclick/autoclick?value=${value}`).catch((e) => console.log(e))

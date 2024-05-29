@@ -73,7 +73,7 @@ export const ERCScience: () => JSX.Element = () => {
 
   const offsetSetter = useCallback(
     _.throttle((value: number) => {
-      setCarouselWithOffset(carouselValue, value)
+      // setCarouselWithOffset(carouselValue, value)
       setCarouselOffset(value)
     }, 200),
     [carouselValue],

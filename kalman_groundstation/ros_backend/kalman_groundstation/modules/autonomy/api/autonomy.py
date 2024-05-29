@@ -99,10 +99,10 @@ class AutonomyRouter(APIRouter):
     def set_autonomy_on_off(self, autonomy_on: bool):
         if autonomy_on:
             # self.ros2uart_publisher.publish(UInt8MultiArray(data=[0x20, 0x01, 0x02]))
-            self.ros2uart_publisher.publish(MasterMessage(cmd=0x20, data=[1, 2]))
+            self.ros2uart_publisher.publish(MasterMessage(cmd=0x20, data=[1]))
         else:
             # self.ros2uart_publisher.publish(UInt8MultiArray(data=[0x20, 0x01, 0x00]))
-            self.ros2uart_publisher.publish(MasterMessage(cmd=0x20, data=[1, 0]))
+            self.ros2uart_publisher.publish(MasterMessage(cmd=0x20, data=[0]))
         return True
 
     def clear_costmap(self):
