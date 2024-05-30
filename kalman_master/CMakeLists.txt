@@ -11,6 +11,7 @@ install(PROGRAMS
   scripts/master_com
   scripts/master_loopback
   scripts/ros_link
+  scripts/tunnel_client
   scripts/ueuos_driver
   scripts/wheel_driver
   DESTINATION lib/${PROJECT_NAME}

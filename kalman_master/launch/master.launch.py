@@ -15,7 +15,7 @@ BAUD_RATES = {
 def launch_setup(context):
     def get_bool(name):
         return LaunchConfiguration(name).perform(context).lower() == "true"
-    
+
     def get_str(name):
         return LaunchConfiguration(name).perform(context)
 
@@ -33,8 +33,12 @@ def launch_setup(context):
                     "config_path": str(
                         get_package_share_path("kalman_master") / "config/ros_link.yaml"
                     ),
-                    "side": ("station" if get_str("mode") == "gs" else "rover"), # station or rover
-                    "rover_endpoint": ("arm" if get_str("mode") == "arm" else "pc"), # arm or pc
+                    "side": (
+                        "station" if get_str("mode") == "gs" else "rover"
+                    ),  # station or rover
+                    "rover_endpoint": (
+                        "arm" if get_str("mode") == "arm" else "pc"
+                    ),  # arm or pc
                 },
             ],
         ),
@@ -55,7 +59,15 @@ def launch_setup(context):
                 executable="autonomy_switch_spam",
             )
         )
-    
+
+    if get_str("mode") == "gs":
+        description.append(
+            Node(
+                package="kalman_master",
+                executable="tunnel_client",
+            ),
+        )
+
     return description
 
 
