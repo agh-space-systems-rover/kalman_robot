@@ -331,7 +331,7 @@ class ScienceRouter(APIRouter):
         return True
 
     def set_carousel_with_offset(self, value: int, offset: int):
-        position = (value * 360.0 / 16.0) + offset
+        position = -(value * 360.0 / 16.0) + offset - 8 + 2*22.5
         self.raw_set_stepper_position(0, 0, position)
         return True
 

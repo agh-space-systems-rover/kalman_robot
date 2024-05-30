@@ -185,22 +185,22 @@ export const ERCScience: () => JSX.Element = () => {
             <ThreeColumnBox>
               <Column>
                 <p>Sample 1</p>
-                <Button onClick={(): void => requestSequenceBegin(1)}>Start seq</Button>
-                <Button onClick={(): void => requestSequenceState(1)}>Seq state</Button>
+                <Button onClick={(): void => requestSequenceBegin(0)}>Start seq</Button>
+                <Button onClick={(): void => requestSequenceState(0)}>Seq state</Button>
                 State: {sequenceStates[0].state}/{sequenceStates[0].stage}
               </Column>
 
               <Column>
                 <p>Sample 2</p>
-                <Button onClick={(): void => requestSequenceBegin(2)}>Start seq</Button>
-                <Button onClick={(): void => requestSequenceState(2)}>Seq state</Button>
+                <Button onClick={(): void => requestSequenceBegin(1)}>Start seq</Button>
+                <Button onClick={(): void => requestSequenceState(1)}>Seq state</Button>
                 State: {sequenceStates[1].state}/{sequenceStates[1].stage}
               </Column>
 
               <Column>
                 <p>Sample 3</p>
-                <Button onClick={(): void => requestSequenceBegin(3)}>Start seq</Button>
-                <Button onClick={(): void => requestSequenceState(3)}>Seq state</Button>
+                <Button onClick={(): void => requestSequenceBegin(2)}>Start seq</Button>
+                <Button onClick={(): void => requestSequenceState(2)}>Seq state</Button>
                 State: {sequenceStates[2].state}/{sequenceStates[2].stage}
               </Column>
             </ThreeColumnBox>
