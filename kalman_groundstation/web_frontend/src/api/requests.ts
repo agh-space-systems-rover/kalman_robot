@@ -267,8 +267,10 @@ export const requestLampPWM: (value: number) => void = (value) => {
   putRequest(`/station/system/rover/science/lamp_pwm?value=${value}`).catch((e) => console.log(e))
 }
 
-export const requestLEDState: (channel: number, value: number) => void = (channel, value) => {
-  putRequest(`/station/system/rover/science/led_state?channel=${channel}&value=${value}`).catch((e) => console.log(e))
+export const requestLEDState: (channel: number, value: number, timeout: number) => void = (channel, value, timeout) => {
+  putRequest(`/station/system/rover/science/led_state?channel=${channel}&value=${value}&timeout=${timeout}`).catch(
+    (e) => console.log(e),
+  )
 }
 
 export const requestHBridgeState: (channel: number, speed: number, direction: number) => void = (

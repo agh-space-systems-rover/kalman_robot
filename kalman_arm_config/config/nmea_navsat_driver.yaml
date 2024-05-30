@@ -3,5 +3,5 @@
     port: "/dev/ttyAMA3"
     baud: 115200
     time_ref_source: gps
-    useRMC: true
+    useRMC: false
     frame_id: gps_link

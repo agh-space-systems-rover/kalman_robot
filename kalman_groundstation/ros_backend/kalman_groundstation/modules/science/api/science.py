@@ -20,12 +20,15 @@ from kalman_groundstation.modules.science.universal_module import (
     SequenceManagerFrame_Format,
     HBridgeFrame_Format,
     PWMFrame_Format,
+    LEDFrame_Format,
     RequestFrame_Format,
     StepperFrame_Format,
     PWMFrame,
+    LEDFrame,
     HBridgeFrame,
     create_HBridgeFrame,
     create_PWMFrame,
+    create_LEDFrame,
     create_StepperFrame,
     create_RequestFrame,
     create_SequenceManagerFrame,
@@ -224,10 +227,10 @@ class ScienceRouter(APIRouter):
         msg.data = create_PWMFrame(board_id, channel_id, value).pack()
         self.ros2uart_pub.publish(msg)
 
-    def raw_set_led_driver(self, board_id: int, channel_id: int, value: int):
+    def raw_set_led_driver(self, board_id: int, channel_id: int, value: int, timeout: int):
         msg = MasterMessage()
         msg.cmd = CAN_CMD_SET_LED_DRIVER
-        msg.data = create_PWMFrame(board_id, channel_id, value).pack()
+        msg.data = create_LEDFrame(board_id, channel_id, value, timeout).pack()
         self.ros2uart_pub.publish(msg)
 
     def raw_set_hbridge(
@@ -287,8 +290,8 @@ class ScienceRouter(APIRouter):
         self.raw_set_hbridge(0, channel, speed, direction)
         return True
 
-    def led_state(self, channel: int, value: int):
-        self.raw_set_led_driver(0, channel, value)
+    def led_state(self, channel: int, value: int, timeout: int):
+        self.raw_set_led_driver(0, channel, value, timeout)
         return True
     
     def sequence_begin(self, sequence_id: int):

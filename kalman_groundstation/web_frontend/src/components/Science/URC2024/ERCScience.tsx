@@ -107,19 +107,19 @@ export const ERCScience: () => JSX.Element = () => {
           </h3>
           <br />
           <div>
-            <Button onClick={(): void => requestLEDState(0, 255)}>LED1 ON</Button>
-            <Button onClick={(): void => requestLEDState(0, 0)}>LED1 OFF</Button>
+            <Button onClick={(): void => requestLEDState(0, 255, 10000)}>LED1 ON</Button>
+            <Button onClick={(): void => requestLEDState(0, 0, 0)}>LED1 OFF</Button>
           </div>
 
           <div>
-            <Button onClick={(): void => requestLEDState(1, 255)}>LED2 ON</Button>
-            <Button onClick={(): void => requestLEDState(1, 0)}>LED2 OFF</Button>
+            <Button onClick={(): void => requestLEDState(1, 255, 10000)}>LED2 ON</Button>
+            <Button onClick={(): void => requestLEDState(1, 0, 0)}>LED2 OFF</Button>
           </div>
           <br />
           <h3>White LED {leds[2]}</h3>
           <div>
-            <Button onClick={(): void => requestLEDState(2, 255)}>LED3 ON</Button>
-            <Button onClick={(): void => requestLEDState(2, 0)}>LED3 OFF</Button>
+            <Button onClick={(): void => requestPWMState(3, 255)}>LED3 ON</Button>
+            <Button onClick={(): void => requestPWMState(3, 0)}>LED3 OFF</Button>
           </div>
           <h3>Heating</h3>
           <div>

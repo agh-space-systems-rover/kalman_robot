@@ -9,6 +9,7 @@ Panels:
         - /RobotModel1
         - /RobotModel1/Description Topic1
         - /TF1
+        - /TF1/Frames1
       Splitter Ratio: 0.5
     Tree Height: 255
   - Class: rviz_common/Selection
@@ -73,6 +74,15 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
+        base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        body_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
         ee:
           Alpha: 1
           Show Axes: false
@@ -134,6 +144,56 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
+        suspension_l_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        suspension_r_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        swivel_bl_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        swivel_br_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        swivel_fl_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        swivel_fr_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        wheel_bl_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        wheel_br_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        wheel_fl_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        wheel_fr_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
         world:
           Alpha: 1
           Show Axes: false
@@ -150,9 +210,13 @@ Visualization Manager:
       Enabled: true
       Frame Timeout: 15
       Frames:
-        All Enabled: true
+        All Enabled: false
         arm_link:
           Value: true
+        base_link:
+          Value: false
+        body_link:
+          Value: false
         ee:
           Value: true
         flange:
@@ -179,8 +243,28 @@ Visualization Manager:
           Value: true
         link6_to_gripper:
           Value: true
+        suspension_l_link:
+          Value: false
+        suspension_r_link:
+          Value: false
+        swivel_bl_link:
+          Value: false
+        swivel_br_link:
+          Value: false
+        swivel_fl_link:
+          Value: false
+        swivel_fr_link:
+          Value: false
+        wheel_bl_link:
+          Value: false
+        wheel_br_link:
+          Value: false
+        wheel_fl_link:
+          Value: false
+        wheel_fr_link:
+          Value: false
         world:
-          Value: true
+          Value: false
       Marker Scale: 0.75
       Name: TF
       Show Arrows: true
@@ -190,6 +274,22 @@ Visualization Manager:
         world:
           flange:
             arm_link:
+              base_link:
+                body_link:
+                  suspension_l_link:
+                    swivel_bl_link:
+                      wheel_bl_link:
+                        {}
+                    swivel_fl_link:
+                      wheel_fl_link:
+                        {}
+                  suspension_r_link:
+                    swivel_br_link:
+                      wheel_br_link:
+                        {}
+                    swivel_fr_link:
+                      wheel_fr_link:
+                        {}
               link1:
                 link2:
                   link3:

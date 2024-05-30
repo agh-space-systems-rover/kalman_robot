@@ -25,6 +25,26 @@ def create_PWMFrame(board_id: int, channel_id: int, value: int) -> PWMFrame:
     frame.value = value
     return frame
 
+LEDFrame_Format = "<BBBBB"
+class LEDFrame(cstruct.MemCStruct):
+    __byte_order__ = cstruct.LITTLE_ENDIAN
+    __def__ = """
+        struct {
+            uint8_t board_id;       //  0,1,2
+            uint8_t channel_id;     //  0,1,2,3
+            uint8_t value;          // depends on command
+            uint16_t timeout;
+        };
+    """
+
+def create_LEDFrame(board_id: int, channel_id: int, value: int, timeout: int) -> LEDFrame:
+    frame = LEDFrame()
+    frame.board_id = board_id
+    frame.channel_id = channel_id
+    frame.value = value
+    frame.timeout = timeout
+    return frame
+
 CAN_CMD_SET_HBRIDGE        = 0x53  # UART = 0x53
 # typedef struct _packed_ {
 #     uint8_t board_id;       //  0,1,2
