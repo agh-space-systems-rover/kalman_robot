@@ -22,7 +22,7 @@ window.addEventListener('ros-connect', () => {
 export default function RebootPC() {
   return (
     <Tooltip
-      text='Click to reboot the onboard computer.'
+      text='Reboot the onboard computer.'
       className={styles['reboot-pc']}
       onClick={() => {
         if (rebootService === null) {

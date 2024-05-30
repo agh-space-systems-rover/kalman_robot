@@ -24,7 +24,6 @@ def mercator_x(lon, zoom):
 def mercator_y(lat, zoom):
     y = np.log(np.tan(np.pi / 4 + np.radians(lat) / 2))
     return int((1 - y / np.pi) / 2 * 2**zoom)
-    
 
 def main():
     args = parse_args()
@@ -43,15 +42,8 @@ def main():
         return
     
     for z in range(args.min_zoom, args.max_zoom + 1):
-        # Assume EPSG:3857
         min_x = mercator_x(args.min_lon, z)
         max_x = mercator_x(args.max_lon, z)
-        # lat_rad = arctan(sinh(π * (1 - 2 * ytile / n)))
-        # tan(lat_rad) = sinh(π * (1 - 2 * ytile / n))
-        # sinh^-1(tan(lat_rad)) = π * (1 - 2 * ytile / n)
-        # sinh^-1(tan(lat_rad)) / π = 1 - 2 * ytile / n
-        # 2 * ytile / n = 1 - sinh^-1(tan(lat_rad)) / π
-        # ytile = n * (1 - sinh^-1(tan(lat_rad)) / π) / 2
         min_y = mercator_y(args.max_lat, z)
         max_y = mercator_y(args.min_lat, z)
 
