@@ -1,3 +1,5 @@
+import { Vector2 } from '@babylonjs/core';
+
 export type Vector3 = {
   x: number;
   y: number;
@@ -60,11 +62,24 @@ export function quatTimesVec(lhs: Quaternion, rhs: Vector3): Vector3 {
 
 export function quatTimesQuat(lhs: Quaternion, rhs: Quaternion): Quaternion {
   return {
-    w: lhs.w * rhs.w - lhs.v.x * rhs.v.x - lhs.v.y * rhs.v.y - lhs.v.z * rhs.v.z,
+    w:
+      lhs.w * rhs.w - lhs.v.x * rhs.v.x - lhs.v.y * rhs.v.y - lhs.v.z * rhs.v.z,
     v: {
-      x: lhs.w * rhs.v.x + lhs.v.x * rhs.w + lhs.v.y * rhs.v.z - lhs.v.z * rhs.v.y,
-      y: lhs.w * rhs.v.y - lhs.v.x * rhs.v.z + lhs.v.y * rhs.w + lhs.v.z * rhs.v.x,
-      z: lhs.w * rhs.v.z + lhs.v.x * rhs.v.y - lhs.v.y * rhs.v.x + lhs.v.z * rhs.w
+      x:
+        lhs.w * rhs.v.x +
+        lhs.v.x * rhs.w +
+        lhs.v.y * rhs.v.z -
+        lhs.v.z * rhs.v.y,
+      y:
+        lhs.w * rhs.v.y -
+        lhs.v.x * rhs.v.z +
+        lhs.v.y * rhs.w +
+        lhs.v.z * rhs.v.x,
+      z:
+        lhs.w * rhs.v.z +
+        lhs.v.x * rhs.v.y -
+        lhs.v.y * rhs.v.x +
+        lhs.v.z * rhs.w
     }
   };
 }
@@ -75,4 +90,30 @@ export function quatFromAxisAngle(axis: Vector3, angle: number): Quaternion {
     w: Math.cos(halfAngle),
     v: scaleVec(normalizeVec(axis), Math.sin(halfAngle))
   };
+}
+
+export function vecFromCssColor(color: string): Vector3 {
+  // Check whether it is hex or rgb
+  if (color[0] === '#') {
+    // 3-char hex
+    if (color.length === 4) {
+      return {
+        x: parseInt(color[1] + color[1], 16) / 255,
+        y: parseInt(color[2] + color[2], 16) / 255,
+        z: parseInt(color[3] + color[3], 16) / 255
+      };
+    }
+    // 6-char hex
+    return {
+      x: parseInt(color.slice(1, 3), 16) / 255,
+      y: parseInt(color.slice(3, 5), 16) / 255,
+      z: parseInt(color.slice(5, 7), 16) / 255
+    };
+  }
+  // rgb
+  const rgb = color
+    .slice(4, -1)
+    .split(',')
+    .map((x) => parseInt(x) / 255);
+  return { x: rgb[0], y: rgb[1], z: rgb[2] };
 }

@@ -1,6 +1,7 @@
 import styles from './navbar.module.css';
 
-import { panelLayouts } from '../modules/panel-layouts';
+import { IndicatorComponents } from '../indicators';
+import RebootPC from '../indicators/reboot-pc';
 import logoSmall from '../media/logo-small.png';
 import logo from '../media/logo.png';
 import ContextMenu from './context-menu';
@@ -9,6 +10,8 @@ import Tooltip from './tooltip';
 import { faEdit, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useCallback, useRef, useState } from 'react';
+
+import { panelLayouts } from '../modules/panel-layouts';
 
 import { defaultPanel } from '../panels';
 
@@ -37,9 +40,7 @@ export default function Navbar() {
         <div
           className={styles['logo']}
           onClick={() => splashRef.current?.show()}
-        >
-          <img src={logoSmall} />
-        </div>
+        />
         <div className={styles['layout-selector']}>
           {Object.keys(panelLayouts.layouts).map((layoutName) => {
             return (
@@ -130,7 +131,11 @@ export default function Navbar() {
             <FontAwesomeIcon icon={faPlus} />
           </Tooltip>
         </div>
-        <div /> {/* centers layout selector */}
+        <div className={styles['indicators']}>
+          {IndicatorComponents.map((Component, i) => (
+            <Component key={i} />
+          ))}
+        </div>
       </div>
       <Splash ref={splashRef} />
     </>

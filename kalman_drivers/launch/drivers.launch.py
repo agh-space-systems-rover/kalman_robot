@@ -60,9 +60,7 @@ def launch_setup(context):
                         / "master.launch.py"
                     )
                 ),
-                launch_arguments={
-                    "mode": master_mode
-                }.items(),
+                launch_arguments={"mode": master_mode}.items(),
             )
         ]
 

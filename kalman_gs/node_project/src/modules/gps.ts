@@ -1,6 +1,6 @@
 import { ros } from './ros';
-import { Topic } from 'roslib';
 import { NavSatFix } from './ros.interfaces';
+import { Topic } from 'roslib';
 
 export type GpsFix = {
   latitude?: number;

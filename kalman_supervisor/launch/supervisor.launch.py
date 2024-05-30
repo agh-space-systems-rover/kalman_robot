@@ -52,6 +52,8 @@ def launch_setup(context):
         ("yolo/get_state", "yolo_detect/get_state"),
         ("yolo/change_state", "yolo_detect/change_state"),
         ("yolo/detections", "yolo_detections"),
+        ("search/path_follower/set_parameters", "path_follower/set_parameters"),
+        ("search/path_follower/get_parameters", "path_follower/get_parameters"),
     ]
 
     return [

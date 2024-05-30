@@ -21,7 +21,7 @@
 
 .alert {
   padding: 10px;
-  color: var(--background-color);
+  color: #ddd;
   border-radius: 10px;
   border: 1px solid;
   opacity: 0;

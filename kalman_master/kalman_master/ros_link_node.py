@@ -15,6 +15,7 @@ from kalman_master.ros_link_actions import RosLinkActions
 # Unique ID that allows to identify ROS link messages in FORWARD frames.
 FORWARD_ID = 47
 
+
 class RosLink(Node):
     def __init__(self):
         super().__init__("ros_link")
@@ -30,7 +31,7 @@ class RosLink(Node):
         ).value
         self.side = self.declare_parameter(
             "side",
-            'rover',
+            "rover",
             ParameterDescriptor(
                 type=ParameterType.PARAMETER_STRING,
                 description="Side of communication. Must be 'rover' or 'station'.",
@@ -175,7 +176,9 @@ class RosLink(Node):
                             if "string_enum" in field:
                                 # If string_enum is a list, convert it to a dict with the list as values.
                                 if type(field["string_enum"]) is list:
-                                    field["string_enum"] = {"values": field["string_enum"]}
+                                    field["string_enum"] = {
+                                        "values": field["string_enum"]
+                                    }
                                 # If fallback is missing, add it.
                                 if "fallback" not in field["string_enum"]:
                                     field["string_enum"]["fallback"] = "unknown"

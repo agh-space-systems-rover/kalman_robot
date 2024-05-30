@@ -24,7 +24,7 @@
 .splash {
   width: 500px;
   height: 400px;
-  background-color: #222;
+  background-color: var(--dark-background);
   border-radius: 10px;
   margin: 20px;
   display: flex;
@@ -57,7 +57,7 @@
 
 .splash-header-image-attribution {
   position: absolute;
-  bottom: 10px;
+  bottom: 5px;
   right: 10px;
   color: #fff4;
   font-weight: 600;
@@ -78,7 +78,7 @@
 
 .splash-content {
   padding: 20px;
-  color: #aaa;
+  color: var(--weak-foreground);
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -87,7 +87,7 @@
 
 .splash-content h1 {
   margin: 0;
-  color: #fff;
+  color: var(--strong-foreground);
   font-family: 'Bai Jamjuree';
   font-weight: 600;
 }

@@ -1,11 +1,12 @@
 .tooltip-popup {
-  background-color: #222;
+  background-color: var(--dark-background);
   border-radius: 5px;
   padding: 10px;
 }
 
 .tooltip-container {
   position: relative;
+  text-align: center;
 }
 
 .tooltip-anchor {

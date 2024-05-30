@@ -1,4 +1,6 @@
 import rclpy
+import time
+
 from rclpy.node import Node
 
 from kalman_interfaces.srv import SetUeuosColor, SetUeuosEffect, SetUeuosState
@@ -19,36 +21,42 @@ class UeuosNode(Node):
         self.create_service(SetUeuosEffect, "ueuos/set_effect", self.set_effect)
         self.create_service(SetUeuosState, "ueuos/set_state", self.set_state)
 
+        self.tick_msg = MasterMessage(
+            cmd=MasterMessage.UEUOS_SET_STATE, data=[SetUeuosState.Request.OFF]
+        )
+        self.create_timer(1.0, self.tick)
+
     def set_color(
         self, request: SetUeuosColor.Request, response: SetUeuosColor.Response
     ):
-        self.ueuos_pub.publish(
-            MasterMessage(
-                cmd=MasterMessage.UEUOS_SET_COLOR,
-                data=[
-                    int(request.color.r * 255),
-                    int(request.color.g * 255),
-                    int(request.color.b * 255),
-                ],
-            )
+        self.tick_msg = MasterMessage(
+            cmd=MasterMessage.UEUOS_SET_COLOR,
+            data=[
+                int(request.color.r * 255),
+                int(request.color.g * 255),
+                int(request.color.b * 255),
+            ],
         )
         return response
 
     def set_effect(
         self, request: SetUeuosEffect.Request, response: SetUeuosEffect.Response
     ):
-        self.ueuos_pub.publish(
-            MasterMessage(cmd=MasterMessage.UEUOS_SET_EFFECT, data=[request.effect])
+        self.tick_msg = MasterMessage(
+            cmd=MasterMessage.UEUOS_SET_EFFECT, data=[request.effect]
         )
         return response
 
     def set_state(
         self, request: SetUeuosState.Request, response: SetUeuosState.Response
     ):
-        self.ueuos_pub.publish(
-            MasterMessage(cmd=MasterMessage.UEUOS_SET_STATE, data=[request.state])
+        self.tick_msg = MasterMessage(
+            cmd=MasterMessage.UEUOS_SET_STATE, data=[request.state]
         )
         return response
+
+    def tick(self):
+        self.ueuos_pub.publish(self.tick_msg)
 
 
 def main():

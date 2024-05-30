@@ -1,0 +1,39 @@
+.ros-health {
+  width: calc(1em + 4px);
+  height: calc(1em + 4px);
+  padding: 3px;
+  border-radius: 5px;
+  transition: transform 0.1s;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: 0.2s;
+}
+
+.ros-health:global(.disconnected) {
+  cursor: progress;
+}
+
+.ros-health:hover {
+  background-color: var(--background);
+}
+
+.ros-health svg {
+  scale: 1.1;
+  pointer-events: none;
+}
+
+.ros-health:global(.connected) svg {
+  color: var(--green-foreground);
+}
+
+.ros-health:global(.disconnected) svg {
+  color: var(--red-foreground);
+  animation: blinker 1s linear infinite;
+}
+
+@keyframes blinker {
+  50% {
+    opacity: 0;
+  }
+}

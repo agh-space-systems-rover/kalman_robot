@@ -1,11 +1,12 @@
 .panel-manager {
   padding: 5px;
   flex: 1;
-  background-color: #222;
+  background-color: var(--dark-background);
   display: flex;
   flex-direction: column;
   justify-content: stretch;
   align-items: stretch;
+  max-height: calc(100vh - 39px);
 }
 
 .layout-container {
@@ -70,7 +71,7 @@
 }
 
 .panel-header {
-  background-color: #333;
+  background-color: var(--background);
   width: 100%;
   display: flex;
 }
@@ -87,5 +88,5 @@
 .panel-container {
   overflow: hidden;
   flex: 1;
-  background-color: #333;
+  background-color: var(--background);
 }
