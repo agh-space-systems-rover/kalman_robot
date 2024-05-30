@@ -11,6 +11,10 @@ BAUD_RATES = {
     "arm": 2000000,
 }
 
+PORTS = {
+    "pc": "/tmp/ttyV1"
+}
+
 
 def launch_setup(context):
     def get_bool(name):
@@ -23,7 +27,10 @@ def launch_setup(context):
         Node(
             package="kalman_master",
             executable="master_com",
-            parameters=[{"baud_rate": BAUD_RATES[get_str("mode")]}],
+            parameters=[{
+                "baud_rate": BAUD_RATES[get_str("mode")],
+                "port": PORTS.get(get_str("mode"), ""), # empty = auto
+            }],
         ),
         Node(
             package="kalman_master",

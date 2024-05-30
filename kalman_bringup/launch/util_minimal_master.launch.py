@@ -10,7 +10,9 @@ def generate_launch_description():
     return LaunchDescription(
         [
             DeclareLaunchArgument(
-                "mode", default_value="pc", description="Master mode: 'pc', 'gs', or 'arm'."
+                "mode",
+                default_value="pc",
+                description="Master mode: 'pc', 'gs', or 'arm'.",
             ),
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
