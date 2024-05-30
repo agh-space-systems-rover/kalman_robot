@@ -12,7 +12,7 @@ BAUD_RATES = {
 }
 
 PORTS = {
-    "pc": "/tmp/ttyV1"
+    "pc": "/tmp/ttyV2"
 }
 
 
