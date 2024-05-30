@@ -1,0 +1,78 @@
+#!/bin/python3
+
+import argparse
+import os
+import requests
+import numpy as np
+
+def parse_args():
+    parser = argparse.ArgumentParser(description='Download tiles from a map server.')
+    parser.add_argument('--min-lon', '-x', required=True, type=float, help='western longitude bound')
+    parser.add_argument('--max-lon', '-X', required=True, type=float, help='eastern longitude bound')
+    parser.add_argument('--min-lat', '-y', required=True, type=float, help='southern latitude bound')
+    parser.add_argument('--max-lat', '-Y', required=True, type=float, help='northern latitude bound')
+    parser.add_argument('--min-zoom', '-z', default=2, type=int, help='minimum zoom level')
+    parser.add_argument('--max-zoom', '-Z', default=19, type=int, help='maximum zoom level')
+    parser.add_argument('--url', '-u', default='http://localhost:8065/wmts/gm_layer/gm_grid/{z}/{x}/{y}.png', help='base URL of the map server')
+    parser.add_argument('--output', '-o', default='', help='output directory; If left unspecified, tiles will not be saved to disk.')
+    parser.add_argument('--skip-saved', '-s', action='store_true', help='Skip downloading tiles that already exist on disk. --output must be specified.')
+    return parser.parse_args()
+
+def mercator_x(lon, zoom):
+    return int((lon + 180) / 360 * 2**zoom)
+
+def mercator_y(lat, zoom):
+    y = np.log(np.tan(np.pi / 4 + np.radians(lat) / 2))
+    return int((1 - y / np.pi) / 2 * 2**zoom)
+    
+
+def main():
+    args = parse_args()
+    
+    if args.min_lon > args.max_lon:
+        print('min-lon must be less than max-lon')
+        return
+    if args.min_lat > args.max_lat:
+        print('min-lat must be less than max-lat')
+        return
+    if args.min_zoom > args.max_zoom:
+        print('min-zoom must be less than max-zoom')
+        return
+    if args.skip_saved and not args.output:
+        print('--skip-saved requires --output')
+        return
+    
+    for z in range(args.min_zoom, args.max_zoom + 1):
+        # Assume EPSG:3857
+        min_x = mercator_x(args.min_lon, z)
+        max_x = mercator_x(args.max_lon, z)
+        # lat_rad = arctan(sinh(π * (1 - 2 * ytile / n)))
+        # tan(lat_rad) = sinh(π * (1 - 2 * ytile / n))
+        # sinh^-1(tan(lat_rad)) = π * (1 - 2 * ytile / n)
+        # sinh^-1(tan(lat_rad)) / π = 1 - 2 * ytile / n
+        # 2 * ytile / n = 1 - sinh^-1(tan(lat_rad)) / π
+        # ytile = n * (1 - sinh^-1(tan(lat_rad)) / π) / 2
+        min_y = mercator_y(args.max_lat, z)
+        max_y = mercator_y(args.min_lat, z)
+
+        print(f'Zoom level {z}: {min_x} <= x <= {max_x}, {min_y} <= y <= {max_y}')
+
+        for x in range(min_x, max_x + 1):
+            for y in range(min_y, max_y + 1):
+                ext = args.url.split('.')[-1]
+                disk_path = f'{args.output}/{z}/{x}/{y}.{ext}'
+                if args.skip_saved and os.path.exists(disk_path):
+                    print(f'Skipping {z}/{x}/{y}...')
+                    continue
+                print(f'Fetching {z}/{x}/{y}...')
+                response = requests.get(args.url.format(z=z, x=x, y=y))
+                if response.status_code == 200:
+                    if args.output:
+                        os.makedirs(f'{args.output}/{z}/{x}', exist_ok=True)
+                        with open(disk_path, 'wb') as f:
+                            f.write(response.content)
+                else:
+                    print(f'Failed to fetch {z}/{x}/{y} ({response.status_code})')
+
+if __name__ == '__main__':
+    main()

@@ -1,6 +1,5 @@
 import styles from './supervisor.module.css';
 
-import { mapMarker } from '../modules/map-marker';
 import {
   faArrowsLeftRight,
   faArrowsUpDown,
@@ -12,15 +11,26 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { Action } from 'roslib';
 
 import Button from '../components/button';
 import Dropdown from '../components/dropdown';
 import Input from '../components/input';
 import Label from '../components/label';
-import { ros } from '../modules/ros';
-import { Action } from 'roslib';
+
 import { alertsRef } from '../modules/alerts-ref';
-import { SupervisorGpsArUcoSearch, SupervisorGpsArUcoSearchFeedback, SupervisorGpsGoal, SupervisorGpsGoalFeedback, SupervisorGpsYoloSearch, SupervisorGpsYoloSearchFeedback, SupervisorTfGoal, SupervisorTfGoalFeedback } from '../modules/ros.interfaces';
+import { mapMarker } from '../modules/map-marker';
+import { ros } from '../modules/ros';
+import {
+  SupervisorGpsArUcoSearch,
+  SupervisorGpsArUcoSearchFeedback,
+  SupervisorGpsGoal,
+  SupervisorGpsGoalFeedback,
+  SupervisorGpsYoloSearch,
+  SupervisorGpsYoloSearchFeedback,
+  SupervisorTfGoal,
+  SupervisorTfGoalFeedback
+} from '../modules/ros.interfaces';
 
 const NO_FEEDBACK_TIMEOUT = 20000;
 const TF_GOAL_FRAMES = ['base_link', 'odom', 'map', 'utm'];
@@ -29,8 +39,16 @@ const TF_GOAL_FRAMES = ['base_link', 'odom', 'map', 'utm'];
 // Search for "Add new mission types here" in the code to find more such places.
 let tfGoalClient: Action<SupervisorTfGoal, SupervisorTfGoalFeedback, {}>;
 let gpsGoalClient: Action<SupervisorGpsGoal, SupervisorGpsGoalFeedback, {}>;
-let gpsArUcoSearchClient: Action<SupervisorGpsArUcoSearch, SupervisorGpsArUcoSearchFeedback, {}>;
-let gpsYoloSearchClient: Action<SupervisorGpsYoloSearch, SupervisorGpsYoloSearchFeedback, {}>;
+let gpsArUcoSearchClient: Action<
+  SupervisorGpsArUcoSearch,
+  SupervisorGpsArUcoSearchFeedback,
+  {}
+>;
+let gpsYoloSearchClient: Action<
+  SupervisorGpsYoloSearch,
+  SupervisorGpsYoloSearchFeedback,
+  {}
+>;
 window.addEventListener('ros-connect', () => {
   tfGoalClient = new Action({
     ros: ros,
@@ -54,14 +72,22 @@ window.addEventListener('ros-connect', () => {
   });
 });
 type CurrentGoal = {
-  client: typeof tfGoalClient | typeof gpsGoalClient | typeof gpsArUcoSearchClient | typeof gpsYoloSearchClient
+  client:
+    | typeof tfGoalClient
+    | typeof gpsGoalClient
+    | typeof gpsArUcoSearchClient
+    | typeof gpsYoloSearchClient;
   id: string;
 };
 let currentGoal: CurrentGoal = null;
 type LastFeedback = {
   missionType: number;
-  feedback: SupervisorTfGoalFeedback | SupervisorGpsGoalFeedback | SupervisorGpsArUcoSearchFeedback | SupervisorGpsYoloSearchFeedback;
-}
+  feedback:
+    | SupervisorTfGoalFeedback
+    | SupervisorGpsGoalFeedback
+    | SupervisorGpsArUcoSearchFeedback
+    | SupervisorGpsYoloSearchFeedback;
+};
 let lastFeedback: LastFeedback = null;
 let noFeedbackCheckTimeout: NodeJS.Timeout = null;
 
@@ -104,7 +130,7 @@ export default function Supervisor({ props }: Props) {
   const [_, setRerenderCounter] = useState(0);
 
   const rerender = useCallback(() => {
-    setRerenderCounter(count => count + 1);
+    setRerenderCounter((count) => count + 1);
   }, [setRerenderCounter]);
 
   useEffect(() => {
@@ -121,14 +147,23 @@ export default function Supervisor({ props }: Props) {
   const inputRefs = Array.from({ length: 4 }, () => useRef<Input>(null));
   const tfGoalFrameIndex = useRef<number>(0);
 
-  const setLatLongFromMapMarker = useCallback((latRefI: number, longRefI: number) => {
-    if (inputRefs[latRefI].current && inputRefs[longRefI].current) {
-      const latTrunc = parseFloat(mapMarker.latitude.toFixed(8));
-      const longTrunc = parseFloat(mapMarker.longitude.toFixed(8));
-      inputRefs[latRefI].current.setValue(latTrunc);
-      inputRefs[longRefI].current.setValue(longTrunc);
-    }
-  }, [inputRefs]);
+  const setLatLongFromMapMarker = useCallback(
+    (latRefI: number, longRefI: number) => {
+      if (inputRefs[latRefI].current && inputRefs[longRefI].current) {
+        const latTrunc = parseFloat(mapMarker.latitude.toFixed(8));
+        const longTrunc = parseFloat(mapMarker.longitude.toFixed(8));
+        inputRefs[latRefI].current.setValue(latTrunc);
+        inputRefs[longRefI].current.setValue(longTrunc);
+      }
+    },
+    [inputRefs]
+  );
+
+  const style = getComputedStyle(document.body);
+  const redBg = style.getPropertyValue('--red-background');
+  const greenBg = style.getPropertyValue('--green-background');
+  const blueBg = style.getPropertyValue('--blue-background');
+  const magentaBg = style.getPropertyValue('--magenta-background');
 
   return (
     <div className={styles['supervisor']}>
@@ -157,35 +192,35 @@ export default function Supervisor({ props }: Props) {
               }
             ]}
             defaultItemIndex={missionType}
-            onChange={i => {
+            onChange={(i) => {
               setMissionType(i);
               props.missionType = i;
             }}
           />
         </div>
 
-        { /* Add new mission types here: */ }
+        {/* Add new mission types here: */}
 
         {missionType === 0 && (
           <>
             <div className={styles['supervisor-row']}>
-              <Label color='#B55'>X</Label>
+              <Label color={redBg}>X</Label>
               <Input ref={inputRefs[0]} type='number' placeholder='Front' />
-              <Label color='#585'>Y</Label>
+              <Label color={greenBg}>Y</Label>
               <Input ref={inputRefs[1]} type='number' placeholder='Left' />
-              <Label color='#55A'>Z</Label>
+              <Label color={blueBg}>Z</Label>
               <Input ref={inputRefs[2]} type='number' placeholder='Up' />
             </div>
             <div className={styles['supervisor-row']}>
-              <Label color='#A58'>&nbsp;Frame ID&nbsp;</Label>
+              <Label color={magentaBg}>&nbsp;Frame ID&nbsp;</Label>
               <Dropdown
                 className={styles['supervisor-row-item']}
                 tooltip='The frame of reference for the goal location.'
-                items={TF_GOAL_FRAMES.map(frameId => ({
+                items={TF_GOAL_FRAMES.map((frameId) => ({
                   text: frameId
                 }))}
                 defaultItemIndex={tfGoalFrameIndex.current}
-                onChange={i => {
+                onChange={(i) => {
                   tfGoalFrameIndex.current = i;
                 }}
               />
@@ -196,11 +231,11 @@ export default function Supervisor({ props }: Props) {
         {missionType === 1 && (
           <>
             <div className={styles['supervisor-row']}>
-              <Label color='#585'>
+              <Label color={greenBg}>
                 <FontAwesomeIcon icon={faArrowsUpDown} />
               </Label>
               <Input ref={inputRefs[0]} type='number' placeholder='Latitude' />
-              <Label color='#B55'>
+              <Label color={redBg}>
                 <FontAwesomeIcon icon={faArrowsLeftRight} />
               </Label>
               <Input ref={inputRefs[1]} type='number' placeholder='Longitude' />
@@ -217,14 +252,22 @@ export default function Supervisor({ props }: Props) {
         {missionType === 2 && (
           <>
             <div className={styles['supervisor-row']}>
-              <Label color='#585'>
+              <Label color={greenBg}>
                 <FontAwesomeIcon icon={faArrowsUpDown} />
               </Label>
-              <Input ref={inputRefs[0]} type="number" placeholder='Initial Latitude' />
-              <Label color='#B55'>
+              <Input
+                ref={inputRefs[0]}
+                type='number'
+                placeholder='Initial Latitude'
+              />
+              <Label color={redBg}>
                 <FontAwesomeIcon icon={faArrowsLeftRight} />
               </Label>
-              <Input ref={inputRefs[1]} type="number" placeholder='Initial Longitude' />
+              <Input
+                ref={inputRefs[1]}
+                type='number'
+                placeholder='Initial Longitude'
+              />
               <Button
                 tooltip='Set initial location from map marker.'
                 onClick={() => setLatLongFromMapMarker(0, 1)}
@@ -233,10 +276,10 @@ export default function Supervisor({ props }: Props) {
               </Button>
             </div>
             <div className={styles['supervisor-row']}>
-              <Label color='#A58'>&nbsp;Marker ID&nbsp;</Label>
+              <Label color={magentaBg}>&nbsp;Marker ID&nbsp;</Label>
               <Input
                 ref={inputRefs[2]}
-                type="number"
+                type='number'
                 placeholder='e.g. 42'
                 className={styles['supervisor-row-item']}
               />
@@ -247,14 +290,22 @@ export default function Supervisor({ props }: Props) {
         {missionType === 3 && (
           <>
             <div className={styles['supervisor-row']}>
-              <Label color='#585'>
+              <Label color={greenBg}>
                 <FontAwesomeIcon icon={faArrowsUpDown} />
               </Label>
-              <Input ref={inputRefs[0]} type="number" placeholder='Initial Latitude' />
-              <Label color='#B55'>
+              <Input
+                ref={inputRefs[0]}
+                type='number'
+                placeholder='Initial Latitude'
+              />
+              <Label color={redBg}>
                 <FontAwesomeIcon icon={faArrowsLeftRight} />
               </Label>
-              <Input ref={inputRefs[1]} type="number" placeholder='Initial Longitude' />
+              <Input
+                ref={inputRefs[1]}
+                type='number'
+                placeholder='Initial Longitude'
+              />
               <Button
                 tooltip='Set initial location from map marker.'
                 onClick={() => setLatLongFromMapMarker(0, 1)}
@@ -263,7 +314,7 @@ export default function Supervisor({ props }: Props) {
               </Button>
             </div>
             <div className={styles['supervisor-row']}>
-              <Label color='#A58'>&nbsp;Class Name&nbsp;</Label>
+              <Label color={magentaBg}>&nbsp;Class Name&nbsp;</Label>
               <Input
                 ref={inputRefs[2]}
                 placeholder='e.g. bottle'
@@ -276,9 +327,15 @@ export default function Supervisor({ props }: Props) {
         <div className={styles['supervisor-row']}>
           <Button
             tooltip='WARNING: The robot will start moving!'
-            className={styles['supervisor-row-item'] + (lastFeedback !== null ? ` ${styles['supervisor-start-button-above-feedback']}` : '') + (
-              currentGoal !== null && lastFeedback === null ? ` ${styles['supervisor-start-button-disabled']}` : ''
-            )}
+            className={
+              styles['supervisor-row-item'] +
+              (lastFeedback !== null
+                ? ` ${styles['supervisor-start-button-above-feedback']}`
+                : '') +
+              (currentGoal !== null && lastFeedback === null
+                ? ` ${styles['supervisor-start-button-disabled']}`
+                : '')
+            }
             onClick={() => {
               if (currentGoal !== null) {
                 if (noFeedbackCheckTimeout) {
@@ -292,7 +349,11 @@ export default function Supervisor({ props }: Props) {
 
               // Create the goal and choose an appropriate client.
               // Add new mission types here:
-              let goal: SupervisorTfGoal | SupervisorGpsGoal | SupervisorGpsArUcoSearch | SupervisorGpsYoloSearch;
+              let goal:
+                | SupervisorTfGoal
+                | SupervisorGpsGoal
+                | SupervisorGpsArUcoSearch
+                | SupervisorGpsYoloSearch;
               let client: typeof currentGoal.client;
               if (missionType === 0) {
                 const x: number = inputRefs[0].current.getValue() || 0;
@@ -314,7 +375,9 @@ export default function Supervisor({ props }: Props) {
                 const longitude: number = inputRefs[1].current.getValue();
 
                 if (latitude === undefined || longitude === undefined) {
-                  alertsRef.current?.pushAlert('Please provide both latitude and longitude.');
+                  alertsRef.current?.pushAlert(
+                    'Please provide both latitude and longitude.'
+                  );
                   return;
                 }
 
@@ -329,11 +392,18 @@ export default function Supervisor({ props }: Props) {
                 console.log('goal', goal);
               } else if (missionType === 2) {
                 const initialLatitude: number = inputRefs[0].current.getValue();
-                const initialLongitude: number = inputRefs[1].current.getValue();
+                const initialLongitude: number =
+                  inputRefs[1].current.getValue();
                 const markerId: number = inputRefs[2].current.getValue();
 
-                if (!initialLatitude || !initialLongitude || markerId === undefined) {
-                  alertsRef.current?.pushAlert('Please provide initial latitude, longitude, and marker ID.');
+                if (
+                  !initialLatitude ||
+                  !initialLongitude ||
+                  markerId === undefined
+                ) {
+                  alertsRef.current?.pushAlert(
+                    'Please provide initial latitude, longitude, and marker ID.'
+                  );
                   return;
                 }
 
@@ -347,11 +417,14 @@ export default function Supervisor({ props }: Props) {
                 client = gpsArUcoSearchClient;
               } else if (missionType === 3) {
                 const initialLatitude: number = inputRefs[0].current.getValue();
-                const initialLongitude: number = inputRefs[1].current.getValue();
+                const initialLongitude: number =
+                  inputRefs[1].current.getValue();
                 const className: string = inputRefs[2].current.getValue();
 
                 if (!initialLatitude || !initialLongitude || !className) {
-                  alertsRef.current?.pushAlert('Please provide initial latitude, longitude, and class name.');
+                  alertsRef.current?.pushAlert(
+                    'Please provide initial latitude, longitude, and class name.'
+                  );
                   return;
                 }
 
@@ -367,28 +440,37 @@ export default function Supervisor({ props }: Props) {
 
               // Check whether the client is available.
               if (client === undefined) {
-                alertsRef.current?.pushAlert('Failed to communicate with ROS action server.');
+                alertsRef.current?.pushAlert(
+                  'Failed to communicate with ROS action server.'
+                );
                 return;
               }
 
               // Send the goal.
               currentGoal = {
                 client: client,
-                id: client.sendGoal(goal, _ => {
-                  if (noFeedbackCheckTimeout) {
-                    clearTimeout(noFeedbackCheckTimeout);
+                id: client.sendGoal(
+                  goal,
+                  (_) => {
+                    if (noFeedbackCheckTimeout) {
+                      clearTimeout(noFeedbackCheckTimeout);
+                    }
+                    alertsRef.current?.pushAlert(
+                      'Mission finished successfully.',
+                      'success'
+                    );
+                    currentGoal = null;
+                    rerenderAllSupervisorPanels();
+                  },
+                  (feedback: typeof lastFeedback.feedback) => {
+                    // alertsRef.current?.pushAlert('Action Server feedback.'); // TODO remove
+                    lastFeedback = {
+                      missionType: missionType,
+                      feedback: feedback
+                    };
+                    rerenderAllSupervisorPanels();
                   }
-                  alertsRef.current?.pushAlert('Mission finished successfully.', 'success');
-                  currentGoal = null;
-                  rerenderAllSupervisorPanels();
-                }, (feedback: typeof lastFeedback.feedback) => {
-                  // alertsRef.current?.pushAlert('Action Server feedback.'); // TODO remove
-                  lastFeedback = {
-                    missionType: missionType,
-                    feedback: feedback
-                  };
-                  rerenderAllSupervisorPanels();
-                })
+                )
               };
 
               // Clear current feedback.
@@ -399,7 +481,9 @@ export default function Supervisor({ props }: Props) {
               noFeedbackCheckTimeout = setTimeout(() => {
                 clearTimeout(noFeedbackCheckTimeout);
                 if (currentGoal !== null && lastFeedback === null) {
-                  alertsRef.current?.pushAlert('No mission feedback was received after a while. Mission will be canceled. Please ensure that the stack is running and check for any ROS errors in the terminal.');
+                  alertsRef.current?.pushAlert(
+                    'No mission feedback was received after a while. Mission will be canceled. Please ensure that the stack is running and check for any ROS errors in the terminal.'
+                  );
                   currentGoal.client.cancelGoal(currentGoal.id);
                   currentGoal = null;
                   rerenderAllSupervisorPanels();
@@ -408,7 +492,7 @@ export default function Supervisor({ props }: Props) {
               rerenderAllSupervisorPanels();
             }}
           >
-            { currentGoal === null ? (
+            {currentGoal === null ? (
               <>&nbsp;Start Mission&nbsp;</>
             ) : (
               <>&nbsp;Cancel Mission&nbsp;</>
@@ -416,50 +500,99 @@ export default function Supervisor({ props }: Props) {
           </Button>
         </div>
 
-        <div className={styles['supervisor-feedback'] + (currentGoal === null ? ` ${styles['supervisor-feedback-old']}` : '')}>
+        <div
+          className={
+            styles['supervisor-feedback'] +
+            (currentGoal === null
+              ? ` ${styles['supervisor-feedback-old']}`
+              : '')
+          }
+        >
           {(() => {
             // Add new mission types here:
 
-            if (lastFeedback?.missionType === 0 || lastFeedback?.missionType === 1) {
-              const feedback = lastFeedback.feedback as SupervisorTfGoalFeedback & SupervisorGpsGoalFeedback;
+            if (
+              lastFeedback?.missionType === 0 ||
+              lastFeedback?.missionType === 1
+            ) {
+              const feedback =
+                lastFeedback.feedback as SupervisorTfGoalFeedback &
+                  SupervisorGpsGoalFeedback;
 
               return (
                 <>
                   <div className={styles['feedback-row']}>
-                    <Label color="#333" className={styles['feedback-key']}>State</Label>
+                    <Label color='#333' className={styles['feedback-key']}>
+                      State
+                    </Label>
                     <div className={styles['feedback-value']}>
-                      <Label color="#222" className={styles['supervisor-row-item']}>{formatSnakeCaseState(feedback.state)}</Label>
+                      <Label
+                        color='#222'
+                        className={styles['supervisor-row-item']}
+                      >
+                        {formatSnakeCaseState(feedback.state)}
+                      </Label>
                     </div>
                   </div>
                 </>
               );
             }
 
-            if (lastFeedback?.missionType === 2 || lastFeedback?.missionType === 3) {
-              const feedback = lastFeedback.feedback as SupervisorGpsYoloSearchFeedback & SupervisorGpsArUcoSearchFeedback;
+            if (
+              lastFeedback?.missionType === 2 ||
+              lastFeedback?.missionType === 3
+            ) {
+              const feedback =
+                lastFeedback.feedback as SupervisorGpsYoloSearchFeedback &
+                  SupervisorGpsArUcoSearchFeedback;
 
               const poiFound = feedback.marker_found || feedback.object_found;
-              const poiLatitude = feedback.object_location?.latitude || feedback.marker_location?.latitude;
-              const poiLongitude = feedback.object_location?.longitude || feedback.marker_location?.longitude;
+              const poiLatitude =
+                feedback.object_location?.latitude ||
+                feedback.marker_location?.latitude;
+              const poiLongitude =
+                feedback.object_location?.longitude ||
+                feedback.marker_location?.longitude;
 
               return (
                 <>
                   <div className={styles['feedback-row']}>
-                    <Label color="#333" className={styles['feedback-key']}>State</Label>
+                    <Label color='#333' className={styles['feedback-key']}>
+                      State
+                    </Label>
                     <div className={styles['feedback-value']}>
-                      <Label color="#222" className={styles['supervisor-row-item']}>{formatSnakeCaseState(feedback.state)}</Label>
+                      <Label
+                        color='#222'
+                        className={styles['supervisor-row-item']}
+                      >
+                        {formatSnakeCaseState(feedback.state)}
+                      </Label>
                     </div>
                   </div>
                   <div className={styles['feedback-row']}>
-                    <Label color="#333" className={styles['feedback-key']}>{lastFeedback.missionType === 2 ? 'Marker' : 'Object'}</Label>
+                    <Label color='#333' className={styles['feedback-key']}>
+                      {lastFeedback.missionType === 2 ? 'Marker' : 'Object'}
+                    </Label>
                     {poiFound ? (
                       <div className={styles['feedback-value']}>
-                        <Label color="#222" className={styles['supervisor-row-item']}>{formatLatitude(poiLatitude)}</Label>
-                        <Label color="#222" className={styles['supervisor-row-item']}>{formatLongitude(poiLongitude)}</Label>
+                        <Label
+                          color='#222'
+                          className={styles['supervisor-row-item']}
+                        >
+                          {formatLatitude(poiLatitude)}
+                        </Label>
+                        <Label
+                          color='#222'
+                          className={styles['supervisor-row-item']}
+                        >
+                          {formatLongitude(poiLongitude)}
+                        </Label>
                         <Button
                           tooltip='Copy to clipboard.'
                           onClick={() => {
-                            navigator.clipboard.writeText(`${poiLatitude}, ${poiLongitude}`);
+                            navigator.clipboard.writeText(
+                              `${poiLatitude}, ${poiLongitude}`
+                            );
                           }}
                         >
                           <FontAwesomeIcon icon={faCopy} />
@@ -467,7 +600,12 @@ export default function Supervisor({ props }: Props) {
                       </div>
                     ) : (
                       <div className={styles['feedback-value']}>
-                        <Label color="#222" className={styles['supervisor-row-item']}>Not Found</Label>
+                        <Label
+                          color='#222'
+                          className={styles['supervisor-row-item']}
+                        >
+                          Not Found
+                        </Label>
                       </div>
                     )}
                   </div>

@@ -4,9 +4,9 @@ import { Ros } from 'roslib';
 const ros = new Ros({
   url: 'ws://localhost:9065'
 });
-ros.on('connection', () => {
-  console.log('ROSLIB connected.');
-});
+// ros.on('connection', () => {
+//   console.log('ROSLIB connected.');
+// });
 ros.on('error', (error) => {
   console.error('ROSLIB error:\n', error, '\nWill attempt to reconnect.');
 });
@@ -42,6 +42,6 @@ setInterval(() => {
     }
     lastLoggedConnectionState = true;
   }
-}, 100);
+}, 500);
 
 export { ros };

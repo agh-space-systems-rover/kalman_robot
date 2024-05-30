@@ -1,6 +1,6 @@
 .input {
   display: flex;
-  background-color: #222;
+  background-color: var(--dark-background);
   margin-top: 5px;
   margin-bottom: 5px;
   flex: 1;
@@ -21,7 +21,7 @@
 }
 
 .input:not(:last-child) {
-  border-right: 1px solid #333;
+  border-right: 1px solid var(--background);
 }
 
 .input-field {
@@ -30,7 +30,7 @@
   width: 100%;
   outline: none;
   border: none;
-  color: #fff;
+  color: var(--strong-foreground);
   appearance: textfield;
   font-family: inherit;
   padding: 2px 5px 4px 5px;
