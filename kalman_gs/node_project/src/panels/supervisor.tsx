@@ -164,6 +164,8 @@ export default function Supervisor({ props }: Props) {
   const greenBg = style.getPropertyValue('--green-background');
   const blueBg = style.getPropertyValue('--blue-background');
   const magentaBg = style.getPropertyValue('--magenta-background');
+  const bgColor = style.getPropertyValue('--background');
+  const darkBg = style.getPropertyValue('--dark-background');
 
   return (
     <div className={styles['supervisor']}>
@@ -522,12 +524,12 @@ export default function Supervisor({ props }: Props) {
               return (
                 <>
                   <div className={styles['feedback-row']}>
-                    <Label color='#333' className={styles['feedback-key']}>
+                    <Label color={bgColor} className={styles['feedback-key']}>
                       State
                     </Label>
                     <div className={styles['feedback-value']}>
                       <Label
-                        color='#222'
+                        color={darkBg}
                         className={styles['supervisor-row-item']}
                       >
                         {formatSnakeCaseState(feedback.state)}
@@ -557,12 +559,12 @@ export default function Supervisor({ props }: Props) {
               return (
                 <>
                   <div className={styles['feedback-row']}>
-                    <Label color='#333' className={styles['feedback-key']}>
+                    <Label color={bgColor} className={styles['feedback-key']}>
                       State
                     </Label>
                     <div className={styles['feedback-value']}>
                       <Label
-                        color='#222'
+                        color={darkBg}
                         className={styles['supervisor-row-item']}
                       >
                         {formatSnakeCaseState(feedback.state)}
@@ -570,19 +572,19 @@ export default function Supervisor({ props }: Props) {
                     </div>
                   </div>
                   <div className={styles['feedback-row']}>
-                    <Label color='#333' className={styles['feedback-key']}>
+                    <Label color={bgColor} className={styles['feedback-key']}>
                       {lastFeedback.missionType === 2 ? 'Marker' : 'Object'}
                     </Label>
                     {poiFound ? (
                       <div className={styles['feedback-value']}>
                         <Label
-                          color='#222'
+                          color={darkBg}
                           className={styles['supervisor-row-item']}
                         >
                           {formatLatitude(poiLatitude)}
                         </Label>
                         <Label
-                          color='#222'
+                          color={darkBg}
                           className={styles['supervisor-row-item']}
                         >
                           {formatLongitude(poiLongitude)}
@@ -601,7 +603,7 @@ export default function Supervisor({ props }: Props) {
                     ) : (
                       <div className={styles['feedback-value']}>
                         <Label
-                          color='#222'
+                          color={darkBg}
                           className={styles['supervisor-row-item']}
                         >
                           Not Found
