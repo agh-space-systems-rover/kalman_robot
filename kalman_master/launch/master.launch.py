@@ -44,21 +44,21 @@ def launch_setup(context):
         ),
         Node(
             package="kalman_master",
-            executable="ueuos_driver",
-        ),
-        Node(
-            package="kalman_master",
             executable="wheel_driver",
         ),
     ]
 
     if get_str("mode") == "pc":
-        description.append(
+        description += [
             Node(
                 package="kalman_master",
                 executable="autonomy_switch_spam",
-            )
-        )
+            ),
+            Node(
+                package="kalman_master",
+                executable="ueuos_driver",
+            ),
+        ]
 
     if get_str("mode") == "gs":
         description.append(
