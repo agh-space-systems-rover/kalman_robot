@@ -14,13 +14,14 @@ SPIRAL_REVOLUTION_WIDTH = 3
 MIN_DISTANCE_TO_GOAL = 1.0
 PROGRESS_INCREMENT = 0.001
 
+
 @disable_state
 class Search(State):
     def __init__(self, name: str, revolutions: int):
         super().__init__(name)
         self.revolutions = revolutions
         self.init_progress = 0.5 / revolutions
-        self.flip_spiral = True # switched to False on first reset
+        self.flip_spiral = True  # switched to False on first reset
 
     def spiral_tr(self, progress: float, angle: float, revolutions: int) -> np.ndarray:
         p = progress if not self.flip_spiral else -progress
@@ -46,7 +47,7 @@ class Search(State):
             pose.pose.position.y = xy[1]
             msg.poses.append(pose)
         return msg
-    
+
     def reset_spiral(self, angle_offset: float) -> None:
         self.flip_spiral = not self.flip_spiral
 
@@ -54,7 +55,7 @@ class Search(State):
         self.center = self.entry_robot_pos
         self.angle = self.entry_robot_rot + angle_offset
         self.last_spiral_goal_time = 0
-        
+
         init_angle, _ = self.spiral_tr(self.init_progress, 0, self.revolutions)
         self.angle -= init_angle + (np.pi / 2 if not self.flip_spiral else -np.pi / 2)
         self.center -= self.spiral(self.init_progress, self.angle, self.revolutions)
@@ -67,7 +68,9 @@ class Search(State):
         param = Parameter()
         param.name = f"approach_distance"
         param.value.type = ParameterType.PARAMETER_DOUBLE
-        param.value.double_value = self.default_follower_approach_distance if enabled else 0.5
+        param.value.double_value = (
+            self.default_follower_approach_distance if enabled else 0.5
+        )
         req.parameters.append(param)
         self.follower_set_params.call_async(req)
         self.slow_approach_enabled = enabled
@@ -76,9 +79,11 @@ class Search(State):
         req = GetParameters.Request()
         req.names = ["approach_distance"]
         future = self.follower_get_params.call_async(req)
+
         def callback(future):
             res: GetParameters.Response = future.result()
             self.default_follower_approach_distance = res.values[0].double_value
+
         future.add_done_callback(callback)
 
     def enter(self) -> None:
@@ -91,7 +96,9 @@ class Search(State):
                 self.supervisor.yolo.enable()
 
         # Publish spiral for debugging.
-        self.spiral_pub = self.supervisor.create_publisher(Path, "supervisor/spiral", 10)
+        self.spiral_pub = self.supervisor.create_publisher(
+            Path, "supervisor/spiral", 10
+        )
 
         # Init the spiral.
         self.entry_robot_pos = self.supervisor.tf.robot_pos()[:2]
@@ -138,7 +145,9 @@ class Search(State):
                     offset = self.spiral(self.progress, self.angle, self.revolutions)
             goal = self.center + offset
 
-            self.next_goal_timeout = 30.0 if self.progress == self.init_progress else 10.0
+            self.next_goal_timeout = (
+                30.0 if self.progress == self.init_progress else 10.0
+            )
 
             self.supervisor.nav.send_goal(np.append(goal, 0))
             self.progress += PROGRESS_INCREMENT
@@ -161,7 +170,9 @@ class Search(State):
 
                 mission.marker_lat = lat
                 mission.marker_lon = lon
-                mission.marker_world_frame_pos = self.supervisor.aruco.marker_pos(mission.marker_id)
+                mission.marker_world_frame_pos = self.supervisor.aruco.marker_pos(
+                    mission.marker_id
+                )
 
                 return "approach"
         elif isinstance(mission, Missions.GpsYoloSearch):
@@ -179,27 +190,41 @@ class Search(State):
 
                 mission.obj_lat = lat
                 mission.obj_lon = lon
-                mission.obj_world_frame_pos = self.supervisor.yolo.class_pos(mission.obj_class)
+                mission.obj_world_frame_pos = self.supervisor.yolo.class_pos(
+                    mission.obj_class
+                )
 
                 return "approach"
 
         # If progress reached 1 and the searched item was not found, reset the progress.
         if self.progress >= 1:
-            self.supervisor.get_logger().info("[Search] Finished the spiral and failed to find the target. Returning to the center of the spiral to retry it...")
+            self.supervisor.get_logger().info(
+                "[Search] Finished the spiral and failed to find the target. Returning to the center of the spiral to retry it..."
+            )
             self.reset_spiral(np.random.uniform(-np.pi, np.pi))
 
         # Once we have the default approach distance, disable slow approach.
-        if self.default_follower_approach_distance is not None and self.slow_approach_enabled:
-            self.supervisor.get_logger().info("[Search] Disabling slow approach in path follower.")
+        if (
+            self.default_follower_approach_distance is not None
+            and self.slow_approach_enabled
+        ):
+            self.supervisor.get_logger().info(
+                "[Search] Disabling slow approach in path follower."
+            )
             self.toggle_follower_slow_approach(False)
 
     def exit(self) -> None:
         # Reset slow approach in path follower.
-        if self.default_follower_approach_distance is not None and not self.slow_approach_enabled:
-            self.supervisor.get_logger().info("[Search] Re-enabling slow approach in path follower.")
+        if (
+            self.default_follower_approach_distance is not None
+            and not self.slow_approach_enabled
+        ):
+            self.supervisor.get_logger().info(
+                "[Search] Re-enabling slow approach in path follower."
+            )
             self.toggle_follower_slow_approach(True)
 
-        self.supervisor.destroy_publisher(self.spiral_pub)        
+        self.supervisor.destroy_publisher(self.spiral_pub)
 
         # Disable the detection node.
         if self.supervisor.missions.has_mission():

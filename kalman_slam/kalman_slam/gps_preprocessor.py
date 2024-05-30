@@ -58,7 +58,9 @@ class GpsNanRemoval(Node):
                 msg.position_covariance[i] = self.covariance_override
 
             if not self.logged_switch:
-                self.get_logger().info(f"Switching GPS covariance from {self.initial_covariance} to {self.covariance_override}.")
+                self.get_logger().info(
+                    f"Switching GPS covariance from {self.initial_covariance} to {self.covariance_override}."
+                )
                 self.logged_switch = True
 
         self.pub.publish(msg)
