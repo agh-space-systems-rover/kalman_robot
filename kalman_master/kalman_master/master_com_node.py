@@ -44,7 +44,9 @@ class MasterCom(Node):
         if not port:
             # Attempt to find the Master UART port indefinitely.
             while True:
-                port = find_tty_by_model("Master_Autonomy_UART", "USB-RS422_Converter", "Kalman_GS_Converter")
+                port = find_tty_by_model(
+                    "Master_Autonomy_UART", "USB-RS422_Converter", "Kalman_GS_Converter"
+                )
                 if port is None:
                     self.get_logger().error(
                         "Master UART port not found. Will retry in 5 seconds."

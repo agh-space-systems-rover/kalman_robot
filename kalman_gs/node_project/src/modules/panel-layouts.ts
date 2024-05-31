@@ -40,8 +40,6 @@ let panelLayouts: PanelLayouts = {
   currentLayout: 'Default'
 };
 
-console.log('Loading panel layouts...');
-
 // Load state from local storage if available.
 const savedLayouts = localStorage.getItem('panel-layouts');
 if (savedLayouts) {

@@ -7,6 +7,7 @@
     "@babylonjs/core": "^7.2.3",
     "@babylonjs/loaders": "^7.2.3",
     "@fortawesome/fontawesome-svg-core": "^6.4.0",
+    "@fortawesome/free-brands-svg-icons": "^6.5.2",
     "@fortawesome/free-solid-svg-icons": "^6.4.0",
     "@fortawesome/react-fontawesome": "^0.2.0",
     "@trivago/prettier-plugin-sort-imports": "^4.3.0",

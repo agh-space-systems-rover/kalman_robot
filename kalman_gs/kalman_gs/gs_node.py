@@ -23,7 +23,9 @@ class GS(Node):
             if self.run_command("npm install") == 0:
                 os.makedirs(os.path.dirname(marker_file), exist_ok=True)
                 with open(marker_file, "w") as f:
-                    f.write("Existence of this file indicates that NPM dependencies were installed successfully.")
+                    f.write(
+                        "Existence of this file indicates that NPM dependencies were installed successfully."
+                    )
 
         # Run npm start
         self.get_logger().info("Running 'npm start':")

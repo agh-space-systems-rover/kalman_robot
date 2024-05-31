@@ -11,11 +11,15 @@ BAUD_RATES = {
     "arm": 2000000,
 }
 
+PORTS = {
+    "pc": "/tmp/ttyV2"
+}
+
 
 def launch_setup(context):
     def get_bool(name):
         return LaunchConfiguration(name).perform(context).lower() == "true"
-    
+
     def get_str(name):
         return LaunchConfiguration(name).perform(context)
 
@@ -23,7 +27,10 @@ def launch_setup(context):
         Node(
             package="kalman_master",
             executable="master_com",
-            parameters=[{"baud_rate": BAUD_RATES[get_str("mode")]}],
+            parameters=[{
+                "baud_rate": BAUD_RATES[get_str("mode")],
+                "port": PORTS.get(get_str("mode"), ""), # empty = auto
+            }],
         ),
         Node(
             package="kalman_master",
@@ -33,14 +40,14 @@ def launch_setup(context):
                     "config_path": str(
                         get_package_share_path("kalman_master") / "config/ros_link.yaml"
                     ),
-                    "side": ("station" if get_str("mode") == "gs" else "rover"), # station or rover
-                    "rover_endpoint": ("arm" if get_str("mode") == "arm" else "pc"), # arm or pc
+                    "side": (
+                        "station" if get_str("mode") == "gs" else "rover"
+                    ),  # station or rover
+                    "rover_endpoint": (
+                        "arm" if get_str("mode") == "arm" else "pc"
+                    ),  # arm or pc
                 },
             ],
-        ),
-        Node(
-            package="kalman_master",
-            executable="ueuos_driver",
         ),
         Node(
             package="kalman_master",
@@ -49,13 +56,25 @@ def launch_setup(context):
     ]
 
     if get_str("mode") == "pc":
-        description.append(
+        description += [
             Node(
                 package="kalman_master",
                 executable="autonomy_switch_spam",
-            )
+            ),
+            Node(
+                package="kalman_master",
+                executable="ueuos_driver",
+            ),
+        ]
+
+    if get_str("mode") == "gs":
+        description.append(
+            Node(
+                package="kalman_master",
+                executable="tunnel_client",
+            ),
         )
-    
+
     return description
 
 

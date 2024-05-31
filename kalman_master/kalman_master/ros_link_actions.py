@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 
 
 def goal_id_to_hex_str(goal_id: UUID) -> str:
-    return ''.join([f'{byte:02x}' for byte in goal_id.uuid])
+    return "".join([f"{byte:02x}" for byte in goal_id.uuid])
 
 
 class IncomingGoalState:
@@ -487,7 +487,9 @@ class RosLinkActions:
                     )
                     goal_info: GoalInfo
                     for goal_info in cancel_response.goals_canceling:
-                        if goal_id_to_hex_str(goal_info.goal_id) == goal_id_to_hex_str(state.client_handle.goal_id):
+                        if goal_id_to_hex_str(goal_info.goal_id) == goal_id_to_hex_str(
+                            state.client_handle.goal_id
+                        ):
                             state.cancelled = True
                             break
         try:
@@ -688,7 +690,9 @@ class RosLinkActions:
         req_id: int | None = None
         with self.outgoing_action_goal_states_condition:
             for req_id, state in self.outgoing_action_goal_states.items():
-                if goal_id_to_hex_str(state.server_handle.goal_id) == goal_id_to_hex_str(goal_handle.goal_id):
+                if goal_id_to_hex_str(
+                    state.server_handle.goal_id
+                ) == goal_id_to_hex_str(goal_handle.goal_id):
                     # Get the request ID for this goal handle.
                     req_id = req_id
                     break

@@ -5,7 +5,7 @@ import { ReactNode, useRef } from 'react';
 
 type Props = {
   text: string;
-  children: ReactNode;
+  children?: ReactNode;
   className?: string;
   [key: string]: any;
 };
