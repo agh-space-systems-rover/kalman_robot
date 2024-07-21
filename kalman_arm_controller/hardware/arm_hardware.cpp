@@ -97,16 +97,27 @@ std::vector<hardware_interface::CommandInterface> ArmSystem::export_command_inte
 return_type ArmSystem::read(const rclcpp::Time& /*time*/, const rclcpp::Duration& period)
 {
     return read_joint_states();
-    // joint_position_ = joint_position_command_;
-    // joint_velocities_ = joint_velocities_command_;
+    if (current_control_type == ControlType::posvel)
+    {
+        joint_velocities_ = joint_velocities_command_;
+        for (int i = 0; i < 6; i++)
+        {
+            joint_position_[i] += joint_velocities_[i] * period.seconds();
+        }
+    }
+    else
+    {
+        joint_position_ = joint_position_command_;
+        joint_velocities_ = joint_velocities_command_;
+    }
 
-    // return return_type::OK;
+    return return_type::OK;
 }
 
 return_type ArmSystem::write(const rclcpp::Time&, const rclcpp::Duration&)
 {
     return write_joint_commands();
-    // return return_type::OK;
+    return return_type::OK;
 }
 
 return_type ArmSystem::read_joint_states()
@@ -167,10 +178,10 @@ return_type ArmSystem::write_joint_commands()
                     CAN_vars::joints[i].moveSetpointDiff.torque_Nm = 0x02fa;
                     CAN_vars::joints[i].moveSetpointDiff.acceleration_deg_ss = 0xffff;
                 }
+                // Run write in a separate thread
+                writer = std::async(std::launch::async,
+                                    [&] { CAN_driver::arm_write(current_control_type); });
             }
-            // Run write in a separate thread
-            writer = std::async(std::launch::async,
-                                [&] { CAN_driver::arm_write(current_control_type); });
         }
     }
 
