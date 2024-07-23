@@ -63,6 +63,24 @@ rover: # or 'station'
             min: -180.0
             max: 180.0
             bytes: 4 # precision = 0.0000001 degrees = 1 cm
+
+  # moveit_servo.scale.linear
+  # moveit_servo.scale.rotational
+
+station:
+  topics:
+    - name: gripper/command_incremental
+      type: std_msgs/msg/Int8
+      max_rate: 10
+      int_range:
+        min: -128
+        max: 127
+    - name: joy_compressed
+      type: kalman_interfaces/msg/ArmCompressed
+      max_rate: 10
+      int_range:
+        min: 0
+        max: 255
     - name: servo/set_linear_scale
       type: std_msgs/msg/Float64
       max_rate: 2
@@ -78,20 +96,3 @@ rover: # or 'station'
         max: 1
         bytes: 1
 
-  # moveit_servo.scale.linear
-  # moveit_servo.scale.rotational
-
-station: 
-  topics:
-    - name: gripper/command_incremental
-      type: std_msgs/msg/Int8
-      max_rate: 10
-      int_range:
-        min: -128
-        max: 127
-    - name: joy_compressed
-      type: kalman_interfaces/msg/ArmCompressed
-      max_rate: 10
-      int_range:
-        min: 0
-        max: 255

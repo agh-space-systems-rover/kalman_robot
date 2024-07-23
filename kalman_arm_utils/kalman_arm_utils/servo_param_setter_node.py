@@ -13,6 +13,9 @@ class ServoParamSetter(Node):
         self.servo_rotational_sub_ = self.create_subscription(Float64, 'servo/set_rotational_scale', self.rotational_callback, 10)
         
         self.client = self.create_client(SetParameters, "/servo_node/set_parameters")
+
+        self.future_linear = None
+        self.future_rotational = None
         
     def linear_callback(self, msg):
         while not self.client.wait_for_service(timeout_sec=0.5):
@@ -30,7 +33,7 @@ class ServoParamSetter(Node):
 
         request.parameters = [param]
         
-        self.client.call(request)
+        self.future_linear = self.client.call_async(request)
         
     def rotational_callback(self, msg):
         while not self.client.wait_for_service(timeout_sec=0.5):
@@ -48,7 +51,7 @@ class ServoParamSetter(Node):
 
         request.parameters = [param]
         
-        self.client.call(request)
+        self.future_rotational = self.client.call_async(request)
         
         
 def main():
