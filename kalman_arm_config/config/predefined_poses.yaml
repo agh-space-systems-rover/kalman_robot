@@ -5,8 +5,11 @@ max_distance_rad: 0.35 # about 20 degrees
 stop_trajectory_timeout: 0.5
 
 # Predefined poses. Path has to be relative to kalman_arm_config package
+# ID must correspond to value in ArmPoseSelect message
 poses:
-  - name: "base"
+  - id: 0
+    name: "base"
     path: "predefined_poses/move_group_goal.yaml"
-  - name: "left_base"
+  - id: 1
+    name: "left_base"
     path: "predefined_poses/left_base.yaml"

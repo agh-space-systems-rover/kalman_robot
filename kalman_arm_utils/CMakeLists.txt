@@ -16,6 +16,8 @@ ament_python_install_package(${PROJECT_NAME})
 
 install(PROGRAMS
   scripts/servo_param_setter
+  scripts/trajectory_sender
+  scripts/pose_request_sender
   DESTINATION lib/${PROJECT_NAME}
 )
 

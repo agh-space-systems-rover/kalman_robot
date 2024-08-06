@@ -1,0 +1,14 @@
+# Threshold distance - how much each joint can be away from start of trajectory
+max_distance_rad: 0.05 # about 3 degrees
+# Time [in seconds] after which goal is aborted if no keep_alive message is received
+stop_trajectory_timeout: 0.5
+
+# Predefined trajectories. Path has to be relative to kalman_arm_config package
+# ID must correspond to value in ArmTrajectorySelect message
+trajectories:
+  - id: 0
+    name: "goal"
+    path: "predefined_trajectories/traj1.yaml"
+  - id: 1
+    name: "science_goal"
+    path: "predefined_trajectories/science_goal.yaml"

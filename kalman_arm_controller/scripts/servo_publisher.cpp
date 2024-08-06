@@ -16,6 +16,7 @@
 #include <rclcpp/subscription.hpp>
 #include <rclcpp/time.hpp>
 #include <rclcpp/utilities.hpp>
+#include <example_interfaces/example_interfaces/msg/empty.hpp>
 
 std::string hex_str(uint8_t val)
 {
@@ -32,6 +33,8 @@ const std::string JOY_TOPIC = "/joy_compressed";
 const std::string TWIST_TOPIC = "/servo_node/delta_twist_cmds";
 const std::string JOINT_TOPIC = "/servo_node/delta_joint_cmds";
 const std::string CONTROL_TOPIC = "/change_control_type";
+const std::string POSE_ABORT_TOPIC = "/pose_request/abort";
+const std::string TRAJECTORY_ABORT_TOPIC = "/trajectory/abort";
 
 namespace arm_master
 {
@@ -60,6 +63,12 @@ class MasterToServo : public rclcpp::Node
         control_type_pub_ = this->create_publisher<std_msgs::msg::UInt8>(
             CONTROL_TOPIC, rclcpp::SystemDefaultsQoS());
 
+        pose_abort_pub_ = this->create_publisher<example_interfaces::msg::Empty>(
+            POSE_ABORT_TOPIC, rclcpp::SystemDefaultsQoS());
+
+        trajectory_abort_pub_ = this->create_publisher<example_interfaces::msg::Empty>(
+            TRAJECTORY_ABORT_TOPIC, rclcpp::SystemDefaultsQoS());
+
         // Create a service client to start the ServoNode
         servo_start_client_ =
             this->create_client<std_srvs::srv::Trigger>("/servo_node/start_servo");
@@ -77,6 +86,8 @@ class MasterToServo : public rclcpp::Node
     void joyCB(kalman_interfaces::msg::ArmCompressed::ConstSharedPtr msg)
     {
         control_type_pub_->publish(std_msgs::msg::UInt8().set__data(1));
+        trajectory_abort_pub_->publish(std::make_unique<example_interfaces::msg::Empty>());
+        pose_abort_pub_->publish(std::make_unique<example_interfaces::msg::Empty>());
         if (current_command_type_ != moveit_msgs::srv::ServoCommandType::Request::JOINT_JOG)
         {
             setCommandType(moveit_msgs::srv::ServoCommandType::Request::JOINT_JOG);
@@ -111,6 +122,8 @@ class MasterToServo : public rclcpp::Node
     void spacemouseCB(kalman_interfaces::msg::MasterMessage::ConstSharedPtr msg)
     {
         control_type_pub_->publish(std_msgs::msg::UInt8().set__data(1));
+        trajectory_abort_pub_->publish(std::make_unique<example_interfaces::msg::Empty>());
+        pose_abort_pub_->publish(std::make_unique<example_interfaces::msg::Empty>());
         // Create the messages we might publish
         if (current_command_type_ != moveit_msgs::srv::ServoCommandType::Request::TWIST)
         {
@@ -155,6 +168,8 @@ class MasterToServo : public rclcpp::Node
     rclcpp::Publisher<control_msgs::msg::JointJog>::SharedPtr joint_pub_;
     rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr twist_pub_;
     rclcpp::Publisher<std_msgs::msg::UInt8>::SharedPtr control_type_pub_;
+    rclcpp::Publisher<example_interfaces::msg::Empty>::SharedPtr pose_abort_pub_;
+    rclcpp::Publisher<example_interfaces::msg::Empty>::SharedPtr trajectory_abort_pub_;
     rclcpp::Client<std_srvs::srv::Trigger>::SharedPtr servo_start_client_;
 
     rclcpp::Client<moveit_msgs::srv::ServoCommandType>::SharedPtr switch_input_;

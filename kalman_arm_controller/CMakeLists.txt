@@ -31,6 +31,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
     std_srvs
     tf2_eigen
     kalman_interfaces
+    example_interfaces
     trajectory_msgs)
 
 set(TWIST_REPUB_DEPS
