@@ -5,9 +5,12 @@
 #include <future>
 #include <hardware_interface/types/hardware_interface_return_values.hpp>
 #include <rclcpp/logging.hpp>
+#include <string>
 #include "hardware_interface/system_interface.hpp"
 
 const double MAX_POS_DIFF = 0.1;
+const std::string CAN_INTERFACE = "can0";
+const std::string CONTROL_TYPE_TOPIC = "/change_control_type";
 
 namespace kalman_arm_controller
 {
@@ -32,13 +35,13 @@ CallbackReturn ArmSystem::on_init(const hardware_interface::HardwareInfo& info)
         }
     }
 
-    CAN_driver::init(&CAN_driver::arm_driver, "can0");
+    CAN_driver::init(&CAN_driver::arm_driver, CAN_INTERFACE.c_str());
     CAN_driver::startArmRead();
 
     node_ = rclcpp::Node::make_shared("arm_hardware_node");
 
     control_type_subscriber_ = node_->create_subscription<std_msgs::msg::UInt8>(
-        "/change_control_type", 10, [&](std_msgs::msg::UInt8::SharedPtr msg) {
+        CONTROL_TYPE_TOPIC, 10, [&](std_msgs::msg::UInt8::SharedPtr msg) {
             switch (msg->data)
             {
                 case 0:
@@ -48,7 +51,6 @@ CallbackReturn ArmSystem::on_init(const hardware_interface::HardwareInfo& info)
                     current_control_type = ControlType::posvel;
                     break;
             }
-            RCLCPP_WARN(node_->get_logger(), "CHANGING CONTROL TYPE to %u", current_control_type);
         });
 
     node_future_ = std::async([&]() { rclcpp::spin(node_); });
@@ -186,6 +188,11 @@ return_type ArmSystem::write_joint_commands()
     }
 
     return return_type::OK;
+}
+
+ArmSystem::~ArmSystem()
+{
+    CAN_driver::close(&CAN_driver::arm_driver);
 }
 
 }  // namespace kalman_arm_controller

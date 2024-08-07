@@ -14,6 +14,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "action/SupervisorTfGoal.action"
   "msg/ArmCompressed.msg"
   "msg/ArmFkCommand.msg"
+  "msg/ArmGoalStatus.msg"
   "msg/ArmIkCommand.msg"
   "msg/ArmPoseSelect.msg"
   "msg/ArmState.msg"

@@ -10,15 +10,12 @@
 #include <rclcpp/utilities.hpp>
 #include <rclcpp/timer.hpp>
 #include <control_msgs/msg/joint_jog.hpp>
+#include <string>
 #include "std_msgs/msg/int8.hpp"
 extern "C" {
 #include "kalman_arm_controller/can_libs/can_driver.hpp"
 }
 #include <stdint.h>
-
-const uint16_t WRITE_CALLBACK_PERIOD_MS = 10;
-const uint16_t READ_CALLBACK_PERIOD_MS = 10;
-const double JOINT_TIMEOUT = 0.5;
 
 namespace kalman_arm
 {
@@ -32,6 +29,7 @@ class ExtraCanNode : public rclcpp::Node
     uint16_t max_gripper_;
     uint16_t min_gripper_;
     uint16_t start_pose_;
+    std::string can_interface_;
 
     rclcpp::TimerBase::SharedPtr write_timer_;
     rclcpp::TimerBase::SharedPtr read_timer_;
@@ -61,10 +59,12 @@ class ExtraCanNode : public rclcpp::Node
         this->get_parameter("min_gripper", min_gripper_);
         this->declare_parameter<uint16_t>("start_pose", 330);
         this->get_parameter("start_pose", start_pose_);
+        this->declare_parameter<std::string>("can_interface", "can0");
+        this->get_parameter("start_pose", can_interface_);
 
         gripper_position_ = start_pose_;
 
-        CAN_driver::init(&extra_driver_, "can0");
+        CAN_driver::init(&extra_driver_, can_interface_.c_str());
 
         gripper_sub_ = this->create_subscription<std_msgs::msg::Int8>(
             "gripper/command_incremental", rclcpp::SystemDefaultsQoS(),

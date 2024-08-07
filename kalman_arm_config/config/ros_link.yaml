@@ -63,9 +63,18 @@ rover: # or 'station'
             min: -180.0
             max: 180.0
             bytes: 4 # precision = 0.0000001 degrees = 1 cm
-
-  # moveit_servo.scale.linear
-  # moveit_servo.scale.rotational
+    - name: trajectory/status
+      type: kalman_interfaces/msg/ArmGoalStatus
+      max_rate: 2
+      int_range:
+        min: 0
+        max: 255
+    - name: pose_request/status
+      type: kalman_interfaces/msg/ArmGoalStatus
+      max_rate: 2
+      int_range:
+        min: 0
+        max: 255
 
 station:
   topics:
@@ -95,4 +104,28 @@ station:
         min: 0
         max: 1
         bytes: 1
+    - name: pose_request/execute
+      type: kalman_interfaces/msg/ArmPoseSelect
+      max_rate: 2
+      int_range:
+        min: 0
+        max: 255
+    - name: pose_request/abort
+      type: example_interfaces/msg/Empty
+      max_rate: 10
+    - name: pose_request/keep_alive
+      type: example_interfaces/msg/Empty
+      max_rate: 10
+    - name: trajectory/execute
+      type: kalman_interfaces/msg/ArmTrajectorySelect
+      max_rate: 2
+      int_range:
+        min: 0
+        max: 255
+    - name: trajectory/abort
+      type: example_interfaces/msg/Empty
+      max_rate: 10
+    - name: trajectory/keep_alive
+      type: example_interfaces/msg/Empty
+      max_rate: 10
 

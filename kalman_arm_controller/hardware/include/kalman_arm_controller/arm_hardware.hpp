@@ -35,6 +35,8 @@ class HARDWARE_INTERFACE_PUBLIC ArmSystem : public hardware_interface::SystemInt
 
     return_type write(const rclcpp::Time& /*time*/, const rclcpp::Duration& /*period*/) override;
 
+    ~ArmSystem() override;
+
   protected:
     /// The size of this vector is (standard_interfaces_.size() x nr_joints)
     std::vector<double> joint_position_command_;
@@ -47,11 +49,7 @@ class HARDWARE_INTERFACE_PUBLIC ArmSystem : public hardware_interface::SystemInt
     rclcpp::Node::SharedPtr node_;
     rclcpp::Subscription<std_msgs::msg::UInt8>::SharedPtr control_type_subscriber_;
 
-    rclcpp::Subscription<std_msgs::msg::UInt16>::SharedPtr gripper_subscriber_;
-    rclcpp::TimerBase::SharedPtr node_spin_timer_;
-
     std::future<void> writer;
-    std::future<void> gripper_writer_;
 
     std::future<void> node_future_;
 

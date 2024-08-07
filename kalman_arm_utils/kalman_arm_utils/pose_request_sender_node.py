@@ -10,7 +10,7 @@ from moveit_msgs.action import MoveGroup
 from moveit_msgs.msg import Constraints, JointConstraint, MoveItErrorCodes
 from sensor_msgs.msg import JointState
 from example_interfaces.msg import Empty
-from kalman_interfaces.msg import ArmPoseSelect
+from kalman_interfaces.msg import ArmPoseSelect, ArmGoalStatus
 from collections import namedtuple
 from std_msgs.msg import UInt8
 
@@ -66,7 +66,10 @@ class PoseRequestSender(Node):
             10,
         )
 
-        self._status_pub = self.create_publisher(UInt8, "/pose_request/status", 10)
+        self._status_pub = self.create_publisher(
+            ArmGoalStatus, "/pose_request/status", 10
+        )
+        self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.IDLE))
 
         self._keep_alive_sub = self.create_subscription(
             Empty, "/pose_request/keep_alive", self.keep_alive, 10
@@ -84,11 +87,13 @@ class PoseRequestSender(Node):
             self._timer.reset()
 
     def abort(self, msg: Empty):
+        self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.ABORT_RECEIVED))
         self.timer_callback()
 
     def send_goal(self, msg: ArmPoseSelect):
         if msg.pose_id not in PREDEFINED_POSES:
             self.get_logger().error("Invalid pose ID")
+            self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.INVALID_ID))
             return
         filename = PREDEFINED_POSES[msg.pose_id].path
         while len(self.joints.keys()) == 0:
@@ -96,6 +101,7 @@ class PoseRequestSender(Node):
 
         if self._goal_handle:
             self.get_logger().info("Canceling previous goal")
+            self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.PREEMPTING))
             self.timer_callback()
             self._cancel_future.add_done_callback(lambda x: self.publish_goal(filename))
         else:
@@ -128,6 +134,9 @@ class PoseRequestSender(Node):
 
                 if close_enough:
                     self.get_logger().info("Sending pose goal...")
+                    self._status_pub.publish(
+                        ArmGoalStatus(status=ArmGoalStatus.GOAL_SENDING)
+                    )
                     self._action_client.wait_for_server()
 
                     self._send_goal_future = self._action_client.send_goal_async(
@@ -136,22 +145,26 @@ class PoseRequestSender(Node):
                     self._send_goal_future.add_done_callback(
                         self.goal_response_callback
                     )
-                    self._status_pub.publish(UInt8(data=0))
                 else:
                     self.get_logger().warn("Too far away for pose...")
-                    self._status_pub.publish(UInt8(data=255))
+                    self._status_pub.publish(
+                        ArmGoalStatus(status=ArmGoalStatus.TOO_FAR)
+                    )
         except FileNotFoundError:
             self.get_logger().error(f"Error loading predefined pose from {filename}")
+            self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.EXCEPTION))
 
     def goal_response_callback(self, future):
         goal_handle = future.result()
         if not goal_handle.accepted:
             self.get_logger().info("Goal rejected :(")
+            self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.GOAL_REJECTED))
             return
 
         self._goal_handle = goal_handle
 
         self.get_logger().info("Goal accepted :)")
+        self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.GOAL_ACCEPTED))
         self._change_control_pub.publish(UInt8(data=0))
 
         # Start abort timer
@@ -171,8 +184,10 @@ class PoseRequestSender(Node):
 
         if status.val == MoveItErrorCodes.SUCCESS:
             self.get_logger().info("Goal succeeded!")
+            self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.SUCCESS))
         else:
             self.get_logger().warn(f"Goal did not succeed with error code: {status}")
+            self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.FAILED))
         self._goal_handle = None
 
     def timer_callback(self):
@@ -184,6 +199,7 @@ class PoseRequestSender(Node):
 
         if self._goal_handle:
             self.get_logger().info("Canceling goal")
+            self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.CANCELLING))
             # Cancel the goal
             self._cancel_future = self._goal_handle.cancel_goal_async()
             self._cancel_future.add_done_callback(self.cancel_done)
@@ -192,8 +208,10 @@ class PoseRequestSender(Node):
         cancel_response = future.result()
         if len(cancel_response.goals_canceling) > 0:
             self.get_logger().info("Goal successfully canceled")
+            self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.CANCEL_SUCCESS))
         else:
             self.get_logger().info("Goal failed to cancel")
+            self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.CANCEL_FAILED))
         self._goal_handle = None
 
 

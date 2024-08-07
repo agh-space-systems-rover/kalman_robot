@@ -12,8 +12,6 @@
 #define TIMEOUT_MS 1  // 5 seconds
 
 CAN_driver::DriverVars_t CAN_driver::arm_driver = {};
-CAN_driver::DriverVars_t* CAN_driver::extra_driver = nullptr;
-std::unordered_map<uint8_t, canCmdHandler_t>* CAN_driver::extra_handlers = nullptr;
 
 /**
  * @brief Initialize the CAN driver.
@@ -72,53 +70,6 @@ int CAN_driver::startArmRead()
     return 0;
 }
 
-extern "C" {
-int CAN_driver::startExtraRead(DriverVars_t* driver_vars,
-                               std::unordered_map<uint8_t, canCmdHandler_t>* extra_handles)
-{
-    driver_vars->reader = std::thread(CAN_driver::extraRead);
-    CAN_driver::extra_driver = driver_vars;
-    CAN_driver::extra_handlers = extra_handles;
-    return 0;
-}
-}
-
-int CAN_driver::extraRead()
-{
-    char buffer[BUFFER_SIZE];
-    while (extra_driver->should_run)
-    {
-        ssize_t num_bytes = recv(extra_driver->sock, buffer, BUFFER_SIZE, MSG_DONTWAIT);
-
-        if (num_bytes < 0)
-        {
-            if (errno == EAGAIN || errno == EWOULDBLOCK)
-            {
-                // there was nothing to read (recv MSG_DONTWAIT flag docs)
-                std::this_thread::sleep_for(std::chrono::milliseconds{ 1 });
-                continue;
-            }
-            else
-            {
-                RCLCPP_FATAL(rclcpp::get_logger("my_logger"),
-                             "CAN_driver::masterRead: recv failed due to: %s\r\n",
-                             std::strerror(errno));
-                exit(EXIT_FAILURE);
-            }
-        }
-
-        buffer[num_bytes] = '\0';  // Null-terminate the received data
-        struct canfd_frame frame;
-
-        frame = *((struct canfd_frame*)buffer);
-
-        // We don't need to lock the recv invocation
-        std::lock_guard<std::mutex> lock(extra_driver->m_read);
-        handle_frame(frame, CAN_driver::extra_handlers);
-    }
-    return 0;
-}
-
 int CAN_driver::armRead()
 {
     char buffer[BUFFER_SIZE];
@@ -173,16 +124,12 @@ int CAN_driver::handle_frame(canfd_frame frame,
     uint8_t command = frame.can_id - (joint_id << 7);
     try
     {
-        // RCLCPP_INFO(rclcpp::get_logger("my_logger"), "Handling frame with ID %03X
-        // and length %d, command: %d, joint id: %d\r\n", frame.can_id, frame.len,
-        // command, joint_id);
         if (handles->find(command) != handles->end())
             (*handles).at(command).func(frame.can_id, frame.data, frame.len);
     }
     catch (const std::exception& e)
     {
-        // RCLCPP_INFO(rclcpp::get_logger("my_logger"), "Caught exception: %s\r\n",
-        // e.what());
+        RCLCPP_INFO(rclcpp::get_logger("my_logger"), "Caught exception: %s\r\n", e.what());
         return 1;
     }
     return 0;

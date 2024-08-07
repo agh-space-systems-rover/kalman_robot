@@ -39,17 +39,13 @@ typedef struct DriverVars_t
 } DriverVars_t;
 }
 extern DriverVars_t arm_driver;
-extern DriverVars_t* extra_driver;
-extern std::unordered_map<uint8_t, canCmdHandler_t>* extra_handlers;
 
 extern "C" {
 int init(DriverVars_t*, const char* can_interface);
-int startExtraRead(DriverVars_t*, std::unordered_map<uint8_t, canCmdHandler_t>*);
 int write_gripper_position(DriverVars_t* driver_vars, uint16_t position);
 }
 int startArmRead();
 int armRead();
-int extraRead();
 
 int arm_write(ControlType controlType);
 int write_control_type(ControlType controlType);

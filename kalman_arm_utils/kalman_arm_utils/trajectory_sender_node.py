@@ -11,7 +11,7 @@ from control_msgs.action import FollowJointTrajectory
 from sensor_msgs.msg import JointState
 from trajectory_msgs.msg import JointTrajectory
 from example_interfaces.msg import Empty
-from kalman_interfaces.msg import ArmTrajectorySelect
+from kalman_interfaces.msg import ArmTrajectorySelect, ArmGoalStatus
 from collections import namedtuple
 from std_msgs.msg import UInt8
 
@@ -53,7 +53,10 @@ class TrajectoryClient(Node):
         self._goal_handle = None
         self._cancel_future: None | Future = None
 
-        self._status_pub = self.create_publisher(UInt8, "/trajectory/status", 10)
+        self._status_pub = self.create_publisher(
+            ArmGoalStatus, "/trajectory/status", 10
+        )
+        self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.IDLE))
 
         self.joint_states_sub = self.create_subscription(
             JointState, "/joint_states", self.update_state, 10
@@ -88,11 +91,13 @@ class TrajectoryClient(Node):
             self._timer.reset()
 
     def abort(self, msg: Empty):
+        self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.ABORT_RECEIVED))
         self.timer_callback()
 
     def start_trajectory(self, msg: ArmTrajectorySelect):
         if msg.trajectory_id not in PREDEFINED_TRAJECTORIES:
             self.get_logger().error("Invalid trajectory ID")
+            self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.INVALID_ID))
             return
         filename = PREDEFINED_TRAJECTORIES[msg.trajectory_id].path
         while len(self.joints.keys()) == 0:
@@ -100,6 +105,7 @@ class TrajectoryClient(Node):
 
         if self._goal_handle:
             self.get_logger().info("Canceling previous goal")
+            self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.PREEMPTING))
             self.timer_callback()
             self._cancel_future.add_done_callback(lambda x: self.send_goal(filename))
         else:
@@ -130,6 +136,9 @@ class TrajectoryClient(Node):
 
                 if close_enough:
                     self.get_logger().info("Sending goal...")
+                    self._status_pub.publish(
+                        ArmGoalStatus(status=ArmGoalStatus.GOAL_SENDING)
+                    )
                     self._action_client.wait_for_server()
 
                     self._send_goal_future = self._action_client.send_goal_async(
@@ -138,11 +147,14 @@ class TrajectoryClient(Node):
                     self._send_goal_future.add_done_callback(
                         self.goal_response_callback
                     )
-                    self._status_pub.publish(UInt8(data=0))
                 else:
                     self.get_logger().warn("Too far away for pose...")
-                    self._status_pub.publish(UInt8(data=255))
+                    self._status_pub.publish(
+                        ArmGoalStatus(status=ArmGoalStatus.TOO_FAR)
+                    )
+
         except FileNotFoundError:
+            self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.EXCEPTION))
             self.get_logger().error(
                 f"Error loading predefined trajectories from {filename}"
             )
@@ -151,11 +163,13 @@ class TrajectoryClient(Node):
         goal_handle = future.result()
         if not goal_handle.accepted:
             self.get_logger().info("Goal rejected :(")
+            self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.GOAL_REJECTED))
             return
 
         self._goal_handle = goal_handle
 
         self.get_logger().info("Goal accepted :)")
+        self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.GOAL_ACCEPTED))
         self._change_control_pub.publish(UInt8(data=0))
 
         # Start abort timer
@@ -175,8 +189,10 @@ class TrajectoryClient(Node):
 
         if status == FollowJointTrajectory.Result.SUCCESSFUL:
             self.get_logger().info("Goal succeeded!")
+            self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.SUCCESS))
         else:
             self.get_logger().warn(f"Goal did not succeed with error code: {status}")
+            self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.FAILED))
         self._goal_handle = None
 
     def timer_callback(self):
@@ -188,6 +204,7 @@ class TrajectoryClient(Node):
 
         if self._goal_handle:
             self.get_logger().info("Canceling goal")
+            self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.CANCELLING))
             # Cancel the goal
             self._cancel_future = self._goal_handle.cancel_goal_async()
             self._cancel_future.add_done_callback(self.cancel_done)
@@ -196,8 +213,10 @@ class TrajectoryClient(Node):
         cancel_response = future.result()
         if len(cancel_response.goals_canceling) > 0:
             self.get_logger().info("Goal successfully canceled")
+            self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.CANCEL_SUCCESS))
         else:
             self.get_logger().info("Goal failed to cancel")
+            self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.CANCEL_FAILED))
         self._goal_handle = None
 
 

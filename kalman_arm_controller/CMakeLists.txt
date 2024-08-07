@@ -65,15 +65,6 @@ endforeach()
 
 
 # Component Nodes (Shared libraries) ############################
-set(SERVO_CONTROLLER_INPUT servo_controller_input)
-
-
-# Add executable for using a controller
-add_library(${SERVO_CONTROLLER_INPUT} SHARED scripts/joystick_servo_example.cpp)
-ament_target_dependencies(${SERVO_CONTROLLER_INPUT} ${THIS_PACKAGE_INCLUDE_DEPENDS})
-rclcpp_components_register_nodes(${SERVO_CONTROLLER_INPUT} "moveit_servo::JoyToServoPub")
-
-
 set(SERVO_PUBLISHER servo_publisher)
 add_library(${SERVO_PUBLISHER} SHARED scripts/servo_publisher.cpp)
 target_compile_features(${SERVO_PUBLISHER} PUBLIC cxx_std_20)
@@ -101,11 +92,6 @@ ament_target_dependencies(servo_keyboard_input ${THIS_PACKAGE_INCLUDE_DEPENDS})
 # add_executable(monitor_planning_scene scripts/planning_scene_tutorial.cpp)
 # target_include_directories(monitor_planning_scene PUBLIC include)
 # ament_target_dependencies(monitor_planning_scene ${THIS_PACKAGE_INCLUDE_DEPENDS})
-
-
-add_executable(twist_republisher scripts/twist_republisher.cpp)
-target_include_directories(twist_republisher PUBLIC include)
-ament_target_dependencies(twist_republisher ${TWIST_REPUB_DEPS})
 
 include_directories(hardware/include)
 
@@ -151,11 +137,7 @@ install(TARGETS servo_keyboard_input
 # install(TARGETS monitor_planning_scene
 # DESTINATION lib/${PROJECT_NAME})
 
-install(TARGETS twist_republisher
-    DESTINATION lib/${PROJECT_NAME})
-
 install(TARGETS kalman_arm_controller
-    ${SERVO_CONTROLLER_INPUT}
     ${SERVO_PUBLISHER}
     ${EXTRA_CAN}
   EXPORT export_kalman_arm_controller
