@@ -75,6 +75,11 @@ export default class Settings extends Component<{}, State> {
   show() {
     this.setState({ shown: true, listeningForNewKeybind: null, searchTerm: '' });
     window.addEventListener('keydown', this.escHandler);
+    // Reset scroll in scrollable-options
+    const options = document.querySelector(`.${styles['scrollable-options']}`);
+    if (options) {
+      options.scrollTop = 0;
+    }
   }
 
   hide() {
