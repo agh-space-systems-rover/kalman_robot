@@ -23,7 +23,7 @@ import {
   PanelLayout,
   VerticalPanelLayout,
   panelLayouts
-} from '../modules/panel-layouts';
+} from '../common/panel-layouts';
 
 import { defaultPanel, panelInfos, PanelID } from '../panels';
 

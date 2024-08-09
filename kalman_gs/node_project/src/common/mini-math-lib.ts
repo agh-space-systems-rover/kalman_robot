@@ -1,5 +1,3 @@
-import { Vector2 } from '@babylonjs/core';
-
 export type Vector3 = {
   x: number;
   y: number;

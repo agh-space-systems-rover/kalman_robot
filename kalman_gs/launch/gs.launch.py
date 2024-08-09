@@ -6,11 +6,6 @@ import os
 import shutil
 import yaml
 
-# for DEBUG wheel_controller
-from launch.actions import IncludeLaunchDescription
-from launch.launch_description_sources import PythonLaunchDescriptionSource
-
-
 def generate_launch_description():
     # Find maproxy-util if it is not in the PATH.
     mapproxy_util = "mapproxy-util"

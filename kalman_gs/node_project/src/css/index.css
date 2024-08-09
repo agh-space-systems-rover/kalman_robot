@@ -34,3 +34,7 @@ body {
   width: 1em;
   height: 1em;
 }
+
+::placeholder {
+  color: var(--weak-foreground);
+}

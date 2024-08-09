@@ -1,5 +1,5 @@
 import { ros } from './ros';
-import { Twist } from './ros.interfaces';
+import { Twist } from './ros-interfaces';
 import { Topic } from 'roslib';
 
 const RATE = 10; // Hz

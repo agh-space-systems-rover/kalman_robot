@@ -23,4 +23,4 @@ function setTheme(theme: Theme) {
 // document.documentElement.setAttribute('data-theme', currentTheme);
 setTheme(currentTheme);
 
-export { currentTheme, setTheme };
+export { Theme, currentTheme, setTheme };

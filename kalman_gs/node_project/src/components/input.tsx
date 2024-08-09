@@ -9,6 +9,7 @@ type Props = {
   onChange?: (text: string) => void;
   onSubmit?: (text: string) => void;
   className?: string;
+  autoFocus?: boolean;
   [key: string]: any;
 };
 
@@ -62,6 +63,7 @@ export default class Input extends Component<Props> {
               this.ref.current?.blur();
             }
           }}
+          autoFocus={this.props.autoFocus}
         />
       </div>
     );

@@ -4,7 +4,7 @@ import {
   quatFromAxisAngle,
   quatTimesQuat,
   vecFromCssColor
-} from '../mini-math-lib';
+} from '../common/mini-math-lib';
 import {
   Vector3,
   HemisphericLight,
@@ -34,7 +34,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import BabylonJS from '../components/babylon-js';
 
-import { imuRotation } from '../modules/imu';
+import { imuRotation } from '../common/imu';
 
 const ORTHO_FOV_SCALE_INV = 5;
 const FOG_DENSITY = 0.001;

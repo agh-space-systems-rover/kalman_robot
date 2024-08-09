@@ -1,0 +1,21 @@
+.open-settings {
+  width: calc(1em + 4px);
+  height: calc(1em + 4px);
+  padding: 3px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: transform 0.1s;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: background-color 0.2s;
+}
+
+.open-settings:hover {
+  background-color: var(--background);
+}
+
+.open-settings:active {
+  background-color: var(--interactive);
+  transition: background-color 0s;
+}

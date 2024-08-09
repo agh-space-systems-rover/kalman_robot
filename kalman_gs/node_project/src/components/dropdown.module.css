@@ -60,6 +60,7 @@
   display: flex;
   white-space: nowrap;
   align-items: center;
+  transition: background-color 0.1s;
 }
 
 .dropdown-item:hover {

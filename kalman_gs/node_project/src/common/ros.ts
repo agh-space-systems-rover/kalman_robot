@@ -1,4 +1,4 @@
-import { alertsRef } from './alerts-ref';
+import { alertsRef } from './refs';
 import { Ros } from 'roslib';
 
 const ros = new Ros({

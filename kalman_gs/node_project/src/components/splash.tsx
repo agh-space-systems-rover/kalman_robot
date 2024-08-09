@@ -23,12 +23,20 @@ export default class Splash extends Component<{}, State> {
   };
   state = Splash.defaultState;
 
+  escHandler = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      this.hide();
+    }
+  }
+
   show() {
     this.setState({ shown: true });
+    window.addEventListener('keydown', this.escHandler);
   }
 
   hide() {
     this.setState({ shown: false });
+    window.removeEventListener('keydown', this.escHandler);
   }
 
   render() {
@@ -38,21 +46,9 @@ export default class Splash extends Component<{}, State> {
           styles['splash-bg'] + (this.state.shown ? ` ${styles['shown']}` : '')
         }
         onClick={() => this.hide()}
-        onKeyUp={(e) => {
-          console.log(e.key);
-          if (e.key === 'Escape') {
-            this.hide();
-          }
-        }}
       >
         <div
           className={styles['splash']}
-          onKeyUp={(e) => {
-            console.log(e.key);
-            if (e.key === 'Escape') {
-              this.hide();
-            }
-          }}
         >
           <div className={styles['splash-header']}>
             <img

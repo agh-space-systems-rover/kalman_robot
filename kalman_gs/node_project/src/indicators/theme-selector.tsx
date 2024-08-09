@@ -3,17 +3,14 @@ import styles from './theme-selector.module.css';
 import { faRaspberryPi } from '@fortawesome/free-brands-svg-icons';
 import {
   faCloudMoon,
-  faEdit,
   faGlasses,
-  faHollyBerry,
   faSun
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import ContextMenu from '../components/context-menu';
-import Tooltip from '../components/tooltip';
 
-import { setTheme } from '../modules/themes';
+import { setTheme } from '../common/themes';
 
 export default function ThemeSelector() {
   return (

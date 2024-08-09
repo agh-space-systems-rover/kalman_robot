@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 
 import Tooltip from '../components/tooltip';
 
-import { ros } from '../modules/ros';
+import { ros } from '../common/ros';
 
 export default function RosHealth() {
   const [connected, setConnected] = useState(false);
