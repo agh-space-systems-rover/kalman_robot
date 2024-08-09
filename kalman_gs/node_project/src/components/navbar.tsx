@@ -1,5 +1,7 @@
 import styles from './navbar.module.css';
 
+import { panelLayouts } from '../common/panel-layouts';
+import { splashRef } from '../common/refs';
 import { IndicatorComponents } from '../indicators';
 import RebootPC from '../indicators/reboot-pc';
 import logoSmall from '../media/logo-small.png';
@@ -11,10 +13,7 @@ import { faEdit, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useCallback, useRef, useState } from 'react';
 
-import { panelLayouts } from '../common/panel-layouts';
-
 import { defaultPanel } from '../panels';
-import { splashRef } from '../common/refs';
 
 function sortObject(obj: any) {
   return Object.keys(obj)
@@ -91,9 +90,7 @@ export default function Navbar() {
                         if (panelLayouts.currentLayout === layoutName) {
                           panelLayouts.currentLayout = newLayoutName;
                         }
-                        panelLayouts.layouts = sortObject(
-                          panelLayouts.layouts
-                        );
+                        panelLayouts.layouts = sortObject(panelLayouts.layouts);
                         rerenderNavbarAndPanelManager();
                       }
                     }

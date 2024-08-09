@@ -1,5 +1,6 @@
 import styles from './imu.module.css';
 
+import { imuRotation } from '../common/imu';
 import {
   quatFromAxisAngle,
   quatTimesQuat,
@@ -33,8 +34,6 @@ import '@babylonjs/loaders/OBJ';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import BabylonJS from '../components/babylon-js';
-
-import { imuRotation } from '../common/imu';
 
 const ORTHO_FOV_SCALE_INV = 5;
 const FOG_DENSITY = 0.001;

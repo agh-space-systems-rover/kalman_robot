@@ -80,7 +80,12 @@ export default function Dropdown({
       <FontAwesomeIcon icon={faChevronDown} className={styles['item-icon']} />
       {open && (
         <>
-          <div className={styles['dropdown-popup'] + (popupClassName ? ` ${popupClassName}` : '')}>
+          <div
+            className={
+              styles['dropdown-popup'] +
+              (popupClassName ? ` ${popupClassName}` : '')
+            }
+          >
             {items.map((item, index) => (
               <div
                 key={index}

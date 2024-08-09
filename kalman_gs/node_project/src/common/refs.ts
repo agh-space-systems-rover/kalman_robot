@@ -1,8 +1,8 @@
 import { createRef } from 'react';
 
-import Splash from '../components/splash';
 import Alerts from '../components/alerts';
 import Settings from '../components/settings';
+import Splash from '../components/splash';
 
 const splashRef = createRef<Splash>();
 const alertsRef = createRef<Alerts>();

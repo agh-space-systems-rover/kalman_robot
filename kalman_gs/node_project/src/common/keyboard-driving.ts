@@ -15,7 +15,7 @@ const trackedButtons = {};
 window.addEventListener('keydown', (event) => {
   // Check if any input box is focused.
   if (document.activeElement.tagName === 'INPUT') {
-    return
+    return;
   }
 
   trackedButtons[event.code] = true;
@@ -50,9 +50,14 @@ function readKey(key: string): number {
   return trackedButtons[key] ? 1 : 0;
 }
 setInterval(() => {
-  const forward = readKey(getKeybind('Drive Forward')) - readKey(getKeybind('Drive Backward')); // positive = forward
-  const turn = readKey(getKeybind('Turn Left')) - readKey(getKeybind('Turn Right')); // positive = left
-  const rotateInPlace = readKey(getKeybind('Rotate Left in Place')) - readKey(getKeybind('Rotate Right in Place')); // positive = left
+  const forward =
+    readKey(getKeybind('Drive Forward')) -
+    readKey(getKeybind('Drive Backward')); // positive = forward
+  const turn =
+    readKey(getKeybind('Turn Left')) - readKey(getKeybind('Turn Right')); // positive = left
+  const rotateInPlace =
+    readKey(getKeybind('Rotate Left in Place')) -
+    readKey(getKeybind('Rotate Right in Place')); // positive = left
 
   // If inputs did not change since last update and all of them are 0, stop sending commands.
   if (

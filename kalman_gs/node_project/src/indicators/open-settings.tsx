@@ -1,10 +1,10 @@
 import styles from './open-settings.module.css';
 
+import { settingsRef } from '../common/refs';
 import { faCog } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import Tooltip from '../components/tooltip';
 
-import { settingsRef } from '../common/refs';
+import Tooltip from '../components/tooltip';
 
 export default function OpenSettings() {
   return (

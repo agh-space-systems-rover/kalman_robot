@@ -27,7 +27,7 @@ export default class Splash extends Component<{}, State> {
     if (e.key === 'Escape') {
       this.hide();
     }
-  }
+  };
 
   show() {
     this.setState({ shown: true });
@@ -47,9 +47,7 @@ export default class Splash extends Component<{}, State> {
         }
         onClick={() => this.hide()}
       >
-        <div
-          className={styles['splash']}
-        >
+        <div className={styles['splash']}>
           <div className={styles['splash-header']}>
             <img
               src={splash}

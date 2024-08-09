@@ -1,12 +1,11 @@
 import styles from './ros-health.module.css';
 
+import { ros } from '../common/ros';
 import { faRobot } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useEffect, useState } from 'react';
 
 import Tooltip from '../components/tooltip';
-
-import { ros } from '../common/ros';
 
 export default function RosHealth() {
   const [connected, setConnected] = useState(false);

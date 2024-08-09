@@ -1,5 +1,6 @@
 import styles from './theme-selector.module.css';
 
+import { setTheme } from '../common/themes';
 import { faRaspberryPi } from '@fortawesome/free-brands-svg-icons';
 import {
   faCloudMoon,
@@ -9,8 +10,6 @@ import {
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import ContextMenu from '../components/context-menu';
-
-import { setTheme } from '../common/themes';
 
 export default function ThemeSelector() {
   return (

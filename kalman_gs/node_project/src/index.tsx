@@ -1,18 +1,17 @@
 import './css/index.css';
 
+// Enable keyboard driving.
+import './common/keyboard-driving';
+import { splashRef, alertsRef, settingsRef } from './common/refs';
+import { currentTheme } from './common/themes';
 import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom/client';
 
 import Alerts from './components/alerts';
 import Navbar from './components/navbar';
 import PanelManager from './components/panel-manager';
-
-import { splashRef, alertsRef, settingsRef } from './common/refs';
-// Enable keyboard driving.
-import './common/keyboard-driving';
-import { currentTheme } from './common/themes';
-import Splash from './components/splash';
 import Settings from './components/settings';
+import Splash from './components/splash';
 
 function App() {
   const [_, setRerenderCount] = useState(0);

@@ -1,7 +1,10 @@
 import styles from './map.module.css';
 
 import kalmanMarker from '!!url-loader!../media/kalman-marker.svg';
+import { gpsFix } from '../common/gps';
+import { imuRotation } from '../common/imu';
 import '../common/leaflet-rotated-marker-plugin';
+import { mapMarker } from '../common/map-marker';
 import { Quaternion, Vector3, quatTimesVec } from '../common/mini-math-lib';
 import Leaflet from 'leaflet';
 import icon from 'leaflet/dist/images/marker-icon.png';
@@ -9,10 +12,6 @@ import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 import 'leaflet/dist/leaflet.css';
 import { Component, createRef } from 'react';
 import { MapContainer, Marker, TileLayer } from 'react-leaflet';
-
-import { gpsFix } from '../common/gps';
-import { imuRotation } from '../common/imu';
-import { mapMarker } from '../common/map-marker';
 
 const GO_TO_LOCATION_ZOOM = 17;
 const DEFAULT_LAT = 51.477928;
