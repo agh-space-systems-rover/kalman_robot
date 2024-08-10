@@ -1,0 +1,258 @@
+import rclpy
+from rclpy.action import ActionClient
+from rclpy.node import Node
+from rclpy.task import Future
+from rosidl_runtime_py import set_message_fields
+import yaml
+from ament_index_python.packages import get_package_share_directory
+
+from moveit_msgs.action import MoveGroup
+from moveit_msgs.msg import Constraints, JointConstraint, MoveItErrorCodes
+from sensor_msgs.msg import JointState
+from example_interfaces.msg import Empty
+from kalman_interfaces.msg import ArmPoseSelect, ArmGoalStatus
+from collections import namedtuple
+from std_msgs.msg import UInt8
+
+MAX_DISTANCE_RAD = 0.35  # about 20
+
+Pose = namedtuple("Pose", ["name", "path"])
+
+arm_config = get_package_share_directory("kalman_arm_config")
+
+PREDEFINED_POSES: dict[int, Pose] = {}
+#     "base": f"{arm_config}/predefined_poses/move_group_goal.yaml",
+#     "left_base": f"{arm_config}/predefined_poses/left_base.yaml",
+# }
+
+try:
+    with open(f"{arm_config}/config/predefined_poses.yaml", "r") as f:
+        predefined_poses = yaml.safe_load(f)
+        MAX_DISTANCE_RAD = predefined_poses["max_distance_rad"]
+        STOP_TRAJECTORY_TIMEOUT = predefined_poses["stop_trajectory_timeout"]
+        for pose in predefined_poses["poses"]:
+            PREDEFINED_POSES[int(pose["id"])] = Pose(
+                pose["name"],
+                f"{arm_config}/{pose['path']}",
+            )
+except:
+    print("Error loading predefined poses configuration")
+
+
+class PoseRequestSender(Node):
+
+    def __init__(self):
+        super().__init__("pose_request_sender")
+        self._action_client = ActionClient(self, MoveGroup, "/move_action")
+
+        self.joints: dict[str, float] = {}
+        self._send_goal_future = None
+        self._timer = None
+        self._goal_handle = None
+        self._cancel_future: None | Future = None
+
+        self.joint_states_sub = self.create_subscription(
+            JointState, "/joint_states", self.update_state, 10
+        )
+
+        self._change_control_pub = self.create_publisher(
+            UInt8, "/change_control_type", 10
+        )
+
+        self._execute_sub = self.create_subscription(
+            ArmPoseSelect,
+            "/pose_request/execute",
+            self.send_goal,
+            10,
+        )
+
+        self._status_pub = self.create_publisher(
+            ArmGoalStatus, "/pose_request/status", 10
+        )
+        self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.IDLE))
+
+        self._keep_alive_sub = self.create_subscription(
+            Empty, "/pose_request/keep_alive", self.keep_alive, 10
+        )
+
+        self._abort_sub = self.create_subscription(
+            Empty, "/pose_request/abort", self.abort, 10
+        )
+
+    def update_state(self, msg: JointState):
+        self.joints = dict(zip(msg.name, msg.position))
+
+    def keep_alive(self, msg: Empty):
+        if self._timer:
+            self._timer.reset()
+
+    def abort(self, msg: Empty):
+        self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.ABORT_RECEIVED))
+        self.timer_callback()
+
+    def send_goal(self, msg: ArmPoseSelect):
+        if msg.pose_id not in PREDEFINED_POSES:
+            self.get_logger().error("Invalid pose ID")
+            self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.INVALID_ID))
+            return
+        filename = PREDEFINED_POSES[msg.pose_id].path
+        while len(self.joints.keys()) == 0:
+            rclpy.spin_once(self)
+
+        publish_function = lambda x: self.publish_goal_from_file(filename)
+
+        if msg.pose_id == ArmPoseSelect.RESET_4_AND_6:
+            publish_function = lambda x: self.reset_joints(
+                filename, ["joint_4", "joint_6"]
+            )
+
+        if self._goal_handle:
+            self.get_logger().info("Canceling previous goal")
+            self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.PREEMPTING))
+            self.timer_callback()
+            self._cancel_future.add_done_callback(publish_function)
+        else:
+            publish_function(None)
+
+    def reset_joints(self, filename: str, joints_to_reset: list[str]):
+        request = self.get_request_from_file(filename)
+        goal_constraint: Constraints = request.request.goal_constraints[0]
+        joint_constraints: list[JointConstraint] = sorted(
+            goal_constraint.joint_constraints, key=lambda x: x.joint_name
+        )
+
+        for i in range(6):
+            if joint_constraints[i].joint_name in joints_to_reset:
+                joint_constraints[i].position = 0.0
+            else:
+                joint_constraints[i].position = self.joints[
+                    joint_constraints[i].joint_name
+                ]
+
+        goal_constraint.joint_constraints = joint_constraints
+        request.request.goal_constraints = [goal_constraint]
+
+        self.send_request(request, check=False)
+
+    def get_request_from_file(self, filename: str) -> MoveGroup.Goal:
+        try:
+            predefined_pose = None
+            with open(filename, "r") as f:
+                predefined_pose = yaml.safe_load(f)
+
+            request = MoveGroup.Goal()
+
+            set_message_fields(request, predefined_pose)
+
+            return request
+
+        except FileNotFoundError:
+            self.get_logger().error(f"Error loading predefined pose from {filename}")
+            self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.EXCEPTION))
+
+            return None
+
+    def publish_goal_from_file(self, filename: str):
+        request = self.get_request_from_file(filename)
+
+        self.send_request(request)
+
+    def send_request(self, request, check=True):
+        goal_constraint: Constraints = request.request.goal_constraints[0]
+        joint_constraints: list[JointConstraint] = sorted(
+            goal_constraint.joint_constraints, key=lambda x: x.joint_name
+        )
+
+        close_enough = True
+        for i in range(6):
+            if (
+                abs(
+                    self.joints[joint_constraints[i].joint_name]
+                    - joint_constraints[i].position
+                )
+                > MAX_DISTANCE_RAD
+            ):
+                close_enough = False
+
+        if close_enough or not check:
+            self.get_logger().info("Sending pose goal...")
+            self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.GOAL_SENDING))
+            self._action_client.wait_for_server()
+
+            self._send_goal_future = self._action_client.send_goal_async(request)
+            self._send_goal_future.add_done_callback(self.goal_response_callback)
+        else:
+            self.get_logger().warn("Too far away for pose...")
+            self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.TOO_FAR))
+
+    def goal_response_callback(self, future):
+        goal_handle = future.result()
+        if not goal_handle.accepted:
+            self.get_logger().info("Goal rejected :(")
+            self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.GOAL_REJECTED))
+            return
+
+        self._goal_handle = goal_handle
+
+        self.get_logger().info("Goal accepted :)")
+        self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.GOAL_ACCEPTED))
+        self._change_control_pub.publish(UInt8(data=0))
+
+        # Start abort timer
+        if not self._timer:
+            self._timer = self.create_timer(
+                STOP_TRAJECTORY_TIMEOUT, self.timer_callback
+            )
+        else:
+            self._timer.reset()
+
+        self._result_handle = goal_handle.get_result_async()
+        self._result_handle.add_done_callback(self.get_result_callback)
+
+    def get_result_callback(self, future):
+        result: MoveGroup.Result = future.result().result
+        status: MoveItErrorCodes = result.error_code
+
+        if status.val == MoveItErrorCodes.SUCCESS:
+            self.get_logger().info("Goal succeeded!")
+            self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.SUCCESS))
+        else:
+            self.get_logger().warn(f"Goal did not succeed with error code: {status}")
+            self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.FAILED))
+        self._goal_handle = None
+
+    def timer_callback(self):
+        self._change_control_pub.publish(UInt8(data=1))
+
+        # Cancel the timer
+        if self._timer:
+            self._timer.cancel()
+
+        if self._goal_handle:
+            self.get_logger().info("Canceling goal")
+            self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.CANCELLING))
+            # Cancel the goal
+            self._cancel_future = self._goal_handle.cancel_goal_async()
+            self._cancel_future.add_done_callback(self.cancel_done)
+
+    def cancel_done(self, future):
+        cancel_response = future.result()
+        if len(cancel_response.goals_canceling) > 0:
+            self.get_logger().info("Goal successfully canceled")
+            self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.CANCEL_SUCCESS))
+        else:
+            self.get_logger().info("Goal failed to cancel")
+            self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.CANCEL_FAILED))
+        self._goal_handle = None
+
+
+def main(args=None):
+    rclpy.init(args=args)
+
+    action_client = PoseRequestSender()
+
+    rclpy.spin(action_client)
+
+
+if __name__ == "__main__":
+    main()

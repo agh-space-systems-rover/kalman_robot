@@ -21,25 +21,24 @@ def generate_launch_description():
                 package="kalman_arm_controller",
                 plugin="kalman_arm::ExtraCanNode",
                 name="extra_can_node",
-            )
+            ),
         ],
         output="screen",
-        arguments = ['--ros-args', '--log-level', 'DEBUG', '--log-level','rcl:=INFO'],
-        
+        # arguments = ['--ros-args', '--log-level', 'DEBUG', '--log-level','rcl:=INFO'],
     )
-    
+
     master_uart_node = Node(
         package="kalman_master",
         executable="master_com",
         parameters=[{"baud_rate": 2000000, "port": "/dev/ttyAMA2"}],
     )
-    
+
     arm_state_publisher_node = Node(
         package="kalman_arm_utils",
         executable="arm_state_publisher",
         parameters=[{"rate": 5.0}],
     )
-    
+
     ros_link_node = Node(
         package="kalman_master",
         executable="ros_link",
@@ -53,7 +52,7 @@ def generate_launch_description():
             },
         ],
     )
-    
+
     return LaunchDescription(
         [
             master_uart_node,

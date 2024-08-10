@@ -11,7 +11,7 @@ find_package(ament_cmake REQUIRED)
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 install(
-  DIRECTORY config launch rviz
+  DIRECTORY config launch predefined_poses predefined_trajectories rviz
   DESTINATION share/${PROJECT_NAME}
 )
 
