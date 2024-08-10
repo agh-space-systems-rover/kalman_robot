@@ -60,7 +60,7 @@ class ExtraCanNode : public rclcpp::Node
         this->declare_parameter<uint16_t>("start_pose", 330);
         this->get_parameter("start_pose", start_pose_);
         this->declare_parameter<std::string>("can_interface", "can0");
-        this->get_parameter("start_pose", can_interface_);
+        this->get_parameter("can_interface", can_interface_);
 
         gripper_position_ = start_pose_;
 
