@@ -7,7 +7,7 @@ import React, { useEffect, useRef, useState } from 'react'
 
 import { useAppSelector } from '../../store/storeHooks'
 import { useBleSignals } from './hooks/useBleSignals'
-import { useGpsPath } from './hooks/useGpsPath'
+// import { useGpsPath } from './hooks/useGpsPath'
 import { useRulerTool } from './hooks/useRulerTool'
 import { useUserMarkers } from './hooks/useUserMarkers'
 // import { mapDataDrumheller } from './locations/Drumheller'
@@ -119,7 +119,7 @@ export const Map: () => JSX.Element = () => {
     />
   ) : null
   useBleSignals(map, mapSettings.showBleSignal)
-  useGpsPath(map, mapSettings.showGpsPath)
+  // useGpsPath(map, mapSettings.showGpsPath)
   useRulerTool(map)
   useUserMarkers(map, markers, setMarkers)
 
