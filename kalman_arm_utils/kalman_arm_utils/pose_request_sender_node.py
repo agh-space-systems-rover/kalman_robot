@@ -99,60 +99,91 @@ class PoseRequestSender(Node):
         while len(self.joints.keys()) == 0:
             rclpy.spin_once(self)
 
+        publish_function = lambda x: self.publish_goal_from_file(filename)
+
+        if msg.pose_id == ArmPoseSelect.RESET_4_AND_6:
+            publish_function = lambda x: self.reset_joints(
+                filename, ["joint_4", "joint_6"]
+            )
+
         if self._goal_handle:
             self.get_logger().info("Canceling previous goal")
             self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.PREEMPTING))
             self.timer_callback()
-            self._cancel_future.add_done_callback(lambda x: self.publish_goal(filename))
+            self._cancel_future.add_done_callback(publish_function)
         else:
-            self.publish_goal(filename)
+            publish_function(None)
 
-    def publish_goal(self, filename: str):
+    def reset_joints(self, filename: str, joints_to_reset: list[str]):
+        request = self.get_request_from_file(filename)
+        goal_constraint: Constraints = request.request.goal_constraints[0]
+        joint_constraints: list[JointConstraint] = sorted(
+            goal_constraint.joint_constraints, key=lambda x: x.joint_name
+        )
+
+        for i in range(6):
+            if joint_constraints[i].joint_name in joints_to_reset:
+                joint_constraints[i].position = 0.0
+            else:
+                joint_constraints[i].position = self.joints[
+                    joint_constraints[i].joint_name
+                ]
+
+        goal_constraint.joint_constraints = joint_constraints
+        request.request.goal_constraints = [goal_constraint]
+
+        self.send_request(request, check=False)
+
+    def get_request_from_file(self, filename: str) -> MoveGroup.Goal:
         try:
+            predefined_pose = None
             with open(filename, "r") as f:
                 predefined_pose = yaml.safe_load(f)
 
-                request = MoveGroup.Goal()
+            request = MoveGroup.Goal()
 
-                set_message_fields(request, predefined_pose)
+            set_message_fields(request, predefined_pose)
 
-                goal_constraint: Constraints = request.request.goal_constraints[0]
-                joint_constraints: list[JointConstraint] = sorted(
-                    goal_constraint.joint_constraints, key=lambda x: x.joint_name
-                )
+            return request
 
-                close_enough = True
-                for i in range(6):
-                    if (
-                        abs(
-                            self.joints[joint_constraints[i].joint_name]
-                            - joint_constraints[i].position
-                        )
-                        > MAX_DISTANCE_RAD
-                    ):
-                        close_enough = False
-
-                if close_enough:
-                    self.get_logger().info("Sending pose goal...")
-                    self._status_pub.publish(
-                        ArmGoalStatus(status=ArmGoalStatus.GOAL_SENDING)
-                    )
-                    self._action_client.wait_for_server()
-
-                    self._send_goal_future = self._action_client.send_goal_async(
-                        request
-                    )
-                    self._send_goal_future.add_done_callback(
-                        self.goal_response_callback
-                    )
-                else:
-                    self.get_logger().warn("Too far away for pose...")
-                    self._status_pub.publish(
-                        ArmGoalStatus(status=ArmGoalStatus.TOO_FAR)
-                    )
         except FileNotFoundError:
             self.get_logger().error(f"Error loading predefined pose from {filename}")
             self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.EXCEPTION))
+
+            return None
+
+    def publish_goal_from_file(self, filename: str):
+        request = self.get_request_from_file(filename)
+
+        self.send_request(request)
+
+    def send_request(self, request, check=True):
+        goal_constraint: Constraints = request.request.goal_constraints[0]
+        joint_constraints: list[JointConstraint] = sorted(
+            goal_constraint.joint_constraints, key=lambda x: x.joint_name
+        )
+
+        close_enough = True
+        for i in range(6):
+            if (
+                abs(
+                    self.joints[joint_constraints[i].joint_name]
+                    - joint_constraints[i].position
+                )
+                > MAX_DISTANCE_RAD
+            ):
+                close_enough = False
+
+        if close_enough or not check:
+            self.get_logger().info("Sending pose goal...")
+            self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.GOAL_SENDING))
+            self._action_client.wait_for_server()
+
+            self._send_goal_future = self._action_client.send_goal_async(request)
+            self._send_goal_future.add_done_callback(self.goal_response_callback)
+        else:
+            self.get_logger().warn("Too far away for pose...")
+            self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.TOO_FAR))
 
     def goal_response_callback(self, future):
         goal_handle = future.result()

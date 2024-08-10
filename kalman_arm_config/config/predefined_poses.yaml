@@ -13,3 +13,6 @@ poses:
   - id: 1
     name: "left_base"
     path: "predefined_poses/left_base.yaml"
+  - id: 2
+    name: "reset_4_and_6"
+    path: "predefined_poses/reset.yaml"
