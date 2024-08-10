@@ -11,7 +11,7 @@ Panels:
         - /TF1
         - /TF1/Frames1
       Splitter Ratio: 0.5
-    Tree Height: 255
+    Tree Height: 363
   - Class: rviz_common/Selection
     Name: Selection
   - Class: rviz_common/Tool Properties
@@ -389,5 +389,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 995
-  X: 925
-  Y: 1
+  X: 945
+  Y: 6

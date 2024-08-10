@@ -35,11 +35,11 @@ export const SmartProbe: () => JSX.Element = () => {
       <div style={{ fontSize: 16 }}>Humidity: {smartProbe.hummidity.toFixed(2)}%</div>
 
       <h6>Sample1</h6>
-      <button onClick={(): void => setRawDigitalOutput(0, 180)}>Open</button>
-      <button onClick={(): void => setRawDigitalOutput(0, 0)}>Close</button>
+      <button onClick={(): void => setRawDigitalOutput(2, 180)}>Open</button>
+      <button onClick={(): void => setRawDigitalOutput(2, 0)}>Close</button>
       <h6>Sample2</h6>
-      <button onClick={(): void => setRawDigitalOutput(1, 180)}>Open</button>
-      <button onClick={(): void => setRawDigitalOutput(1, 0)}>Close</button>
+      <button onClick={(): void => setRawDigitalOutput(3, 180)}>Open</button>
+      <button onClick={(): void => setRawDigitalOutput(3, 0)}>Close</button>
     </ColumnWrapper>
   )
 }

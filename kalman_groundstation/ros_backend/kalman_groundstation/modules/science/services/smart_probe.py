@@ -15,8 +15,10 @@ class SmartProbeService:
             SmartProbe, "/station/science/smart_probe", qos_profile=10
         )
 
-        self.HUM_MAX = 3162
-        self.HUM_MIN = 1626
+        # self.HUM_MAX = 3162
+        # self.HUM_MIN = 1626
+        self.HUM_MAX = 2600
+        self.HUM_MIN = 1700
 
     def update_measurements(self, data):
         arr = data.data
@@ -50,10 +52,10 @@ class SmartProbeService:
         """
 
         Vout = 3.3 * raw_temperature / 4095
-        Rt = 10**5 * Vout / (3.3 - Vout)
-        B = 3950
+        Rt = 10**4 * Vout / (3.3 - Vout)
+        B = 3435
         T0 = 298
-        R0 = 10**5
+        R0 = 10**4
 
         r_inf = R0 * np.exp(-B / T0)
 
