@@ -1,14 +1,13 @@
 import styles from './reboot-pc.module.css';
 
+import { alertsRef } from '../common/refs';
+import { ros } from '../common/ros';
 import { faPowerOff } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Service } from 'roslib';
 
 import Button from '../components/button';
 import Tooltip from '../components/tooltip';
-
-import { alertsRef } from '../modules/alerts-ref';
-import { ros } from '../modules/ros';
 
 let rebootService: Service<{}, {}> = null;
 window.addEventListener('ros-connect', () => {

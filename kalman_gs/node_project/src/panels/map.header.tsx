@@ -1,5 +1,7 @@
 import styles from './map.header.module.css';
 
+import { mapMarker } from '../common/map-marker';
+import { alertsRef } from '../common/refs';
 import Map from './map';
 import {
   faCopy,
@@ -12,9 +14,6 @@ import { MutableRefObject, createRef, useCallback } from 'react';
 
 import Button from '../components/button';
 import Input from '../components/input';
-
-import { alertsRef } from '../modules/alerts-ref';
-import { mapMarker } from '../modules/map-marker';
 
 type Props = {
   panelRef: MutableRefObject<Map>;
@@ -89,7 +88,6 @@ export default function MapHeader({ panelRef }: Props) {
 
   return (
     <div className={styles['map-header']}>
-      <div />
       <div className={styles['section'] + ' ' + styles['search-section']}>
         <Input
           ref={inputRef}

@@ -1,6 +1,6 @@
 // import { ros } from './ros';
 // import { Topic } from 'roslib';
-// import { Twist } from './ros.interfaces';
+// import { Twist } from './ros-interfaces';
 
 // type DrivingMode = 'forwards' | 'sideways' | 'turn-in-place';
 

@@ -14,6 +14,7 @@
   --green-background: #585;
   --blue-background: #55a;
   --magenta-background: #a58;
+  color-scheme: dark; /* Changes the scrollbar color */
 }
 
 [data-theme='light'] {
@@ -32,12 +33,13 @@
   --green-background: rgb(102, 178, 51);
   --blue-background: rgb(102, 102, 255);
   --magenta-background: rgb(255, 102, 178);
+  color-scheme: light;
 }
 
 [data-theme='berry'] {
   --strong-foreground: #fff;
   --foreground: #ece;
-  --weak-foreground: #aaa;
+  --weak-foreground: #a8a;
   --active: #858;
   --interactive: #635;
   --dark-active: #623;
@@ -50,4 +52,5 @@
   --green-background: #585;
   --blue-background: #55a;
   --magenta-background: #a58;
+  color-scheme: dark;
 }

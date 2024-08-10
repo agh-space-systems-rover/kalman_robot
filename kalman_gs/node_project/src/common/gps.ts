@@ -1,5 +1,5 @@
 import { ros } from './ros';
-import { NavSatFix } from './ros.interfaces';
+import { NavSatFix } from './ros-interfaces';
 import { Topic } from 'roslib';
 
 export type GpsFix = {

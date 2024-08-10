@@ -54,6 +54,7 @@
   padding: 3px 5px;
   transition: background-color 0.1s;
   user-select: none;
+  text-wrap: nowrap;
 }
 
 .layout-container:hover .layout:not(.active),

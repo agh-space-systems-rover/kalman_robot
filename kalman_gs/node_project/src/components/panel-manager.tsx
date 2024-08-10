@@ -1,5 +1,12 @@
 import styles from './panel-manager.module.css';
 
+import {
+  HorizontalPanelLayout,
+  LeafPanelLayout,
+  PanelLayout,
+  VerticalPanelLayout,
+  panelLayouts
+} from '../common/panel-layouts';
 import Button from './button';
 import Dropdown from './dropdown';
 import {
@@ -16,14 +23,6 @@ import {
   Component,
   createRef
 } from 'react';
-
-import {
-  HorizontalPanelLayout,
-  LeafPanelLayout,
-  PanelLayout,
-  VerticalPanelLayout,
-  panelLayouts
-} from '../modules/panel-layouts';
 
 import { defaultPanel, panelInfos, PanelID } from '../panels';
 

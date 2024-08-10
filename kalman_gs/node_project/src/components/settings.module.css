@@ -1,0 +1,156 @@
+.settings-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  cursor: pointer;
+  user-select: none;
+}
+
+.settings-bg.shown {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.settings {
+  width: 800px;
+  height: 500px;
+  background-color: var(--background);
+  border-radius: 10px;
+  margin: 20px;
+  display: flex;
+  flex-direction: column;
+  cursor: auto;
+}
+
+.content {
+  padding: 20px;
+  height: calc(100% - 40px);
+  color: var(--foreground);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.content h1 {
+  margin: 5px;
+  margin-top: 0;
+  color: var(--strong-foreground);
+  font-family: 'Bai Jamjuree';
+  font-weight: 600;
+}
+
+.content h2 {
+  margin: 5px;
+  color: var(--weak-foreground);
+  font-weight: 600;
+}
+
+.static-header {
+  display: flex;
+  justify-content: stretch;
+  align-items: center;
+  padding-bottom: 10px;
+}
+
+.search-input-parent {
+  flex: 1;
+  padding-left: 15px;
+}
+
+.scrollable-options {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  padding-right: 10px; /* Repositions the scrollbar */
+  margin-right: -10px;
+}
+
+.color-theme-selector {
+  display: flex;
+  flex-direction: column;
+  margin-top: -5px;
+}
+
+.reset-all-keybinds {
+  display: flex;
+  flex-direction: column;
+  margin-top: -5px;
+}
+
+.keybind {
+  display: flex;
+  justify-content: stretch;
+  align-items: center;
+  margin-top: -5px;
+}
+
+.keybind-name {
+  flex: 1;
+  margin-left: 5px;
+}
+
+.keybind-controls {
+  flex: 1;
+  display: flex;
+}
+
+.keybind-value {
+  flex: 1;
+  background-color: var(--dark-background) !important;
+  cursor: auto !important;
+}
+
+.keybind-value-hoverable:hover {
+  background-color: var(--dark-active) !important;
+  cursor: pointer !important;
+}
+
+.keybind-value-listening {
+  background-color: var(--dark-active) !important;
+  animation: blinker 1s linear infinite;
+}
+
+@keyframes blinker {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+.options-section {
+  display: flex;
+  justify-content: center;
+  padding-left: 5px;
+  align-items: center;
+  background-color: var(--dark-active);
+  min-height: 32px;
+  margin: 5px;
+  border-radius: 5px 5px 0 0;
+  color: var(--strong-foreground);
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.no-search-results {
+  height: 100%;
+  width: 100%;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  font-size: 2em;
+  color: var(--weak-foreground);
+}
+
+.no-search-results:first-child {
+  display: flex;
+}

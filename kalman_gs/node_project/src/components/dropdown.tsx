@@ -19,6 +19,7 @@ type Props = {
   defaultItemIndex?: number;
   onChange?: (index: number) => void;
   className?: string;
+  popupClassName?: string;
   [key: string]: any;
 };
 
@@ -28,6 +29,7 @@ export default function Dropdown({
   defaultItemIndex = 0,
   onChange,
   className,
+  popupClassName,
   ...props
 }: Props) {
   const [open, setOpen] = useState(false);
@@ -78,7 +80,12 @@ export default function Dropdown({
       <FontAwesomeIcon icon={faChevronDown} className={styles['item-icon']} />
       {open && (
         <>
-          <div className={styles['dropdown-popup']}>
+          <div
+            className={
+              styles['dropdown-popup'] +
+              (popupClassName ? ` ${popupClassName}` : '')
+            }
+          >
             {items.map((item, index) => (
               <div
                 key={index}

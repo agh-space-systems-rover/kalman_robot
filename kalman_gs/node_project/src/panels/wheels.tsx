@@ -3,12 +3,11 @@ import styles from './wheels.module.css';
 import kalmanBody from '!!url-loader!../media/kalman-body.svg';
 import kalmanLeftWheelOutline from '!!url-loader!../media/kalman-wheel-outline.svg';
 import kalmanLeftWheel from '!!url-loader!../media/kalman-wheel.svg';
-import { vecFromCssColor, vecLength } from '../mini-math-lib';
+import { vecFromCssColor, vecLength } from '../common/mini-math-lib';
+import { ros } from '../common/ros';
+import { WheelStates } from '../common/ros-interfaces';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Topic } from 'roslib';
-
-import { ros } from '../modules/ros';
-import { WheelStates } from '../modules/ros.interfaces';
 
 let lastWheelStates: WheelStates | null = null;
 let lastWheelStatesReturn: WheelStates | null = null;

@@ -1,45 +1,45 @@
 import { setCmdVel } from './cmd-vel';
+import { getKeybind } from './keybinds';
 
 const STALL_SPEED = 0.001;
 const ROTATE_IN_PLACE_SPEED = 0.5;
 
 let speedI = 1;
 let turnRadiusI = 1;
-let lastButtonUpdate: number = 0;
 
 const SPEEDS = [0.2, 0.35, 0.5, 1.0];
 const TURN_RADIUSES = [0.5, 1.0, 2.0, 5.0];
 
 // Track a set of buttons.
-const TRACKED_BUTTONS = ['KeyW', 'KeyS', 'KeyA', 'KeyD', 'KeyQ', 'KeyE'];
 const trackedButtons = {};
 window.addEventListener('keydown', (event) => {
-  if (TRACKED_BUTTONS.includes(event.code)) {
-    trackedButtons[event.code] = true;
+  // Check if any input box is focused.
+  if (document.activeElement.tagName === 'INPUT') {
+    return;
   }
 
-  if (event.code === 'ArrowUp') {
+  trackedButtons[event.code] = true;
+
+  if (event.code === getKeybind('Increase Speed')) {
     if (speedI < SPEEDS.length - 1) {
       speedI++;
     }
-  } else if (event.code === 'ArrowDown') {
+  } else if (event.code === getKeybind('Decrease Speed')) {
     if (speedI > 0) {
       speedI--;
     }
-  } else if (event.code === 'ArrowLeft') {
+  } else if (event.code === getKeybind('Increase Turn Radius')) {
     if (turnRadiusI < TURN_RADIUSES.length - 1) {
       turnRadiusI++;
     }
-  } else if (event.code === 'ArrowRight') {
+  } else if (event.code === getKeybind('Decrease Turn Radius')) {
     if (turnRadiusI > 0) {
       turnRadiusI--;
     }
   }
 });
 window.addEventListener('keyup', (event) => {
-  if (TRACKED_BUTTONS.includes(event.code)) {
-    trackedButtons[event.code] = false;
-  }
+  trackedButtons[event.code] = false;
 });
 
 let rotatingInPlace = false;
@@ -50,9 +50,14 @@ function readKey(key: string): number {
   return trackedButtons[key] ? 1 : 0;
 }
 setInterval(() => {
-  const forward = readKey('KeyW') - readKey('KeyS'); // positive = forward
-  const turn = readKey('KeyA') - readKey('KeyD'); // positive = left
-  const rotateInPlace = readKey('KeyQ') - readKey('KeyE'); // positive = left
+  const forward =
+    readKey(getKeybind('Drive Forward')) -
+    readKey(getKeybind('Drive Backward')); // positive = forward
+  const turn =
+    readKey(getKeybind('Turn Left')) - readKey(getKeybind('Turn Right')); // positive = left
+  const rotateInPlace =
+    readKey(getKeybind('Rotate Left in Place')) -
+    readKey(getKeybind('Rotate Right in Place')); // positive = left
 
   // If inputs did not change since last update and all of them are 0, stop sending commands.
   if (

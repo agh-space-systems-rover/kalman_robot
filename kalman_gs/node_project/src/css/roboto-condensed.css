@@ -4,7 +4,7 @@
   font-family: 'Roboto Condensed';
   font-style: normal;
   font-weight: 200;
-  src: url('./media/roboto-condensed-v27-latin-200.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+  src: url('../media/roboto-condensed-v27-latin-200.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
 }
 
 /* roboto-condensed-regular - latin */
@@ -13,7 +13,7 @@
   font-family: 'Roboto Condensed';
   font-style: normal;
   font-weight: 400;
-  src: url('./media/roboto-condensed-v27-latin-regular.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+  src: url('../media/roboto-condensed-v27-latin-regular.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
 }
 
 /* roboto-condensed-600 - latin */
@@ -22,5 +22,5 @@
   font-family: 'Roboto Condensed';
   font-style: normal;
   font-weight: 600;
-  src: url('./media/roboto-condensed-v27-latin-600.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+  src: url('../media/roboto-condensed-v27-latin-600.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
 }
