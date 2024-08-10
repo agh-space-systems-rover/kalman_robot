@@ -28,6 +28,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/MotorState.msg"
   "msg/MotorsTemperature.msg"
   "msg/MotorTemperature.msg"
+  "msg/NewScienceResp.msg"
   "msg/PlatformState.msg"
   "msg/ScienceState.msg"
   "msg/SmartProbe.msg"

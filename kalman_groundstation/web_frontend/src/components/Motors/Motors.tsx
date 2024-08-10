@@ -35,7 +35,7 @@ export const Motors: () => JSX.Element = () => {
   return (
     <Wrapper>
       <h5>{drivingMode}</h5>
-      <RoverDisplay targetMotors={wheelsStatus.targetMotors} motors={wheelsStatus.motors} />
+      <RoverDisplay target_motors={wheelsStatus.target_motors} motors={wheelsStatus.motors} />
       <h5>
         ⬆️ {wheelsScalingFactor.forward.toFixed(2)} ⬆️
         <br />

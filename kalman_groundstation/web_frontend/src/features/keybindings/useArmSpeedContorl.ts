@@ -10,19 +10,19 @@ export const useArmSpeedControl: () => void = () => {
   useEffect(() => {
     if (pressedKeys.includes('armSlowVelocityLinearKey')) {
       // KeyV
-      setArmLinearVelocity(0.3)
+      setArmLinearVelocity(0.1)
     }
     if (pressedKeys.includes('armMediumVelocityLinearKey')) {
-      setArmLinearVelocity(0.5)
+      setArmLinearVelocity(0.25)
     }
     if (pressedKeys.includes('armFastVelocityLinearKey')) {
       setArmLinearVelocity(0.7)
     }
     if (pressedKeys.includes('armSlowVelocityAngularKey')) {
-      setArmAngularVelocity(0.3)
+      setArmAngularVelocity(0.1)
     }
     if (pressedKeys.includes('armMediumVelocityAngularKey')) {
-      setArmAngularVelocity(0.5)
+      setArmAngularVelocity(0.25)
     }
     if (pressedKeys.includes('armFastVelocityAngularKey')) {
       setArmAngularVelocity(0.7)

@@ -19,7 +19,7 @@ type State = {
 
 export default class Splash extends Component<{}, State> {
   static defaultState: State = {
-    shown: !splashShown,
+    shown: !splashShown
   };
   state = Splash.defaultState;
 
@@ -55,7 +55,11 @@ export default class Splash extends Component<{}, State> {
           }}
         >
           <div className={styles['splash-header']}>
-            <img src={splash} className={styles['splash-header-image']} />
+            <img
+              src={splash}
+              className={styles['splash-header-image']}
+              draggable='false'
+            />
             <div className={styles['splash-header-image-vignette']} />
             <div className={styles['splash-header-image-attribution']}>
               <FontAwesomeIcon icon={faCamera} />
@@ -63,7 +67,11 @@ export default class Splash extends Component<{}, State> {
                 KSAF 2023
               </div>
             </div>
-            <img src={logo} className={styles['splash-header-logo']} />
+            <img
+              src={logo}
+              className={styles['splash-header-logo']}
+              draggable='false'
+            />
           </div>
           <div className={styles['splash-content']}>
             <h1>Kalman Ground Station</h1>

@@ -11,13 +11,14 @@ import struct
 
 from kalman_groundstation.modules.science.universal_module import (
     CAN_CMD_WEIGHT_RESPONSE,
-    WeightValueFrame_Format,
+    WeightValueFrame,
 )
 
 class WeightService:
     def __init__(self, parent_node: Node):
+        self.parent_node = parent_node
         self.uart2ros_sub = parent_node.create_subscription(
-            MasterMessage, "/master_com/master_to_ros/x6c", self.update_weight, qos_profile=10
+            MasterMessage, f"/master_com/master_to_ros/x{hex(CAN_CMD_WEIGHT_RESPONSE)[1:]}", self.update_weight, qos_profile=10
         )
 
         self.weight_publisher = parent_node.create_publisher(
@@ -26,8 +27,11 @@ class WeightService:
         )
 
     def update_weight(self, msg):
-        data = struct.unpack(WeightValueFrame_Format, msg.data)
-        raw_weight = data[2]
+        frame = WeightValueFrame.parse(msg.data)
+        raw_weight = frame.adc_value
+        if raw_weight == 0:
+            self.parent_node.get_logger().warning("Science WeightService - got 0 adc_value")
+
 
         # rospy.logerr(raw_weight)
         # load raw_zero from file

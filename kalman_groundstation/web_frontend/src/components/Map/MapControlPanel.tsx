@@ -21,6 +21,8 @@ interface Props {
 export const MapControlPanel: React.FC<Props> = ({ map, goalGpsPosition, markers, mapSettings, setMapSettings }) => {
   const bleSignal = useAppSelector((state) => state.autonomy.bleSignal)
 
+  const gps = useAppSelector((state) => state.autonomy.gps)
+
   const [id, setId] = useState<number>(0)
   const [desc, setDesc] = useState<string>('opis')
 
@@ -80,7 +82,6 @@ export const MapControlPanel: React.FC<Props> = ({ map, goalGpsPosition, markers
           Save point!
         </button>
       </div>
-
       <button
         onClick={(): void => {
           loadWaypoints(map)
@@ -88,6 +89,9 @@ export const MapControlPanel: React.FC<Props> = ({ map, goalGpsPosition, markers
       >
         Load waypoints
       </button>
+      <span style={{ marginLeft: 10 }}>
+        Latitude: {gps.position.latitude}, Longitude: {gps.position.longitude}, Altitude: {gps.position.altitude}
+      </span>
     </div>
   )
 }

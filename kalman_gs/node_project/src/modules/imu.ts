@@ -1,6 +1,6 @@
 import { Quaternion, zeroQuat } from '../mini-math-lib';
-import { Imu } from './ros.interfaces';
 import { ros } from './ros';
+import { Imu } from './ros.interfaces';
 import { Topic } from 'roslib';
 
 const imuRotation: Quaternion = Object.assign({}, zeroQuat);

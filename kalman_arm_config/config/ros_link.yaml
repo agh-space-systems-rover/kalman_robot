@@ -63,6 +63,11 @@ rover: # or 'station'
             min: -180.0
             max: 180.0
             bytes: 4 # precision = 0.0000001 degrees = 1 cm
+        - path: altitude
+          float_range:
+            min: 0.0
+            max: 2000.0
+            bytes: 2
     - name: trajectory/status
       type: kalman_interfaces/msg/ArmGoalStatus
       max_rate: 2

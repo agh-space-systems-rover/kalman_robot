@@ -1,6 +1,6 @@
 import { ros } from './ros';
-import { Topic } from 'roslib';
 import { Twist } from './ros.interfaces';
+import { Topic } from 'roslib';
 
 const RATE = 10; // Hz
 const INPUT_TIMEOUT = 1000; // Ignore input group after 1 second of inactivity.
@@ -63,12 +63,17 @@ window.addEventListener('ros-connect', () => {
   }, 1000 / RATE);
 });
 
-export const setCmdVel = (x: number, y: number, angular: number, inputGroup: string = 'default') => {
+export const setCmdVel = (
+  x: number,
+  y: number,
+  angular: number,
+  inputGroup: string = 'default'
+) => {
   inputs[inputGroup] = { x, y, angular };
   inputs[inputGroup].lastUpdate = Date.now();
-}
+};
 
 export const zeroCmdVel = (inputGroup: string = 'default') => {
   inputs[inputGroup] = { x: 0, y: 0, angular: 0 };
   inputs[inputGroup].lastUpdate = Date.now();
-}
+};

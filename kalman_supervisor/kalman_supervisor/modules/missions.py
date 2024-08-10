@@ -49,7 +49,9 @@ class Missions(Module):
             self.marker_lat = 0.0
             self.marker_lon = 0.0
 
-            self.marker_world_frame_pos = np.array([0.0, 0.0, 0.0]) # not reported as feedback, used for approach goal
+            self.marker_world_frame_pos = np.array(
+                [0.0, 0.0, 0.0]
+            )  # not reported as feedback, used for approach goal
 
     class GpsYoloSearch(Mission):
         def __init__(self, init_lat: float, init_lon: float, obj_class: str):

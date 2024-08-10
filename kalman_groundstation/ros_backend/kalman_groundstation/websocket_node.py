@@ -32,8 +32,8 @@ def main(args=None):
     server = Server(node)
     server.include(platform_ws.server_node)
     server.include(arm_ws.server_node)
-    server.include(autonomy_ws.server_node)
     server.include(science_ws.server_node)
+    server.include(autonomy_ws.server_node)
     # server.include(access_point_ws.server_node)
     server.include(ble_beacon_ws.server_node)
 

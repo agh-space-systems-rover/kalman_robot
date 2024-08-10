@@ -1,0 +1,53 @@
+[data-theme='dark'] {
+  --strong-foreground: #fff;
+  --foreground: #eee;
+  --weak-foreground: #aaa;
+  --active: #888;
+  --interactive: #555;
+  --dark-active: #444;
+  --background: #333;
+  --dark-background: #222;
+  --red-foreground: rgb(255, 102, 102);
+  --green-foreground: rgb(102, 178, 51);
+  --blue-foreground: rgb(102, 102, 255);
+  --red-background: #b55;
+  --green-background: #585;
+  --blue-background: #55a;
+  --magenta-background: #a58;
+}
+
+[data-theme='light'] {
+  --strong-foreground: #000;
+  --foreground: #333;
+  --weak-foreground: #444;
+  --active: #aaa;
+  --interactive: #ccc;
+  --dark-active: #ccc;
+  --background: #eee;
+  --dark-background: #ddd;
+  --red-foreground: #b55;
+  --green-foreground: #585;
+  --blue-foreground: #55a;
+  --red-background: rgb(255, 102, 102);
+  --green-background: rgb(102, 178, 51);
+  --blue-background: rgb(102, 102, 255);
+  --magenta-background: rgb(255, 102, 178);
+}
+
+[data-theme='berry'] {
+  --strong-foreground: #fff;
+  --foreground: #ece;
+  --weak-foreground: #aaa;
+  --active: #858;
+  --interactive: #635;
+  --dark-active: #623;
+  --background: #423;
+  --dark-background: #212;
+  --red-foreground: rgb(255, 102, 102);
+  --green-foreground: rgb(102, 178, 51);
+  --blue-foreground: rgb(102, 102, 255);
+  --red-background: #b55;
+  --green-background: #585;
+  --blue-background: #55a;
+  --magenta-background: #a58;
+}

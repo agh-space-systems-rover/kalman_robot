@@ -2,7 +2,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #222;
+  background-color: var(--dark-background);
   padding: 3px 5px;
   margin-top: 5px;
   margin-bottom: 5px;
@@ -27,7 +27,7 @@
 }
 
 .dropdown:hover {
-  background-color: #444;
+  background-color: var(--dark-active);
 }
 
 .dropdown-popup {
@@ -36,7 +36,7 @@
   min-width: calc(100% - 6px);
   left: 0;
   top: 100%;
-  background-color: #222;
+  background-color: var(--dark-background);
   border-radius: 5px;
   z-index: 100;
   padding: 3px;
@@ -63,7 +63,7 @@
 }
 
 .dropdown-item:hover {
-  background-color: #444;
+  background-color: var(--dark-active);
 }
 
 .item-icon {
@@ -74,4 +74,6 @@
 .item-text {
   margin-left: 5px;
   margin-right: 5px;
+  overflow: hidden;
+  text-wrap: nowrap;
 }

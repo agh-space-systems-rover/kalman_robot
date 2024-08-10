@@ -1,3 +1,16 @@
+export interface SequenceManagerState {
+  state: number
+  stage: number
+}
+
+export interface ScienceUniversal {
+  leds: number[]
+  heatingUp: number
+  heatingDown: number
+  washer: number
+  sequenceStates: SequenceManagerState[]
+}
+
 export interface Module {
   temperature: number
 }
@@ -22,6 +35,7 @@ export interface ScienceState {
   ERCWeight: number
   smartProbe: SmartProbe
   panoramaStatus: PanoramaStatus
+  universal: ScienceUniversal
 }
 
 export enum PanoramaStatus {
@@ -49,5 +63,19 @@ export const mapSmartProbe = (msg: any): SmartProbe => {
   return {
     temperature: msg.temperature,
     hummidity: msg.humidity,
+  }
+}
+
+export const mapScienceUniversal = (msg: any): ScienceUniversal => {
+  return {
+    leds: [msg.led1.data, msg.led2.data, msg.led3.data],
+    heatingDown: msg.heating_down.data,
+    heatingUp: msg.heating_up.data,
+    sequenceStates: [
+      { stage: msg.seq_stage1, state: msg.seq_state1 },
+      { stage: msg.seq_stage2, state: msg.seq_state2 },
+      { stage: msg.seq_stage3, state: msg.seq_state3 },
+    ],
+    washer: msg.washer.data,
   }
 }

@@ -33,7 +33,7 @@
                 <box size="0.1275 0.089 0.089"/>
             </geometry>
             <origin rpy="0 0 0" xyz="0.0 0 0"/>
-            <material name="white"/>
+            <material name="red"/>
         </visual>
         <collision>
             <geometry>
@@ -61,7 +61,7 @@
                 <cylinder length="${link_2_length}" radius="0.0125"/>
             </geometry>
             <origin rpy="0 0 0" xyz="0.076250 0 ${link_2_length/2}"/>
-            <material name="white"/>
+            <material name="red"/>
         </visual>
         <collision>
             <geometry>
@@ -89,7 +89,7 @@
                 <box size="0.115 0.089 0.089"/>
             </geometry>
             <origin rpy="0 0 0" xyz="0.07 0 0"/>
-            <material name="white"/>
+            <material name="red"/>
         </visual>
         <collision>
             <geometry>
@@ -117,7 +117,7 @@
                 <cylinder length="${link_4_length}" radius="0.0125"/>
             </geometry>
             <origin rpy="0 0 0" xyz="0 0 ${link_4_length/2}"/>
-            <material name="white"/>
+            <material name="red"/>
         </visual>
         <collision>
             <geometry>
@@ -144,7 +144,7 @@
                 <cylinder length="${link_5_length}" radius="0.02"/>
             </geometry>
             <origin rpy="0 0 0" xyz="0 0 0"/>
-            <material name="white"/>
+            <material name="red"/>
         </visual>
         <collision>
             <geometry>
@@ -173,7 +173,7 @@
                 <cylinder length="0.001" radius="0.001"/>
             </geometry>
             <origin rpy="0 0 0" xyz="0 0 0"/>
-            <material name="white"/>
+            <material name="red"/>
         </visual>
         <collision>
             <geometry>
@@ -193,7 +193,7 @@
                 <cylinder length="0.001" radius="0.0445"/>
             </geometry>
             <origin rpy="0 0 0" xyz="0 0 -0.0"/>
-            <material name="white"/>
+            <material name="red"/>
         </visual>
         <collision>
             <geometry>
@@ -252,7 +252,7 @@
                 <mesh filename="package://kalman_arm_moveit_config/meshes/gripper/gripper_bottom.stl" scale="0.001 0.001 0.001"/>
             </geometry>
             <origin rpy="0 0 0" xyz="-0.04 -0.04 -0.12"/>
-            <material name="white"/>
+            <material name="red"/>
         </visual>
         <collision>
             <geometry>
@@ -282,7 +282,7 @@
             <geometry>
                 <mesh filename="package://kalman_arm_moveit_config/meshes/gripper/gripper_top.stl" scale="0.001 0.001 0.001"/>
             </geometry>
-            <material name="white"/>
+            <material name="red"/>
             <origin rpy="0 0 0" xyz="-0.014 -0.12 -0.035"/>
         </visual>
         <collision>

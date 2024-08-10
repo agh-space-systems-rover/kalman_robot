@@ -6,8 +6,8 @@ import { updateJoints } from '../../store/Arm/armSlice'
 import { convertJointPositions } from '../../store/Arm/armTypes'
 import { updateAutonomy, updateBleSignal } from '../../store/Autonomy/autonomySlice'
 import { updateTemperature, updateWheels } from '../../store/Motors/motorsSlice'
-import { updateModules, updateSmartProbe, updateWeight } from '../../store/Science/scienceSlice'
-import { mapScience, mapSmartProbe } from '../../store/Science/scienceTypes'
+import { updateModules, updateSmartProbe, updateUniversal, updateWeight } from '../../store/Science/scienceSlice'
+import { mapScience, mapScienceUniversal, mapSmartProbe } from '../../store/Science/scienceTypes'
 import {
   connectionEstablished,
   connectionTerminated,
@@ -64,12 +64,19 @@ const accessPointStatusHandler: (data: any) => Action = (data: any) => {
 const bleSignalHandler: (data: any) => Action = (data: any) => {
   return updateBleSignal(data.data)
 }
+
+const scienceRespHandler: (data: any) => Action = (data: any) => {
+  console.log(data)
+  return updateUniversal(mapScienceUniversal(data))
+}
+
 const handlers: any = {
   '/station/wheels/state': wheelHandler,
   '/station/arm/state': armHandler,
   '/station/autonomy/state': autonomyHandler,
   '/station/science/state': scienceHandler,
   '/station/science/weight': weightHandler,
+  '/station/science/universal': scienceRespHandler,
   '/station/science/smart_probe': smartProbeHandler,
   '/station/wheels/temperatures': temperatureHandler,
   '/access_point/webpage/joined': accessPointContentHandler,
@@ -98,6 +105,7 @@ export const websocketMiddleware: Middleware = (store) => {
 
       socket.onmessage = (e: MessageEvent): void => {
         const obj: ReceivedMessage = JSON.parse(e.data)
+        console.log(obj)
 
         if (obj.topic in handlers) {
           store.dispatch(handlers[obj.topic](obj.data))

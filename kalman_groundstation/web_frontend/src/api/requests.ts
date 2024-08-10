@@ -23,7 +23,7 @@ export const sendAutonomy: (autonomyOn: boolean) => void = (autonomyOn: boolean)
 }
 
 export const sendSilentMode: (silentOn: boolean) => void = (silentOn: boolean) => {
-  const request = putRequest(`/station/system/radio/silent_mode_on_off/?silent_on=${silentOn}`)
+  const request = putRequest(`/station/system/rover/radio/silent_mode_on_off/silent_on?target_state=${silentOn}`)
   request.then((res) => console.log(res))
 }
 
@@ -211,13 +211,30 @@ export const setScienceServo: (slot: number, angle_deg: number) => void = (slot,
   putRequest(`/station/system/rover/science/set_servo?slot=${slot}&angle_deg=${angleDeg}`).catch((e) => console.log(e))
 }
 
-export const setAutoclick: (on: boolean) => void = (on) => {
-  const value = on ? 255 : 0
+export const setRawDigitalOutput: (slot: number, angle_deg: number) => void = (slot, angleDeg) => {
+  putRequest(
+    `/station/system/rover/science/raw_set_digital_output?board_id=0&channel_id=${slot}&value=${angleDeg}`,
+  ).catch((e) => console.log(e))
+}
+
+export const setAutoclick: (value: number) => void = (value) => {
+  // const value = on ? 180 : 0
   putRequest(`/station/system/rover/arm/autoclick/autoclick?value=${value}`).catch((e) => console.log(e))
+}
+
+export const setScrewdriver: (value: number, spinRight: boolean) => void = (value, spinRight) => {
+  value = spinRight ? value : -value
+  putRequest(`/station/system/rover/arm/autoclick/screwdriver?value=${value}`).catch((e) => console.log(e))
 }
 
 export const setCarousel: (value: number) => void = (value: number) => {
   putRequest(`/station/system/rover/science/set_carousel?value=${value}`).catch((e) => console.log(e))
+}
+
+export const setCarouselWithOffset: (value: number, offset: number) => void = (value: number, offset: number) => {
+  putRequest(`/station/system/rover/science/set_carousel_with_offset?value=${value}&offset=${offset}`).catch((e) =>
+    console.log(e),
+  )
 }
 
 export const openCloseSampleERC: (open: boolean) => void = (open: boolean) => {
@@ -248,4 +265,32 @@ export const logUserMark: (lat: number, lon: number, alt: number, desc: string) 
 
 export const requestLampPWM: (value: number) => void = (value) => {
   putRequest(`/station/system/rover/science/lamp_pwm?value=${value}`).catch((e) => console.log(e))
+}
+
+export const requestLEDState: (channel: number, value: number, timeout: number) => void = (channel, value, timeout) => {
+  putRequest(`/station/system/rover/science/led_state?channel=${channel}&value=${value}&timeout=${timeout}`).catch(
+    (e) => console.log(e),
+  )
+}
+
+export const requestHBridgeState: (channel: number, speed: number, direction: number) => void = (
+  channel,
+  speed,
+  direction,
+) => {
+  putRequest(
+    `/station/system/rover/science/set_h_bridge?channel=${channel}&speed=${speed}&direction=${direction}`,
+  ).catch((e) => console.log(e))
+}
+
+export const requestPWMState: (channel: number, value: number) => void = (channel, value) => {
+  putRequest(`/station/system/rover/science/set_pwm?channel=${channel}&value=${value}`).catch((e) => console.log(e))
+}
+
+export const requestSequenceBegin: (sequenceId: number) => void = (sequenceId: number) => {
+  putRequest(`/station/system/rover/science/sequence_begin?sequence_id=${sequenceId}`).catch((e) => console.log(e))
+}
+
+export const requestSequenceState: (sequenceId: number) => void = (sequenceId: number) => {
+  putRequest(`/station/system/rover/science/sequence_state?sequence_id=${sequenceId}`).catch((e) => console.log(e))
 }

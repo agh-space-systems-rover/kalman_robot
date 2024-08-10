@@ -2,7 +2,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #555;
+  background-color: var(--interactive);
   padding: 3px;
   margin-top: 5px;
   margin-bottom: 5px;
@@ -12,6 +12,8 @@
   min-width: calc(1em + 4px);
   user-select: none;
   position: relative;
+  overflow: hidden;
+  text-wrap: nowrap;
 }
 
 .button:first-child {
@@ -27,9 +29,9 @@
 }
 
 .button:hover {
-  background-color: #888;
+  background-color: var(--active);
 }
 
 .button:not(:last-child) {
-  border-right: 1px solid #333;
+  border-right: 1px solid var(--background);
 }

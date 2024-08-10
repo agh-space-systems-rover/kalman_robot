@@ -60,6 +60,7 @@ def generate_launch_description():
                 package="kalman_master",
                 executable="master_com",
                 parameters=[{"baud_rate": 38400}],
+                # parameters=[{"baud_rate": 115200}],
             ),
             Node(
                 package="kalman_arm_utils",
@@ -98,6 +99,7 @@ def generate_launch_description():
                         ),
                         "side": "station",
                         "rover_endpoint": "arm",
+                        "debug_info": True,
                     },
                 ],
             ),
@@ -108,6 +110,48 @@ def generate_launch_description():
                 output='screen',
                 emulate_tty=True,
                 arguments=[('__log_level:=debug')]
+            ),
+            Node(
+                package="rviz2",
+                executable="rviz2",
+                arguments=[
+                    "-d",
+                    str(
+                        get_package_share_path("kalman_arm_config")
+                        / "rviz/arm1.rviz"
+                    ),
+                    "--ros-args",
+                    "--log-level",
+                    "warn",
+                ],
+            ),
+            Node(
+                package="rviz2",
+                executable="rviz2",
+                arguments=[
+                    "-d",
+                    str(
+                        get_package_share_path("kalman_arm_config")
+                        / "rviz/arm2.rviz"
+                    ),
+                    "--ros-args",
+                    "--log-level",
+                    "warn",
+                ],
+            ),
+            Node(
+                package="rviz2",
+                executable="rviz2",
+                arguments=[
+                    "-d",
+                    str(
+                        get_package_share_path("kalman_arm_config")
+                        / "rviz/arm3.rviz"
+                    ),
+                    "--ros-args",
+                    "--log-level",
+                    "warn",
+                ],
             ),
         ]
     )

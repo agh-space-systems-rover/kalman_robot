@@ -114,6 +114,13 @@ export const initialUserProfile: userProfile = {
 
     { target: 'openGripperKey', key: 'Period' },
     { target: 'closeGripperKey', key: 'Comma' },
+
+    { target: 'screwdriverRight', key: 'BracketRight' },
+    { target: 'screwdriverLeft', key: 'BracketLeft' },
+
+    { target: 'autoclickKey', key: 'Backquote' },
+    { target: 'autoclickExtendKey', key: 'ShiftLeft' },
+    { target: 'screwdriverSpeedupKey', key: 'ShiftRight' },
   ],
   gamepadBinds: {
     buttonFeatures: [
@@ -194,6 +201,10 @@ export const initialUserProfile: userProfile = {
       { axis: 3, target: 'messageY', valueMapping: noMapping },
       { axis: 2, target: 'messageZ', valueMapping: noMapping }, // SPRAWDZIĆ, TO JEST NA CZUJA!!!
 
+      // Drillin'
+      { axis: 1, target: 'drillHeight', valueMapping: noMapping },
+      { axis: 3, target: 'drillHeight2', valueMapping: noMapping },
+
       // virtual axes components
       {
         axis: 4,
@@ -241,6 +252,11 @@ export const initialUserProfile: userProfile = {
       },
       {
         target: 'armJoint6',
+        sourceAxes: ['_negativeTriggerAxis', '_positiveTriggerAxis'],
+        clipping: false,
+      },
+      {
+        target: 'drillSpin',
         sourceAxes: ['_negativeTriggerAxis', '_positiveTriggerAxis'],
         clipping: false,
       },

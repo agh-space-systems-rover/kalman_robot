@@ -10,30 +10,6 @@
     <parent link="world"/>
     <child link="flange"/>
   </joint>
-
-    <joint name="fix_colision" type="fixed">
-        <parent link="world" />
-        <child link="kalman_box" />        
-    </joint>
-
-    <link name="kalman_box">
-        <visual>
-            <geometry>
-                <!-- <mesh filename="package://kalman_arm_moveit_config/meshes/gripper/gripper_bottom.stl" scale="0.001 0.001 0.001"/> -->
-                <box size="1.0 1.0 0.1"/>
-            </geometry>
-        <origin rpy="0 0 0" xyz="-0.04 -0.04 -0.12"/>
-        <material name="white"/>1
-        </visual>
-        <collision>
-            <geometry>
-                <box size="1.0 1.0 0.1"/>
-
-            </geometry>
-        <origin rpy="0 0 0" xyz="-0.04 -0.04 -0.12"/>
-        </collision>
-    </link>
-
     
   <link name="arm_link">
     <visual>

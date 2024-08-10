@@ -1,7 +1,5 @@
 import styles from './map.header.module.css';
 
-import { alertsRef } from '../modules/alerts-ref';
-import { mapMarker } from '../modules/map-marker';
 import Map from './map';
 import {
   faCopy,
@@ -14,6 +12,9 @@ import { MutableRefObject, createRef, useCallback } from 'react';
 
 import Button from '../components/button';
 import Input from '../components/input';
+
+import { alertsRef } from '../modules/alerts-ref';
+import { mapMarker } from '../modules/map-marker';
 
 type Props = {
   panelRef: MutableRefObject<Map>;

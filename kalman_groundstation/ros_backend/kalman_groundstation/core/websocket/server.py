@@ -58,6 +58,9 @@ class Server:
             self.subscribe(topic, type)
 
     def _send(self, msg):
+        print("dupskooo")
+        print(msg)
+
         if not self.loop:
             return 
 

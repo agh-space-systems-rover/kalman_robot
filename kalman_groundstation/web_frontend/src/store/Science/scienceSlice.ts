@@ -1,7 +1,7 @@
 import type { PayloadAction } from '@reduxjs/toolkit'
 import { createSlice } from '@reduxjs/toolkit'
 
-import type { Module, ScienceState, SmartProbe } from './scienceTypes'
+import type { Module, ScienceState, ScienceUniversal, SmartProbe } from './scienceTypes'
 import { PanoramaStatus } from './scienceTypes'
 
 const initialState: ScienceState = {
@@ -30,6 +30,17 @@ const initialState: ScienceState = {
     temperature: -1,
     hummidity: -1,
   },
+  universal: {
+    heatingDown: -1,
+    heatingUp: -1,
+    leds: [-1, -1, -1],
+    sequenceStates: [
+      { stage: -1, state: -1 },
+      { stage: -1, state: -1 },
+      { stage: -1, state: -1 },
+    ],
+    washer: -1,
+  },
 }
 
 const scienceSlice = createSlice({
@@ -55,6 +66,9 @@ const scienceSlice = createSlice({
     updateSmartProbe: (state, action: PayloadAction<SmartProbe>) => {
       state.smartProbe = action.payload
     },
+    updateUniversal: (state, action: PayloadAction<ScienceUniversal>) => {
+      state.universal = action.payload
+    },
   },
 })
 
@@ -66,6 +80,7 @@ export const {
   updateWeight,
   updatePanoramaStatus,
   updateSmartProbe,
+  updateUniversal,
 } = scienceSlice.actions
 
 export const scienceReducer = scienceSlice.reducer
