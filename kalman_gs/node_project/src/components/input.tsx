@@ -8,6 +8,8 @@ type Props = {
   defaultValue?: string;
   onChange?: (text: string) => void;
   onSubmit?: (text: string) => void;
+  onFocus?: () => void;
+  onBlur?: () => void;
   className?: string;
   autoFocus?: boolean;
   [key: string]: any;
@@ -34,6 +36,10 @@ export default class Input extends Component<Props> {
     this.ref.current!.value = value;
   }
 
+  selectAll() {
+    this.ref.current?.select();
+  }
+
   render() {
     const {
       type,
@@ -41,6 +47,8 @@ export default class Input extends Component<Props> {
       defaultValue,
       onChange,
       onSubmit,
+      onFocus,
+      onBlur,
       className,
       ...props
     } = this.props;
@@ -61,8 +69,12 @@ export default class Input extends Component<Props> {
             if (e.key === 'Enter') {
               onSubmit?.(e.currentTarget.value);
               this.ref.current?.blur();
+            } else if (e.key === 'Escape') {
+              this.ref.current?.blur();
             }
           }}
+          onFocus={onFocus}
+          onBlur={onBlur}
           autoFocus={this.props.autoFocus}
         />
       </div>

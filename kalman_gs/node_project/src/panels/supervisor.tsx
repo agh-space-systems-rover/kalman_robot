@@ -57,17 +57,17 @@ window.addEventListener('ros-connect', () => {
   gpsGoalClient = new Action({
     ros: ros,
     name: '/supervisor/gps_goal',
-    actionType: 'kalman_interfaces/action/SupervisorGpsGoal'
+    actionType: 'kalman_interfaces/SupervisorGpsGoal'
   });
   gpsArUcoSearchClient = new Action({
     ros: ros,
     name: '/supervisor/gps_aruco_search',
-    actionType: 'kalman_interfaces/action/SupervisorGpsArUcoSearch'
+    actionType: 'kalman_interfaces/SupervisorGpsArUcoSearch'
   });
   gpsYoloSearchClient = new Action({
     ros: ros,
     name: '/supervisor/gps_yolo_search',
-    actionType: 'kalman_interfaces/action/SupervisorGpsYoloSearch'
+    actionType: 'kalman_interfaces/SupervisorGpsYoloSearch'
   });
 });
 type CurrentGoal = {

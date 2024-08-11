@@ -1,5 +1,6 @@
 import { setCmdVel } from './cmd-vel';
 import { getKeybind } from './keybinds';
+import { settingsRef } from './refs';
 
 const STALL_SPEED = 0.001;
 const ROTATE_IN_PLACE_SPEED = 0.5;
@@ -15,6 +16,9 @@ const trackedButtons = {};
 window.addEventListener('keydown', (event) => {
   // Check if any input box is focused.
   if (document.activeElement.tagName === 'INPUT') {
+    return;
+  }
+  if (settingsRef.current?.isShown()) {
     return;
   }
 

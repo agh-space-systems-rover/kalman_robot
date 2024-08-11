@@ -11,9 +11,7 @@ BAUD_RATES = {
     "arm": 2000000,
 }
 
-PORTS = {
-    "pc": "/tmp/ttyV2"
-}
+PORTS = {"pc": "/tmp/ttyV2"}
 
 
 def launch_setup(context):
@@ -27,10 +25,12 @@ def launch_setup(context):
         Node(
             package="kalman_master",
             executable="master_com",
-            parameters=[{
-                "baud_rate": BAUD_RATES[get_str("mode")],
-                "port": PORTS.get(get_str("mode"), ""), # empty = auto
-            }],
+            parameters=[
+                {
+                    "baud_rate": BAUD_RATES[get_str("mode")],
+                    "port": PORTS.get(get_str("mode"), ""),  # empty = auto
+                }
+            ],
         ),
         Node(
             package="kalman_master",
@@ -52,7 +52,7 @@ def launch_setup(context):
         Node(
             package="kalman_master",
             executable="wheel_driver",
-        ),
+        ),  # Used by autonomy on PC or for teleop on GS.
     ]
 
     if get_str("mode") == "pc":
@@ -68,12 +68,16 @@ def launch_setup(context):
         ]
 
     if get_str("mode") == "gs":
-        description.append(
+        description += [
             Node(
                 package="kalman_master",
                 executable="tunnel_client",
             ),
-        )
+            Node(
+                package="kalman_master",
+                executable="feed_driver",
+            ),
+        ]
 
     return description
 

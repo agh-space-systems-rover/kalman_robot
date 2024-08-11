@@ -35,3 +35,8 @@
 .button:not(:last-child) {
   border-right: 1px solid var(--background);
 }
+
+.button:active {
+  background-color: var(--weak-foreground);
+  transition: background-color 0s;
+}

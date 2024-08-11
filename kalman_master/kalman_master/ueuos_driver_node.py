@@ -7,7 +7,7 @@ from kalman_interfaces.srv import SetUeuosColor, SetUeuosEffect, SetUeuosState
 from kalman_interfaces.msg import MasterMessage
 
 
-class UeuosNode(Node):
+class UeuosDriver(Node):
     def __init__(self):
         super().__init__("ueuos_driver")
 
@@ -62,7 +62,7 @@ class UeuosNode(Node):
 def main():
     try:
         rclpy.init()
-        node = UeuosNode()
+        node = UeuosDriver()
         rclpy.spin(node)
         node.destroy_node()
         rclpy.shutdown()

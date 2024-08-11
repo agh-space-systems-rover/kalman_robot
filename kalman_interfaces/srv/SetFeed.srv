@@ -1,0 +1,6 @@
+uint8 feed # 1 or 2
+uint8 camera # 1 to 8; 0 = unchanged
+uint8 channel # 1 to 40; 0 = unchanged
+uint8 power # 1 to 4; 0 = unchanged
+---
+# no response

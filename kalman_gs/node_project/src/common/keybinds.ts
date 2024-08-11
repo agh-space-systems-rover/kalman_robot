@@ -9,10 +9,17 @@ const defaultKeybinds = {
   'Decrease Speed': 'ArrowDown',
   'Decrease Turn Radius': 'ArrowRight',
   'Increase Turn Radius': 'ArrowLeft',
-  'Cycle Feed 1 Cameras Backwards': 'Home',
-  'Cycle Feed 1 Cameras': 'End',
-  'Cycle Feed 2 Cameras Backwards': 'PageUp',
-  'Cycle Feed 2 Cameras': 'PageDown'
+  'Cycle Feed 1 Cameras Backwards': 'PageUp',
+  'Cycle Feed 1 Cameras': 'PageDown',
+  'Show Camera 1 on Feed 1': 'Digit1',
+  'Show Camera 2 on Feed 1': 'Digit2',
+  'Show Camera 3 on Feed 1': 'Digit3',
+  'Show Camera 4 on Feed 1': 'Digit4',
+  'Show Camera 5 on Feed 1': 'Digit5',
+  'Show Camera 6 on Feed 1': 'Digit6',
+  'Show Camera 7 on Feed 1': 'Digit7',
+  'Show Camera 8 on Feed 1': 'Digit8',
+  'Hold to Change Cameras on Feed 2': 'ShiftLeft'
 };
 
 // Copy default keybinds to keybinds.
