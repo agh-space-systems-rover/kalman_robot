@@ -5,7 +5,7 @@ import { getKeybind } from './keybinds';
 import { Service } from 'roslib';
 
 let feedCameras = [1, 2];
-let feedChannels = [1, 2];
+let feedChannels = [4, 8];
 let feedPowers = [1, 1];
 
 // Load feed config from local storage.
