@@ -1,7 +1,7 @@
 import styles from './feeds.module.css';
 
 import { feedCameras, feedChannels, feedPowers } from '../common/feeds';
-import CHANNELS from './feeds.channels';
+import CHANNELS from '../common/feed-channels';
 import {
   IconDefinition,
   fa1,
