@@ -106,16 +106,28 @@ export default class Settings extends Component<{}, State> {
     window.removeEventListener('keydown', this.escHandler);
   }
 
+  isShown() {
+    return this.state.shown;
+  }
+
   startListeningForNewKeybind(action: string) {
     this.setState({ listeningForNewKeybind: action });
     window.addEventListener('keydown', this.keyListener);
     window.removeEventListener('keydown', this.escHandler);
+    window.addEventListener(
+      'mousedown',
+      this.clickToStopListeningForNewKeybindListener
+    );
   }
 
   stopListeningForNewKeybind() {
     this.setState({ listeningForNewKeybind: null });
     window.removeEventListener('keydown', this.keyListener);
     window.addEventListener('keydown', this.escHandler);
+    window.removeEventListener(
+      'mousedown',
+      this.clickToStopListeningForNewKeybindListener
+    );
   }
 
   keyListener = (e: KeyboardEvent) => {
@@ -125,6 +137,12 @@ export default class Settings extends Component<{}, State> {
         return;
       }
       setKeybind(this.state.listeningForNewKeybind, e.code);
+      this.stopListeningForNewKeybind();
+    }
+  };
+
+  clickToStopListeningForNewKeybindListener = (e: MouseEvent) => {
+    if (this.state.listeningForNewKeybind) {
       this.stopListeningForNewKeybind();
     }
   };
@@ -177,9 +195,10 @@ export default class Settings extends Component<{}, State> {
                 <Button
                   tooltip='Reset this keybind.'
                   onClick={() => {
-                    if (this.state.listeningForNewKeybind === action) {
-                      this.stopListeningForNewKeybind();
-                    }
+                    // if (this.state.listeningForNewKeybind === action) {
+                    //   this.stopListeningForNewKeybind();
+                    // }
+                    // Handled by clickToStopListeningForNewKeybindListener.
                     resetKeybind(action);
                     this.forceUpdate();
                   }}
@@ -267,6 +286,8 @@ export default class Settings extends Component<{}, State> {
                     <Button
                       tooltip='Reset all keybinds to default.'
                       onClick={() => {
+                        // this.stopListeningForNewKeybind();
+                        // Handled by clickToStopListeningForNewKeybindListener.
                         resetAllKeybinds();
                         this.forceUpdate();
                       }}

@@ -9,6 +9,10 @@ uint8 GS_TO_PC = 0x80
 uint8 PC_TO_GS = 0x81
 uint8 GS_TO_ARM = 0x86
 uint8 ARM_TO_GS = 0x87
+# No ARM_TO_PC and PC_TO_ARM because they are not needed.
+uint8 FEED_SET_CAMERA = 0xB1
+uint8 FEED_SET_CHANNEL = 0xB2
+uint8 FEED_SET_POWER = 0xB3
 uint8 ARM_SEND_SPACEMOUSE = 0xB4
 
 # command number

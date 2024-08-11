@@ -20,7 +20,9 @@ class TunnelClient(Node):
 
     def reboot_pc(self, req: Empty.Request, res: Empty.Response):
         self.reboot_frames_to_send = 10
-        self.get_logger().info("Received a request to reboot the PC. Sending 10 frames over the course of 1 second...")
+        self.get_logger().info(
+            "Received a request to reboot the PC. Sending 10 frames over the course of 1 second..."
+        )
         return res
 
     def send_frames(self):

@@ -150,6 +150,7 @@ export default class Map extends Component<Props> {
             [-90, 180]
           ]}
           maxBoundsViscosity={1.0}
+          keyboard={false}
         >
           <TileLayer
             // url='http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}'

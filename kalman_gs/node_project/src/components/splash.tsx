@@ -8,9 +8,9 @@ import { Component } from 'react';
 
 // Check the local storage whether the splash screen was already shown.
 // If not, show the splash screen on boot.
-const splashShown = localStorage.getItem('splashShown');
+const splashShown = localStorage.getItem('splash-shown');
 if (!splashShown) {
-  localStorage.setItem('splashShown', 'true');
+  localStorage.setItem('splash-shown', 'true');
 }
 
 type State = {

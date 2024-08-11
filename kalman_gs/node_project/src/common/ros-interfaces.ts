@@ -115,3 +115,11 @@ export type WheelStates = {
   back_left: WheelState;
   back_right: WheelState;
 };
+
+export type SetFeedRequest = {
+  feed: number;
+  camera: number;
+  channel: number;
+  power: number;
+};
+// Response is empty.
