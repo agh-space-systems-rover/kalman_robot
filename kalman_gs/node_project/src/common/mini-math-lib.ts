@@ -115,3 +115,11 @@ export function vecFromCssColor(color: string): Vector3 {
     .map((x) => parseInt(x) / 255);
   return { x: rgb[0], y: rgb[1], z: rgb[2] };
 }
+
+export function clamp(value: number, min: number, max: number): number {
+  return Math.min(Math.max(value, min), max);
+}
+
+export function lerp(a: number, b: number, t: number): number {
+  return a + (b - a) * t;
+}

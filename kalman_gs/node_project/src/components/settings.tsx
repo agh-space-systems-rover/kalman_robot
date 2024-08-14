@@ -17,12 +17,16 @@ import {
   faKeyboard,
   faPalette,
   faRefresh,
-  faSun
+  faSun,
+  faXmark
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Component } from 'react';
 
 function keyCodeToName(code: string) {
+  if (code === null) {
+    return 'Disabled';
+  }
   if (code.startsWith('Key')) {
     return code.slice(3);
   }
@@ -191,6 +195,19 @@ export default class Settings extends Component<{}, State> {
                     ? 'Waiting for key...'
                     : keyCodeToName(key)}
                   &nbsp;
+                </Button>
+                <Button
+                  tooltip='Remove this keybind.'
+                  onClick={() => {
+                    // if (this.state.listeningForNewKeybind === action) {
+                    //   this.stopListeningForNewKeybind();
+                    // }
+                    // Handled by clickToStopListeningForNewKeybindListener.
+                    setKeybind(action, null);
+                    this.forceUpdate();
+                  }}
+                >
+                  <FontAwesomeIcon icon={faXmark} />
                 </Button>
                 <Button
                   tooltip='Reset this keybind.'

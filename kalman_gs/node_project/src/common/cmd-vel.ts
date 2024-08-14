@@ -2,7 +2,7 @@ import { ros } from './ros';
 import { Twist } from './ros-interfaces';
 import { Topic } from 'roslib';
 
-const RATE = 10; // Hz
+const RATE = 60; // Hz; Twist is received by a local ROS node. Actual per-wheel commands are sent at much lower rate over the radio.
 const INPUT_TIMEOUT = 1000; // Ignore input group after 1 second of inactivity.
 
 type CmdVel = {
@@ -18,7 +18,6 @@ type CmdVelInputs = {
 
 const inputs: CmdVelInputs = {};
 
-let lastNonZeroUpdate: number = 0;
 window.addEventListener('ros-connect', () => {
   const cmdVel = new Topic({
     ros: ros,
