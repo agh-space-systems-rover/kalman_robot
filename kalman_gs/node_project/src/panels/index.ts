@@ -1,4 +1,5 @@
 import Feeds from './feeds';
+import Arms from './arm';
 import Imu from './imu';
 import Map from './map';
 import MapHeader from './map.header';
@@ -10,11 +11,12 @@ import {
   faCube,
   faLocationDot,
   faVideo,
-  faWheelchair
+  faWheelchair,
+  faPersonMilitaryPointing,
 } from '@fortawesome/free-solid-svg-icons';
 
 // Add new panels here:
-export type PanelID = 'imu' | 'wheels' | 'supervisor' | 'map' | 'feeds';
+export type PanelID = 'imu' | 'wheels' | 'supervisor' | 'map' | 'feeds' | 'arm';
 export const defaultPanel: PanelID = 'map';
 export const panelInfos: Panels = {
   imu: {
@@ -42,6 +44,11 @@ export const panelInfos: Panels = {
     Component: Feeds,
     name: 'Feeds',
     icon: faVideo
+  },
+  arm: {
+    Component: Arms,
+    name: 'Arm',
+    icon: faPersonMilitaryPointing
   }
 };
 
