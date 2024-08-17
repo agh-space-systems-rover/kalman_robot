@@ -123,3 +123,11 @@ export type SetFeedRequest = {
   power: number;
 };
 // Response is empty.
+
+export type JointState = {
+    header: Header;
+    name: string[];
+    position: number[];
+    velocity: number[];
+    effort: number[];
+};

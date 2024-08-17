@@ -10,6 +10,8 @@
   --red-foreground: rgb(255, 102, 102);
   --green-foreground: rgb(102, 178, 51);
   --blue-foreground: rgb(102, 102, 255);
+  --orange-foreground: rgb(240, 97, 14);
+  --strong-red-foreground: #ff2e2e;
   --red-background: #b55;
   --green-background: #585;
   --blue-background: #55a;
@@ -29,6 +31,8 @@
   --red-foreground: #b55;
   --green-foreground: #585;
   --blue-foreground: #55a;
+  --orange-foreground: rgb(240, 97, 14);
+  --strong-red-foreground: #ff2e2e;
   --red-background: rgb(255, 102, 102);
   --green-background: rgb(102, 178, 51);
   --blue-background: rgb(102, 102, 255);
@@ -48,6 +52,8 @@
   --red-foreground: rgb(255, 102, 102);
   --green-foreground: rgb(102, 178, 51);
   --blue-foreground: rgb(102, 102, 255);
+  --orange-foreground: rgb(240, 97, 14);
+  --strong-red-foreground: #ff2e2e;
   --red-background: #b55;
   --green-background: #585;
   --blue-background: #55a;
