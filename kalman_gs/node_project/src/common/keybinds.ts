@@ -5,10 +5,7 @@ const defaultKeybinds = {
   'Turn Right': 'KeyD',
   'Rotate Left in Place': 'KeyQ',
   'Rotate Right in Place': 'KeyE',
-  'Increase Speed': 'ArrowUp',
-  'Decrease Speed': 'ArrowDown',
-  'Decrease Turn Radius': 'ArrowRight',
-  'Increase Turn Radius': 'ArrowLeft',
+  'Hold to Modify Speeds and Turn Radius': 'ShiftLeft',
   'Cycle Feed 1 Cameras Backwards': 'PageUp',
   'Cycle Feed 1 Cameras': 'PageDown',
   'Show Camera 1 on Feed 1': 'Digit1',
@@ -40,7 +37,7 @@ if (savedKeybinds) {
 }
 
 function getKeybind(action: string): string {
-  if (!keybinds[action]) {
+  if (keybinds[action] === undefined) {
     throw new Error(`Keybind for action "${action}" not found.`);
   }
   return keybinds[action];
