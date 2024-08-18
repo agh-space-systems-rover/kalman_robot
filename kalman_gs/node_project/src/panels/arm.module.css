@@ -25,6 +25,76 @@
   justify-content: center;
 }
 
+.scales-header {
+  display: flex;
+  font-family: 'Bai Jamjuree';
+  color: var(--strong-foreground);
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.scales {
+  display: flex;
+  flex-direction: row;
+  justify-content: left;
+  align-items: center;
+}
+
+.scale-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.scale-name {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  min-height: 26px;
+  font-size: 14px;
+}
+
+.scale-value {
+  flex: 1;
+  margin-left: 20px;
+  font-size: 14px;
+}
+
+.scale-value-holder {
+  display: flex;
+  flex-direction: row;
+  margin-left: 20px;
+  align-items: center;
+  justify-content: center;
+  min-height: 26px;
+}
+
+/* Base styling for the input range */
+input[type='range'] {
+  -webkit-appearance: none; /* Removes default styling in WebKit browsers */
+  appearance: none;
+  background: var(--background);
+}
+
+input[type='range']::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: var(--green-foreground);
+  border-radius: 50%;
+  border-color: var(--dark-background);
+  cursor: pointer;
+}
+
+/* Track before the thumb in Firefox */
+input[type='range']::-moz-range-track {
+  width: 100%;
+  height: 6px;
+  cursor: pointer;
+  background: var(--weak-foreground);
+  border-radius: 5px;
+}
+
 .joint-column {
   display: flex;
   flex-direction: column;
@@ -71,4 +141,20 @@
 
 .error {
   color: var(--strong-red-foreground);
+}
+
+.blink {
+  animation: blink-animation 0.5s ease-in-out;
+}
+
+@keyframes blink-animation {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
 }
