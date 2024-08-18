@@ -4,8 +4,13 @@ import {
   setLinearScaleTo,
   setRotationalScaleTo,
   lastServoLinearScale,
-  lastServoRotationalScale
+  lastServoRotationalScale,
+  abortPose,
+  sendPoseRequest,
+  keepAlivePose,
+  lastStatusPose
 } from '../common/arm';
+import predefinedPoses from '../common/predefined-poses';
 import { ros } from '../common/ros';
 import { JointState } from '../common/ros-interfaces';
 import React, { useState, useEffect, useCallback } from 'react';
@@ -37,6 +42,48 @@ const jointLimitsRad = [
 
 function rad2deg(rad: number) {
   return (rad * 180) / Math.PI;
+}
+
+function getJointNames() {
+  return Array.from({ length: 6 }, (_, i) => (
+    <div className={styles['joint-name']} key={i}>
+      Joint {i + 1}:
+    </div>
+  ));
+}
+
+function getNamesAndValues() {
+  let namesAndValues = lastJointState
+    ? lastJointState.name.map((name, i) => {
+        return { name: name, value: lastJointState!.position[i] };
+      })
+    : [];
+
+  namesAndValues.sort((a, b) => {
+    return a.name.localeCompare(b.name);
+  });
+
+  return namesAndValues;
+}
+
+function isCloseEnough(
+  jointsA: number[],
+  jointsB: number[],
+  maxDistance: number,
+  checkedJoints: number[] = []
+) {
+  if (jointsA.length !== jointsB.length) {
+    return false;
+  }
+  for (let i = 0; i < jointsA.length; i++) {
+    if (
+      i + 1 in checkedJoints &&
+      Math.abs(jointsA[i] - jointsB[i]) > maxDistance
+    ) {
+      return false;
+    }
+  }
+  return true;
 }
 
 function ArmStatus() {
@@ -83,21 +130,8 @@ function ArmStatus() {
     }
   };
 
-  let namesAndValues = lastJointState
-    ? lastJointState.name.map((name, i) => {
-        return { name: name, value: lastJointState!.position[i] };
-      })
-    : [];
-
-  namesAndValues.sort((a, b) => {
-    return a.name.localeCompare(b.name);
-  });
-
-  const jointNames = Array.from({ length: 6 }, (_, i) => (
-    <div className={styles['joint-name']} key={i}>
-      Joint {i + 1}:
-    </div>
-  ));
+  const namesAndValues = getNamesAndValues();
+  const jointNames = getJointNames();
 
   const jointRangeLeft = jointLimitsRad.map((limit, i) => (
     <div className={styles['joint-range']} key={i}>
@@ -203,10 +237,162 @@ function ArmStatus() {
   );
 }
 
+function poseJoints(jointValues) {
+  return (
+    <div className={styles['status']}>
+      <div className={styles['joint-column'] + ' ' + styles['align-left']}>
+        {getJointNames()}
+      </div>
+      <div className={styles['joint-column']}>{jointValues}</div>
+    </div>
+  );
+}
+
+function PoseRequester() {
+  const [rerenderCount, setRerenderCount] = useState(0);
+  const rerender = useCallback(() => {
+    setRerenderCount((count) => count + 1);
+  }, [setRerenderCount]);
+
+  useEffect(() => {
+    window.addEventListener('joint-state', rerender);
+    window.addEventListener('pose-status', rerender);
+    return () => {
+      window.removeEventListener('joint-state', rerender);
+      window.removeEventListener('pose-status', rerender);
+    };
+  }, [rerender]);
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      keepAlivePose();
+    }, 200);
+
+    // Cleanup interval on component unmount
+    return () => clearInterval(intervalId);
+  }, []);
+
+  const [currentPoseId, setCurrentPoseId] = useState(0);
+
+  const namesAndValues = getNamesAndValues();
+
+  const predefinedJointValues =
+    predefinedPoses.POSES_JOINTS[
+      predefinedPoses.PREDEFINED_POSES.poses[currentPoseId].name
+    ];
+
+  const posesToSelect = predefinedPoses.PREDEFINED_POSES.poses.map(
+    (pose, i) => (
+      <div
+        key={pose.id}
+        className={`${styles['pose-button']} ${styles['pose-option']} ${pose.id === currentPoseId ? styles['pose-selected'] : ''}`}
+        onClick={() => {
+          setCurrentPoseId(pose.id);
+        }}
+      >
+        <div className={styles['pose-name']}>{pose.name}</div>
+        <div
+          className={`${styles['pose-indicator']} ${
+            isCloseEnough(
+              predefinedPoses.POSES_JOINTS[
+                predefinedPoses.PREDEFINED_POSES.poses[i].name
+              ],
+              namesAndValues.map((joint) => joint.value),
+              predefinedPoses.PREDEFINED_POSES.max_distance_rad,
+              predefinedPoses.PREDEFINED_POSES.poses[i].joints_checked
+            )
+              ? styles['pose-ready']
+              : styles['pose-not-ready']
+          }`}
+        />
+      </div>
+    )
+  );
+
+  let isJointSet: boolean[] = Array(6).fill(false);
+  let isJointClose: boolean[] = Array(6).fill(false);
+  let isJointChecked: boolean[] = Array(6).fill(false);
+
+  predefinedPoses.PREDEFINED_POSES.poses[currentPoseId].joints_set.forEach(
+    (value) => {
+      isJointSet[value - 1] = true;
+    }
+  );
+
+  isJointClose = isJointClose.map((_, i) =>
+    namesAndValues.length
+      ? Math.abs(
+          predefinedPoses.POSES_JOINTS[
+            predefinedPoses.PREDEFINED_POSES.poses[currentPoseId].name
+          ][i] - namesAndValues[i].value
+        ) <= predefinedPoses.PREDEFINED_POSES.max_distance_rad
+      : false
+  );
+
+  predefinedPoses.PREDEFINED_POSES.poses[currentPoseId].joints_checked.forEach(
+    (value) => {
+      isJointChecked[value - 1] = true;
+    }
+  );
+
+  const PoseJoints = poseJoints(
+    Array.from({ length: 6 }, (_, i) => (
+      <div
+        className={`${styles['joint-value']} ${!isJointSet[i] ? styles['joint-not-set'] : !isJointClose[i] && isJointChecked[i] ? styles['warn'] : ''}`}
+        key={i}
+      >
+        {rad2deg(predefinedJointValues[i]).toFixed(0)}
+      </div>
+    ))
+  );
+
+  const closeEnough = isCloseEnough(
+    predefinedPoses.POSES_JOINTS[
+      predefinedPoses.PREDEFINED_POSES.poses[currentPoseId].name
+    ],
+    namesAndValues.map((joint) => joint.value),
+    predefinedPoses.PREDEFINED_POSES.max_distance_rad,
+    predefinedPoses.PREDEFINED_POSES.poses[currentPoseId].joints_checked
+  );
+  return (
+    <div className={styles['pose-requester']}>
+      <h2 className={styles['pose-header']}>Pose Requester</h2>
+      <div className={styles['pose-panel']}>
+        {PoseJoints}
+        <div className={styles['pose-options']}>{posesToSelect}</div>
+      </div>
+      <div className={styles['pose-buttons']}>
+        <div
+          className={`${styles['pose-button']} ${styles['pose-send']} ${
+            closeEnough ? styles['send-ready'] : styles['send-not-ready']
+          }`}
+          onClick={() => {
+            if (closeEnough) {
+              sendPoseRequest(currentPoseId);
+            }
+          }}
+        >
+          {closeEnough ? 'Send Pose' : 'Cannot Send'}
+        </div>
+        <div
+          className={`${styles['pose-button']} ${styles['pose-abort']}`}
+          onClick={() => {
+            abortPose();
+          }}
+        >
+          Abort
+        </div>
+      </div>
+      <div className={styles['pose-status']}>Status: {lastStatusPose}</div>
+    </div>
+  );
+}
+
 export default function Arms() {
   return (
     <div className={styles['arm-panel']}>
       <ArmStatus />
+      <PoseRequester />
     </div>
   );
 }
