@@ -45,8 +45,6 @@ from ament_index_python.packages import get_package_prefix
 import subprocess
 import os
 
-from kalman_interfaces.srv import CalibrateCompass
-
 
 CMD_VEL_RATE = 2
 
@@ -75,19 +73,27 @@ def wait_for_process(process, duration):
         pass
 
 
-class CompasscalNode(Node):
+class CompassCalibrationNode(Node):
     def __init__(self):
         super().__init__("compass_calibration")
+
+        # Declare parameters.
+        self.delay: float = self.declare_parameter("delay", 3.0).value
+        self.duration: float = self.declare_parameter("duration", 30.0).value
+        self.angular_velocity: float = self.declare_parameter(
+            "angular_velocity", 0.5
+        ).value
 
         # Init cmd_vel publisher.
         self.cmd_vel_pub = self.create_publisher(Twist, "cmd_vel", 10)
 
-        # Init services.
-        self.create_service(CalibrateCompass, "calibrate", self.calibrate)
+        # Wait for delay seconds before starting the calibration.
+        self.timer = self.create_timer(self.delay, self.calibrate)
 
-    def calibrate(
-        self, request: CalibrateCompass.Request, response: CalibrateCompass.Response
-    ):
+    def calibrate(self):
+        # Clear the timer.
+        self.timer.cancel()
+
         # Run compasscal executable
         self.get_logger().info("Starting compasscal.")
         process = subprocess.Popen(
@@ -110,20 +116,19 @@ class CompasscalNode(Node):
             self.get_logger().error(
                 "compasscal calibration failed:\n" + format_output(output)
             )
-            response.success = False
-            return response
+            return
         else:
             self.get_logger().info(
                 "compasscal has successfully started:\n" + format_output(output)
             )
 
         # Choose 2 or 3-axis calibration
-        if request.two_d:
-            self.get_logger().info("Choosing 2-axis calibration.")
-            process.stdin.write("2\n")
-        else:
-            self.get_logger().info("Choosing 3-axis calibration.")
-            process.stdin.write("3\n")
+        # if self..two_d:
+        self.get_logger().info("Choosing 2-axis calibration.")
+        process.stdin.write("2\n")
+        # else:
+        #     self.get_logger().info("Choosing 3-axis calibration.")
+        #     process.stdin.write("3\n")
         process.stdin.flush()
 
         # Wait until the process has printed the "Press Enter to start sampling..." prompt.
@@ -134,8 +139,7 @@ class CompasscalNode(Node):
             self.get_logger().error(
                 "Failed to choose calibration mode:\n" + format_output(output)
             )
-            response.success = False
-            return response
+            return
         else:
             self.get_logger().info(
                 "Successfully entered calibration mode:\n" + format_output(output)
@@ -156,14 +160,13 @@ class CompasscalNode(Node):
             self.get_logger().error(
                 "Failed to start sampling:\n" + format_output(output)
             )
-            response.success = False
-            return response
+            return
         else:
             self.get_logger().info("Sampling started:\n" + format_output(output))
 
         # Now we are sure that sampling has started.
         # Perform rotations by sending cmd_vel messages.
-        n = int(request.duration * CMD_VEL_RATE)
+        n = int(self.duration * CMD_VEL_RATE)
         for i in range(n):
             self.get_logger().info(f"Rotating the robot: {i+1}/{n}")
 
@@ -171,9 +174,9 @@ class CompasscalNode(Node):
             msg = Twist()
             # For the second half of the process turn in the reverse direction.
             if i * 2 < n:
-                msg.angular.z = request.angular_velocity
+                msg.angular.z = self.angular_velocity
             else:
-                msg.angular.z = -request.angular_velocity
+                msg.angular.z = -self.angular_velocity
             self.cmd_vel_pub.publish(msg)
 
             # Wait for 1/msg_freq seconds.
@@ -191,8 +194,7 @@ class CompasscalNode(Node):
         )
         if not success:
             self.get_logger().error("Calibration failed:\n" + format_output(output))
-            response.success = False
-            return response
+            return
         else:
             self.get_logger().info("Calibration successful:\n" + format_output(output))
 
@@ -268,23 +270,6 @@ class CompasscalNode(Node):
         # Print the coefficients.
         self.get_logger().info("Calibration is done. Coefficients:\n" + str(coeffs))
 
-        # Return success=True.
-        response.success = True
-        response.cc_mag_field = coeffs[0]
-        response.cc_offset0 = coeffs[1]
-        response.cc_offset1 = coeffs[2]
-        response.cc_offset2 = coeffs[3]
-        response.cc_gain0 = coeffs[4]
-        response.cc_gain1 = coeffs[5]
-        response.cc_gain2 = coeffs[6]
-        response.cc_t0 = coeffs[7]
-        response.cc_t1 = coeffs[8]
-        response.cc_t2 = coeffs[9]
-        response.cc_t3 = coeffs[10]
-        response.cc_t4 = coeffs[11]
-        response.cc_t5 = coeffs[12]
-        return response
-
     def wait_until_output(self, process, target_output):
         output = ""
         for _ in range(50, 0, -1):  # 5 seconds timeout
@@ -301,7 +286,7 @@ class CompasscalNode(Node):
 def main():
     try:
         rclpy.init()
-        node = CompasscalNode()
+        node = CompassCalibrationNode()
         rclpy.spin(node)
         node.destroy_node()
         rclpy.shutdown()

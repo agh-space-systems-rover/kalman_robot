@@ -60,4 +60,3 @@
     # TODO: Altimeter is disabled for now because we do not yet have this hardware on board.
     
     use_control: false
-    

@@ -1,0 +1,125 @@
+.waypoints {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+}
+
+.scrollable {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-y: auto;
+}
+
+.row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  max-width: 250px;
+  width: 100%;
+}
+
+.row:not(:first-child) {
+  margin-top: -5px;
+}
+
+.flex-grow {
+  flex-grow: 1;
+}
+
+.colored-button:global(.red) {
+  background-color: var(--red-background) !important;
+}
+.colored-button:global(.red):hover {
+  background-color: color-mix(
+    in srgb,
+    var(--red-background),
+    var(--red-foreground) 50%
+  ) !important;
+}
+.colored-button:global(.red):active {
+  background-color: var(--red-foreground) !important;
+}
+
+.colored-button:global(.green) {
+  background-color: var(--green-background) !important;
+}
+.colored-button:global(.green):hover {
+  background-color: color-mix(
+    in srgb,
+    var(--green-background),
+    var(--green-foreground) 50%
+  ) !important;
+}
+.colored-button:global(.green):active {
+  background-color: var(--green-foreground) !important;
+}
+
+.colored-button:global(.blue) {
+  background-color: var(--blue-background) !important;
+}
+.colored-button:global(.blue):hover {
+  background-color: color-mix(
+    in srgb,
+    var(--blue-background),
+    var(--blue-foreground) 50%
+  ) !important;
+}
+.colored-button:global(.blue):active {
+  background-color: var(--blue-foreground) !important;
+}
+
+.colored-button:global(.magenta) {
+  background-color: var(--magenta-background) !important;
+}
+.colored-button:global(.magenta):hover {
+  background-color: color-mix(
+    in srgb,
+    var(--magenta-background),
+    var(--magenta-foreground) 50%
+  ) !important;
+}
+.colored-button:global(.magenta):active {
+  background-color: var(--magenta-foreground) !important;
+}
+
+.colored-label:global(.red) {
+  background-color: var(--red-background) !important;
+}
+.colored-label:global(.green) {
+  background-color: var(--green-background) !important;
+}
+.colored-label:global(.blue) {
+  background-color: var(--blue-background) !important;
+}
+.colored-label:global(.magenta) {
+  background-color: var(--magenta-background) !important;
+}
+
+.waypoint-list {
+  max-width: 280px;
+  width: 100%;
+  padding: 5px;
+  background-color: var(--dark-background);
+  border-radius: 5px;
+  margin: 5px;
+  overflow: hidden;
+}
+
+.waypoint-list-header {
+  background-color: transparent !important;
+}
+
+.waypoint-name-label {
+  background-color: var(--background) !important;
+}
+
+.latlon-label {
+  background-color: var(--interactive) !important;
+}

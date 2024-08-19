@@ -13,7 +13,7 @@ let rotateInPlaceSpeedI = 1;
 const SPEEDS = [0.2, 0.35, 0.5, 1.0];
 const TURN_RADII = [5.0, 2.0, 1.0, 0.5];
 const ROTATE_IN_PLACE_SPEEDS = [0.25, 0.5, 1.0, 2.0];
-const TURN_INPUT_MAX_RATE_OF_CHANGE = 15 // keypress/s; Later scaled with turn radius.
+const TURN_INPUT_MAX_RATE_OF_CHANGE = 15; // keypress/s; Later scaled with turn radius.
 
 // Track a set of buttons.
 const trackedButtons = {};
@@ -85,12 +85,9 @@ setInterval(() => {
     readKey(getKeybind('Rotate Right in Place')); // positive = left
 
   // Smoothen turn input to prevent wheel controller's safety mechanisms from interfering.
-  const maxDeltaTurn = TURN_INPUT_MAX_RATE_OF_CHANGE / RATE * TURN_RADII[turnRadiusI];
-  smoothTurn += clamp(
-    turn - smoothTurn,
-    -maxDeltaTurn,
-    maxDeltaTurn
-  );
+  const maxDeltaTurn =
+    (TURN_INPUT_MAX_RATE_OF_CHANGE / RATE) * TURN_RADII[turnRadiusI];
+  smoothTurn += clamp(turn - smoothTurn, -maxDeltaTurn, maxDeltaTurn);
   turn = smoothTurn; // Override turn with the smoothed value so that this block can be easily commented out.
 
   // If inputs did not change since last update and all of them are 0, stop sending commands.

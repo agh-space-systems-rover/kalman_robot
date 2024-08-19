@@ -13,3 +13,12 @@
 .search-section {
   flex: 1;
 }
+
+.rover-label {
+  background-color: var(--magenta-background) !important;
+}
+
+
+.marker-label {
+  background-color: var(--blue-background) !important;
+}

@@ -4,8 +4,10 @@
 # Usage:
 # All modules have a "{module}" argument, which is used to enable or disable the module.
 # This argument is always false by default.
-# If you set "{module}" to "true", please also include all other "{module}.*" arguments.
-# If "{module}" is not set, "{module}.*" arguments should not be specified.
+# If you set "{module}" to "true", please also consider all other "{module}.*" arguments.
+# The default values are always empty strings, false booleans, zero numbers, etc.
+# Some of them can be left out, but others might be required.
+# If "...{module}" is not set, "...{module}.*" arguments should not be specified.
 # When running multiple launch configurations together, please make sure that each "{module}" argument is set to "true" at most in only one of them.
 #
 # If any "*.composition" argument is set to "true", please ensure that "component_container" was also set to "true" in this launch file or in any other one that is currently running.
@@ -105,6 +107,9 @@ def launch_setup(context):
                         / "unity_sim.launch.py"
                     )
                 ),
+                launch_arguments={
+                    "scene": get_str("unity_sim.scene"),
+                }.items(),
             ),
         ]
 
@@ -142,6 +147,13 @@ def launch_setup(context):
                     "rgbd_ids": get_str("drivers.rgbd_ids"),
                     "imu": get_str("drivers.imu"),
                     "compass_calibration": get_str("drivers.compass_calibration"),
+                    "compass_calibration.delay": get_str("drivers.compass_calibration.delay"),
+                    "compass_calibration.duration": get_str("drivers.compass_calibration.duration"),
+                    "compass_calibration.angular_velocity": get_str("drivers.compass_calibration.angular_velocity"),
+                    "declination_calibration": get_str("drivers.declination_calibration"),
+                    "declination_calibration.delay": get_str("drivers.declination_calibration.delay"),
+                    "declination_calibration.duration": get_str("drivers.declination_calibration.duration"),
+                    "declination_calibration.velocity": get_str("drivers.declination_calibration.velocity"),
                     "gps": get_str("drivers.gps"),
                 }.items(),
             ),
@@ -183,10 +195,7 @@ def launch_setup(context):
                         COMPONENT_CONTAINER_NAME if get_bool("slam.composition") else ""
                     ),
                     "rgbd_ids": get_str("slam.rgbd_ids"),
-                    "gps": get_str("slam.gps"),
                     "gps_datum": get_str("slam.gps_datum"),
-                    "no_gps_map_odom_offset": get_str("slam.no_gps_map_odom_offset"),
-                    "mapping": get_str("slam.mapping"),
                 }.items(),
             ),
         ]
@@ -333,6 +342,11 @@ def generate_launch_description():
                 description="Start up the Unity simulator with virtual sensors and actuators.",
             ),
             DeclareLaunchArgument(
+                "unity_sim.scene",
+                default_value="",
+                description="The scene to load in Unity.",
+            ),
+            DeclareLaunchArgument(
                 "gazebo",
                 default_value="false",
                 description="Start up the Gazebo simulator with virtual sensors and actuators.",
@@ -370,7 +384,42 @@ def generate_launch_description():
             DeclareLaunchArgument(
                 "drivers.compass_calibration",
                 default_value="false",
-                description="Start the IMU compass calibration node. IMU must be disabled in order to calibrate the compass.",
+                description="Start the IMU compass calibration service node. IMU must be disabled in order to calibrate the compass.",
+            ),
+            DeclareLaunchArgument(
+                "drivers.compass_calibration.delay",
+                default_value="0",
+                description="The delay before the node will start the calibration.",
+            ),
+            DeclareLaunchArgument(
+                "drivers.compass_calibration.duration",
+                default_value="0",
+                description="For how long the robot will keep rotating during compass calibration.",
+            ),
+            DeclareLaunchArgument(
+                "drivers.compass_calibration.angular_velocity",
+                default_value="0",
+                description="The angular velocity to rotate at during the compass calibration (rad/s).",
+            ),
+            DeclareLaunchArgument(
+                "drivers.declination_calibration",
+                default_value="false",
+                description="Start the IMU declination calibration node. IMU must be enabled in order to calibrate the declination.",
+            ),
+            DeclareLaunchArgument(
+                "drivers.declination_calibration.delay",
+                default_value="0",
+                description="The delay before the node will start the calibration.",
+            ),
+            DeclareLaunchArgument(
+                "drivers.declination_calibration.duration",
+                default_value="0",
+                description="How long the robot will drive forward during declination calibration.",
+            ),
+            DeclareLaunchArgument(
+                "drivers.declination_calibration.velocity",
+                default_value="0",
+                description="The velocity to drive at during the declination calibration. (m/s)",
             ),
             DeclareLaunchArgument(
                 "drivers.gps",
@@ -408,24 +457,9 @@ def generate_launch_description():
                 description="Space-separated IDs of the depth cameras to use for localization.",
             ),
             DeclareLaunchArgument(
-                "slam.gps",
-                default_value="false",
-                description="Use GPS data to generate map->odom. If disabled, a static transform is used. GPS additionally provides map->utm that allows to send goals in UTM coordinates.",
-            ),
-            DeclareLaunchArgument(
                 "slam.gps_datum",
                 default_value="",
-                description="The 'latitude longitude' of the map frame. Only used if GPS is enabled. Empty to assume first recorded GPS fix.",
-            ),
-            DeclareLaunchArgument(
-                "slam.no_gps_map_odom_offset",
-                default_value="",
-                description="The 'x y' translation from map to odom frame. Only used if GPS is disabled. Empty means zero offset.",
-            ),
-            DeclareLaunchArgument(
-                "slam.mapping",
-                default_value="false",
-                description="Create a 3D point cloud of the terrain as the robot moves.",
+                description="The 'latitude longitude' of the map frame. Empty to assume first recorded GPS fix. If set, it will be the initial location of the rover before any readings arrive.",
             ),
             DeclareLaunchArgument(
                 "nav2",

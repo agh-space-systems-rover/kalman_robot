@@ -17,8 +17,9 @@ def generate_launch_description():
                 ),
                 launch_arguments={
                     "unity_sim": "true",
+                    "unity_sim.scene": "ERC2023",
                     "rviz": "true",
-                    "rviz.config": "urc_autonomy.rviz",
+                    "rviz.config": "autonomy.rviz",
                     "gs": "true",
                     "wheel_controller": "true",
                 }.items(),

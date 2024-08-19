@@ -206,11 +206,11 @@ export default function Supervisor({ props }: Props) {
           <>
             <div className={styles['supervisor-row']}>
               <Label color={redBg}>X</Label>
-              <Input ref={inputRefs[0]} type='number' placeholder='Front' />
+              <Input ref={inputRefs[0]} type='float' placeholder='Front' />
               <Label color={greenBg}>Y</Label>
-              <Input ref={inputRefs[1]} type='number' placeholder='Left' />
+              <Input ref={inputRefs[1]} type='float' placeholder='Left' />
               <Label color={blueBg}>Z</Label>
-              <Input ref={inputRefs[2]} type='number' placeholder='Up' />
+              <Input ref={inputRefs[2]} type='float' placeholder='Up' />
             </div>
             <div className={styles['supervisor-row']}>
               <Label color={magentaBg}>&nbsp;Frame ID&nbsp;</Label>
@@ -235,11 +235,11 @@ export default function Supervisor({ props }: Props) {
               <Label color={greenBg}>
                 <FontAwesomeIcon icon={faArrowsUpDown} />
               </Label>
-              <Input ref={inputRefs[0]} type='number' placeholder='Latitude' />
+              <Input ref={inputRefs[0]} type='float' placeholder='Latitude' />
               <Label color={redBg}>
                 <FontAwesomeIcon icon={faArrowsLeftRight} />
               </Label>
-              <Input ref={inputRefs[1]} type='number' placeholder='Longitude' />
+              <Input ref={inputRefs[1]} type='float' placeholder='Longitude' />
               <Button
                 tooltip='Set goal location from map marker.'
                 onClick={() => setLatLongFromMapMarker(0, 1)}
@@ -258,7 +258,7 @@ export default function Supervisor({ props }: Props) {
               </Label>
               <Input
                 ref={inputRefs[0]}
-                type='number'
+                type='float'
                 placeholder='Initial Latitude'
               />
               <Label color={redBg}>
@@ -266,7 +266,7 @@ export default function Supervisor({ props }: Props) {
               </Label>
               <Input
                 ref={inputRefs[1]}
-                type='number'
+                type='float'
                 placeholder='Initial Longitude'
               />
               <Button
@@ -280,7 +280,7 @@ export default function Supervisor({ props }: Props) {
               <Label color={magentaBg}>&nbsp;Marker ID&nbsp;</Label>
               <Input
                 ref={inputRefs[2]}
-                type='number'
+                type='float'
                 placeholder='e.g. 42'
                 className={styles['supervisor-row-item']}
               />
@@ -296,7 +296,7 @@ export default function Supervisor({ props }: Props) {
               </Label>
               <Input
                 ref={inputRefs[0]}
-                type='number'
+                type='float'
                 placeholder='Initial Latitude'
               />
               <Label color={redBg}>
@@ -304,7 +304,7 @@ export default function Supervisor({ props }: Props) {
               </Label>
               <Input
                 ref={inputRefs[1]}
-                type='number'
+                type='float'
                 placeholder='Initial Longitude'
               />
               <Button

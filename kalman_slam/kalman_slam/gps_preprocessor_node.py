@@ -15,9 +15,6 @@ class GpsNanRemoval(Node):
         self.initial_covariance = self.declare_parameter(
             "initial_covariance", 0.0
         ).value
-        self.covariance_override = self.declare_parameter(
-            "covariance_override", 0.0
-        ).value
 
         self.sub = self.create_subscription(
             NavSatFix,
@@ -32,11 +29,7 @@ class GpsNanRemoval(Node):
         self.logged_switch = False
 
     def fix_callback(self, msg: NavSatFix) -> None:
-        # Check if any of the fields are NaN and replace them with zeros.
-        if math.isnan(msg.latitude):
-            msg.latitude = 0.0
-        if math.isnan(msg.longitude):
-            msg.longitude = 0.0
+        # Check if altitude is NaN and replace it with zero.
         if math.isnan(msg.altitude):
             msg.altitude = 0.0
         for i in range(len(msg.position_covariance)):
@@ -51,17 +44,6 @@ class GpsNanRemoval(Node):
         if time.time() - self.first_fix_time < self.initial_covariance_duration:
             for i in range(0, len(msg.position_covariance), 4):
                 msg.position_covariance[i] = self.initial_covariance
-        elif self.covariance_override > 0:
-            # If the first few seconds have passed, override the covariance.
-            # DO not do that if the override is set to 0.
-            for i in range(0, len(msg.position_covariance), 4):
-                msg.position_covariance[i] = self.covariance_override
-
-            if not self.logged_switch:
-                self.get_logger().info(
-                    f"Switching GPS covariance from {self.initial_covariance} to {self.covariance_override}."
-                )
-                self.logged_switch = True
 
         self.pub.publish(msg)
 

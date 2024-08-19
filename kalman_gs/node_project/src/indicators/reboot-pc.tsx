@@ -6,12 +6,11 @@ import { faPowerOff } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Service } from 'roslib';
 
-import Button from '../components/button';
 import Tooltip from '../components/tooltip';
 
 let rebootService: Service<{}, {}> = null;
 window.addEventListener('ros-connect', () => {
-  rebootService = new Service({
+  rebootService = new Service<{}, {}>({
     ros: ros,
     name: '/tunnel/reboot_pc',
     serviceType: 'std_srvs/Empty'

@@ -120,7 +120,9 @@
                   false, false, false,
                   false, false, false]
     imu0_differential: false
-    imu0_relative: false
+    # Because odom's rotation should be aligned with base_link:
+    imu0_relative: true
+    # NOTE: The frame aligned with true north would be "map".
     imu0_queue_size: 10
 
     # [ADVANCED] Some IMUs automatically remove acceleration due to gravity, and others don't. If yours doesn't, please set

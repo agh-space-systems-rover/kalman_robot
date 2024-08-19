@@ -14,5 +14,44 @@
 
 .kalman-marker {
   filter: drop-shadow(0px 0px 10px black) brightness(0.9);
-  transform: scale(0.5);
+}
+
+.waypoint-marker {
+  filter: drop-shadow(0px 5px 5px black) brightness(0.9);
+}
+
+.waypoint-marker:global(.red) {
+  filter: hue-rotate(0deg);
+}
+
+.waypoint-marker:global(.green) {
+  filter: hue-rotate(120deg);
+}
+
+.waypoint-marker:global(.blue) {
+  filter: hue-rotate(240deg);
+}
+
+.waypoint-marker:global(.magenta) {
+  filter: hue-rotate(300deg);
+}
+
+.waypoint-marker-tooltip {
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: #ddd !important;
+  /* black outline around text */
+  font-size: 1.3em !important;
+  text-shadow:
+    -2px 0 black,
+    0 2px black,
+    2px 0 black,
+    0 -2px black;
+  margin-top: -10px !important;
+  margin-left: 0px !important;
+}
+
+.waypoint-marker-tooltip:before {
+  border: none !important;
 }

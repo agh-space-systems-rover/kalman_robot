@@ -11,6 +11,7 @@ install(DIRECTORY config launch
 ament_python_install_package(${PROJECT_NAME})
 
 install(PROGRAMS
+  scripts/gps_spoofer
   scripts/gps_preprocessor
   DESTINATION lib/${PROJECT_NAME}
 )
