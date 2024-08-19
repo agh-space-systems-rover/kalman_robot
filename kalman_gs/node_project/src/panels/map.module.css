@@ -55,3 +55,18 @@
 .waypoint-marker-tooltip:before {
   border: none !important;
 }
+
+:global(.leaflet-control-scale-line) {
+  background-color: var(--dark-background) !important;
+  border: none !important;
+  border-radius: 5px;
+  color: var(--foreground) !important;
+  font-family: 'Roboto', sans-serif !important;
+  padding: 10px !important;
+  font-weight: normal !important;
+  text-shadow: none !important;
+  box-shadow: 0 0 10px black !important;
+  font-size: 1em !important;
+  opacity: 0.8 !important;
+  text-align: center !important;
+}

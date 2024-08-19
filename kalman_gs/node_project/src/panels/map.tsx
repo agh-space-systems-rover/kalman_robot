@@ -18,6 +18,7 @@ import {
   ImageOverlay,
   MapContainer,
   Marker,
+  ScaleControl,
   TileLayer,
   Tooltip
 } from 'react-leaflet';
@@ -240,6 +241,7 @@ export default class Map extends Component<Props> {
             }}
             riseOnHover
           />
+          <ScaleControl imperial={false} maxWidth={200} />
         </MapContainer>
       </div>
     );
