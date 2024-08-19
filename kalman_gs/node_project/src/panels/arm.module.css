@@ -66,9 +66,9 @@
 }
 
 .warn {
-  color: var(--orange-foreground);
+  color: var(--yellow-foreground);
 }
 
 .error {
-  color: var(--strong-red-foreground);
+  color: var(--red-foreground);
 }
