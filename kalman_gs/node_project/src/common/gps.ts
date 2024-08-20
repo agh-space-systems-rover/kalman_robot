@@ -8,7 +8,7 @@ export type GpsCoords = {
 };
 
 // Switch to raw gps fix after this many ms of no response from Kalman filter:
-const FILTER_TIMEOUT = 2000
+const FILTER_TIMEOUT = 2000;
 let lastKalmanFilterFixTime = 0;
 // This prevents rover marker from jumping around when two slightly different
 // GPS fixes (in different frame IDs) are received alternately from two sources.

@@ -1,7 +1,10 @@
 import styles from './map.header.module.css';
 
+import { gpsCoords } from '../common/gps';
 import { mapMarker, setMapMarkerLatLon } from '../common/map-marker';
 import { alertsRef } from '../common/refs';
+import { ros } from '../common/ros';
+import { NavSatFix, SpoofGpsRequest } from '../common/ros-interfaces';
 import Map from './map';
 import {
   faCopy,
@@ -14,15 +17,19 @@ import {
   faUpDownLeftRight
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { MutableRefObject, createRef, useCallback, useEffect, useRef, useState } from 'react';
+import {
+  MutableRefObject,
+  createRef,
+  useCallback,
+  useEffect,
+  useRef,
+  useState
+} from 'react';
+import { Service, Topic } from 'roslib';
 
 import Button from '../components/button';
 import Input from '../components/input';
 import Label from '../components/label';
-import { gpsCoords } from '../common/gps';
-import { Service, Topic } from 'roslib';
-import { ros } from '../common/ros';
-import { NavSatFix, SpoofGpsRequest } from '../common/ros-interfaces';
 
 let spoofGpsSrv: Service<SpoofGpsRequest, {}> = null;
 window.addEventListener('ros-connect', () => {
@@ -95,7 +102,7 @@ export default function MapHeader({ panelRef }: Props) {
 
   const goToGeocode = useCallback(async () => {
     const query = inputRef.current?.getValue();
-    
+
     try {
       const latLong = await parseLatLong(query);
       if (latLong) {
@@ -126,7 +133,10 @@ export default function MapHeader({ panelRef }: Props) {
           onSubmit={goToGeocode}
           onChange={rerender}
         />
-        <Button onClick={goToGeocode} disabled={!(inputRef.current?.isEmpty() === false)}>
+        <Button
+          onClick={goToGeocode}
+          disabled={!(inputRef.current?.isEmpty() === false)}
+        >
           <FontAwesomeIcon icon={faSearch} />
         </Button>
       </div>
@@ -164,7 +174,9 @@ export default function MapHeader({ panelRef }: Props) {
               }
             };
             spoofGpsSrv.callService(req, undefined, (error: string) => {
-              alertsRef.current?.pushAlert('Failed to set rover location. ' + error);
+              alertsRef.current?.pushAlert(
+                'Failed to set rover location. ' + error
+              );
             });
           }}
         >

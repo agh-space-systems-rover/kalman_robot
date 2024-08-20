@@ -1,6 +1,7 @@
 import styles from './waypoints.module.css';
 
 import { mapMarker, setMapMarkerLatLon } from '../common/map-marker';
+import { alertsRef } from '../common/refs';
 import {
   addWaypoint,
   exportWaypointsAsText,
@@ -29,7 +30,6 @@ import { useEffect, useRef, useState } from 'react';
 import Button from '../components/button';
 import Input from '../components/input';
 import Label from '../components/label';
-import { alertsRef } from '../common/refs';
 
 export default function Waypoints() {
   const [rerenderCount, setRerenderCount] = useState(0);
@@ -156,7 +156,11 @@ export default function Waypoints() {
                   tooltip='Remove waypoint'
                   onClick={() => {
                     // Ask for confirmation before removing the waypoint.
-                    if (window.confirm(`Are you sure you want to remove "${waypoint.name}"?`)) {
+                    if (
+                      window.confirm(
+                        `Are you sure you want to remove "${waypoint.name}"?`
+                      )
+                    ) {
                       removeWaypoint(waypoint);
                       setRerenderCount(rerenderCount + 1);
                     }
@@ -174,9 +178,7 @@ export default function Waypoints() {
             onClick={() => {
               // Display a confirmation dialog.
               if (
-                window.confirm(
-                  'Are you sure you want to remove all waypoints?'
-                )
+                window.confirm('Are you sure you want to remove all waypoints?')
               ) {
                 removeAllWaypoints();
               }
@@ -194,8 +196,14 @@ export default function Waypoints() {
               const text = prompt('Enter waypoints as text:');
               if (text) {
                 const numWaypoints = waypoints.length;
-                importWaypointsFromText(text, waypointColors[newWaypointColorI]);
-                alertsRef.current?.pushAlert(`Imported ${waypoints.length - numWaypoints} waypoints.`, 'success');
+                importWaypointsFromText(
+                  text,
+                  waypointColors[newWaypointColorI]
+                );
+                alertsRef.current?.pushAlert(
+                  `Imported ${waypoints.length - numWaypoints} waypoints.`,
+                  'success'
+                );
               }
             }}
           >
@@ -208,7 +216,10 @@ export default function Waypoints() {
             onClick={() => {
               const text = exportWaypointsAsText();
               navigator.clipboard.writeText(text);
-              alertsRef.current?.pushAlert('Waypoints were copied to clipboard.', 'success');
+              alertsRef.current?.pushAlert(
+                'Waypoints were copied to clipboard.',
+                'success'
+              );
             }}
             disabled={waypoints.length === 0}
           >

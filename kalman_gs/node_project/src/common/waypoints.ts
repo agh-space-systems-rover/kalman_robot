@@ -40,14 +40,17 @@ function removeAllWaypoints() {
 }
 
 function exportWaypointsAsText(): string {
-  return waypoints.map((waypoint) => {
-    return `${waypoint.name} ${waypoint.lat.toFixed(8)} ${waypoint.lon.toFixed(8)} ${waypoint.color}`;
-  }).join('\n');
+  return waypoints
+    .map((waypoint) => {
+      return `${waypoint.name} ${waypoint.lat.toFixed(8)} ${waypoint.lon.toFixed(8)} ${waypoint.color}`;
+    })
+    .join('\n');
 }
 
 function parseDMS(dms: string): number {
   const [degrees, minutes, seconds, direction] = dms.split(/\s+/);
-  let decimal = parseFloat(degrees) + parseFloat(minutes) / 60 + parseFloat(seconds) / 3600;
+  let decimal =
+    parseFloat(degrees) + parseFloat(minutes) / 60 + parseFloat(seconds) / 3600;
   if (direction === 'S' || direction === 'W') {
     decimal = -decimal;
   }
@@ -55,11 +58,13 @@ function parseDMS(dms: string): number {
 }
 
 function parseLatLon(coordinate: string): { lat: number; lon: number } {
-  const regexDMS = /([NS])\s*(\d+)\s*(\d+)\s*(\d+)\s*([EW])\s*(\d+)\s*(\d+)\s*(\d+)/i;
+  const regexDMS =
+    /([NS])\s*(\d+)\s*(\d+)\s*(\d+)\s*([EW])\s*(\d+)\s*(\d+)\s*(\d+)/i;
   const regexDecimal = /([-+]?\d*\.?\d+)\s+([-+]?\d*\.?\d+)/;
 
   if (regexDMS.test(coordinate)) {
-    const [, latDir, latDeg, latMin, latSec, lonDir, lonDeg, lonMin, lonSec] = regexDMS.exec(coordinate)!;
+    const [, latDir, latDeg, latMin, latSec, lonDir, lonDeg, lonMin, lonSec] =
+      regexDMS.exec(coordinate)!;
     const lat = parseDMS(`${latDeg} ${latMin} ${latSec} ${latDir}`);
     const lon = parseDMS(`${lonDeg} ${lonMin} ${lonSec} ${lonDir}`);
     return { lat, lon };
@@ -67,21 +72,29 @@ function parseLatLon(coordinate: string): { lat: number; lon: number } {
     const [, lat, lon] = regexDecimal.exec(coordinate)!;
     return { lat: parseFloat(lat), lon: parseFloat(lon) };
   } else {
-    throw new Error("Invalid coordinate format");
+    throw new Error('Invalid coordinate format');
   }
 }
 
-function importWaypointsFromText(text: string, defaultColor: WaypointColor = waypointColors[0]) {
+function importWaypointsFromText(
+  text: string,
+  defaultColor: WaypointColor = waypointColors[0]
+) {
   const newWaypoints: Waypoint[] = [];
 
-  const lines = text.split('\n').map(line => line.trim()).filter(line => line);
+  const lines = text
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line);
 
   try {
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
 
       // This regex will look for a sequence that matches either the DMS or decimal format
-      const coordinateMatch = line.match(/\s([NS]\s*\d+\s*\d+\s*\d+\s*[EW]\s*\d+\s*\d+\s*\d+)|\s([-+]?\d*\.?\d+\s+[-+]?\d*\.?\d+)/i);
+      const coordinateMatch = line.match(
+        /\s([NS]\s*\d+\s*\d+\s*\d+\s*[EW]\s*\d+\s*\d+\s*\d+)|\s([-+]?\d*\.?\d+\s+[-+]?\d*\.?\d+)/i
+      );
 
       if (!coordinateMatch) {
         throw new Error('No valid coordinates found in "' + line + '"');
@@ -92,7 +105,9 @@ function importWaypointsFromText(text: string, defaultColor: WaypointColor = way
       // Everything before the coordinates is considered the name
       const namePart = line.slice(0, coordinateMatch.index);
       // Rest of the line, either begins with a color, or is another waypoint. (When newlines were replaced with spaces.)
-      const restOfLinePart = line.slice(coordinateMatch.index + coordPart.length);
+      const restOfLinePart = line.slice(
+        coordinateMatch.index + coordPart.length
+      );
 
       const coord = coordPart.trim();
       const name = namePart.trim();

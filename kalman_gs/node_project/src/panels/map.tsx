@@ -195,7 +195,10 @@ export default class Map extends Component<Props> {
           />
           <Marker
             ref={this.kalmanMarkerRef}
-            position={[gpsCoords.latitude || 1000000, gpsCoords.longitude || 1000000]}
+            position={[
+              gpsCoords.latitude || 1000000,
+              gpsCoords.longitude || 1000000
+            ]}
             interactive={false}
             icon={Leaflet.icon({
               className: styles['kalman-marker'],

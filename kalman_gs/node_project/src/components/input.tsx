@@ -70,7 +70,10 @@ export default class Input extends Component<Props> {
           onChange={(e) => {
             if (type === 'float') {
               console.log(e.target.value);
-              this.ref.current.value = this.ref.current.value.replace(/[^\d.-]/g, '');
+              this.ref.current.value = this.ref.current.value.replace(
+                /[^\d.-]/g,
+                ''
+              );
               console.log(this.ref.current.value);
             }
             onChange?.(e.target.value);
