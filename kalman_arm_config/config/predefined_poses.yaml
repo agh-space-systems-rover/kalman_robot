@@ -10,9 +10,15 @@ poses:
   - id: 0
     name: "base"
     path: "predefined_poses/move_group_goal.yaml"
+    joints_set: ["joint_1", "joint_2", "joint_3", "joint_4", "joint_5", "joint_6"]
+    joints_checked: ["joint_1", "joint_2", "joint_3"]
   - id: 1
     name: "left_base"
     path: "predefined_poses/left_base.yaml"
+    joints_set: ["joint_1", "joint_2", "joint_3", "joint_4", "joint_5", "joint_6"]
+    joints_checked: ["joint_1", "joint_2", "joint_3"]
   - id: 2
     name: "reset_4_and_6"
     path: "predefined_poses/reset.yaml"
+    joints_set: ["joint_4", "joint_6"]
+    joints_checked: []

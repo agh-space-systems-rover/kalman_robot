@@ -16,7 +16,13 @@ const defaultKeybinds = {
   'Show Camera 6 on Feed 1': 'Digit6',
   'Show Camera 7 on Feed 1': 'Digit7',
   'Show Camera 8 on Feed 1': 'Digit8',
-  'Hold to Change Cameras on Feed 2': 'ShiftLeft'
+  'Hold to Change Cameras on Feed 2': 'ShiftLeft',
+  'Set Spacemouse Linear Scale to Slow (0.1)': 'KeyV',
+  'Set Spacemouse Linear Scale to Medium (0.3)': 'KeyB',
+  'Set Spacemouse Linear Scale to Fast (0.7)': 'KeyN',
+  'Set Spacemouse Rotational Scale to Slow (0.1)': 'KeyF',
+  'Set Spacemouse Rotational Scale to Medium (0.3)': 'KeyG',
+  'Set Spacemouse Rotational Scale to Fast (0.7)': 'KeyH'
 };
 
 // Copy default keybinds to keybinds.

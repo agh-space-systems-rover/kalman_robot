@@ -13,7 +13,7 @@ import {
   faLocationDot,
   faVideo,
   faWheelchair,
-  faPersonMilitaryPointing,
+  faDiagramProject,
   faFlag
 } from '@fortawesome/free-solid-svg-icons';
 
@@ -57,7 +57,7 @@ export const panelInfos: Panels = {
   arm: {
     Component: Arms,
     name: 'Arm',
-    icon: faPersonMilitaryPointing
+    icon: faDiagramProject
   },
   waypoints: {
     Component: Waypoints,

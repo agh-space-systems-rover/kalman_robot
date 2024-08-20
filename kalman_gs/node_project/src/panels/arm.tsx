@@ -1,19 +1,31 @@
 import styles from './arm.module.css';
 
+import {
+  setLinearScaleTo,
+  setRotationalScaleTo,
+  lastServoLinearScale,
+  lastServoRotationalScale,
+  abortPose,
+  sendPoseRequest,
+  keepAlivePose,
+  lastStatusPose
+} from '../common/arm';
+import predefinedPoses from '../common/predefined-arm-poses';
 import { ros } from '../common/ros';
 import { JointState } from '../common/ros-interfaces';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Topic } from 'roslib';
 
 let lastJointState: JointState | null = null;
+
 window.addEventListener('ros-connect', () => {
-  const topic = new Topic({
+  const jointTopic = new Topic({
     ros: ros,
     name: '/arm_controllers/joint_states',
     messageType: 'sensor_msgs/JointState'
   });
 
-  topic.subscribe((msg: JointState) => {
+  jointTopic.subscribe((msg: JointState) => {
     lastJointState = msg;
     window.dispatchEvent(new Event('joint-state'));
   });
@@ -31,23 +43,19 @@ const jointLimitsRad = [
 function rad2deg(rad: number) {
   return (rad * 180) / Math.PI;
 }
-function ArmStatus() {
-  const [_, setRerenderCount] = useState(0);
 
-  const rerender = useCallback(() => {
-    setRerenderCount((count) => count + 1);
-  }, [setRerenderCount]);
+function getJointNames() {
+  return Array.from({ length: 6 }, (_, i) => (
+    <div className={styles['joint-name']} key={i}>
+      Joint {i + 1}:
+    </div>
+  ));
+}
 
-  useEffect(() => {
-    window.addEventListener('joint-state', rerender);
-    return () => {
-      window.removeEventListener('joint-state', rerender);
-    };
-  }, [rerender]);
-
+function getNamesAndValues() {
   let namesAndValues = lastJointState
     ? lastJointState.name.map((name, i) => {
-        return { name: name, value: lastJointState.position[i] };
+        return { name: name, value: lastJointState!.position[i] };
       })
     : [];
 
@@ -55,11 +63,75 @@ function ArmStatus() {
     return a.name.localeCompare(b.name);
   });
 
-  const jointNames = Array.from({ length: 6 }, (_, i) => (
-    <div className={styles['joint-name']} key={i}>
-      Joint {i + 1}:
-    </div>
-  ));
+  return namesAndValues;
+}
+
+function isCloseEnough(
+  jointsA: number[],
+  jointsB: number[],
+  maxDistance: number,
+  checkedJoints: number[] = []
+) {
+  if (jointsA.length !== jointsB.length) {
+    return false;
+  }
+  for (let i = 0; i < jointsA.length; i++) {
+    if (
+      i + 1 in checkedJoints &&
+      Math.abs(jointsA[i] - jointsB[i]) > maxDistance
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function ArmStatus() {
+  const [_, setRerenderCount] = useState(0);
+  const [linearScale, setLinearScale] = useState<number | null>(
+    lastServoLinearScale
+  );
+  const [rotationalScale, setRotationalScale] = useState<number | null>(
+    lastServoRotationalScale
+  );
+
+  const rerender = useCallback(() => {
+    setRerenderCount((count) => count + 1);
+    setLinearScale(lastServoLinearScale);
+    setRotationalScale(lastServoRotationalScale);
+  }, [setRerenderCount]);
+
+  useEffect(() => {
+    window.addEventListener('joint-state', rerender);
+    window.addEventListener('servo-linear-scale', rerender);
+    window.addEventListener('servo-rotational-scale', rerender);
+    return () => {
+      window.removeEventListener('joint-state', rerender);
+      window.removeEventListener('servo-linear-scale', rerender);
+      window.removeEventListener('servo-rotational-scale', rerender);
+    };
+  }, [rerender]);
+
+  const handleLinearScaleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseFloat(e.target.value);
+    if (!isNaN(value) && value >= 0 && value <= 1) {
+      setLinearScale(value);
+      setLinearScaleTo(value); // Update the external value
+    }
+  };
+
+  const handleRotationalScaleChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const value = parseFloat(e.target.value);
+    if (!isNaN(value) && value >= 0 && value <= 1) {
+      setRotationalScale(value);
+      setRotationalScaleTo(value); // Update the external value
+    }
+  };
+
+  const namesAndValues = getNamesAndValues();
+  const jointNames = getJointNames();
 
   const jointRangeLeft = jointLimitsRad.map((limit, i) => (
     <div className={styles['joint-range']} key={i}>
@@ -90,8 +162,7 @@ function ArmStatus() {
   const jointValues = Array.from({ length: 6 }, (_, i) => (
     <div
       className={
-        (stylesFromLimits[i] ? stylesFromLimits[i] : styles['error'] + ' ') +
-        styles['joint-value']
+        (stylesFromLimits[i] ? stylesFromLimits[i] : '') + styles['joint-value']
       }
       key={i}
     >
@@ -104,6 +175,7 @@ function ArmStatus() {
       ..{rad2deg(limit.max).toFixed(0)}
     </div>
   ));
+
   return (
     <div className={styles['arm-status']}>
       <h1 className={styles['status-header']}>Arm Status</h1>
@@ -119,6 +191,199 @@ function ArmStatus() {
           {jointRangeRight}
         </div>
       </div>
+      <h3 className={styles['scales-header']}>Scales</h3>
+      <div className={styles['scales']}>
+        <div className={styles['scale-column'] + ' ' + styles['align-left']}>
+          <div className={styles['scale-name']}>Linear scale:</div>
+          <div className={styles['scale-name']}>Rotational scale:</div>
+        </div>
+        <div className={styles['scale-column']}>
+          <div
+            className={styles['scale-value-holder']}
+            key={lastServoLinearScale}
+          >
+            <input
+              type='range'
+              min='0'
+              max='1'
+              step='0.01'
+              value={linearScale || 0}
+              onChange={handleLinearScaleChange}
+            />
+            <div className={styles['scale-value'] + ' ' + styles['blink']}>
+              {linearScale?.toFixed(2)}
+            </div>
+          </div>
+
+          <div
+            className={styles['scale-value-holder']}
+            key={lastServoRotationalScale + 10}
+          >
+            <input
+              type='range'
+              min='0'
+              max='1'
+              step='0.01'
+              value={rotationalScale || 0}
+              onChange={handleRotationalScaleChange}
+            />
+            <div className={styles['scale-value'] + ' ' + styles['blink']}>
+              {rotationalScale?.toFixed(2)}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function poseJoints(jointValues) {
+  return (
+    <div className={styles['status']}>
+      <div className={styles['joint-column'] + ' ' + styles['align-left']}>
+        {getJointNames()}
+      </div>
+      <div className={styles['joint-column']}>{jointValues}</div>
+    </div>
+  );
+}
+
+function PoseRequester() {
+  const [rerenderCount, setRerenderCount] = useState(0);
+  const rerender = useCallback(() => {
+    setRerenderCount((count) => count + 1);
+  }, [setRerenderCount]);
+
+  useEffect(() => {
+    window.addEventListener('joint-state', rerender);
+    window.addEventListener('pose-status', rerender);
+    return () => {
+      window.removeEventListener('joint-state', rerender);
+      window.removeEventListener('pose-status', rerender);
+    };
+  }, [rerender]);
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      keepAlivePose();
+    }, 200);
+
+    // Cleanup interval on component unmount
+    return () => clearInterval(intervalId);
+  }, []);
+
+  const [currentPoseId, setCurrentPoseId] = useState(0);
+
+  const namesAndValues = getNamesAndValues();
+
+  const predefinedJointValues =
+    predefinedPoses.POSES_JOINTS[
+      predefinedPoses.PREDEFINED_POSES.poses[currentPoseId].name
+    ];
+
+  const posesToSelect = predefinedPoses.PREDEFINED_POSES.poses.map(
+    (pose, i) => (
+      <div
+        key={pose.id}
+        className={`${styles['pose-button']} ${styles['pose-option']} ${pose.id === currentPoseId ? styles['pose-selected'] : ''}`}
+        onClick={() => {
+          setCurrentPoseId(pose.id);
+        }}
+      >
+        <div className={styles['pose-name']}>{pose.name}</div>
+        <div
+          className={`${styles['pose-indicator']} ${
+            isCloseEnough(
+              predefinedPoses.POSES_JOINTS[
+                predefinedPoses.PREDEFINED_POSES.poses[i].name
+              ],
+              namesAndValues.map((joint) => joint.value),
+              predefinedPoses.PREDEFINED_POSES.max_distance_rad,
+              predefinedPoses.PREDEFINED_POSES.poses[i].joints_checked
+            )
+              ? styles['pose-ready']
+              : styles['pose-not-ready']
+          }`}
+        />
+      </div>
+    )
+  );
+
+  let isJointSet: boolean[] = Array(6).fill(false);
+  let isJointClose: boolean[] = Array(6).fill(false);
+  let isJointChecked: boolean[] = Array(6).fill(false);
+
+  predefinedPoses.PREDEFINED_POSES.poses[currentPoseId].joints_set.forEach(
+    (value) => {
+      isJointSet[value - 1] = true;
+    }
+  );
+
+  isJointClose = isJointClose.map((_, i) =>
+    namesAndValues.length
+      ? Math.abs(
+          predefinedPoses.POSES_JOINTS[
+            predefinedPoses.PREDEFINED_POSES.poses[currentPoseId].name
+          ][i] - namesAndValues[i].value
+        ) <= predefinedPoses.PREDEFINED_POSES.max_distance_rad
+      : false
+  );
+
+  predefinedPoses.PREDEFINED_POSES.poses[currentPoseId].joints_checked.forEach(
+    (value) => {
+      isJointChecked[value - 1] = true;
+    }
+  );
+
+  const PoseJoints = poseJoints(
+    Array.from({ length: 6 }, (_, i) => (
+      <div
+        className={`${styles['joint-value']} ${!isJointSet[i] ? styles['joint-not-set'] : !isJointClose[i] && isJointChecked[i] ? styles['warn'] : ''}`}
+        key={i}
+      >
+        {rad2deg(predefinedJointValues[i]).toFixed(0)}
+      </div>
+    ))
+  );
+
+  const closeEnough = isCloseEnough(
+    predefinedPoses.POSES_JOINTS[
+      predefinedPoses.PREDEFINED_POSES.poses[currentPoseId].name
+    ],
+    namesAndValues.map((joint) => joint.value),
+    predefinedPoses.PREDEFINED_POSES.max_distance_rad,
+    predefinedPoses.PREDEFINED_POSES.poses[currentPoseId].joints_checked
+  );
+  return (
+    <div className={styles['pose-requester']}>
+      <h2 className={styles['pose-header']}>Pose Requester</h2>
+      <div className={styles['pose-panel']}>
+        {PoseJoints}
+        <div className={styles['pose-options']}>{posesToSelect}</div>
+      </div>
+      <div className={styles['pose-buttons']}>
+        <div
+          className={`${styles['pose-button']} ${styles['pose-send']} ${
+            closeEnough ? styles['send-ready'] : styles['send-not-ready']
+          }`}
+          onClick={() => {
+            if (closeEnough) {
+              sendPoseRequest(currentPoseId);
+            }
+          }}
+        >
+          {closeEnough ? 'Send Pose' : 'Cannot Send'}
+        </div>
+        <div
+          className={`${styles['pose-button']} ${styles['pose-abort']}`}
+          onClick={() => {
+            abortPose();
+          }}
+        >
+          Abort
+        </div>
+      </div>
+      <div className={styles['pose-status']}>Status: {lastStatusPose}</div>
     </div>
   );
 }
@@ -127,6 +392,7 @@ export default function Arms() {
   return (
     <div className={styles['arm-panel']}>
       <ArmStatus />
+      <PoseRequester />
     </div>
   );
 }
