@@ -1,19 +1,44 @@
 import styles from './map.header.module.css';
 
-import { mapMarker } from '../common/map-marker';
+import { gpsCoords } from '../common/gps';
+import { mapMarker, setMapMarkerLatLon } from '../common/map-marker';
 import { alertsRef } from '../common/refs';
+import { ros } from '../common/ros';
+import { NavSatFix, SpoofGpsRequest } from '../common/ros-interfaces';
 import Map from './map';
 import {
   faCopy,
   faJetFighterUp,
+  faLocationDot,
+  faPaperPlane,
+  faRobot,
   faSearch,
-  faThumbTack
+  faThumbTack,
+  faUpDownLeftRight
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { MutableRefObject, createRef, useCallback } from 'react';
+import {
+  MutableRefObject,
+  createRef,
+  useCallback,
+  useEffect,
+  useRef,
+  useState
+} from 'react';
+import { Service, Topic } from 'roslib';
 
 import Button from '../components/button';
 import Input from '../components/input';
+import Label from '../components/label';
+
+let spoofGpsSrv: Service<SpoofGpsRequest, {}> = null;
+window.addEventListener('ros-connect', () => {
+  spoofGpsSrv = new Service<SpoofGpsRequest, {}>({
+    ros: ros,
+    name: '/spoof_gps',
+    serviceType: 'kalman_robot/SupervisorGpsSpoof'
+  });
+});
 
 type Props = {
   panelRef: MutableRefObject<Map>;
@@ -68,10 +93,16 @@ async function parseLatLong(
 }
 
 export default function MapHeader({ panelRef }: Props) {
-  const inputRef = createRef<Input>();
+  const [rerenderCount, setRerenderCount] = useState(0);
+  const inputRef = useRef<Input>();
+
+  const rerender = useCallback(() => {
+    setRerenderCount(rerenderCount + 1);
+  }, [rerenderCount]);
 
   const goToGeocode = useCallback(async () => {
     const query = inputRef.current?.getValue();
+
     try {
       const latLong = await parseLatLong(query);
       if (latLong) {
@@ -86,6 +117,13 @@ export default function MapHeader({ panelRef }: Props) {
     }
   }, [panelRef]);
 
+  useEffect(() => {
+    window.addEventListener('gps-update', rerender);
+    return () => {
+      window.removeEventListener('gps-update', rerender);
+    };
+  }, [rerender]);
+
   return (
     <div className={styles['map-header']}>
       <div className={styles['section'] + ' ' + styles['search-section']}>
@@ -93,31 +131,91 @@ export default function MapHeader({ panelRef }: Props) {
           ref={inputRef}
           placeholder='Search for a location...'
           onSubmit={goToGeocode}
+          onChange={rerender}
         />
-        <Button onClick={goToGeocode}>
+        <Button
+          onClick={goToGeocode}
+          disabled={!(inputRef.current?.isEmpty() === false)}
+        >
           <FontAwesomeIcon icon={faSearch} />
         </Button>
       </div>
       <div className={styles['section']}>
+        <Label className={styles['rover-label']}>
+          <FontAwesomeIcon icon={faRobot} />
+        </Label>
         <Button
-          tooltip='Jump to the marker.'
+          tooltip='Fly to the rover.'
+          onClick={() => {
+            panelRef.current?.goToLocation(
+              gpsCoords.latitude,
+              gpsCoords.longitude,
+              true
+            );
+          }}
+          disabled={!gpsCoords.latitude || !gpsCoords.longitude}
+        >
+          <FontAwesomeIcon icon={faPaperPlane} />
+        </Button>
+        <Button
+          tooltip='Set rover location on the marker.\nThis is useful when navigating without GPS.'
+          onClick={() => {
+            if (!spoofGpsSrv) {
+              alertsRef.current?.pushAlert(
+                'Failed to set rover location. ROS connection is not established.'
+              );
+              return;
+            }
+
+            const req: SpoofGpsRequest = {
+              location: {
+                latitude: mapMarker.latitude,
+                longitude: mapMarker.longitude
+              }
+            };
+            spoofGpsSrv.callService(req, undefined, (error: string) => {
+              alertsRef.current?.pushAlert(
+                'Failed to set rover location. ' + error
+              );
+            });
+          }}
+        >
+          <FontAwesomeIcon icon={faUpDownLeftRight} />
+        </Button>
+        <Button
+          tooltip='Copy rover coordinates to clipboard.'
+          onClick={() => {
+            navigator.clipboard.writeText(
+              `${gpsCoords.latitude.toFixed(8)}, ${gpsCoords.longitude.toFixed(8)}`
+            );
+          }}
+          disabled={!gpsCoords.latitude || !gpsCoords.longitude}
+        >
+          <FontAwesomeIcon icon={faCopy} />
+        </Button>
+      </div>
+      <div className={styles['section']}>
+        <Label className={styles['marker-label']}>
+          <FontAwesomeIcon icon={faLocationDot} />
+        </Label>
+        <Button
+          tooltip='Fly to the marker.'
           onClick={() => {
             panelRef.current?.goToLocation(
               mapMarker.latitude,
-              mapMarker.longitude
+              mapMarker.longitude,
+              true
             );
           }}
         >
-          <FontAwesomeIcon icon={faJetFighterUp} />
+          <FontAwesomeIcon icon={faPaperPlane} />
         </Button>
         <Button
           tooltip='Set marker location in the center.'
           onClick={() => {
             const location = panelRef.current?.getCurrentLocation();
             if (location) {
-              mapMarker.latitude = location.latitude;
-              mapMarker.longitude = location.longitude;
-              window.dispatchEvent(new Event('map-marker-move'));
+              setMapMarkerLatLon(location.latitude, location.longitude);
             }
           }}
         >

@@ -20,4 +20,10 @@ setInterval(() => {
   localStorage.setItem('map-marker', JSON.stringify(mapMarker));
 }, 100);
 
-export { mapMarker };
+function setMapMarkerLatLon(lat: number, lon: number) {
+  mapMarker.latitude = lat;
+  mapMarker.longitude = lon;
+  window.dispatchEvent(new Event('map-marker-move'));
+}
+
+export { mapMarker, setMapMarkerLatLon };

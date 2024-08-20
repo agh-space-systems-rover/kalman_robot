@@ -24,12 +24,8 @@ def generate_launch_description():
                 ),
                 launch_arguments={
                     "drivers": "true",
-                    "drivers.rgbd_ids": "",
                     "drivers.master": "true",
                     "drivers.master.mode": LaunchConfiguration("mode"),
-                    "drivers.imu": "false",
-                    "drivers.compass_calibration": "false",
-                    "drivers.gps": "false",
                     "wheel_controller": "true",
                 }.items(),
             ),

@@ -19,10 +19,27 @@ export default function Tooltip({
   const showTimeout = useRef<any>(null);
   const popupRef = useRef<Popup>(null);
 
+  // Replace \n with <br> for newlines
+  let multilineText: ReactNode;
+  if (text.includes('\\n')) {
+    multilineText = (
+      <>
+        {text.split('\\n').map((line, i) => (
+          <span key={i}>
+            {line}
+            <br />
+          </span>
+        ))}
+      </>
+    );
+  } else {
+    multilineText = text;
+  }
+
   return (
     <Popup
       ref={popupRef}
-      popup={<div className={styles['tooltip-popup']}>{text}</div>}
+      popup={<div className={styles['tooltip-popup']}>{multilineText}</div>}
       className={
         styles['tooltip-container'] + (className ? ` ${className}` : '')
       }

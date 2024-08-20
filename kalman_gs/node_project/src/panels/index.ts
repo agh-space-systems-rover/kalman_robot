@@ -1,9 +1,10 @@
-import Feeds from './feeds';
 import Arms from './arm';
+import Feeds from './feeds';
 import Imu from './imu';
 import Map from './map';
 import MapHeader from './map.header';
 import Supervisor from './supervisor';
+import Waypoints from './waypoints';
 import Wheels from './wheels';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import {
@@ -13,10 +14,18 @@ import {
   faVideo,
   faWheelchair,
   faDiagramProject,
+  faFlag
 } from '@fortawesome/free-solid-svg-icons';
 
 // Add new panels here:
-export type PanelID = 'imu' | 'wheels' | 'supervisor' | 'map' | 'feeds' | 'arm';
+export type PanelID =
+  | 'imu'
+  | 'wheels'
+  | 'supervisor'
+  | 'map'
+  | 'feeds'
+  | 'arm'
+  | 'waypoints';
 export const defaultPanel: PanelID = 'map';
 export const panelInfos: Panels = {
   imu: {
@@ -49,6 +58,11 @@ export const panelInfos: Panels = {
     Component: Arms,
     name: 'Arm',
     icon: faDiagramProject
+  },
+  waypoints: {
+    Component: Waypoints,
+    name: 'Waypoints',
+    icon: faFlag
   }
 };
 

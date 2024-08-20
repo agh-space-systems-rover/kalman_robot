@@ -31,7 +31,7 @@ window.addEventListener('feeds-updated', () => {
 
 // ROS
 window.addEventListener('ros-connect', () => {
-  const setFeeds = new Service({
+  const setFeed = new Service<SetFeedRequest, {}>({
     ros: ros,
     name: '/set_feed',
     serviceType: 'kalman_interfaces/SetFeeds'
@@ -64,7 +64,7 @@ window.addEventListener('ros-connect', () => {
 
       // If any of the values have changed, send the call.
       if (req.camera || req.channel || req.power) {
-        setFeeds.callService(req, undefined, (error: string) => {
+        setFeed.callService(req, undefined, (error: string) => {
           if (!errorShownOnce) {
             alertsRef.current?.pushAlert('Failed to update feeds: ' + error);
             errorShownOnce = true;

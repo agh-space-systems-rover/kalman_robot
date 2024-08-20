@@ -23,7 +23,7 @@ export default class Input extends Component<Props> {
   }
 
   getValue(): any {
-    if (this.props.type == 'number') {
+    if (this.props.type == 'float') {
       if (this.ref.current?.value === '') {
         return undefined;
       }
@@ -34,6 +34,10 @@ export default class Input extends Component<Props> {
 
   setValue(value: any) {
     this.ref.current!.value = value;
+  }
+
+  isEmpty(): boolean {
+    return this.ref.current?.value === '';
   }
 
   selectAll() {
@@ -60,11 +64,20 @@ export default class Input extends Component<Props> {
       >
         <input
           ref={this.ref}
-          type={type}
           placeholder={placeholder}
           defaultValue={defaultValue}
           className={styles['input-field']}
-          onChange={(e) => onChange?.(e.target.value)}
+          onChange={(e) => {
+            if (type === 'float') {
+              console.log(e.target.value);
+              this.ref.current.value = this.ref.current.value.replace(
+                /[^\d.-]/g,
+                ''
+              );
+              console.log(this.ref.current.value);
+            }
+            onChange?.(e.target.value);
+          }}
           onKeyUp={(e) => {
             if (e.key === 'Enter') {
               onSubmit?.(e.currentTarget.value);

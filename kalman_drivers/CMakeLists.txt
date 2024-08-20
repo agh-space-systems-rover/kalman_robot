@@ -28,6 +28,7 @@ ament_python_install_package(${PROJECT_NAME})
 
 install(PROGRAMS
   scripts/compass_calibration
+  scripts/declination_calibration
   DESTINATION lib/${PROJECT_NAME}
 )
 

@@ -13,11 +13,11 @@ import yaml
 import os
 
 
-def load_ukf_config(rgbd_ids):
+def load_local_ukf_config(rgbd_ids):
     # Load UKF config template
     with open(
         str(
-            get_package_share_path("kalman_slam") / "config" / "ukf_filter_node.yaml.j2"
+            get_package_share_path("kalman_slam") / "config" / "ukf_filter_node_local.yaml.j2"
         ),
         "r",
     ) as f:
@@ -32,7 +32,7 @@ def load_ukf_config(rgbd_ids):
     ukf_params = yaml.load(ukf_config, Loader=yaml.FullLoader)
 
     # Save UKF config to file
-    ukf_params_path = "/tmp/kalman/ukf_filter_node." + str(os.getpid()) + ".yaml"
+    ukf_params_path = "/tmp/kalman/ukf_filter_node_local." + str(os.getpid()) + ".yaml"
     os.makedirs(os.path.dirname(ukf_params_path), exist_ok=True)
     with open(ukf_params_path, "w") as f:
         yaml.dump(ukf_params, f)
@@ -48,43 +48,13 @@ def launch_setup(context):
         for x in LaunchConfiguration("rgbd_ids").perform(context).split(" ")
         if x != ""
     ]
-    gps = LaunchConfiguration("gps").perform(context).lower() == "true"
     gps_datum = [
         float(x)
         for x in LaunchConfiguration("gps_datum").perform(context).split(" ")
         if x != ""
     ]
-    no_gps_map_odom_offset = [
-        float(x)
-        for x in LaunchConfiguration("no_gps_map_odom_offset")
-        .perform(context)
-        .split(" ")
-        if x != ""
-    ]
-    mapping = LaunchConfiguration("mapping").perform(context).lower() == "true"
 
     description = []
-
-    # static map->odom transform
-    # If GPS is used, this transform will be published by an auxiliary UKF node.
-    if not gps:
-        args = ["--frame-id", "map", "--child-frame-id", "odom"]
-        if no_gps_map_odom_offset:
-            args += [
-                "--x",
-                str(no_gps_map_odom_offset[0]),
-                "--y",
-                str(no_gps_map_odom_offset[1]),
-            ]
-
-        description += [
-            Node(
-                name="map_to_odom",
-                package="tf2_ros",
-                executable="static_transform_publisher",
-                arguments=args,
-            ),
-        ]
 
     # visual odometry
     if component_container:
@@ -137,123 +107,119 @@ def launch_setup(context):
             for camera_id in rgbd_ids
         ]
 
-    # Kalman filter
-    # Does not support composition.
+    # Local Kalman filter
     description += [
         Node(
             package="robot_localization",
             executable="ukf_node",
             name="ukf_filter_node",
-            parameters=[load_ukf_config(rgbd_ids)],
-            remappings=(
-                []
-                if not gps
-                else [("odometry/filtered", "odometry/local")]
-                # Remap odometry/filtered to odometry/local if GPS is used.
-            ),
+            parameters=[load_local_ukf_config(rgbd_ids)],
+            remappings=[
+                ("odometry/filtered", "odometry/local")
+            ],
         ),
     ]
 
-    # GPS
-    # robot_localization does not support composition.
-    if gps:
-        description += [
-            # The initialization of all GPS-related nodes must be done after a delay.
-            # This ensures that any early changes to the IMU rotation in the simulation are done before the nodes start.
-            # This should not affect the real robot.
-            TimerAction(
-                period=1.0,
-                actions=[
-                    # navsat_transform_node will refuse to work on messages with NaN values, so a custom preprocessor is needed.
-                    # This preprocessor will also set initial covariance to 0 to guarantee fast UKF convergence.
-                    Node(
-                        package="kalman_slam",
-                        executable="gps_preprocessor",
-                        remappings=[
-                            ("fix", "gps/fix"),
-                            ("fix/filtered", "gps/fix/filtered"),
+    # GPS related nodes
+    description += [
+        # navsat_transform_node will refuse to work on messages with NaN values, so a custom preprocessor is needed.
+        # This preprocessor will also set initial covariance to 0 to guarantee fast UKF convergence.
+        # It also repairs any malformed spoof messages sent by groundstation over the RF link.
+        Node(
+            package="kalman_slam",
+            executable="gps_preprocessor",
+            remappings=[
+                ("fix", "gps/fix"),
+                ("fix/filtered", "gps/fix/filtered"),
+            ],
+        ),
+        # This node creates a service that can be used to send a fake GPS fix.
+        # In practice, this service is forwarded over RF to be used on the ground station.
+        Node(
+            package="kalman_slam",
+            executable="gps_spoofer",
+            remappings=[
+                ("spoof_gps", "spoof_gps"),
+                ("fix", "gps/fix"),
+            ],
+        ),
+        Node(
+            package="robot_localization",
+            executable="navsat_transform_node",
+            parameters=[
+                str(
+                    get_package_share_path("kalman_slam")
+                    / "config"
+                    / "navsat_transform_node.yaml"
+                ),
+                (
+                    {
+                        "wait_for_datum": True,
+                        "datum": [gps_datum[0], gps_datum[1], 0.0],
+                    }
+                    if gps_datum
+                    else {
+                        "wait_for_datum": False,
+                    }
+                ),
+            ],
+            remappings={
+                "imu": "imu/data",  # For some reason the node subscribes to imu, not imu/data.
+                # IMU is theoretically not used by navsat_transform_node because it has the heading from filtered global odometry.
+                "gps/fix": "gps/fix/filtered",
+                # "gps/filtered": "gps/filtered",
+                # "odometry/gps": "odometry/gps", # Sends raw GPS odometry to ukf_filter_node_gps.
+                "odometry/filtered": "odometry/global",  # Receives filtered odometry from ukf_filter_node_gps.
+            }.items(),
+        ),
+        Node(
+            package="robot_localization",
+            executable="ukf_node",
+            name="ukf_filter_node_gps",
+            parameters=[
+                str(
+                    get_package_share_path("kalman_slam")
+                    / "config"
+                    / "ukf_filter_node_global.yaml"
+                )
+                # In config:
+                # - ukf_filter_node_gps receives raw GPS odometry from navsat_transform_node.
+                # - ukf_filter_node_gps receives filtered IMU from sensors.
+            ],
+            remappings={
+                "odometry/filtered": "odometry/global",  # Sends filtered odometry to navsat_transform_node.
+            }.items(),
+        ),
+        # Origin pose at /local_xy_origin is needed for MapViz.
+        # We use the UTM frame for navigation, but MapViz requires its own WGS84 origin.
+        Node(
+            package="swri_transform_util",
+            executable="initialize_origin.py",
+            parameters=[
+                (
+                    {
+                        "local_xy_origin": "manual",  # != "auto"
+                        "local_xy_origins": [
+                            gps_datum[0],
+                            gps_datum[1],
+                            0.0,
+                            0.0,
                         ],
-                    ),
-                    Node(
-                        package="robot_localization",
-                        executable="navsat_transform_node",
-                        parameters=[
-                            str(
-                                get_package_share_path("kalman_slam")
-                                / "config"
-                                / "navsat_transform_node.yaml"
-                            ),
-                            (
-                                {
-                                    "wait_for_datum": True,
-                                    "datum": [gps_datum[0], gps_datum[1], 0.0],
-                                }
-                                if gps_datum
-                                else {
-                                    "wait_for_datum": False,
-                                }
-                            ),
-                        ],
-                        remappings={
-                            "imu": "imu/data",  # For some reason the node subscribes to imu, not imu/data.
-                            # IMU is theoretically not used by navsat_transform_node because it has the heading from filtered global odometry.
-                            "gps/fix": "gps/fix/filtered",
-                            # "gps/filtered": "gps/filtered",
-                            # "odometry/gps": "odometry/gps", # Sends raw GPS odometry to ukf_filter_node_gps.
-                            "odometry/filtered": "odometry/global",  # Receives filtered odometry from ukf_filter_node_gps.
-                        }.items(),
-                    ),
-                    Node(
-                        package="robot_localization",
-                        executable="ukf_node",
-                        name="ukf_filter_node_gps",
-                        parameters=[
-                            str(
-                                get_package_share_path("kalman_slam")
-                                / "config"
-                                / "ukf_filter_node_gps.yaml"
-                            )
-                            # In config:
-                            # - ukf_filter_node_gps receives raw GPS odometry from navsat_transform_node.
-                            # - ukf_filter_node_gps receives filtered IMU from sensors.
-                        ],
-                        remappings={
-                            "odometry/filtered": "odometry/global",  # Sends filtered odometry to navsat_transform_node.
-                        }.items(),
-                    ),
-                    # Origin pose at /local_xy_origin is needed for MapViz.
-                    # We use the UTM frame for navigation, but MapViz requires its own WGS84 origin.
-                    Node(
-                        package="swri_transform_util",
-                        executable="initialize_origin.py",
-                        parameters=[
-                            (
-                                {
-                                    "local_xy_origin": "manual",  # != "auto"
-                                    "local_xy_origins": [
-                                        gps_datum[0],
-                                        gps_datum[1],
-                                        0.0,
-                                        0.0,
-                                    ],
-                                }
-                                if gps_datum
-                                else {
-                                    "local_xy_origin": "auto",
-                                }
-                            )
-                        ],
-                        remappings=[
-                            ("fix", "gps/fix/filtered"),
-                        ],
-                    ),
-                ],
-            ),
-        ]
+                    }
+                    if gps_datum
+                    else {
+                        "local_xy_origin": "auto",
+                    }
+                )
+            ],
+            remappings=[
+                ("fix", "gps/fix/filtered"),
+            ],
+        ),
+    ]
 
-    # TODO: Finish this
-    if mapping:
-        raise NotImplementedError("Mapping is not implemented yet.")
+    # if mapping:
+    #     raise NotImplementedError("Mapping is not implemented yet.")
         # sync
         # parameters = [
         #     str(get_package_share_path("kalman_clouds") / "config" / "cloud_sync.yaml"),
@@ -305,20 +271,8 @@ def generate_launch_description():
                 description="Space-separated IDs of the depth cameras to use.",
             ),
             DeclareLaunchArgument(
-                "gps",
-                description="Use GPS data to generate map->odom. If disabled, a static transform is used. GPS additionally provides map->utm that allows to send goals in UTM coordinates.",
-            ),
-            DeclareLaunchArgument(
                 "gps_datum",
                 description="The 'latitude longitude' of the map frame. Only used if GPS is enabled. Empty to assume first recorded GPS fix.",
-            ),
-            DeclareLaunchArgument(
-                "no_gps_map_odom_offset",
-                description="The 'x y' translation from map to odom frame. Only used if GPS is disabled. Empty means zero offset.",
-            ),
-            DeclareLaunchArgument(
-                "mapping",
-                description="Create a 3D point cloud of the terrain as the robot moves.",
             ),
             OpaqueFunction(function=launch_setup),
         ]

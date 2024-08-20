@@ -7,6 +7,7 @@ type Props = {
   children: ReactNode;
   tooltip?: string;
   onClick?: () => void;
+  disabled?: boolean;
   className?: string;
 };
 
@@ -14,13 +15,18 @@ export default function Button({
   children,
   tooltip,
   onClick,
+  disabled,
   className
 }: Props) {
-  if (tooltip === undefined) {
+  if (tooltip === undefined || disabled) {
     return (
       <div
-        className={styles['button'] + (className ? ` ${className}` : '')}
-        onClick={onClick}
+        className={
+          styles['button'] +
+          (className ? ` ${className}` : '') +
+          (disabled ? ` ${styles['disabled']}` : '')
+        }
+        onClick={disabled ? undefined : onClick}
       >
         {children}
       </div>
@@ -29,8 +35,12 @@ export default function Button({
     return (
       <Tooltip
         text={tooltip}
-        className={styles['button'] + (className ? ` ${className}` : '')}
-        onClick={onClick}
+        className={
+          styles['button'] +
+          (className ? ` ${className}` : '') +
+          (disabled ? ` ${styles['disabled']}` : '')
+        }
+        onClick={disabled ? undefined : onClick}
       >
         {children}
       </Tooltip>

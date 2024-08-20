@@ -37,11 +37,11 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/WheelStates.msg"
   "msg/WheelTemperature.msg"
   "msg/WheelTemperatures.msg"
-  "srv/CalibrateCompass.srv"
   "srv/SetFeed.srv"
   "srv/SetUeuosColor.srv"
   "srv/SetUeuosEffect.srv"
   "srv/SetUeuosState.srv"
+  "srv/SpoofGps.srv"
   DEPENDENCIES std_msgs geometry_msgs geographic_msgs
 )
 

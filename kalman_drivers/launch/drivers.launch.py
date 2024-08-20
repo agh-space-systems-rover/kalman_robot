@@ -21,19 +21,35 @@ PHIDGETS_CONTAINER_NAME = "phidgets_container"
 
 
 def launch_setup(context):
-    component_container = LaunchConfiguration("component_container").perform(context)
-    master = LaunchConfiguration("master").perform(context).lower() == "true"
-    master_mode = LaunchConfiguration("master.mode").perform(context)
+    def get_bool(name):
+        return LaunchConfiguration(name).perform(context).lower() == "true"
+
+    def get_str(name):
+        return LaunchConfiguration(name).perform(context)
+
+    def get_float(name):
+        return float(LaunchConfiguration(name).perform(context))
+
+    component_container = get_str("component_container")
+    master = get_bool("master")
+    master_mode = get_str("master.mode")
     rgbd_ids = [
         x
         for x in LaunchConfiguration("rgbd_ids").perform(context).split(" ")
         if x != ""
     ]
-    imu = LaunchConfiguration("imu").perform(context).lower() == "true"
-    compass_calibration = (
-        LaunchConfiguration("compass_calibration").perform(context).lower() == "true"
+    imu = get_bool("imu")
+    compass_calibration = get_bool("compass_calibration")
+    compass_calibration_delay = get_float("compass_calibration.delay")
+    compass_calibration_duration = get_float("compass_calibration.duration")
+    compass_calibration_angular_velocity = get_float(
+        "compass_calibration.angular_velocity"
     )
-    gps = LaunchConfiguration("gps").perform(context).lower() == "true"
+    declination_calibration = get_bool("declination_calibration")
+    declination_calibration_delay = get_float("declination_calibration.delay")
+    declination_calibration_duration = get_float("declination_calibration.duration")
+    declination_calibration_velocity = get_float("declination_calibration.velocity")
+    gps = get_bool("gps")
 
     if len(rgbd_ids) > 0:
         rgbd_ids_sns = [
@@ -42,11 +58,15 @@ def launch_setup(context):
             if x in REALSENSE_SERIAL_NUMBERS
         ]
 
-    if imu:
-        if compass_calibration:
-            raise RuntimeError(
-                "IMU cannot be started simultaneously with the compass_calibration node. Please start either one of them separately or do not start them at all."
-            )
+    if imu and compass_calibration:
+        raise RuntimeError(
+            "IMU cannot be started simultaneously with the compass_calibration node. Please start either one of them separately or do not start them at all."
+        )
+
+    if not imu and declination_calibration:
+        raise RuntimeError(
+            "IMU must be started in order to calibrate the declination. Please set imu=true."
+        )
 
     description = []
 
@@ -178,11 +198,31 @@ def launch_setup(context):
 
     if compass_calibration:
         description += [
-            # compass_calibration is written in Python and thus is not composable.
             Node(
                 package="kalman_drivers",
                 executable="compass_calibration",
-                remappings=[("calibrate", "compass_calibration/calibrate")],
+                parameters=[
+                    {
+                        "delay": compass_calibration_delay,
+                        "duration": compass_calibration_duration,
+                        "angular_velocity": compass_calibration_angular_velocity,
+                    }
+                ],
+            ),
+        ]
+
+    if declination_calibration:
+        description += [
+            Node(
+                package="kalman_drivers",
+                executable="declination_calibration",
+                parameters=[
+                    {
+                        "delay": declination_calibration_delay,
+                        "duration": declination_calibration_duration,
+                        "velocity": declination_calibration_velocity,
+                    }
+                ],
             ),
         ]
 
@@ -204,6 +244,7 @@ def launch_setup(context):
                     ("vel", "gps/vel"),
                     ("time_reference", "gps/time_reference"),
                 ],
+                respawn=True,
             ),
         ]
 
@@ -238,6 +279,41 @@ def generate_launch_description():
                 "compass_calibration",
                 default_value="false",
                 description="Start the IMU compass calibration service node. IMU must be disabled in order to calibrate the compass.",
+            ),
+            DeclareLaunchArgument(
+                "compass_calibration.delay",
+                default_value="3",
+                description="The delay before the node will start the calibration.",
+            ),
+            DeclareLaunchArgument(
+                "compass_calibration.duration",
+                default_value="30",
+                description="For how long the robot will keep rotating during compass calibration.",
+            ),
+            DeclareLaunchArgument(
+                "compass_calibration.angular_velocity",
+                default_value="0.5",
+                description="The angular velocity to rotate at during the compass calibration (rad/s).",
+            ),
+            DeclareLaunchArgument(
+                "declination_calibration",
+                default_value="false",
+                description="Start the IMU declination calibration node. IMU must be enabled in order to calibrate the declination.",
+            ),
+            DeclareLaunchArgument(
+                "declination_calibration.delay",
+                default_value="3",
+                description="The delay before the node will start the calibration.",
+            ),
+            DeclareLaunchArgument(
+                "declination_calibration.duration",
+                default_value="10",
+                description="How long the robot will drive forward during declination calibration.",
+            ),
+            DeclareLaunchArgument(
+                "declination_calibration.velocity",
+                default_value="1",
+                description="The velocity to drive at during the declination calibration. (m/s)",
             ),
             DeclareLaunchArgument(
                 "gps", default_value="false", description="Start the GPS driver."

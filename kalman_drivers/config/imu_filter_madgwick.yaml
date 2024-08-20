@@ -9,8 +9,12 @@
     remove_gravity_vector: false
     publish_debug_topics: false
     yaw_offset: 0.0
-    # 
-    declination: 0.1570795 # After testing and ocmparing with Google Maps, I'm convinced that Phidgets Spatial automatically corrects for declination. 
+    # Declination should be set to a precise value,
+    # so that the IMU points at the true north.
+    # For now, this value can be read from online resources,
+    # but it often must be adjusted experimentally
+    # since there is are lots of EM sources onboard.
+    declination: 0.1570795
     world_frame: "enu"
     gain: 0.01 # NOTE: Smaller value turned out to work better with the UKF.
     zeta: 0.0

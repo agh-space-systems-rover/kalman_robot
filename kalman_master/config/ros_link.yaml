@@ -153,3 +153,19 @@ rover: # or 'station'
           - approach
           - mallet # not a state, but a possible object_class value
           - bottle
+
+station:
+  services: # topics published by the GS and subscribed by the rover
+    - name: spoof_gps
+      type: kalman_interfaces/srv/SpoofGps
+      request_fields:
+        - path: location.latitude
+          float_range:
+            min: -90.0
+            max: 90.0
+            bytes: 4 # precision = 0.00000005 degrees = 0.5 cm
+        - path: location.longitude
+          float_range:
+            min: -180.0
+            max: 180.0
+            bytes: 4 # precision = 0.0000001 degrees = 1 cm

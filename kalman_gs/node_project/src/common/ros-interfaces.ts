@@ -77,6 +77,7 @@ export type SupervisorTfGoal = {
 export type SupervisorTfGoalFeedback = {
   state?: string;
 };
+// Result is empty.
 
 export type SupervisorGpsGoal = {
   location?: GeoPoint;
@@ -84,6 +85,7 @@ export type SupervisorGpsGoal = {
 export type SupervisorGpsGoalFeedback = {
   state?: string;
 };
+// Result is empty.
 
 export type SupervisorGpsArUcoSearch = {
   initial_location?: GeoPoint;
@@ -94,6 +96,7 @@ export type SupervisorGpsArUcoSearchFeedback = {
   marker_found?: boolean;
   marker_location?: GeoPoint;
 };
+// Result is empty.
 
 export type SupervisorGpsYoloSearch = {
   initial_location?: GeoPoint;
@@ -104,30 +107,36 @@ export type SupervisorGpsYoloSearchFeedback = {
   object_found?: boolean;
   object_location?: GeoPoint;
 };
+// Result is empty.
 
 export type WheelState = {
-  velocity: number;
-  angle: number;
+  velocity?: number;
+  angle?: number;
 };
 export type WheelStates = {
-  front_left: WheelState;
-  front_right: WheelState;
-  back_left: WheelState;
-  back_right: WheelState;
+  front_left?: WheelState;
+  front_right?: WheelState;
+  back_left?: WheelState;
+  back_right?: WheelState;
 };
 
 export type SetFeedRequest = {
-  feed: number;
-  camera: number;
-  channel: number;
-  power: number;
+  feed?: number;
+  camera?: number;
+  channel?: number;
+  power?: number;
+};
+// Response is empty.
+
+export type SpoofGpsRequest = {
+  location?: GeoPoint;
 };
 // Response is empty.
 
 export type JointState = {
-  header: Header;
-  name: string[];
-  position: number[];
-  velocity: number[];
-  effort: number[];
+  header?: Header;
+  name?: string[];
+  position?: number[];
+  velocity?: number[];
+  effort?: number[];
 };

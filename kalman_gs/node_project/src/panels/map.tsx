@@ -1,19 +1,29 @@
 import styles from './map.module.css';
 
 import kalmanMarker from '!!url-loader!../media/kalman-marker.svg';
-import { gpsFix } from '../common/gps';
+import waypointMarker from '!!url-loader!../media/waypoint-marker.svg';
+import { gpsCoords } from '../common/gps';
 import { imuRotation } from '../common/imu';
 import '../common/leaflet-rotated-marker-plugin';
-import { mapMarker } from '../common/map-marker';
+import { mapMarker, setMapMarkerLatLon } from '../common/map-marker';
 import { Quaternion, Vector3, quatTimesVec } from '../common/mini-math-lib';
+import { waypoints } from '../common/waypoints';
+import erc2024Overlay from '../media/erc2024-overlay.png';
 import Leaflet from 'leaflet';
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 import 'leaflet/dist/leaflet.css';
 import { Component, createRef } from 'react';
-import { MapContainer, Marker, TileLayer } from 'react-leaflet';
+import {
+  ImageOverlay,
+  MapContainer,
+  Marker,
+  ScaleControl,
+  TileLayer,
+  Tooltip
+} from 'react-leaflet';
 
-const GO_TO_LOCATION_ZOOM = 17;
+const GO_TO_LOCATION_ZOOM = 19;
 const DEFAULT_LAT = 51.477928;
 const DEFAULT_LONG = -0.001545;
 const DEFAULT_ZOOM = 18;
@@ -45,9 +55,9 @@ function rosYawFromQuat(q: Quaternion): number {
 }
 
 export default class Map extends Component<Props> {
-  private mapRef = createRef<any>();
-  private mapMarkerRef = createRef<any>();
-  private kalmanMarkerRef = createRef<any>();
+  private mapRef = createRef<Leaflet.Map>();
+  private mapMarkerRef = createRef<Leaflet.Marker>();
+  private kalmanMarkerRef = createRef<Leaflet.Marker>();
   private propsUpdateTimer: NodeJS.Timeout | null = null;
 
   private updateProps = () => {
@@ -72,16 +82,22 @@ export default class Map extends Component<Props> {
   };
 
   private onImuUpdated = () => {
-    this.kalmanMarkerRef.current?.setRotationAngle(
+    // Here we use our custom injected method to set the rotation angle of the marker.
+    // Cast to any because the type definitions are not up to date.
+    (this.kalmanMarkerRef.current as any)?.setRotationAngle(
       -((rosYawFromQuat(imuRotation) - ROS_IMU_LINK_YAW) * 180) / Math.PI
     );
   };
 
   private onGpsUpdated = () => {
     this.kalmanMarkerRef.current?.setLatLng([
-      gpsFix.latitude,
-      gpsFix.longitude
+      gpsCoords.latitude,
+      gpsCoords.longitude
     ]);
+  };
+
+  private onWaypointsUpdated = () => {
+    this.forceUpdate();
   };
 
   componentDidMount() {
@@ -91,6 +107,7 @@ export default class Map extends Component<Props> {
       window.addEventListener('map-marker-move', this.onMapMarkerMoved);
       window.addEventListener('imu-update', this.onImuUpdated);
       window.addEventListener('gps-update', this.onGpsUpdated);
+      window.addEventListener('waypoints-update', this.onWaypointsUpdated);
     }
 
     this.propsUpdateTimer = setInterval(() => {
@@ -109,11 +126,16 @@ export default class Map extends Component<Props> {
       window.removeEventListener('map-marker-move', this.onMapMarkerMoved);
       window.removeEventListener('resize', this.onResized);
       window.removeEventListener('any-panel-resize', this.onResized);
+      window.removeEventListener('waypoints-update', this.onWaypointsUpdated);
     }
   }
 
-  goToLocation = (lat: number, long: number) => {
-    this.mapRef.current?.setView([lat, long], GO_TO_LOCATION_ZOOM);
+  goToLocation = (lat: number, long: number, keepZoom = false) => {
+    if (keepZoom) {
+      this.mapRef.current?.setView([lat, long]);
+    } else {
+      this.mapRef.current?.setView([lat, long], GO_TO_LOCATION_ZOOM);
+    }
   };
 
   getCurrentLocation = () => {
@@ -126,10 +148,10 @@ export default class Map extends Component<Props> {
   render() {
     const { props } = this.props;
     if (props.viewLat === undefined) {
-      props.viewLat = gpsFix.latitude || DEFAULT_LAT;
+      props.viewLat = gpsCoords.latitude || DEFAULT_LAT;
     }
     if (props.viewLong === undefined) {
-      props.viewLong = gpsFix.longitude || DEFAULT_LONG;
+      props.viewLong = gpsCoords.longitude || DEFAULT_LONG;
     }
     if (props.viewZoom === undefined) {
       props.viewZoom = DEFAULT_ZOOM;
@@ -163,24 +185,21 @@ export default class Map extends Component<Props> {
             maxZoom={23}
             minZoom={3}
           />
-          <Marker
-            ref={this.mapMarkerRef}
-            position={[mapMarker.latitude, mapMarker.longitude]}
-            draggable={true}
-            autoPan={true}
-            eventHandlers={{
-              drag: (event) => {
-                const marker = event.target;
-                const position = marker.getLatLng();
-                mapMarker.latitude = position.lat;
-                mapMarker.longitude = position.lng;
-                window.dispatchEvent(new CustomEvent('map-marker-move'));
-              }
-            }}
+          <ImageOverlay
+            url={erc2024Overlay}
+            bounds={[
+              // Order of points does not matter as long as they are diagonally opposite corners of the image:
+              [50.0663741908217, 19.9130491956501],
+              [50.0659224467215, 19.9137533400464]
+            ]}
           />
           <Marker
             ref={this.kalmanMarkerRef}
-            position={[gpsFix.latitude || 1000000, gpsFix.longitude || 1000000]}
+            position={[
+              gpsCoords.latitude || 1000000,
+              gpsCoords.longitude || 1000000
+            ]}
+            interactive={false}
             icon={Leaflet.icon({
               className: styles['kalman-marker'],
               iconUrl: kalmanMarker,
@@ -188,6 +207,44 @@ export default class Map extends Component<Props> {
               iconSize: [50, 50]
             })}
           />
+          {waypoints.map((marker, i) => (
+            <Marker
+              key={i}
+              position={[marker.lat, marker.lon]}
+              interactive={false}
+              icon={Leaflet.icon({
+                className: styles['waypoint-marker'] + ' ' + marker.color,
+                iconUrl: waypointMarker,
+                iconAnchor: [10.2, 45],
+                iconSize: [45, 45]
+              })}
+            >
+              <Tooltip
+                direction='right'
+                offset={[0, 0]}
+                opacity={1}
+                permanent
+                className={styles['waypoint-marker-tooltip']}
+              >
+                {marker.name}
+              </Tooltip>
+            </Marker>
+          ))}
+          <Marker
+            ref={this.mapMarkerRef}
+            position={[mapMarker.latitude, mapMarker.longitude]}
+            draggable
+            autoPan
+            eventHandlers={{
+              drag: (event) => {
+                const marker = event.target;
+                const position = marker.getLatLng();
+                setMapMarkerLatLon(position.lat, position.lng);
+              }
+            }}
+            riseOnHover
+          />
+          <ScaleControl imperial={false} maxWidth={200} />
         </MapContainer>
       </div>
     );
