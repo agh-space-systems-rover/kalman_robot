@@ -10,7 +10,7 @@ import {
   keepAlivePose,
   lastStatusPose
 } from '../common/arm';
-import predefinedPoses from '../common/predefined-poses';
+import predefinedPoses from '../common/predefined-arm-poses';
 import { ros } from '../common/ros';
 import { JointState } from '../common/ros-interfaces';
 import React, { useState, useEffect, useCallback } from 'react';
