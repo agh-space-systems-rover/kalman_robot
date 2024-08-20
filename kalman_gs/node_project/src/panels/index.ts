@@ -12,7 +12,7 @@ import {
   faLocationDot,
   faVideo,
   faWheelchair,
-  faPersonMilitaryPointing,
+  faDiagramProject,
 } from '@fortawesome/free-solid-svg-icons';
 
 // Add new panels here:
@@ -48,7 +48,7 @@ export const panelInfos: Panels = {
   arm: {
     Component: Arms,
     name: 'Arm',
-    icon: faPersonMilitaryPointing
+    icon: faDiagramProject
   }
 };
 

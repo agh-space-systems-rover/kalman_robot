@@ -6,9 +6,31 @@ import { Service, Topic } from 'roslib';
 
 let setLinearScale: Topic<unknown> | null = null;
 let setRotationalScale: Topic<unknown> | null = null;
+let abortPoseTopic: Topic<unknown> | null = null;
+let executePoseTopic: Topic<unknown> | null = null;
+let keepAlivePoseTopic: Topic<unknown> | null = null;
+let statusPoseTopic: Topic<unknown> | null = null;
 
 let lastServoLinearScale: number | null = 0.5;
 let lastServoRotationalScale: number | null = 0.5;
+let lastStatusPose: string = 'UNKNOWN';
+
+const ARM_STATUSES = {
+  0: 'SUCCESS',
+  1: 'CANCELLING',
+  2: 'CANCEL_SUCCESS',
+  3: 'CANCEL_FAILED',
+  4: 'ABORT_RECEIVED',
+  5: 'GOAL_ACCEPTED',
+  6: 'GOAL_REJECTED',
+  7: 'FAILED',
+  8: 'PREEMPTING',
+  9: 'INVALID_ID',
+  10: 'TOO_FAR',
+  11: 'EXCEPTION',
+  12: 'GOAL_SENDING',
+  255: 'IDLE'
+};
 
 // ROS
 window.addEventListener('ros-connect', () => {
@@ -24,6 +46,30 @@ window.addEventListener('ros-connect', () => {
     messageType: 'std_msgs/Float32'
   });
 
+  abortPoseTopic = new Topic({
+    ros: ros,
+    name: '/pose_request/abort',
+    messageType: 'example_interfaces/msg/Empty'
+  });
+
+  executePoseTopic = new Topic({
+    ros: ros,
+    name: '/pose_request/execute',
+    messageType: 'kalman_interfaces/ArmPoseSelect'
+  });
+
+  keepAlivePoseTopic = new Topic({
+    ros: ros,
+    name: '/pose_request/keep_alive',
+    messageType: 'example_interfaces/msg/Empty'
+  });
+
+  statusPoseTopic = new Topic({
+    ros: ros,
+    name: '/pose_request/status',
+    messageType: 'kalman_interfaces/ArmGoalStatus'
+  });
+
   setLinearScale.subscribe((msg: { data: number }) => {
     lastServoLinearScale = msg.data;
     window.dispatchEvent(new Event('servo-linear-scale'));
@@ -32,6 +78,11 @@ window.addEventListener('ros-connect', () => {
   setRotationalScale.subscribe((msg: { data: number }) => {
     lastServoRotationalScale = msg.data;
     window.dispatchEvent(new Event('servo-rotational-scale'));
+  });
+
+  statusPoseTopic.subscribe((msg: { status: number }) => {
+    lastStatusPose = ARM_STATUSES[msg.status];
+    window.dispatchEvent(new Event('pose-status'));
   });
 
   setLinearScaleTo(lastServoLinearScale);
@@ -50,6 +101,23 @@ function setRotationalScaleTo(value: number) {
   }
 }
 
+function abortPose() {
+  if (abortPoseTopic) {
+    abortPoseTopic.publish({});
+  }
+}
+
+function sendPoseRequest(id: number) {
+  if (executePoseTopic) {
+    executePoseTopic.publish({ pose_id: id });
+  }
+}
+
+function keepAlivePose() {
+  if (keepAlivePoseTopic) {
+    keepAlivePoseTopic.publish({});
+  }
+}
 window.addEventListener('keydown', (event) => {
   // Check if any input box is focused.
   if (document.activeElement.tagName === 'INPUT') {
@@ -86,5 +154,9 @@ export {
   setLinearScaleTo,
   setRotationalScaleTo,
   lastServoLinearScale,
-  lastServoRotationalScale
+  lastServoRotationalScale,
+  abortPose,
+  sendPoseRequest,
+  keepAlivePose,
+  lastStatusPose
 };

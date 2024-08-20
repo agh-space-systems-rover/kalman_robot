@@ -17,7 +17,8 @@
   font-weight: 600;
 }
 
-.status-header {
+.status-header,
+.pose-header {
   display: flex;
   font-family: 'Bai Jamjuree';
   color: var(--strong-foreground);
@@ -130,9 +131,143 @@ input[type='range']::-moz-range-track {
 .joint-value {
   display: flex;
   align-items: flex-end;
+  justify-content: center;
   font-size: 18px;
   padding: 0px 5px;
   min-height: 30px;
+  min-width: 30px;
+}
+
+.pose-requester {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  margin-left: 30px;
+}
+
+.pose-options {
+  display: flex;
+  width: fit-content;
+  max-height: 180px;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  margin-left: 40px;
+  overflow-y: scroll;
+}
+
+.pose-button {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0px 0px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.pose-option {
+  width: 100%;
+  background-color: var(--interactive);
+  margin-bottom: 5px;
+  transition: background-color 0.3s;
+}
+
+.pose-option:hover {
+  background-color: var(--dark-background);
+}
+
+.pose-buttons {
+  display: flex;
+  width: 100%;
+  flex-direction: row;
+  justify-content: space-evenly;
+  align-items: center;
+}
+
+.pose-send {
+  display: flex;
+  width: 40%;
+  padding: 10px;
+  margin-top: 20px;
+  justify-content: center;
+  transition: background-color 0.3s;
+}
+
+.pose-abort {
+  display: flex;
+  width: 40%;
+  padding: 10px;
+  background-color: var(--red-background);
+  margin-top: 20px;
+  justify-content: center;
+  transition: background-color 0.3s;
+}
+
+.pose-abort:hover {
+  background-color: var(--red-foreground);
+}
+
+.pose-status {
+  display: flex;
+  justify-content: center;
+  margin-top: 15px;
+}
+
+.send-not-ready:hover {
+  background-color: var(--dark-background);
+}
+
+.send-ready:hover {
+  background-color: var(--green-foreground);
+}
+
+.pose-option:hover {
+  background-color: var(--dark-background);
+}
+
+.pose-selected {
+  background-color: var(--active);
+  color: var(--strong-foreground);
+}
+
+.pose-name {
+  margin: 10px 10px;
+}
+
+.pose-indicator {
+  display: flex;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  margin-right: 10px;
+}
+
+.pose-ready {
+  background-color: var(--green-foreground);
+}
+
+.pose-not-ready {
+  background-color: var(--red-foreground);
+}
+
+.send-ready {
+  background-color: var(--green-background);
+}
+
+.send-not-ready {
+  cursor: not-allowed;
+  background-color: var(--dark-background);
+}
+
+.joint-not-set {
+  color: var(--dark-background);
+}
+
+.pose-panel {
+  display: flex;
+  flex-direction: row;
 }
 
 .warn {

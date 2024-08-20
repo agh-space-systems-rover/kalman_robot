@@ -125,9 +125,9 @@ export type SetFeedRequest = {
 // Response is empty.
 
 export type JointState = {
-    header: Header;
-    name: string[];
-    position: number[];
-    velocity: number[];
-    effort: number[];
+  header: Header;
+  name: string[];
+  position: number[];
+  velocity: number[];
+  effort: number[];
 };
