@@ -1,91 +1,50 @@
-// import { ros } from './ros';
-// import { Topic } from 'roslib';
-// import { Twist } from './ros-interfaces';
+import { readGamepads } from './gamepads';
+import { ros } from './ros';
+import { Drive } from './ros-interfaces';
+import { Topic } from 'roslib';
 
-// type DrivingMode = 'forwards' | 'sideways' | 'turn-in-place';
+const RATE = 30;
+const SPEED = 1.0;
+const TURN_RADIUS = 0.75;
+const ROTATE_IN_PLACE_SPEED = 1.57;
 
-// let forwardsTurnRadius = 1.0;
-// const SIDEWAYS_TURN_RADIUS = 5.0;
-// const RATE = 10.0;
+let lastDrive: Drive = null;
 
-// type ForwardsDrivingInput = {
-//   x: number; // positive = forward translation; m/s
-//   y: number; // positive = left translation; m/s
-//   turn: number; // positive = left turn (at x=1, y=0); [-1, 1]
-// }
+window.addEventListener('ros-connect', () => {
+  const drive = new Topic<Drive>({
+    ros: ros,
+    name: '/drive',
+    messageType: 'kalman_interfaces/Drive'
+  });
 
-// type SidewaysDrivingInput = {
-//   y: number; // positive = left translation; m/s
-//   turn: number; // positive = backward turn (at y=1); [-1, 1]
-// }
+  setInterval(() => {
+    let speed = 0; // RT - LT
+    let turn = 0; // LX
+    let angle = 0; // RX
+    let shoulder = false; // RB/LB
 
-// type TurnInPlaceDrivingInput = {
-//   z: number; // positive = left; rad/s
-// }
+    speed = readGamepads('right-trigger', 'wheels') - readGamepads('left-trigger', 'wheels');
+    turn = readGamepads('left-x', 'wheels');
+    angle = readGamepads('right-x', 'wheels');
+    shoulder = readGamepads('left-shoulder', 'wheels') > 0 || readGamepads('right-shoulder', 'wheels') > 0;
 
-// let mode: DrivingMode = 'forwards';
-// let input: ForwardsDrivingInput | SidewaysDrivingInput | TurnInPlaceDrivingInput = {
-//   x: 0,
-//   y: 0,
-//   turn: 0
-// };
+    const msg: Drive = {
+      speed: speed * SPEED,
+      inv_radius: -turn / TURN_RADIUS,
+      sin_angle: -angle,
+      rotation: shoulder ? -speed * ROTATE_IN_PLACE_SPEED : 0
+    };
+    if (shoulder && msg.rotation === 0) {
+      msg.rotation = 0.0001;
+    }
 
-// window.addEventListener('ros-connect', () => {
-//   const cmdVel = new Topic({
-//     ros: ros,
-//     name: '/cmd_vel',
-//     messageType: 'geometry_msgs/Twist'
-//   });
+    if (msg.speed === 0 && msg.inv_radius === 0 && msg.rotation === 0) {
+      if (JSON.stringify(lastDrive) === JSON.stringify(msg)) {
+        return;
+      }
+    }
 
-//   setInterval(() => {
-//     const twist: Twist = {
-//       linear: { x: 0, y: 0, z: 0 },
-//       angular: { x: 0, y: 0, z: 0 }
-//     };
-
-//     switch (mode) {
-//       case 'forwards': {
-//         const { x, y, turn } = input as ForwardsDrivingInput;
-
-//         twist.linear.x = x;
-//         twist.linear.y = y;
-//         // radius = RADIUS / turn
-//         // angular = linear / radius = linear * turn / RADIUS
-//         twist.angular.z = Math.sqrt(x * x + y * y) * turn / forwardsTurnRadius;
-//         break;
-//       }
-//       case 'sideways': {
-//         const { y, turn } = input as SidewaysDrivingInput;
-//         twist.linear.y = y;
-//         twist.angular.z = y * turn / SIDEWAYS_TURN_RADIUS;
-//         break;
-//       }
-//       case 'turn-in-place': {
-//         const { z } = input as TurnInPlaceDrivingInput;
-//         twist.angular.z = z;
-//         break;
-//       }
-//     }
-
-//     cmdVel.publish(twist);
-//   }, 1000 / RATE);
-// });
-
-// export const driveForwards = (x: number, y: number, turn: number) => {
-//   mode = 'forwards';
-//   input = { x, y, turn };
-// }
-
-// export const driveSideways = (y: number, turn: number) => {
-//   mode = 'sideways';
-//   input = { y, turn };
-// }
-
-// export const turnInPlace = (z: number) => {
-//   mode = 'turn-in-place';
-//   input = { z };
-// }
-
-// export const setForwardsTurnRadius = (radius: number) => {
-//   forwardsTurnRadius = radius;
-// }
+    lastDrive = msg;
+    drive.publish(msg);
+  }, 1000 / RATE);
+});

@@ -81,78 +81,14 @@ class TwistController(rclpy.node.Node):
         super().__init__("twist_controller")
 
         # Read parameters.
-        self.declare_parameter(
-            "queue_size",
-            10,
-            ParameterDescriptor(
-                type=ParameterType.PARAMETER_INTEGER,
-                description="queue size for command subscribers and state publisher",
-            ),
-        )
-        self.declare_parameter(
-            "rate",
-            30,
-            ParameterDescriptor(
-                type=ParameterType.PARAMETER_DOUBLE,
-                description="update frequency (Hz)",
-            ),
-        )
-        self.declare_parameter(
-            "stop_timeout",
-            1.0,
-            ParameterDescriptor(
-                type=ParameterType.PARAMETER_DOUBLE,
-                description="time to wait before automatically stopping wheels after last issued command (s)",
-            ),
-        )
-        self.declare_parameter(
-            "robot_radius",
-            0.5,
-            ParameterDescriptor(
-                type=ParameterType.PARAMETER_DOUBLE,
-                description="radius of the robot in meters; Used to calculate wheel angles from angular velocity (m)",
-            ),
-        )
-        self.declare_parameter(
-            "max_wheel_vel",
-            1.0,
-            ParameterDescriptor(
-                type=ParameterType.PARAMETER_DOUBLE,
-                description="maximum wheel velocity (m/s)",
-            ),
-        )
-        self.declare_parameter(
-            "wheel_accel",
-            2.0,
-            ParameterDescriptor(
-                type=ParameterType.PARAMETER_DOUBLE,
-                description="wheel acceleration (m/s^2)",
-            ),
-        )
-        self.declare_parameter(
-            "wheel_turn_vel",
-            1.57,
-            ParameterDescriptor(
-                type=ParameterType.PARAMETER_DOUBLE,
-                description="angular speed of the swivel when changing wheel orientation; Predicates for how long the robot will wait when adjusting wheels (rad/s)",
-            ),
-        )
-        self.declare_parameter(
-            "max_wheel_turn_diff",
-            0.8,
-            ParameterDescriptor(
-                type=ParameterType.PARAMETER_DOUBLE,
-                description="minimum difference between current and target wheel swivel angle to adjust wheels in place (rad)",
-            ),
-        )
-        self.declare_parameter(
-            "min_wheel_turn_diff",
-            0.2,
-            ParameterDescriptor(
-                type=ParameterType.PARAMETER_DOUBLE,
-                description="maximum difference between current and target wheel swivel angle to stop adjusting wheels in place (rad)",
-            ),
-        )
+        self.declare_parameter("rate", 30)
+        self.declare_parameter("stop_timeout", 1.0)
+        self.declare_parameter("robot_radius", 0.5)
+        self.declare_parameter("max_wheel_vel", 1.0)
+        self.declare_parameter("wheel_accel", 2.0)
+        self.declare_parameter("wheel_turn_vel", 1.57)
+        self.declare_parameter("max_wheel_turn_diff", 0.8)
+        self.declare_parameter("min_wheel_turn_diff", 0.2)
 
         # Initialize current wheel states.
         self.state: State = DriveState()
@@ -163,12 +99,11 @@ class TwistController(rclpy.node.Node):
         self.current_angles = [0.0, 0.0, 0.0, 0.0]
 
         # Create subscribers.
-        queue_size = self.get_parameter("queue_size").value
-        self.create_subscription(Twist, "cmd_vel", self.on_cmd_vel, queue_size)
+        self.create_subscription(Twist, "cmd_vel", self.on_cmd_vel, 10)
 
         # Create state publisher.
         self.wheel_state_pub = self.create_publisher(
-            WheelStates, "wheel_states", queue_size
+            WheelStates, "wheel_states", 10
         )
 
         # Create state publisher timer.

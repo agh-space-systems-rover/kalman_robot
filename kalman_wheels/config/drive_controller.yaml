@@ -1,0 +1,11 @@
+/**:
+  ros__parameters:
+    rate: 30
+    timeout: 1.0
+    max_speed: 1
+    max_rotation_speed: 1.57
+    min_turn_radius: 0.75
+    sideways_turn_radius_scale: 2.0
+    rotation_timeout: 0.5
+    swivel_speed: 1.57
+    motor_accel: 4.0

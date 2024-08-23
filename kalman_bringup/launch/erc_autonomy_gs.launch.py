@@ -23,7 +23,6 @@ def generate_launch_description():
                     "drivers.master.mode": "gs",
                     "gs": "true",
                     "wheels": "true",
-                    "wheels.joy": "true",
                 }.items(),
             ),
         ]

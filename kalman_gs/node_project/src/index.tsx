@@ -1,6 +1,6 @@
 import './css/index.css';
 
-// Enable keyboard driving.
+import './common/gamepad-driving';
 import './common/keyboard-driving';
 import { splashRef, alertsRef, settingsRef } from './common/refs';
 import { currentTheme } from './common/themes';

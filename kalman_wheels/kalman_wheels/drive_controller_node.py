@@ -40,8 +40,9 @@ class DriveController(Node):
         self.max_rotation_speed = self.declare_parameter("max_rotation_speed", np.pi / 2)
         self.min_turn_radius = self.declare_parameter("min_turn_radius", 0.75)
         self.sideways_turn_radius_scale = self.declare_parameter("sideways_turn_radius_scale", 2.0)
-        self.rotation_timeout = self.declare_parameter("rotation_timeout", 0.25)
+        self.rotation_timeout = self.declare_parameter("rotation_timeout", 0.5)
         self.swivel_speed = self.declare_parameter("swivel_speed", np.pi / 2)
+        self.motor_accel = self.declare_parameter("motor_accel", 4.0)
 
         self.drive_sub = self.create_subscription(
             Drive, "drive", self.drive_cb, qos_profile=10
@@ -57,6 +58,7 @@ class DriveController(Node):
         self.target_angles = [0, 0, 0, 0]
         self.target_velocities = [0, 0, 0, 0]
         self.current_angles = [0, 0, 0, 0]
+        self.current_velocities = [0, 0, 0, 0]
     
 
     def drive_cb(self, msg: Drive):
@@ -145,6 +147,12 @@ class DriveController(Node):
             dx = np.clip(dx, -self.swivel_speed.value * dt, self.swivel_speed.value * dt)
             self.current_angles[i] += dx
 
+        # Update current velocities.
+        for i in range(len(self.target_velocities)):
+            dv = self.target_velocities[i] - self.current_velocities[i]
+            dv = np.clip(dv, -self.motor_accel.value * dt, self.motor_accel.value * dt)
+            self.current_velocities[i] += dv
+
         # Compute turn radius.
         msg = self.last_drive_msg
         forwards_inv_radius = np.clip(msg.inv_radius, -1.0 / self.min_turn_radius.value, 1.0 / self.min_turn_radius.value)
@@ -173,8 +181,8 @@ class DriveController(Node):
         elif isinstance(self.state, Driving):
             self.send_twist(x, y, angular, speed)
 
-            # Transition to rotation if the rotation is non-zero.
-            if msg.rotation != 0:
+            # Transition to rotation if the rotation is non-zero and the weheels are stopped.
+            if msg.rotation != 0 and np.allclose(self.current_velocities, [0, 0, 0, 0], atol=0.1):
                 self.state = SetupRotating()
         elif isinstance(self.state, SetupRotating):
             self.send_twist(0, 0, 0.001)

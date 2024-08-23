@@ -103,5 +103,5 @@ window.addEventListener('ros-connect', () => {
 
     lastDrive = msg;
     drive.publish(msg);
-  }, RATE);
+  }, 1000 / RATE);
 });

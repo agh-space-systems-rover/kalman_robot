@@ -22,7 +22,6 @@ def generate_launch_description():
                     "rviz.config": "autonomy.rviz",
                     "gs": "true",
                     "wheels": "true",
-                    "wheels.joy": "true",
                 }.items(),
             ),
         ]

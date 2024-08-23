@@ -12,9 +12,9 @@ import {
   faCube,
   faLocationDot,
   faVideo,
-  faWheelchair,
   faDiagramProject,
-  faFlag
+  faFlag,
+  faGear
 } from '@fortawesome/free-solid-svg-icons';
 
 // Add new panels here:
@@ -36,7 +36,7 @@ export const panelInfos: Panels = {
   wheels: {
     Component: Wheels,
     name: 'Wheels',
-    icon: faWheelchair
+    icon: faGear
   },
   supervisor: {
     Component: Supervisor,

@@ -25,8 +25,12 @@
   position: absolute;
   right: 0;
   bottom: 0;
-  width: 0.8em;
-  height: 0.8em;
+  width: 0.9em;
+  height: 0.9em;
   /* shadow */
-  filter: drop-shadow(0px 0px 0.5px #000) drop-shadow(0px 0px 0.5px #000) drop-shadow(0px 0px 0.5px #000) drop-shadow(0px 0px 0.5px #000);
+  filter: drop-shadow(0px 0px 0.5px var(--background))
+    drop-shadow(0px 0px 0.5px var(--background))
+    drop-shadow(0px 0px 0.5px var(--background))
+    drop-shadow(0px 0px 0.5px var(--background));
+  pointer-events: none;
 }
