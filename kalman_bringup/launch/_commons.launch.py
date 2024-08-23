@@ -220,16 +220,19 @@ def launch_setup(context):
             ),
         ]
 
-    if get_bool("wheel_controller"):
+    if get_bool("wheels"):
         description += [
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
                     str(
-                        get_package_share_path("kalman_wheel_controller")
+                        get_package_share_path("kalman_wheels")
                         / "launch"
-                        / "wheel_controller.launch.py"
+                        / "wheels.launch.py"
                     )
                 ),
+                launch_arguments={
+                    "joy": get_str("wheels.joy"),
+                }.items(),
             ),
         ]
 
@@ -482,9 +485,14 @@ def generate_launch_description():
                 description="Name of the static map to use. Maps are stored in kalman_nav2/maps. Empty to disable static map.",
             ),
             DeclareLaunchArgument(
-                "wheel_controller",
+                "wheels",
                 default_value="false",
                 description="Start up the wheel controller.",
+            ),
+            DeclareLaunchArgument(
+                "wheels.joy",
+                default_value="false",
+                description="Launch headless gamepad controller.",
             ),
             DeclareLaunchArgument(
                 "aruco",

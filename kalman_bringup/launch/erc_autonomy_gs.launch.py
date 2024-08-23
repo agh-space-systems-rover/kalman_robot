@@ -22,7 +22,8 @@ def generate_launch_description():
                     "drivers.master": "true", # WARNING: Having two master drivers enabled on the same network will cause messages on topics shared via RF to loop around over network and cause a positive feedback loop! Remember to disable master here or disconnect it physically when connecting to the robot over network.
                     "drivers.master.mode": "gs",
                     "gs": "true",
-                    "wheel_controller": "true",
+                    "wheels": "true",
+                    "wheels.joy": "true",
                 }.items(),
             ),
         ]

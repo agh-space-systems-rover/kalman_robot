@@ -140,3 +140,10 @@ export type JointState = {
   velocity?: number[];
   effort?: number[];
 };
+
+export type Drive = {
+  speed?: number;
+  inv_radius?: number;
+  sin_angle?: number;
+  rotation?: number;
+};

@@ -49,7 +49,7 @@ def generate_launch_description():
                     "drivers.declination_calibration.duration": LaunchConfiguration("duration"),
                     "drivers.declination_calibration.velocity": LaunchConfiguration("velocity"),
                     "drivers.gps": "true",
-                    "wheel_controller": "true",
+                    "wheels": "true",
                 }.items(),
             ),
         ]

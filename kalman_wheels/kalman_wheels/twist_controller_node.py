@@ -76,9 +76,9 @@ class AdjustWheelsState(State):
 
 # This node republishes different motion control messages as a universal wheel
 # state message for a robot with quadruple independent swivel wheels.
-class WheelController(rclpy.node.Node):
+class TwistController(rclpy.node.Node):
     def __init__(self):
-        super().__init__("wheel_controller")
+        super().__init__("twist_controller")
 
         # Read parameters.
         self.declare_parameter(
@@ -91,7 +91,7 @@ class WheelController(rclpy.node.Node):
         )
         self.declare_parameter(
             "rate",
-            10,
+            30,
             ParameterDescriptor(
                 type=ParameterType.PARAMETER_DOUBLE,
                 description="update frequency (Hz)",
@@ -123,7 +123,7 @@ class WheelController(rclpy.node.Node):
         )
         self.declare_parameter(
             "wheel_accel",
-            1.0,
+            2.0,
             ParameterDescriptor(
                 type=ParameterType.PARAMETER_DOUBLE,
                 description="wheel acceleration (m/s^2)",
@@ -164,7 +164,7 @@ class WheelController(rclpy.node.Node):
 
         # Create subscribers.
         queue_size = self.get_parameter("queue_size").value
-        self.create_subscription(Twist, "/cmd_vel", self.on_cmd_vel, queue_size)
+        self.create_subscription(Twist, "cmd_vel", self.on_cmd_vel, queue_size)
 
         # Create state publisher.
         self.wheel_state_pub = self.create_publisher(
@@ -201,10 +201,10 @@ class WheelController(rclpy.node.Node):
                 wheel_angles[i] = flip_angle(wheel_angles[i])
                 wheel_velocities[i] *= -1
 
-        # Flip wheel velocities and angles if the absolute angle exceeds 100 degrees.
+        # Flip wheel velocities and angles if the absolute angle exceeds 110 degrees.
         # Also flip the velocity sign.
         for i in range(len(wheel_angles)):
-            if abs(wheel_angles[i]) > np.deg2rad(100):
+            if abs(wheel_angles[i]) > np.deg2rad(110):
                 wheel_angles[i] = flip_angle(wheel_angles[i])
                 wheel_velocities[i] *= -1
 
@@ -274,12 +274,16 @@ class WheelController(rclpy.node.Node):
         # Update current wheel velocities while respecting acceleration limits.
         def update_current_velocities(target):
             max_wheel_accel = self.get_parameter("wheel_accel").value
+            scales = [1] * len(self.target_velocities)
             for i in range(len(self.target_velocities)):
                 # Simple P=1 controller.
                 # It will precisely converge to the target velocity.
                 dv = target[i] - self.current_velocities[i]
                 dv = np.clip(dv, -max_wheel_accel * dt, max_wheel_accel * dt)
-                self.current_velocities[i] += dv
+                new_vel = self.current_velocities[i] + dv
+                scales[i] = new_vel / self.target_velocities[i]
+            min_scale = np.min(scales)
+            self.current_velocities = [vel * min_scale for vel in self.target_velocities]
 
         # Update current wheel angles.
         def update_current_angles(target):
@@ -337,7 +341,7 @@ class WheelController(rclpy.node.Node):
 def main():
     try:
         rclpy.init()
-        node = WheelController()
+        node = TwistController()
         rclpy.spin(node)
         node.destroy_node()
         rclpy.shutdown()

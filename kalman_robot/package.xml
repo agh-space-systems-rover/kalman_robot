@@ -17,7 +17,7 @@
   <depend>kalman_master</depend>
   <depend>kalman_nav2</depend>
   <depend>kalman_slam</depend>
-  <depend>kalman_wheel_controller</depend>
+  <depend>kalman_wheels</depend>
   <depend>kalman_yolo</depend>
 
   <test_depend>ament_lint_auto</test_depend>

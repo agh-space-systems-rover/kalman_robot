@@ -34,7 +34,7 @@
 
 .context-menu-trigger {
   cursor: pointer;
-  position: absolute;
+  position: absolute !important;
   top: 0;
   left: 0;
   width: 100%;
