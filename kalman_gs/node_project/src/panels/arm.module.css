@@ -282,6 +282,17 @@ input[type='range']::-moz-range-track {
   animation: blink-animation 0.5s ease-in-out;
 }
 
+.trajectory-and-pose {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.extra-space {
+  margin-top: 20px;
+}
+
 @keyframes blink-animation {
   0% {
     opacity: 1;
