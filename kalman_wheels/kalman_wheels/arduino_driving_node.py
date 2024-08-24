@@ -24,7 +24,7 @@ def lerp(a, b, t):
 
 class JoyDriving(Node):
     def __init__(self):
-        super().__init__("joy_driving")
+        super().__init__("arduino_driving")
 
         self.rotation_speed = self.declare_parameter("rotation_speed", np.pi / 2).value
         self.turn_radius = self.declare_parameter("turn_radius", 0.75).value
