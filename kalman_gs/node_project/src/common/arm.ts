@@ -6,14 +6,21 @@ import { Service, Topic } from 'roslib';
 
 let setLinearScale: Topic<unknown> | null = null;
 let setRotationalScale: Topic<unknown> | null = null;
+
 let abortPoseTopic: Topic<unknown> | null = null;
 let executePoseTopic: Topic<unknown> | null = null;
 let keepAlivePoseTopic: Topic<unknown> | null = null;
 let statusPoseTopic: Topic<unknown> | null = null;
 
+let abortTrajectoryTopic: Topic<unknown> | null = null;
+let executeTrajectoryTopic: Topic<unknown> | null = null;
+let keepAliveTrajectoryTopic: Topic<unknown> | null = null;
+let statusTrajectoryTopic: Topic<unknown> | null = null;
+
 let lastServoLinearScale: number | null = 0.5;
 let lastServoRotationalScale: number | null = 0.5;
 let lastStatusPose: string = 'UNKNOWN';
+let lastStatusTrajectory: string = 'UNKNOWN';
 
 const ARM_STATUSES = {
   0: 'SUCCESS',
@@ -70,6 +77,30 @@ window.addEventListener('ros-connect', () => {
     messageType: 'kalman_interfaces/ArmGoalStatus'
   });
 
+  abortTrajectoryTopic = new Topic({
+    ros: ros,
+    name: '/trajectory/abort',
+    messageType: 'example_interfaces/msg/Empty'
+  });
+
+  executeTrajectoryTopic = new Topic({
+    ros: ros,
+    name: '/trajectory/execute',
+    messageType: 'kalman_interfaces/ArmTrajectorySelect'
+  });
+
+  keepAliveTrajectoryTopic = new Topic({
+    ros: ros,
+    name: '/trajectory/keep_alive',
+    messageType: 'example_interfaces/msg/Empty'
+  });
+
+  statusTrajectoryTopic = new Topic({
+    ros: ros,
+    name: '/trajectory/status',
+    messageType: 'kalman_interfaces/ArmGoalStatus'
+  });
+
   setLinearScale.subscribe((msg: { data: number }) => {
     lastServoLinearScale = msg.data;
     window.dispatchEvent(new Event('servo-linear-scale'));
@@ -83,6 +114,11 @@ window.addEventListener('ros-connect', () => {
   statusPoseTopic.subscribe((msg: { status: number }) => {
     lastStatusPose = ARM_STATUSES[msg.status];
     window.dispatchEvent(new Event('pose-status'));
+  });
+
+  statusTrajectoryTopic.subscribe((msg: { status: number }) => {
+    lastStatusTrajectory = ARM_STATUSES[msg.status];
+    window.dispatchEvent(new Event('trajectory-status'));
   });
 
   setLinearScaleTo(lastServoLinearScale);
@@ -118,6 +154,25 @@ function keepAlivePose() {
     keepAlivePoseTopic.publish({});
   }
 }
+
+function abortTrajectory() {
+  if (abortTrajectoryTopic) {
+    abortTrajectoryTopic.publish({});
+  }
+}
+
+function sendTrajectoryRequest(id: number) {
+  if (executeTrajectoryTopic) {
+    executeTrajectoryTopic.publish({ trajectory_id: id });
+  }
+}
+
+function keepAliveTrajectory() {
+  if (keepAliveTrajectoryTopic) {
+    keepAliveTrajectoryTopic.publish({});
+  }
+}
+
 window.addEventListener('keydown', (event) => {
   // Check if any input box is focused.
   if (document.activeElement.tagName === 'INPUT') {
@@ -158,5 +213,9 @@ export {
   abortPose,
   sendPoseRequest,
   keepAlivePose,
-  lastStatusPose
+  lastStatusPose,
+  abortTrajectory,
+  sendTrajectoryRequest,
+  keepAliveTrajectory,
+  lastStatusTrajectory
 };
