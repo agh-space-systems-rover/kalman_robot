@@ -10,6 +10,7 @@ install(PROGRAMS
   scripts/drive_controller
   scripts/joy_driving
   scripts/twist_controller
+  scripts/arduino_driving
   DESTINATION lib/${PROJECT_NAME}
 )
 

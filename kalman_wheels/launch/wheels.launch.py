@@ -10,7 +10,8 @@ def get_yaml_params(name: str) -> str:
     )
 
 def launch_setup(context):
-    joy = LaunchConfiguration("joy").perform(context).lower() == "true"
+    headless_joy = LaunchConfiguration("headless_joy").perform(context).lower() == "true"
+    arduino_joy = LaunchConfiguration("arduino_joy").perform(context).lower() == "true"
 
     description = [
         Node(
@@ -25,7 +26,7 @@ def launch_setup(context):
         ),
     ]
 
-    if joy:
+    if headless_joy:
         description += [
             Node(
                 package="joy_linux",
@@ -40,6 +41,27 @@ def launch_setup(context):
                 package="kalman_wheels",
                 executable="joy_driving",
                 parameters=[get_yaml_params("joy_driving")],
+            )]
+    if arduino_joy:    
+        description += [    
+            Node(
+                package="joy",
+                executable="joy_node",
+                parameters=[
+                    {
+                        "device_name": "Arduino LLC Arduino Leonardo",
+                    }
+                ],
+                remappings=[
+                    ("/joy", "/arduino/joy"),
+                ]
+            ),
+            Node(
+                package="kalman_wheels",
+                executable="arduino_driving",
+                remappings=[
+                    ("/joy", "/arduino/joy"),
+                ]
             )
         ]
 
@@ -49,9 +71,14 @@ def generate_launch_description():
     return LaunchDescription(
         [
             DeclareLaunchArgument(
-                "joy",
+                "headless_joy",
                 default_value="false",
                 description="Launch headless gamepad controller.",
+            ),
+            DeclareLaunchArgument(
+                "arduino_joy",
+                default_value="true",
+                description="Launch arduino gamepad controller.",
             ),
             OpaqueFunction(function=launch_setup),
         ]
