@@ -1,10 +1,14 @@
 import { GamepadInput, readGamepad } from "./gamepad-compat";
 
 type GamepadMode = 'wheels' | 'arm';
-const defaultMode: GamepadMode = 'wheels';
 const gamepads: Map<Gamepad, GamepadMode> = new Map();
 
 const connectGamepads = () => {
+  let defaultMode: GamepadMode = 'wheels';
+  if (gamepads.size > 0) {
+    defaultMode = gamepads.values().next().value === 'wheels' ? 'arm' : 'wheels';
+  }
+
   const connectedGamepads = navigator
     .getGamepads()
     .filter((pad) => pad !== null);
