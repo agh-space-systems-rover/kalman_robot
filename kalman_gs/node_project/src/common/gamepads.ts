@@ -3,6 +3,8 @@ import { GamepadInput, readGamepad } from "./gamepad-compat";
 type GamepadMode = 'wheels' | 'arm';
 const gamepads: Map<Gamepad, GamepadMode> = new Map();
 
+const ARDUINO_GAMEPAD_ID = '2341-8036-Arduino LLC Arduino Leonardo';
+
 const connectGamepads = () => {
   let defaultMode: GamepadMode = 'wheels';
   if (gamepads.size > 0) {
@@ -14,7 +16,7 @@ const connectGamepads = () => {
     .filter((pad) => pad !== null);
   // Add new gamepads.
   for (const pad of connectedGamepads) {
-    if (!gamepads.has(pad)) {
+    if (!gamepads.has(pad) && pad.id !== ARDUINO_GAMEPAD_ID) {
       gamepads.set(pad, defaultMode);
     }
   }

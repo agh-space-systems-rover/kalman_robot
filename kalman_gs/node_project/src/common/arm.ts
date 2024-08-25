@@ -128,12 +128,14 @@ window.addEventListener('ros-connect', () => {
 function setLinearScaleTo(value: number) {
   if (setLinearScale) {
     setLinearScale.publish({ data: value });
+    lastServoLinearScale = value;
   }
 }
 
 function setRotationalScaleTo(value: number) {
   if (setRotationalScale) {
     setRotationalScale.publish({ data: value });
+    lastServoRotationalScale = value;
   }
 }
 
