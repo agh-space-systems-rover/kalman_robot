@@ -40,7 +40,7 @@ except:
 class TrajectoryClient(Node):
 
     def __init__(self):
-        super().__init__("trajectory_client")
+        super().__init__("trajectory_sender")
         self._action_client = ActionClient(
             self,
             FollowJointTrajectory,
@@ -82,6 +82,7 @@ class TrajectoryClient(Node):
         self._goal_handle = None
         self._result_handle = None
         self._timer = None
+        self._goal_sent = False
 
     def update_state(self, msg: JointState):
         self.joints = dict(zip(msg.name, msg.position))
@@ -140,6 +141,12 @@ class TrajectoryClient(Node):
                         ArmGoalStatus(status=ArmGoalStatus.GOAL_SENDING)
                     )
                     self._action_client.wait_for_server()
+                    
+                    if self._goal_sent:
+                        self.get_logger().info("Goal already being sent")
+                        return
+                    
+                    self._goal_sent = True
 
                     self._send_goal_future = self._action_client.send_goal_async(
                         request
@@ -160,6 +167,7 @@ class TrajectoryClient(Node):
             )
 
     def goal_response_callback(self, future):
+        self._goal_sent = False
         goal_handle = future.result()
         if not goal_handle.accepted:
             self.get_logger().info("Goal rejected :(")

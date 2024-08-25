@@ -48,6 +48,7 @@ class PoseRequestSender(Node):
         self._timer = None
         self._goal_handle = None
         self._cancel_future: None | Future = None
+        self._goal_sent = False
 
         self.joint_states_sub = self.create_subscription(
             JointState, "/joint_states", self.update_state, 10
@@ -177,11 +178,17 @@ class PoseRequestSender(Node):
     
         self._action_client.wait_for_server()
 
+        if self._goal_sent:
+            self.get_logger().info("Goal already being sent")
+            return
+        
+        self._goal_sent = True
         self._send_goal_future = self._action_client.send_goal_async(request)
         self._send_goal_future.add_done_callback(self.goal_response_callback)
     
 
     def goal_response_callback(self, future):
+        self._goal_sent = False
         goal_handle = future.result()
         if not goal_handle.accepted:
             self.get_logger().info("Goal rejected :(")
