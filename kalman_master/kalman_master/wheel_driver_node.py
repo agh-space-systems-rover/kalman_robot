@@ -10,7 +10,6 @@ from kalman_interfaces.msg import (
     WheelTemperatures,
     WheelTemperature,
 )
-from vision_msgs.msg import Detection2D
 
 
 METRIC_VELOCITY_TO_MOTOR_VALUE_FACTOR = 100

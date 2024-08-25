@@ -1,11 +1,9 @@
 /**:
   ros__parameters:
-    # queue size for command subscribers and state publisher
-    queue_size: 10
     # update frequency (Hz)
-    rate: 10
+    rate: 30
     # time to wait before automatically stopping wheels after last issued command (s)
-    stop_timeout: 3.0
+    stop_timeout: 1.0
     # radius of the robot in meters; Used to calculate wheel angles from angular velocity (m)
     robot_radius: 0.5
     # maximum wheel velocity (m/s)

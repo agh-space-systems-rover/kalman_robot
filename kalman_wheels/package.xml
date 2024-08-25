@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>kalman_wheel_controller</name>
+  <name>kalman_wheels</name>
   <version>0.0.0</version>
   <description>controller node that converts Twist messages on `/cmd_vel` and similar topics to the actual wheel state; Also includes safeguards that can limit the acceleration and velocity or stop the rover to adjust wheel rotation.</description>
   <maintainer email="63957587+rayferric@users.noreply.github.com">rayferric</maintainer>
@@ -11,6 +11,7 @@
   <buildtool_depend>ament_cmake_python</buildtool_depend>
 
   <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>joy_linux</exec_depend>
 
   <exec_depend>kalman_interfaces</exec_depend>
 

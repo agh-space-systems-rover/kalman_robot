@@ -69,7 +69,7 @@ function getNamesAndValues() {
     return a.name.localeCompare(b.name);
   });
 
-  return namesAndValues;
+  return namesAndValues.slice(1);
 }
 
 function isCloseEnough(
@@ -105,7 +105,7 @@ function ArmStatus() {
     setRerenderCount((count) => count + 1);
     setLinearScale(lastServoLinearScale);
     setRotationalScale(lastServoRotationalScale);
-  }, [setRerenderCount]);
+  }, []);
 
   useEffect(() => {
     window.addEventListener('joint-state', rerender);
@@ -116,7 +116,7 @@ function ArmStatus() {
       window.removeEventListener('servo-linear-scale', rerender);
       window.removeEventListener('servo-rotational-scale', rerender);
     };
-  }, [rerender]);
+  }, []);
 
   const handleLinearScaleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseFloat(e.target.value);
@@ -149,6 +149,7 @@ function ArmStatus() {
   const ERROR_THRESHOLD = (5 * Math.PI) / 180;
 
   const distancesFromLimits = namesAndValues.map((joint, i) => {
+    if (i > 5) return 0;
     return Math.min(
       joint.value - jointLimitsRad[i].min,
       jointLimitsRad[i].max - joint.value

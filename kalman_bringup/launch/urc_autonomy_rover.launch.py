@@ -30,7 +30,7 @@ def generate_launch_description():
                     "slam.rgbd_ids": "d455_front d455_back d455_left d455_right",
                     "nav2": "true",
                     "nav2.rgbd_ids": "d455_front d455_back d455_left d455_right",
-                    "wheel_controller": "true",
+                    "wheels": "true",
                     "aruco": "true",
                     "aruco.rgbd_ids": "d455_front d455_back d455_left d455_right",
                     "yolo": "true",

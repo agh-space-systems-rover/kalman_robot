@@ -259,7 +259,7 @@ controller_server:
       plugin: "service_based_nav2_controller::ServiceBasedNav2Controller"
       compute_velocity_commands_service: "/path_follower/compute_velocity_commands"
 
-# NOTE: kalman_wheel_controller already implements more sophisticated protection mechanisms for the hardware. With the current configuration, kalman_wheel_controller's input is pre-smoothed by velocity_smoother, which is completely unnecessary. However velocity_smoother is always present in the default Nav2 configuration and I am not sure if it should be disabled.
+# NOTE: kalman_wheels already implements more sophisticated protection mechanisms for the hardware. With the current configuration, kalman_wheels's input is pre-smoothed by velocity_smoother, which is completely unnecessary. However velocity_smoother is always present in the default Nav2 configuration and I am not sure if it should be disabled.
 
 # The nav2_velocity_smoother is a package containing a lifecycle-component node for smoothing velocities sent by Nav2 to robot controllers. The aim of this package is to implement velocity, acceleration, and deadband smoothing from Nav2 to reduce wear-and-tear on robot motors and hardware controllers by smoothing out the accelerations/jerky movements that might be present with some local trajectory planners' control efforts. It can also interpolate velocity commands at higher rates than the controller server publishes.
 velocity_smoother:

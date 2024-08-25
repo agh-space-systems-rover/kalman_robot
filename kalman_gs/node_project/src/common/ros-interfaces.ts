@@ -140,3 +140,20 @@ export type JointState = {
   velocity?: number[];
   effort?: number[];
 };
+
+export type Drive = {
+  speed?: number;
+  inv_radius?: number;
+  sin_angle?: number;
+  rotation?: number;
+};
+
+export type ArmFkCommand = {
+  gripper?: number;
+  joint_1?: number;
+  joint_2?: number;
+  joint_3?: number;
+  joint_4?: number;
+  joint_5?: number;
+  joint_6?: number;
+};

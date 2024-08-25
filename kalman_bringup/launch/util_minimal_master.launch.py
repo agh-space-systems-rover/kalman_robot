@@ -26,7 +26,7 @@ def generate_launch_description():
                     "drivers": "true",
                     "drivers.master": "true",
                     "drivers.master.mode": LaunchConfiguration("mode"),
-                    "wheel_controller": "true",
+                    "wheels": "true",
                 }.items(),
             ),
         ]

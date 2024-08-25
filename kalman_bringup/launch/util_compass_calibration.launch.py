@@ -47,7 +47,7 @@ def generate_launch_description():
                     "drivers.compass_calibration.delay": LaunchConfiguration("delay"),
                     "drivers.compass_calibration.duration": LaunchConfiguration("duration"),
                     "drivers.compass_calibration.angular_velocity": LaunchConfiguration("angular_velocity"),
-                    "wheel_controller": "true",
+                    "wheels": "true",
                 }.items(),
             ),
         ]
