@@ -21,6 +21,7 @@ def generate_launch_description():
                 package="kalman_arm_controller",
                 plugin="kalman_arm::ExtraCanNode",
                 name="extra_can_node",
+                parameters=[{"max_gripper": 1905, "min_gripper": 1100, "start_pose": 1850}],
             ),
         ],
         output="screen",
