@@ -1,6 +1,6 @@
 import { GamepadInput, readGamepad } from "./gamepad-compat";
 
-type GamepadMode = 'wheels' | 'arm';
+type GamepadMode = 'wheels' | 'arm' | 'drill';
 const gamepads: Map<Gamepad, GamepadMode> = new Map();
 
 const ARDUINO_GAMEPAD_ID = '2341-8036-Arduino LLC Arduino Leonardo';
