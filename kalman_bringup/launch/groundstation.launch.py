@@ -103,7 +103,7 @@ def generate_launch_description():
                     )
                 ),
                 launch_arguments={
-                    "arduino_joy": "true",
+                    "joy": "arduino",
                 }.items(),
             ),
             IncludeLaunchDescription(

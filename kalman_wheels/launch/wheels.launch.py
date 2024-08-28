@@ -10,8 +10,10 @@ def get_yaml_params(name: str) -> str:
     )
 
 def launch_setup(context):
-    headless_joy = LaunchConfiguration("headless_joy").perform(context).lower() == "true"
-    arduino_joy = LaunchConfiguration("arduino_joy").perform(context).lower() == "true"
+    joy = LaunchConfiguration("joy").perform(context).lower()
+
+    if joy != '' and joy != 'gamepad' and joy != 'arduino':
+        raise RuntimeError("Invalid joy. Choose 'gamepad' or 'arduino'.")
 
     description = [
         Node(
@@ -26,7 +28,7 @@ def launch_setup(context):
         ),
     ]
 
-    if headless_joy:
+    if joy != '':
         description += [
             Node(
                 package="joy_linux",
@@ -35,33 +37,24 @@ def launch_setup(context):
                     {
                         "default_trig_val": True,
                     }
-                ]
+                ],
             ),
+        ]
+
+    if joy == 'gamepad':
+        description += [
             Node(
                 package="kalman_wheels",
-                executable="joy_driving",
-                parameters=[get_yaml_params("joy_driving")],
-            )]
-    if arduino_joy:    
-        description += [    
-            Node(
-                package="joy",
-                executable="joy_node",
-                parameters=[
-                    {
-                        "device_name": "Arduino LLC Arduino Leonardo",
-                    }
-                ],
-                remappings=[
-                    ("/joy", "/arduino/joy"),
-                ]
-            ),
+                executable="gamepad_driving",
+                parameters=[get_yaml_params("gamepad_driving")],
+            )
+        ]
+    elif joy == 'arduino':
+        description += [
             Node(
                 package="kalman_wheels",
                 executable="arduino_driving",
-                remappings=[
-                    ("/joy", "/arduino/joy"),
-                ]
+                parameters=[get_yaml_params("arduino_driving")],
             )
         ]
 
@@ -71,14 +64,9 @@ def generate_launch_description():
     return LaunchDescription(
         [
             DeclareLaunchArgument(
-                "headless_joy",
-                default_value="false",
-                description="Launch headless gamepad controller.",
-            ),
-            DeclareLaunchArgument(
-                "arduino_joy",
-                default_value="true",
-                description="Launch arduino gamepad controller.",
+                "joy",
+                default_value="",
+                description="Joy device to use for headless driving. Choose 'gamepad' or 'arduino'. Empty disables headless teleop.",
             ),
             OpaqueFunction(function=launch_setup),
         ]

@@ -9,3 +9,4 @@
     rotation_timeout: 0.5
     swivel_speed: 1.57
     motor_accel: 4.0
+    max_wheel_angle: 1.91986 # 110 deg

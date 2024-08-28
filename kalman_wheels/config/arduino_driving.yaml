@@ -1,0 +1,5 @@
+/**:
+  ros__parameters:
+    rotation_speed: 1.57
+    min_turn_radius: 0.5
+    max_turn_radius: 1.5
