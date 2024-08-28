@@ -42,6 +42,7 @@ window.addEventListener('ros-connect', () => {
   let prevCameras = [0, 0];
   let prevChannels = [0, 0];
   let prevPowers = [0, 0];
+  let lastActionableReq = null;
 
   const sendCall = () => {
     let errorShownOnce = false; // Prevents from showing two errors, one for each feed.
@@ -63,13 +64,18 @@ window.addEventListener('ros-connect', () => {
       prevPowers[feed] = feedPowers[feed];
 
       // If any of the values have changed, send the call.
+      const errorCb = (error: string) => {
+        if (!errorShownOnce) {
+          alertsRef.current?.pushAlert('Failed to update feeds: ' + error);
+          errorShownOnce = true;
+        }
+      };
       if (req.camera || req.channel || req.power) {
-        setFeed.callService(req, undefined, (error: string) => {
-          if (!errorShownOnce) {
-            alertsRef.current?.pushAlert('Failed to update feeds: ' + error);
-            errorShownOnce = true;
-          }
-        });
+        setFeed.callService(req, undefined, errorCb);
+        lastActionableReq = req;
+      } else if (lastActionableReq !== null) {
+        // If no values have changed, repeat the last call.
+        setFeed.callService(lastActionableReq, undefined, errorCb);
       }
     }
   };
