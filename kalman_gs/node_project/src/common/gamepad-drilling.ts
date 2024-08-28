@@ -2,7 +2,7 @@ import { readGamepads } from './gamepads';
 import { ros } from './ros';
 import { Topic } from 'roslib';
 
-const RATE = 30;
+const RATE = 10;
 const SPEED_ARM = 50; // set to -50 to invert
 const SPEED_RACK = 50;
 const SPEED_DRILL = 100;
@@ -12,6 +12,10 @@ let lastRack = {cmd: 70, data: [0, 0]};
 let lastDrill = {cmd: 71, data: [0, 0]};
 let lastAutonomy = 0;
 let lastSendWeight = 0;
+
+let armFiveTimesZero = 0;
+let rackFiveTimesZero = 0;
+let drillFiveTimesZero = 0;
 
 function msgsAreEqual(arr1, arr2) {
     if (arr1.data.length !== arr2.data.length) return false;
@@ -37,7 +41,7 @@ window.addEventListener('ros-connect', () => {
   setInterval(() => {
     let armAxis = readGamepads('left-y', 'drill') * SPEED_ARM;
     let rackAxis = readGamepads('right-y', 'drill') * SPEED_RACK;
-    let drilling = readGamepads('right-x', 'drill') * SPEED_DRILL;
+    let drilling = ( readGamepads('right-trigger', 'drill')  - readGamepads('left-trigger', 'drill')) * SPEED_DRILL;
     let autonomousDrilling = readGamepads('x-button', 'drill');
     let stopAll = readGamepads('y-button', 'drill');
     let sendWeight = readGamepads('b-button', 'drill');
@@ -50,9 +54,9 @@ window.addEventListener('ros-connect', () => {
     if(Number.isNaN(drilling))
         drilling = 0;
 
-    const msgArm = { cmd: 69, data: [armAxis<0?1:0, Math.abs(armAxis)] };
-    const msgRack = { cmd: 70, data: [rackAxis<0?1:0, Math.abs(rackAxis)] };
-    const msgDrill = { cmd: 71, data: [drilling<0?1:0, Math.abs(drilling)] };
+    const msgArm = { cmd: 69, data: [armAxis<0?1:0, Math.round( Math.abs(armAxis) )] };
+    const msgRack = { cmd: 70, data: [rackAxis<0?1:0, Math.round( Math.abs(rackAxis) )] };
+    const msgDrill = { cmd: 71, data: [drilling<0?1:0, Math.round( Math.abs(drilling) )] };
     const msgAutonomy = { cmd: 72, data: [255] };
     const msgStop = { cmd: 72, data: [0] };
     const msgWeight = { cmd: 73, data: [20] }
@@ -67,12 +71,27 @@ window.addEventListener('ros-connect', () => {
             sendDrillData.publish(msgAutonomy);
     }
 
-    if(!msgsAreEqual(msgArm, lastArm))
+    if(msgNotZero(msgArm) || armFiveTimesZero++ < 5)
+    {
         sendDrillData.publish(msgArm);
-    if(!msgsAreEqual(msgRack, lastRack))
+        if(msgNotZero(msgArm))
+            armFiveTimesZero = 0;
+    }
+
+    if(msgNotZero(msgRack) || rackFiveTimesZero++ < 5)
+    {
         sendDrillData.publish(msgRack);
-    if(!msgsAreEqual(msgDrill, lastDrill))
+        if(msgNotZero(msgRack))
+            rackFiveTimesZero = 0;
+    }
+
+    if(msgNotZero(msgDrill) || drillFiveTimesZero++ < 5)
+    {
         sendDrillData.publish(msgDrill);
+        if(msgNotZero(msgDrill))
+            drillFiveTimesZero = 0;
+    }
+
 
     lastArm = msgArm;
     lastRack = msgRack;
