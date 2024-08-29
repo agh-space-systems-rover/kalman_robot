@@ -117,7 +117,7 @@ class DriveController(Node):
             angle += np.pi
             return np.arctan2(np.sin(angle), np.cos(angle))
         for i in range(len(wheel_angles)):
-            if abs(wheel_angles[i]) > self.max_wheel_angle.value:
+            if abs(wheel_angles[i]) > self.max_wheel_angle.value + 1e-3:
                 wheel_angles[i] = flip_angle(wheel_angles[i])
                 wheel_velocities[i] *= -1
 
@@ -170,6 +170,7 @@ class DriveController(Node):
             # over-translated driving
             sin_angle = (2 - abs(msg.sin_angle)) * np.sign(msg.sin_angle)
             angle = np.arctan2(sin_angle, -cos_from_sin(sin_angle))
+            angle = np.clip(angle, -self.max_wheel_angle.value, self.max_wheel_angle.value)
             over_translate_factor = (abs(angle) - np.pi / 2) / (self.max_wheel_angle.value - np.pi / 2)
 
             inv_radius = lerp(sideways_inv_radius, 0, over_translate_factor)

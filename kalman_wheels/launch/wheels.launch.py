@@ -28,21 +28,17 @@ def launch_setup(context):
         ),
     ]
 
-    if joy != '':
+    if joy == 'gamepad':
         description += [
             Node(
                 package="joy_linux",
                 executable="joy_linux_node",
                 parameters=[
                     {
-                        "default_trig_val": True,
+                        "dev_name": "Logitech Gamepad",
                     }
                 ],
             ),
-        ]
-
-    if joy == 'gamepad':
-        description += [
             Node(
                 package="kalman_wheels",
                 executable="gamepad_driving",
@@ -51,6 +47,15 @@ def launch_setup(context):
         ]
     elif joy == 'arduino':
         description += [
+            Node(
+                package="joy_linux",
+                executable="joy_linux_node",
+                parameters=[
+                    {
+                        "dev_name": "Arduino LLC Arduino Leonardo",
+                    }
+                ],
+            ),
             Node(
                 package="kalman_wheels",
                 executable="arduino_driving",

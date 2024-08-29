@@ -35,8 +35,9 @@ class ArduinoDriving(Node):
 
     def joy_cb(self, msg: Joy):
         max_speed = -msg.axes[LEFT_POTENTIOMETER] * 0.5 + 0.5
-        max_turn = msg.axes[MIDDLE_POTENTIOMETER] * 0.5 + 0.5
+        max_turn = -msg.axes[MIDDLE_POTENTIOMETER] * 0.5 + 0.5
         max_translation = -msg.axes[RIGHT_POTENTIOMETER] * 0.5 + 0.5
+        max_translation **= 0.5
 
         drive = Drive()
 
@@ -48,7 +49,7 @@ class ArduinoDriving(Node):
                 drive.rotation = 0.0001
         else:
             drive.speed = msg.axes[RIGHT_Y] * max_speed
-            drive.inv_radius = msg.axes[LEFT_X] / lerp(self.min_turn_radius.value, self.max_turn_radius.value, max_turn)
+            drive.inv_radius = msg.axes[LEFT_X] / lerp(self.max_turn_radius.value, self.min_turn_radius.value, max_turn)
             drive.sin_angle = msg.axes[RIGHT_X] * max_translation
 
             # Scale sin(angle) to reach max_translation_angle.
