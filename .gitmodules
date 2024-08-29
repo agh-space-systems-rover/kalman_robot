@@ -4,3 +4,6 @@
 [submodule "kalman_yolo"]
 	path = kalman_yolo
 	url = git@github.com:agh-space-systems-rover/kalman_yolo.git
+[submodule "joy_linux"]
+	path = joy_linux
+	url = git@github.com:agh-space-systems-rover/joy_linux.git
