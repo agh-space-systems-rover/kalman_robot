@@ -45,7 +45,7 @@ class FeedDriver(Node):
             msgs.append(
                 MasterMessage(
                     cmd=MasterMessage.FEED_SET_CAMERA,
-                    data=[req.feed, req.camera - 1],  # Firmware indexes cameras from 0.
+                    data=[req.feed, req.camera],  # Firmware indexes cameras from 1.
                 )
             )
         if req.channel != 0:

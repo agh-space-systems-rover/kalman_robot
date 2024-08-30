@@ -44,13 +44,13 @@ window.addEventListener('ros-connect', () => {
   setLinearScale = new Topic({
     ros: ros,
     name: '/servo/set_linear_scale',
-    messageType: 'std_msgs/Float32'
+    messageType: 'std_msgs/Float64'
   });
 
   setRotationalScale = new Topic({
     ros: ros,
     name: '/servo/set_rotational_scale',
-    messageType: 'std_msgs/Float32'
+    messageType: 'std_msgs/Float64'
   });
 
   abortPoseTopic = new Topic({
