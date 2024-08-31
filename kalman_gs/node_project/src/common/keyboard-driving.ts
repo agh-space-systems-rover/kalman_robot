@@ -5,6 +5,8 @@ import { Drive } from './ros-interfaces';
 import { Topic } from 'roslib';
 
 const RATE = 30;
+const SPEED_ACCEL = 2.0;
+const ROTATE_ACCEL = 2.0;
 
 let speedI = 1;
 let turnRadiusI = 2;
@@ -15,6 +17,8 @@ const TURN_RADII = [5.0, 2.0, 1.0, 0.5];
 const ROTATE_IN_PLACE_SPEEDS = [0.25, 0.5, 1.0, 2.0];
 
 let lastDrive: Drive = null;
+let smoothSpeed = 0;
+let smoothRotation = 0;
 
 // Track a set of buttons.
 const trackedButtons = {};
@@ -94,6 +98,16 @@ window.addEventListener('ros-connect', () => {
       inv_radius: turn / TURN_RADII[turnRadiusI],
       rotation: rotateInPlace * ROTATE_IN_PLACE_SPEEDS[rotateInPlaceSpeedI]
     };
+
+    let dv = msg.speed - smoothSpeed;
+    dv = Math.min(Math.max(dv, -SPEED_ACCEL / RATE), SPEED_ACCEL / RATE);
+    smoothSpeed += dv;
+    msg.speed = smoothSpeed;
+
+    dv = msg.rotation - smoothRotation;
+    dv = Math.min(Math.max(dv, -ROTATE_ACCEL / RATE), ROTATE_ACCEL / RATE);
+    smoothRotation += dv;
+    msg.rotation = smoothRotation;
 
     if (msg.speed === 0 && msg.inv_radius === 0 && msg.rotation === 0) {
       if (JSON.stringify(lastDrive) === JSON.stringify(msg)) {

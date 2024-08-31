@@ -38,7 +38,7 @@ window.addEventListener('ros-connect', () => {
       msg.rotation = 0.0001;
     }
 
-    if (msg.speed === 0 && msg.inv_radius === 0 && msg.rotation === 0) {
+    if (msg.speed === 0 && msg.inv_radius === 0 && msg.sin_angle === 0 && msg.rotation === 0) {
       if (JSON.stringify(lastDrive) === JSON.stringify(msg)) {
         return;
       }
