@@ -14,15 +14,12 @@ RIGHT_TRIGGER = 5
 LEFT_SHOULDER = 4
 RIGHT_SHOULDER = 5
 
-def lerp(a, b, t):
-    return a + (b - a) * t
-
-class JoyDriving(Node):
+class GamepadDriving(Node):
     def __init__(self):
-        super().__init__("joy_driving")
+        super().__init__("gamepad_driving")
 
-        self.rotation_speed = self.declare_parameter("rotation_speed", np.pi / 2).value
-        self.turn_radius = self.declare_parameter("turn_radius", 0.75).value
+        self.rotation_speed = self.declare_parameter("rotation_speed", np.pi / 2)
+        self.turn_radius = self.declare_parameter("turn_radius", 0.75)
 
         self.joy_sub = self.create_subscription(
             Joy, "joy", self.joy_cb, qos_profile=10
@@ -44,11 +41,11 @@ class JoyDriving(Node):
 
             # Compute and send velocities.
             drive = Drive()
-            drive.rotation = speed * self.rotation_speed
+            drive.rotation = speed * self.rotation_speed.value
         else:
             drive = Drive()
             drive.sin_angle = msg.axes[RIGHT_X]
-            drive.inv_radius = msg.axes[LEFT_X] / self.turn_radius
+            drive.inv_radius = msg.axes[LEFT_X] / self.turn_radius.value
             drive.speed = (-msg.axes[RIGHT_TRIGGER] * 0.5 + 0.5) - (-msg.axes[LEFT_TRIGGER] * 0.5 + 0.5)
         
         if self.drive_msg_is_zero(drive) and self.drive_msg_is_zero(self.last_drive_msg):
@@ -63,7 +60,7 @@ class JoyDriving(Node):
 def main():
     try:
         rclpy.init()
-        node = JoyDriving()
+        node = GamepadDriving()
         rclpy.spin(node)
         node.destroy_node()
         rclpy.shutdown()

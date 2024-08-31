@@ -28,8 +28,8 @@ window.addEventListener('keydown', (event) => {
   }
 
   trackedButtons[event.code] = true;
-  const isModifyingSpeeds =
-    trackedButtons[getKeybind('Hold to Modify Speeds and Turn Radius')];
+  const isModifyingSpeedsKeybind = getKeybind('Hold to Modify Speeds and Turn Radius');
+  const isModifyingSpeeds = isModifyingSpeedsKeybind === null ? false : trackedButtons[isModifyingSpeedsKeybind];
   if (isModifyingSpeeds) {
     if (event.code === getKeybind('Drive Backward')) {
       if (speedI > 0) {
@@ -64,8 +64,8 @@ window.addEventListener('keyup', (event) => {
 
 // Update cmd_vel based on the tracked buttons.
 function readKey(key: string): number {
-  const isModifyingSpeeds =
-    trackedButtons[getKeybind('Hold to Modify Speeds and Turn Radius')];
+  const isModifyingSpeedsKeybind = getKeybind('Hold to Modify Speeds and Turn Radius');
+  const isModifyingSpeeds = isModifyingSpeedsKeybind === null ? false : trackedButtons[isModifyingSpeedsKeybind];
   if (isModifyingSpeeds) {
     return 0;
   }

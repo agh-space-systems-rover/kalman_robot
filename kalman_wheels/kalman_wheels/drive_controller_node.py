@@ -43,6 +43,7 @@ class DriveController(Node):
         self.rotation_timeout = self.declare_parameter("rotation_timeout", 0.5)
         self.swivel_speed = self.declare_parameter("swivel_speed", np.pi / 2)
         self.motor_accel = self.declare_parameter("motor_accel", 4.0)
+        self.max_wheel_angle = self.declare_parameter("max_wheel_angle", 110 * np.pi / 180) # larger than 90
 
         self.drive_sub = self.create_subscription(
             Drive, "drive", self.drive_cb, qos_profile=10
@@ -116,7 +117,7 @@ class DriveController(Node):
             angle += np.pi
             return np.arctan2(np.sin(angle), np.cos(angle))
         for i in range(len(wheel_angles)):
-            if abs(wheel_angles[i]) > np.deg2rad(110):
+            if abs(wheel_angles[i]) > self.max_wheel_angle.value + 1e-3:
                 wheel_angles[i] = flip_angle(wheel_angles[i])
                 wheel_velocities[i] *= -1
 
@@ -157,13 +158,26 @@ class DriveController(Node):
         msg = self.last_drive_msg
         forwards_inv_radius = np.clip(msg.inv_radius, -1.0 / self.min_turn_radius.value, 1.0 / self.min_turn_radius.value)
         sideways_inv_radius = forwards_inv_radius / self.sideways_turn_radius_scale.value
-        inv_radius = lerp(forwards_inv_radius, sideways_inv_radius, np.abs(msg.sin_angle))
-
-        # driving twist
-        x = cos_from_sin(msg.sin_angle)
-        y = msg.sin_angle
-        angular = inv_radius
         speed = np.clip(msg.speed, -self.max_speed.value, self.max_speed.value)
+        if abs(msg.sin_angle) <= 1:
+            # regular driving
+            inv_radius = lerp(forwards_inv_radius, sideways_inv_radius, np.abs(msg.sin_angle))
+
+            x = cos_from_sin(msg.sin_angle)
+            y = msg.sin_angle
+            angular = inv_radius
+        else:
+            # over-translated driving
+            sin_angle = (2 - abs(msg.sin_angle)) * np.sign(msg.sin_angle)
+            angle = np.arctan2(sin_angle, -cos_from_sin(sin_angle))
+            angle = np.clip(angle, -self.max_wheel_angle.value, self.max_wheel_angle.value)
+            over_translate_factor = (abs(angle) - np.pi / 2) / (self.max_wheel_angle.value - np.pi / 2)
+
+            inv_radius = lerp(sideways_inv_radius, 0, over_translate_factor)
+
+            x = -cos_from_sin(sin_angle)
+            y = sin_angle
+            angular = inv_radius
         
         # rotation twist
         rotation_angular = np.clip(msg.rotation, -self.max_rotation_speed.value, self.max_rotation_speed.value)
