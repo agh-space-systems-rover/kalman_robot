@@ -1,15 +1,16 @@
 import { GamepadInput, readGamepad } from "./gamepad-compat";
 
 type GamepadMode = 'none' | 'wheels' | 'arm';
+const gamepadModes: GamepadMode[] = ['none', 'wheels', 'arm'];
+
 const gamepads: Map<Gamepad, GamepadMode> = new Map();
+const oldModeButtonState: Map<Gamepad, number> = new Map();
 
 const ARDUINO_GAMEPAD_ID = '2341-8036-Arduino LLC Arduino Leonardo';
+const defaultMode: GamepadMode = 'none';
+
 
 const connectGamepads = () => {
-  let defaultMode: GamepadMode = 'none';
-  if (gamepads.size > 0) {
-    defaultMode = 'none';
-  }
   
   const connectedGamepads = navigator
     .getGamepads()
@@ -20,11 +21,20 @@ const connectGamepads = () => {
       gamepads.set(pad, defaultMode);
     }
     
-    if(gamepads.get(pad) == 'none')
-      if(readGamepad(pad, 'select'))
-        gamepads.set(pad, 'arm');
-      else if(readGamepad(pad, 'start'))
-        gamepads.set(pad, 'wheels');
+    if(readGamepad(pad, 'select')) {
+      gamepads.set(pad, 'arm');
+    }
+    if(readGamepad(pad, 'start')) {
+      gamepads.set(pad, 'wheels');
+    }
+
+    if(readGamepad(pad, 'mode') && !oldModeButtonState.get(pad)) {
+      const currentMode = gamepads.get(pad);
+      const nextIndex = (gamepadModes.indexOf(currentMode ?? 'none') + 1) % gamepadModes.length;
+      gamepads.set(pad, gamepadModes[nextIndex]);
+    }
+
+    oldModeButtonState.set(pad, readGamepad(pad, 'mode'));
   }
   // Remove disconnected gamepads.
   for (const pad of gamepads.keys()) {
