@@ -81,6 +81,10 @@ def generate_launch_description():
             ),
             Node(
                 package="kalman_master",
+                executable="drill_driver",
+            ),
+            Node(
+                package="kalman_master",
                 executable="ros_link",
                 parameters=[
                     {

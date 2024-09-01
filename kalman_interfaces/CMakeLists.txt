@@ -20,6 +20,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/ArmState.msg"
   "msg/ArmTrajectorySelect.msg"
   "msg/DrillCommand.msg"
+  "msg/Drill.msg"
   "msg/Drive.msg"
   "msg/GpsTagArray.msg"
   "msg/GpsTag.msg"
