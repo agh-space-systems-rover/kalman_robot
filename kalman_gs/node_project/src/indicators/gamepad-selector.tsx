@@ -6,6 +6,7 @@ import {
   faProjectDiagram,
   faGear,
   IconDefinition,
+  faBan,
   faOilWell
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -31,6 +32,10 @@ const modeAppearance: ModeAppearance = {
   'drill': {
     name: 'Drill',
     icon: faOilWell
+  },
+  'none': {
+    name: 'Unassigned',
+    icon: faBan
   }
 };
 

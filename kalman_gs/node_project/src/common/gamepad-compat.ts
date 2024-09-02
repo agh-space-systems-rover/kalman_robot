@@ -17,6 +17,7 @@ type GamepadInput =
   | 'dpad-down'
   | 'dpad-left'
   | 'dpad-right'
+  | 'mode'
   | 'select'
   | 'start';
 
@@ -47,6 +48,7 @@ const xInputFirefox: GamepadInputMap = {
   'dpad-down': { index: 13 },
   'dpad-left': { index: 14 },
   'dpad-right': { index: 15 },
+  'mode': { index: 16 },
   'select': { index: 8 },
   'start': { index: 9 },
 };
@@ -69,8 +71,10 @@ const directInputFirefox = {
   'dpad-down': { index: 13 },
   'dpad-left': { index: 14 },
   'dpad-right': { index: 15 },
+  'mode': { index: 16 },
   'select': { index: 6 },
   'start': { index: 7 },
+  
 };
 const inputChromium: GamepadInputMap = {
   ...xInputFirefox,
