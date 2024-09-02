@@ -127,8 +127,8 @@ function readGamepad(pad: Gamepad, input: GamepadInput): number {
   }
 
   // Apply small deadzone to sticks.
-  if (input === 'left-x' || input === 'left-y' || input === 'right-x' || input === 'right-y') {
-    if (Math.abs(value) < 0.05) {
+  if (input === 'left-x' || input === 'left-y' || input === 'right-x' || input === 'right-y' || input === 'left-trigger' || input === 'right-trigger') {
+    if (Math.abs(value) < 0.1) {
       value = 0;
     }
   }
