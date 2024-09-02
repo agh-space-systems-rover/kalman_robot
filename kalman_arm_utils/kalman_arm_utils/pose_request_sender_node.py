@@ -8,9 +8,8 @@ from ament_index_python.packages import get_package_share_directory
 
 from moveit_msgs.action import MoveGroup
 from moveit_msgs.msg import Constraints, JointConstraint, MoveItErrorCodes
-from sensor_msgs.msg import JointState
 from example_interfaces.msg import Empty
-from kalman_interfaces.msg import ArmPoseSelect, ArmGoalStatus
+from kalman_interfaces.msg import ArmPoseSelect, ArmGoalStatus, ArmState
 from collections import namedtuple
 from std_msgs.msg import UInt8
 
@@ -51,7 +50,7 @@ class PoseRequestSender(Node):
         self._goal_sent = False
 
         self.joint_states_sub = self.create_subscription(
-            JointState, "/joint_states", self.update_state, 10
+            ArmState, "/arm_state", self.update_state, 10
         )
 
         self._change_control_pub = self.create_publisher(
@@ -78,8 +77,15 @@ class PoseRequestSender(Node):
             Empty, "/pose_request/abort", self.abort, 10
         )
 
-    def update_state(self, msg: JointState):
-        self.joints = dict(zip(msg.name, msg.position))
+    def update_state(self, msg: ArmState):
+        self.joints = {
+            "joint_1": msg.joint_1,
+            "joint_2": msg.joint_2,
+            "joint_3": msg.joint_3,
+            "joint_4": msg.joint_4,
+            "joint_5": msg.joint_5,
+            "joint_6": msg.joint_6,
+        }
 
     def keep_alive(self, msg: Empty):
         if self._timer:

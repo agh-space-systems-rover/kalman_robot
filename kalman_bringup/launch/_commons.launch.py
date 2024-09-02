@@ -491,8 +491,8 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument(
                 "wheels.joy",
-                default_value="false",
-                description="Launch headless gamepad controller.",
+                default_value="",
+                description="Joy device to use for headless driving. Choose 'gamepad' or 'arduino'. Empty disables headless teleop.",
             ),
             DeclareLaunchArgument(
                 "aruco",

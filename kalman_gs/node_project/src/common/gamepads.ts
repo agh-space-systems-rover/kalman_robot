@@ -1,7 +1,7 @@
 import { GamepadInput, readGamepad } from "./gamepad-compat";
 
-type GamepadMode = 'none' | 'wheels' | 'arm';
-const gamepadModes: GamepadMode[] = ['none', 'wheels', 'arm'];
+type GamepadMode = 'none' | 'wheels' | 'arm' | 'drill';
+const gamepadModes: GamepadMode[] = ['none', 'wheels', 'arm', 'drill'];
 
 const gamepads: Map<Gamepad, GamepadMode> = new Map();
 const oldModeButtonState: Map<Gamepad, number> = new Map();

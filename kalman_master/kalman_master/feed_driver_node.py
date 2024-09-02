@@ -5,7 +5,7 @@ from rclpy.node import Node
 from kalman_interfaces.srv import SetFeed
 from kalman_interfaces.msg import MasterMessage
 
-NUMBER_OF_RETRIES_PER_CALL = 5
+NUMBER_OF_RETRIES_PER_CALL = 10
 PUBLISH_RATE = 30  # NOTE: only published when there are messages to send
 MAX_MESSAGES_IN_QUEUE = 100  # About 3 seconds to process a full queue
 
@@ -45,7 +45,7 @@ class FeedDriver(Node):
             msgs.append(
                 MasterMessage(
                     cmd=MasterMessage.FEED_SET_CAMERA,
-                    data=[req.feed, req.camera - 1],  # Firmware indexes cameras from 0.
+                    data=[req.feed, req.camera],  # Firmware indexes cameras from 1.
                 )
             )
         if req.channel != 0:

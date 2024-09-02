@@ -44,13 +44,13 @@ window.addEventListener('ros-connect', () => {
   setLinearScale = new Topic({
     ros: ros,
     name: '/servo/set_linear_scale',
-    messageType: 'std_msgs/Float32'
+    messageType: 'std_msgs/Float64'
   });
 
   setRotationalScale = new Topic({
     ros: ros,
     name: '/servo/set_rotational_scale',
-    messageType: 'std_msgs/Float32'
+    messageType: 'std_msgs/Float64'
   });
 
   abortPoseTopic = new Topic({
@@ -186,22 +186,22 @@ window.addEventListener('keydown', (event) => {
   }
 
   switch (event.code) {
-    case getKeybind('Set Spacemouse Linear Scale to Slow (0.1)'):
+    case getKeybind('Set SpaceMouse Linear Scale to Slow (0.1)'):
       setLinearScaleTo(0.1);
       break;
-    case getKeybind('Set Spacemouse Linear Scale to Medium (0.3)'):
+    case getKeybind('Set SpaceMouse Linear Scale to Medium (0.3)'):
       setLinearScaleTo(0.3);
       break;
-    case getKeybind('Set Spacemouse Linear Scale to Fast (0.7)'):
+    case getKeybind('Set SpaceMouse Linear Scale to Fast (0.7)'):
       setLinearScaleTo(0.7);
       break;
-    case getKeybind('Set Spacemouse Rotational Scale to Slow (0.1)'):
+    case getKeybind('Set SpaceMouse Rotational Scale to Slow (0.1)'):
       setRotationalScaleTo(0.1);
       break;
-    case getKeybind('Set Spacemouse Rotational Scale to Medium (0.3)'):
+    case getKeybind('Set SpaceMouse Rotational Scale to Medium (0.3)'):
       setRotationalScaleTo(0.3);
       break;
-    case getKeybind('Set Spacemouse Rotational Scale to Fast (0.7)'):
+    case getKeybind('Set SpaceMouse Rotational Scale to Fast (0.7)'):
       setRotationalScaleTo(0.7);
       break;
   }
