@@ -42,6 +42,7 @@ window.addEventListener('ros-connect', () => {
   let prevCameras = [0, 0];
   let prevChannels = [0, 0];
   let prevPowers = [0, 0];
+  let lastActionableReq = null;
 
   const sendCall = () => {
     let errorShownOnce = false; // Prevents from showing two errors, one for each feed.
@@ -63,13 +64,18 @@ window.addEventListener('ros-connect', () => {
       prevPowers[feed] = feedPowers[feed];
 
       // If any of the values have changed, send the call.
+      const errorCb = (error: string) => {
+        if (!errorShownOnce) {
+          alertsRef.current?.pushAlert('Failed to update feeds: ' + error);
+          errorShownOnce = true;
+        }
+      };
       if (req.camera || req.channel || req.power) {
-        setFeed.callService(req, undefined, (error: string) => {
-          if (!errorShownOnce) {
-            alertsRef.current?.pushAlert('Failed to update feeds: ' + error);
-            errorShownOnce = true;
-          }
-        });
+        setFeed.callService(req, undefined, errorCb);
+        lastActionableReq = req;
+      } else if (lastActionableReq !== null) {
+        // If no values have changed, repeat the last call.
+        setFeed.callService(lastActionableReq, undefined, errorCb);
       }
     }
   };
@@ -89,8 +95,12 @@ function cycleFeedCameras(direction: number) {
   }
   window.dispatchEvent(new Event('feeds-updated'));
 }
-function showCameraOnFeed(camera: number) {
-  feedCameras[changingFeedI] = camera;
+function showCameraOnFeed(camera: number, overrideFeedI?: number) {
+  if (overrideFeedI !== undefined) {
+    feedCameras[overrideFeedI] = camera;
+  } else {
+    feedCameras[changingFeedI] = camera;
+  }
   window.dispatchEvent(new Event('feeds-updated'));
 }
 window.addEventListener('keydown', (event) => {
@@ -134,13 +144,37 @@ window.addEventListener('keydown', (event) => {
     case getKeybind('Show Camera 8 on Feed 1'):
       showCameraOnFeed(8);
       break;
-    case getKeybind('Hold to Change Cameras on Feed 2'):
+    case getKeybind('Hold to Change Cameras on Feed 2 not 1'):
       changingFeedI = 1;
+      break;
+    case getKeybind('Show Camera 1 on Feed 2'):
+      showCameraOnFeed(1, 1);
+      break;
+    case getKeybind('Show Camera 2 on Feed 2'):
+      showCameraOnFeed(2, 1);
+      break;
+    case getKeybind('Show Camera 3 on Feed 2'):
+      showCameraOnFeed(3, 1);
+      break;
+    case getKeybind('Show Camera 4 on Feed 2'):
+      showCameraOnFeed(4, 1);
+      break;
+    case getKeybind('Show Camera 5 on Feed 2'):
+      showCameraOnFeed(5, 1);
+      break;
+    case getKeybind('Show Camera 6 on Feed 2'):
+      showCameraOnFeed(6, 1);
+      break;
+    case getKeybind('Show Camera 7 on Feed 2'):
+      showCameraOnFeed(7, 1);
+      break;
+    case getKeybind('Show Camera 8 on Feed 2'):
+      showCameraOnFeed(8, 1);
       break;
   }
 });
 window.addEventListener('keyup', (event) => {
-  if (event.code === getKeybind('Hold to Change Cameras on Feed 2')) {
+  if (event.code === getKeybind('Hold to Change Cameras on Feed 2 not 1')) {
     changingFeedI = 0;
   }
 });

@@ -5,7 +5,9 @@ import {
   faGamepad,
   faProjectDiagram,
   faGear,
-  IconDefinition
+  IconDefinition,
+  faBan,
+  faOilWell
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useCallback, useEffect, useState } from 'react';
@@ -26,6 +28,14 @@ const modeAppearance: ModeAppearance = {
   'arm': {
     name: 'Arm',
     icon: faProjectDiagram
+  },
+  'drill': {
+    name: 'Drill',
+    icon: faOilWell
+  },
+  'none': {
+    name: 'Unassigned',
+    icon: faBan
   }
 };
 

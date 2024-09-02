@@ -8,9 +8,9 @@ ament_python_install_package(${PROJECT_NAME})
 
 install(PROGRAMS
   scripts/drive_controller
-  scripts/joy_driving
-  scripts/twist_controller
+  scripts/gamepad_driving
   scripts/arduino_driving
+  scripts/twist_controller
   DESTINATION lib/${PROJECT_NAME}
 )
 

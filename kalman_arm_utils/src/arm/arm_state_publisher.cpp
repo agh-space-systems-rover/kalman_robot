@@ -57,6 +57,7 @@ private:
       }
 
       arm_state_pub_->publish(state_msg);
+      last_time_ = now;
     }
   }
 
