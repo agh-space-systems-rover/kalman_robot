@@ -4,22 +4,29 @@ import numpy as np
 from rclpy.lifecycle import Node, State, TransitionCallbackReturn
 from nav_msgs.msg import Odometry
 from tf2_ros import Buffer, TransformListener
+from rclpy.time import Duration
 
 class FiducialOdometry(Node):
     def __init__(self) -> None:
         super().__init__("fiducial_odometry")
 
-        self.config = self.declare_parameter(
-            "config", ""
+        self.fiducials_path = self.declare_parameter(
+            "fiducials_path", ""
         )
         self.rate = self.declare_parameter(
-            "rate", 1.0
-        )
+            "rate", 3.0
+        ) # Look for new TFs at this rate.
+        self.time_offset = self.declare_parameter(
+            "time_offset", 0.5
+        ) # Look at TFs from that much seconds ago.
         self.odom_frame = self.declare_parameter(
             "odom_frame", "map"
         )
         self.robot_frame = self.declare_parameter(
             "robot_frame", "base_link"
+        )
+        self.variance = self.declare_parameter(
+            "variance", 1.0
         )
 
         result = self.trigger_configure()
@@ -34,27 +41,37 @@ class FiducialOdometry(Node):
 
     def on_activate(self, state: State) -> TransitionCallbackReturn:
         # Load the config.
-        if self.config.value == "":
-            self.get_logger().error("No configuration specified.")
+        if self.fiducials_path.value == "":
+            self.get_logger().error("No fiducials provided.")
             return TransitionCallbackReturn.ERROR
-        with open(self.config.value, "r") as file:
-            self.fiducials = yaml.safe_load(file)
+        with open(self.fiducials_path.value, "r") as file:
+            try:
+                self.fiducials = yaml.safe_load(file)
+            except yaml.YAMLError as e:
+                self.get_logger().error(f"Failed to load fiducials: {e}")
+                return TransitionCallbackReturn.ERROR
+            
+        self.get_logger().info(f"Loaded {len(self.fiducials)} fiducials.")
 
         # Create the publisher.
         self.pub = self.create_publisher(Odometry, "odometry", 10)
-        self.timer = self.create_timer(1.0 / self.rate, self.timer_callback)
+        self.timer = self.create_timer(1.0 / self.rate.value, self.timer_callback)
+        self.published_first_odometry = False
 
         self.get_logger().info("Activated.")
         return TransitionCallbackReturn.SUCCESS
 
     def timer_callback(self):
+        lookup_time = self.get_clock().now() - Duration(nanoseconds=int(self.time_offset.value * 1e9))
+
         avg_error = np.zeros(2)
         num_fiducials = 0
         for frame, pos in self.fiducials.items():
             # Lookup TF from odom to fiducial.
             try:
-                t = self.tf_buffer.lookup_transform(self.odom_frame, frame, 0)
-            except Exception:
+                t = self.tf_buffer.lookup_transform(self.odom_frame.value, frame, lookup_time)
+            except Exception as e:
+                # self.get_logger().error(f"Failed to lookup transform: {e}")
                 # If the TF lookup fails, it is likely because the fiducial is not visible.
                 continue
             # Extract the position from the transform.
@@ -73,18 +90,24 @@ class FiducialOdometry(Node):
 
         # Get the current transform from odom to robot.
         try:
-            t = self.tf_buffer.lookup_transform(self.odom_frame, self.robot_frame, 0)
-        except Exception:
+            t = self.tf_buffer.lookup_transform(self.odom_frame.value, self.robot_frame.value, lookup_time)
+        except Exception as e:
+            self.get_logger().error(f"Failed to lookup transform: {e}")
             return
         robot_pos = np.array([t.transform.translation.x, t.transform.translation.y])
 
         # Create the odometry message.
         msg = Odometry()
-        msg.header.stamp = self.get_clock().now().to_msg()
-        msg.header.frame_id = self.odom_frame
-        msg.child_frame_id = self.robot_frame
+        msg.header.stamp = lookup_time.to_msg()
+        msg.header.frame_id = self.odom_frame.value
+        msg.child_frame_id = self.robot_frame.value
         msg.pose.pose.position.x = robot_pos[0] - avg_error[0]
         msg.pose.pose.position.y = robot_pos[1] - avg_error[1]
+        if self.published_first_odometry:
+            msg.pose.covariance[0] = self.variance.value
+            msg.pose.covariance[7] = self.variance.value
+        else:
+            self.published_first_odometry = True
         self.pub.publish(msg)
 
 

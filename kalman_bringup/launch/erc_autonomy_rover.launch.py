@@ -34,6 +34,8 @@ def generate_launch_description():
                     "wheels": "true",
                     "aruco": "true",
                     "aruco.rgbd_ids": "d455_front d455_back d455_left d455_right",
+                    "aruco.dict": "5x5_100",
+                    "aruco.size": "0.15",
                     "supervisor": "true",
                 }.items(),
             ),

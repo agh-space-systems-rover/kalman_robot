@@ -196,6 +196,7 @@ def launch_setup(context):
                     ),
                     "rgbd_ids": get_str("slam.rgbd_ids"),
                     "gps_datum": get_str("slam.gps_datum"),
+                    "fiducials": get_str("slam.fiducials"),
                 }.items(),
             ),
         ]
@@ -253,6 +254,8 @@ def launch_setup(context):
                         else ""
                     ),
                     "rgbd_ids": get_str("aruco.rgbd_ids"),
+                    "dict": get_str("aruco.dict"),
+                    "size": get_str("aruco.size"),
                 }.items(),
             ),
         ]
@@ -288,6 +291,7 @@ def launch_setup(context):
                     "aruco_rgbd_ids": (
                         get_str("aruco.rgbd_ids") if get_bool("aruco") else ""
                     ),
+                    "deactivate_aruco": get_str("supervisor.deactivate_aruco"),
                     "yolo_enabled": get_str("yolo"),
                     # NOTE: It is required that kalman_aruco is started from within the same launch file.
                 }.items(),
@@ -465,6 +469,11 @@ def generate_launch_description():
                 description="The 'latitude longitude' of the map frame. Empty to assume first recorded GPS fix. If set, it will be the initial location of the rover before any readings arrive.",
             ),
             DeclareLaunchArgument(
+                "slam.fiducials",
+                default_value="",
+                description="Collection of fiducials to use for odometry. Empty disables fiducials.",
+            ),
+            DeclareLaunchArgument(
                 "nav2",
                 default_value="false",
                 description="Start up the Nav2 stack.",
@@ -510,6 +519,16 @@ def generate_launch_description():
                 description="Space-separated IDs of the depth cameras to use.",
             ),
             DeclareLaunchArgument(
+                "aruco.dict",
+                default_value="",
+                description="Dictionary of markers to use.",
+            ),
+            DeclareLaunchArgument(
+                "aruco.size",
+                default_value="0",
+                description="Size of the markers in meters.",
+            ),
+            DeclareLaunchArgument(
                 "yolo",
                 default_value="false",
                 description="Start up YOLO object detection.",
@@ -528,6 +547,11 @@ def generate_launch_description():
                 "supervisor",
                 default_value="false",
                 description="Start up the supervisor.",
+            ),
+            DeclareLaunchArgument(
+                "supervisor.deactivate_aruco",
+                default_value="false",
+                description="Deactivate ArUco detection nodes when supervisor is not actively looking for tags.",
             ),
             DeclareLaunchArgument(
                 "gs",
