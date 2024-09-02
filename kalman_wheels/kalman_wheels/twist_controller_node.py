@@ -74,6 +74,14 @@ class AdjustWheelsState(State):
     pass
 
 
+def away_from_zero(x: float):
+    if 0 <= x and x < 1e-5:
+        return 1e-5
+    elif -1e-5 < x and x < 0:
+        return -1e-5
+    else:
+        return x
+
 # This node republishes different motion control messages as a universal wheel
 # state message for a robot with quadruple independent swivel wheels.
 class TwistController(rclpy.node.Node):
@@ -216,7 +224,7 @@ class TwistController(rclpy.node.Node):
                 dv = target[i] - self.current_velocities[i]
                 dv = np.clip(dv, -max_wheel_accel * dt, max_wheel_accel * dt)
                 new_vel = self.current_velocities[i] + dv
-                scales[i] = new_vel / self.target_velocities[i]
+                scales[i] = new_vel / away_from_zero(self.target_velocities[i])
             min_scale = np.min(scales)
             self.current_velocities = [vel * min_scale for vel in self.target_velocities]
 
