@@ -28,6 +28,9 @@ class FiducialOdometry(Node):
         self.variance = self.declare_parameter(
             "variance", 1.0
         )
+        self.max_dist = self.declare_parameter(
+            "max_dist", 5.0
+        )
 
         result = self.trigger_configure()
         if result != TransitionCallbackReturn.SUCCESS:
@@ -64,6 +67,15 @@ class FiducialOdometry(Node):
     def timer_callback(self):
         lookup_time = self.get_clock().now() - Duration(nanoseconds=int(self.time_offset.value * 1e9))
 
+        # Get the current transform from odom to robot.
+        try:
+            t = self.tf_buffer.lookup_transform(self.odom_frame.value, self.robot_frame.value, lookup_time)
+        except Exception as e:
+            self.get_logger().error(f"Failed to lookup transform: {e}")
+            return
+        robot_pos = np.array([t.transform.translation.x, t.transform.translation.y])
+
+        # Get transforms from odom to fiducials.
         avg_error = np.zeros(2)
         num_fiducials = 0
         for frame, pos in self.fiducials.items():
@@ -76,6 +88,11 @@ class FiducialOdometry(Node):
                 continue
             # Extract the position from the transform.
             odom_pos = np.array([t.transform.translation.x, t.transform.translation.y])
+
+            # Discard if the fiducial is too far away.
+            if np.linalg.norm(odom_pos - robot_pos) > self.max_dist.value:
+                continue
+
             # Find odom error.
             error = odom_pos - np.array(pos)
             avg_error += error
@@ -87,14 +104,6 @@ class FiducialOdometry(Node):
 
         # Compute the average error.
         avg_error /= num_fiducials
-
-        # Get the current transform from odom to robot.
-        try:
-            t = self.tf_buffer.lookup_transform(self.odom_frame.value, self.robot_frame.value, lookup_time)
-        except Exception as e:
-            self.get_logger().error(f"Failed to lookup transform: {e}")
-            return
-        robot_pos = np.array([t.transform.translation.x, t.transform.translation.y])
 
         # Create the odometry message.
         msg = Odometry()
