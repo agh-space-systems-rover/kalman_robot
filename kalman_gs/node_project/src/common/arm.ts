@@ -1,6 +1,6 @@
 import { alertsRef, settingsRef } from '../common/refs';
 import { ros } from '../common/ros';
-import { SetFeedRequest } from '../common/ros-interfaces';
+import { ArmAxesLocks, SetFeedRequest } from '../common/ros-interfaces';
 import { getKeybind } from './keybinds';
 import { Service, Topic } from 'roslib';
 
@@ -17,10 +17,23 @@ let executeTrajectoryTopic: Topic<unknown> | null = null;
 let keepAliveTrajectoryTopic: Topic<unknown> | null = null;
 let statusTrajectoryTopic: Topic<unknown> | null = null;
 
+let armAxesLocksTopic: Topic<ArmAxesLocks> | null = null;
+
 let lastServoLinearScale: number | null = 0.5;
 let lastServoRotationalScale: number | null = 0.5;
 let lastStatusPose: string = 'UNKNOWN';
 let lastStatusTrajectory: string = 'UNKNOWN';
+
+let rotationalLock = false;
+
+export let armAxesLocks: ArmAxesLocks = {
+  x: false,
+  y: false,
+  z: false,
+  roll: false,
+  pitch: false,
+  yaw: false
+};
 
 const ARM_STATUSES = {
   0: 'SUCCESS',
@@ -101,6 +114,12 @@ window.addEventListener('ros-connect', () => {
     messageType: 'kalman_interfaces/ArmGoalStatus'
   });
 
+  armAxesLocksTopic = new Topic({
+    ros: ros,
+    name: '/arm/axes_locks',
+    messageType: 'kalman_interfaces/ArmAxesLocks'
+  });
+
   setLinearScale.subscribe((msg: { data: number }) => {
     lastServoLinearScale = msg.data;
     window.dispatchEvent(new Event('servo-linear-scale'));
@@ -123,6 +142,7 @@ window.addEventListener('ros-connect', () => {
 
   setLinearScaleTo(lastServoLinearScale);
   setRotationalScaleTo(lastServoRotationalScale);
+  armAxesLocksTopic?.publish(armAxesLocks);
 });
 
 function setLinearScaleTo(value: number) {
@@ -175,6 +195,12 @@ function keepAliveTrajectory() {
   }
 }
 
+export function toggleArmAxisLock(axis: string) {
+  armAxesLocks[axis] = !armAxesLocks[axis];
+  armAxesLocksTopic?.publish(armAxesLocks);
+  window.dispatchEvent(new Event('arm-axis-lock-update'));
+}
+
 window.addEventListener('keydown', (event) => {
   // Check if any input box is focused.
   if (document.activeElement.tagName === 'INPUT') {
@@ -204,6 +230,38 @@ window.addEventListener('keydown', (event) => {
     case getKeybind('Set SpaceMouse Rotational Scale to Fast (0.7)'):
       setRotationalScaleTo(0.7);
       break;
+    case getKeybind('Lock SpaceMouse X Axis'):
+      if (rotationalLock) {
+        toggleArmAxisLock('roll');
+      } else {
+        toggleArmAxisLock('x');
+      }
+      break;
+    case getKeybind('Lock SpaceMouse Y Axis'):
+      if (rotationalLock) {
+        toggleArmAxisLock('pitch');
+      } else {
+        toggleArmAxisLock('y');
+      }
+      break;
+    case getKeybind('Lock SpaceMouse Z Axis'):
+      if (rotationalLock) {
+        toggleArmAxisLock('yaw');
+      } else {
+        toggleArmAxisLock('z');
+      }
+      break;
+
+    case getKeybind('Hold to Lock Rotational Axes'):
+      rotationalLock = true;
+      break;
+  }
+});
+
+
+window.addEventListener('keyup', (event) => {
+  if (event.code === getKeybind('Hold to Lock Rotational Axes')) {
+    rotationalLock = false;
   }
 });
 

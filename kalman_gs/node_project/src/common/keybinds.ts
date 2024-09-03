@@ -33,7 +33,11 @@ const defaultKeybinds = {
   'Set SpaceMouse Linear Scale to Fast (0.7)': 'KeyN',
   'Set SpaceMouse Rotational Scale to Slow (0.1)': 'KeyF',
   'Set SpaceMouse Rotational Scale to Medium (0.3)': 'KeyG',
-  'Set SpaceMouse Rotational Scale to Fast (0.7)': 'KeyH'
+  'Set SpaceMouse Rotational Scale to Fast (0.7)': 'KeyH',
+  'Lock SpaceMouse X Axis': 'KeyX',
+  'Lock SpaceMouse Y Axis': 'KeyC',
+  'Lock SpaceMouse Z Axis': 'KeyZ',
+  'Hold to Lock Rotational Axes': 'AltLeft', 
 };
 
 // Copy default keybinds to keybinds.
