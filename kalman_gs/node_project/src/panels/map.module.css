@@ -24,8 +24,16 @@
   filter: hue-rotate(0deg);
 }
 
+.waypoint-marker:global(.yellow) {
+  filter: hue-rotate(60deg);
+}
+
 .waypoint-marker:global(.green) {
   filter: hue-rotate(120deg);
+}
+
+.waypoint-marker:global(.cyan) {
+  filter: hue-rotate(180deg);
 }
 
 .waypoint-marker:global(.blue) {
