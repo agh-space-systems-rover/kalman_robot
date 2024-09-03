@@ -19,10 +19,12 @@ public:
     publisher_ = this->create_publisher<kalman_interfaces::msg::MasterMessage>("/master_com/ros_to_master", 10);
 
     subscription_ = this->create_subscription<geometry_msgs::msg::Twist>(
-        "/spacenav/twist", 10, [this](geometry_msgs::msg::Twist::SharedPtr msg) { sub_callback(msg); });
+        "/spacenav/twist", 10, [this](geometry_msgs::msg::Twist::SharedPtr msg)
+        { sub_callback(msg); });
 
     axes_locks_sub_ = this->create_subscription<kalman_interfaces::msg::ArmAxesLocks>(
-        "/arm/axes_locks", 10, [this](kalman_interfaces::msg::ArmAxesLocks::SharedPtr msg) { axes_locks_ = msg; });
+        "/arm/axes_locks", 10, [this](kalman_interfaces::msg::ArmAxesLocks::SharedPtr msg)
+        { axes_locks_ = msg; });
   }
 
 private:
@@ -81,31 +83,31 @@ private:
 
   void zero_locked_axes(geometry_msgs::msg::Twist::SharedPtr msg)
   {
-    if (!axes_locks_)
+    if (!axes_locks_ || all_false(axes_locks_))
     {
       return;
     }
-    if (axes_locks_->x)
+    if (!axes_locks_->x)
     {
       msg->linear.x = 0.0;
     }
-    if (axes_locks_->y)
+    if (!axes_locks_->y)
     {
       msg->linear.y = 0.0;
     }
-    if (axes_locks_->z)
+    if (!axes_locks_->z)
     {
       msg->linear.z = 0.0;
     }
-    if (axes_locks_->roll)
+    if (!axes_locks_->roll)
     {
       msg->angular.x = 0.0;
     }
-    if (axes_locks_->pitch)
+    if (!axes_locks_->pitch)
     {
       msg->angular.y = 0.0;
     }
-    if (axes_locks_->yaw)
+    if (!axes_locks_->yaw)
     {
       msg->angular.z = 0.0;
     }
@@ -115,6 +117,11 @@ private:
   {
     return (msg->linear.x == 0.0 && msg->linear.y == 0.0 && msg->linear.z == 0.0 && msg->angular.x == 0.0 &&
             msg->angular.y == 0.0 && msg->angular.z == 0.0);
+  }
+
+  bool all_false(const kalman_interfaces::msg::ArmAxesLocks::SharedPtr msg)
+  {
+    return !(msg->x || msg->y || msg->z || msg->roll || msg->pitch || msg->yaw);
   }
 
   int zeros_counter_ = 0;
@@ -128,7 +135,7 @@ private:
   kalman_interfaces::msg::ArmAxesLocks::SharedPtr axes_locks_;
 };
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
   rclcpp::init(argc, argv);
   auto node = std::make_shared<TwistRepublisher>();
