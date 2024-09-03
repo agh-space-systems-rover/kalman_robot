@@ -142,6 +142,7 @@ window.addEventListener('ros-connect', () => {
 
   setLinearScaleTo(lastServoLinearScale);
   setRotationalScaleTo(lastServoRotationalScale);
+  armAxesLocksTopic?.publish(armAxesLocks);
 });
 
 function setLinearScaleTo(value: number) {
