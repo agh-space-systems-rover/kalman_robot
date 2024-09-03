@@ -115,7 +115,7 @@ function translateGamepadToCommand({ type, input, mapping }: JointBind) {
 
 let previousArmButtons = new Map<GamepadInput, number>();
 
-export let armAxisLocks = {
+export let armJointsLocks = {
   'joint_1': false,
   'joint_2': false,
   'joint_3': false,
@@ -124,16 +124,16 @@ export let armAxisLocks = {
   'joint_6': false
 };
 
-export function toggleArmAxisLock(axis: string) {
-  armAxisLocks[axis] = !armAxisLocks[axis];
-  window.dispatchEvent(new Event('arm-axis-lock-update'));
+export function toggleArmJointLock(axis: string) {
+  armJointsLocks[axis] = !armJointsLocks[axis];
+  window.dispatchEvent(new Event('arm-joint-lock-update'));
 }
 
 export let currentAxisLockFocus = 1;
 
-function resetLockedAxes(msg: ArmFkCommand) {
-  for (let axis in armAxisLocks) {
-    if (armAxisLocks[axis]) {
+function resetLockedJoints(msg: ArmFkCommand) {
+  for (let axis in armJointsLocks) {
+    if (armJointsLocks[axis]) {
       msg[axis] = 0;
     }
   }
@@ -175,7 +175,7 @@ window.addEventListener('ros-connect', () => {
       readGamepads('x-button', 'arm') > 0.5 &&
       previousArmButtons?.get('x-button') <= 0.5
     ) {
-      toggleArmAxisLock(`joint_${currentAxisLockFocus}`);
+      toggleArmJointLock(`joint_${currentAxisLockFocus}`);
     }
 
     previousArmButtons['right-shoulder'] = readGamepads(
@@ -185,7 +185,7 @@ window.addEventListener('ros-connect', () => {
     previousArmButtons['left-shoulder'] = readGamepads('left-shoulder', 'arm');
     previousArmButtons['x-button'] = readGamepads('x-button', 'arm');
 
-    msg = resetLockedAxes(msg);
+    msg = resetLockedJoints(msg);
     fkTopic.publish(msg);
   }, 1000 / RATE);
 });

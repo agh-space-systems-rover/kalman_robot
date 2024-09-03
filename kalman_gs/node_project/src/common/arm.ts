@@ -1,6 +1,6 @@
 import { alertsRef, settingsRef } from '../common/refs';
 import { ros } from '../common/ros';
-import { SetFeedRequest } from '../common/ros-interfaces';
+import { ArmAxesLocks, SetFeedRequest } from '../common/ros-interfaces';
 import { getKeybind } from './keybinds';
 import { Service, Topic } from 'roslib';
 
@@ -17,10 +17,21 @@ let executeTrajectoryTopic: Topic<unknown> | null = null;
 let keepAliveTrajectoryTopic: Topic<unknown> | null = null;
 let statusTrajectoryTopic: Topic<unknown> | null = null;
 
+let armAxesLocksTopic: Topic<ArmAxesLocks> | null = null;
+
 let lastServoLinearScale: number | null = 0.5;
 let lastServoRotationalScale: number | null = 0.5;
 let lastStatusPose: string = 'UNKNOWN';
 let lastStatusTrajectory: string = 'UNKNOWN';
+
+export let armAxesLocks: ArmAxesLocks = {
+  'x': false,
+  'y': false,
+  'z': false,
+  'roll': false,
+  'pitch': false,
+  'yaw': false
+};
 
 const ARM_STATUSES = {
   0: 'SUCCESS',
@@ -101,6 +112,12 @@ window.addEventListener('ros-connect', () => {
     messageType: 'kalman_interfaces/ArmGoalStatus'
   });
 
+  armAxesLocksTopic = new Topic({
+    ros: ros,
+    name: '/arm/axes_locks',
+    messageType: 'kalman_interfaces/ArmAxesLocks'
+  });
+
   setLinearScale.subscribe((msg: { data: number }) => {
     lastServoLinearScale = msg.data;
     window.dispatchEvent(new Event('servo-linear-scale'));
@@ -173,6 +190,12 @@ function keepAliveTrajectory() {
   if (keepAliveTrajectoryTopic) {
     keepAliveTrajectoryTopic.publish({});
   }
+}
+
+export function toggleArmAxisLock(axis: string) {
+  armAxesLocks[axis] = !armAxesLocks[axis];
+  armAxesLocksTopic?.publish(armAxesLocks);
+  window.dispatchEvent(new Event('arm-axis-lock-update'));
 }
 
 window.addEventListener('keydown', (event) => {

@@ -157,3 +157,12 @@ export type ArmFkCommand = {
   joint_5?: number;
   joint_6?: number;
 };
+
+export type ArmAxesLocks = {
+  x?: boolean;
+  y?: boolean;
+  z?: boolean;
+  roll?: boolean;
+  pitch?: boolean;
+  yaw?: boolean;
+};

@@ -12,12 +12,14 @@ import {
   keepAliveTrajectory,
   sendTrajectoryRequest,
   abortTrajectory,
-  lastStatusTrajectory
+  lastStatusTrajectory,
+  toggleArmAxisLock,
+  armAxesLocks
 } from '../common/arm';
 import {
-  armAxisLocks,
+  armJointsLocks,
   currentAxisLockFocus,
-  toggleArmAxisLock
+  toggleArmJointLock
 } from '../common/gamepad-arming';
 import predefinedPoses from '../common/predefined-arm-poses';
 import '../common/predefined-arm-trajectories';
@@ -119,11 +121,13 @@ function ArmStatus() {
     window.addEventListener('servo-linear-scale', rerender);
     window.addEventListener('servo-rotational-scale', rerender);
     window.addEventListener('arm-axis-lock-update', rerender);
+    window.addEventListener('arm-joint-lock-update', rerender);
     return () => {
       window.removeEventListener('joint-state', rerender);
       window.removeEventListener('servo-linear-scale', rerender);
       window.removeEventListener('servo-rotational-scale', rerender);
       window.removeEventListener('arm-axis-lock-update', rerender);
+      window.removeEventListener('arm-joint-lock-update', rerender);
     };
   }, []);
 
@@ -195,18 +199,36 @@ function ArmStatus() {
   const jointLocks = Array.from({ length: 6 }, (_, i) => (
     <div
       className={`${styles['joint-lock']} ${currentAxisLockFocus == i + 1 ? styles['lock-selected'] : ''}`}
-      key={i + armAxisLocks[`joint_${i + 1}`] * 10}
+      key={
+        i +
+        armJointsLocks[`joint_${i + 1}`] * 10 +
+        (currentAxisLockFocus == i + 1 ? 100 : 0)
+      }
       onClick={() => {
-        toggleArmAxisLock(`joint_${i + 1}`);
+        toggleArmJointLock(`joint_${i + 1}`);
       }}
     >
-      {armAxisLocks[`joint_${i + 1}`] ? (
+      {armJointsLocks[`joint_${i + 1}`] ? (
         <FontAwesomeIcon icon={faLock} />
       ) : (
         <FontAwesomeIcon icon={faLockOpen} />
       )}
     </div>
   ));
+
+  const getAxisLockIcon = (axis: string) => (
+    <div
+      className={`${styles['joint-lock']}`}
+      key={axis + armAxesLocks[axis]}
+      onClick={() => toggleArmAxisLock(axis)}
+    >
+      {armAxesLocks[axis] ? (
+        <FontAwesomeIcon icon={faLock} />
+      ) : (
+        <FontAwesomeIcon icon={faLockOpen} />
+      )}
+    </div>
+  );
 
   return (
     <div className={styles['arm-status']}>
@@ -266,6 +288,26 @@ function ArmStatus() {
               {rotationalScale?.toFixed(2)}
             </div>
           </div>
+        </div>
+      </div>
+
+      <h3 className={styles['scales-header']}>Axis locks</h3>
+      <div className={styles['locks']}>
+        <div className={styles['scale-column']}>
+          <div className={styles['lock-name']}>X: </div>
+          <div className={styles['lock-name']}>Y: </div>
+          <div className={styles['lock-name']}>Z: </div>
+          <div className={styles['lock-name']}>Roll: </div>
+          <div className={styles['lock-name']}>Pitch: </div>
+          <div className={styles['lock-name']}>Yaw: </div>
+        </div>
+        <div className={styles['scale-column']}>
+          {getAxisLockIcon('X')}
+          {getAxisLockIcon('Y')}
+          {getAxisLockIcon('Z')}
+          {getAxisLockIcon('Roll')}
+          {getAxisLockIcon('Pitch')}
+          {getAxisLockIcon('Yaw')}
         </div>
       </div>
     </div>
