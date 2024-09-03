@@ -161,19 +161,19 @@ window.addEventListener('ros-connect', () => {
 
     if (
       readGamepads('right-shoulder', 'arm') > 0.5 &&
-      previousArmButtons?.get('right-shoulder') <= 0.5
+      previousArmButtons['right-shoulder'] <= 0.5
     ) {
       currentAxisLockFocus = (currentAxisLockFocus % 6) + 1;
     }
     if (
       readGamepads('left-shoulder', 'arm') > 0.5 &&
-      previousArmButtons?.get('left-shoulder') <= 0.5
+      previousArmButtons['left-shoulder'] <= 0.5
     ) {
       currentAxisLockFocus = ((currentAxisLockFocus + 4) % 6) + 1;
     }
     if (
       readGamepads('x-button', 'arm') > 0.5 &&
-      previousArmButtons?.get('x-button') <= 0.5
+      previousArmButtons['x-button'] <= 0.5
     ) {
       toggleArmJointLock(`joint_${currentAxisLockFocus}`);
     }

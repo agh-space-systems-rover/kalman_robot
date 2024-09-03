@@ -201,8 +201,7 @@ function ArmStatus() {
       className={`${styles['joint-lock']} ${currentAxisLockFocus == i + 1 ? styles['lock-selected'] : ''}`}
       key={
         i +
-        armJointsLocks[`joint_${i + 1}`] * 10 +
-        (currentAxisLockFocus == i + 1 ? 100 : 0)
+        armJointsLocks[`joint_${i + 1}`] * 10 
       }
       onClick={() => {
         toggleArmJointLock(`joint_${i + 1}`);
@@ -302,12 +301,12 @@ function ArmStatus() {
           <div className={styles['lock-name']}>Yaw: </div>
         </div>
         <div className={styles['scale-column']}>
-          {getAxisLockIcon('X')}
-          {getAxisLockIcon('Y')}
-          {getAxisLockIcon('Z')}
-          {getAxisLockIcon('Roll')}
-          {getAxisLockIcon('Pitch')}
-          {getAxisLockIcon('Yaw')}
+          {getAxisLockIcon('x')}
+          {getAxisLockIcon('y')}
+          {getAxisLockIcon('z')}
+          {getAxisLockIcon('roll')}
+          {getAxisLockIcon('pitch')}
+          {getAxisLockIcon('yaw')}
         </div>
       </div>
     </div>

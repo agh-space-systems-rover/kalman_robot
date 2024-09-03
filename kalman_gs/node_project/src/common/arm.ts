@@ -25,12 +25,12 @@ let lastStatusPose: string = 'UNKNOWN';
 let lastStatusTrajectory: string = 'UNKNOWN';
 
 export let armAxesLocks: ArmAxesLocks = {
-  'x': false,
-  'y': false,
-  'z': false,
-  'roll': false,
-  'pitch': false,
-  'yaw': false
+  x: false,
+  y: false,
+  z: false,
+  roll: false,
+  pitch: false,
+  yaw: false
 };
 
 const ARM_STATUSES = {
