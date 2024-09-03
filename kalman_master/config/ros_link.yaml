@@ -29,6 +29,24 @@ rover: # or 'station'
             min: -180.0
             max: 180.0
             bytes: 4 # precision = 0.0000001 degrees = 1 cm
+    - name: gps/filtered
+      type: sensor_msgs/msg/NavSatFix
+      max_rate: 1
+      fields:
+        - path: status.status
+          int_range:
+            min: -1 # min status.status
+            max: 2 # max status.status
+        - path: latitude
+          float_range:
+            min: -90.0
+            max: 90.0
+            bytes: 4 # precision = 0.00000005 degrees = 0.5 cm
+        - path: longitude
+          float_range:
+            min: -180.0
+            max: 180.0
+            bytes: 4 # precision = 0.0000001 degrees = 1 cm
     # - name: test_string
     #   type: example_interfaces/msg/String
     #   string_enum:

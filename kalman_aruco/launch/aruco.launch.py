@@ -100,16 +100,17 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument(
                 "rgbd_ids",
+                default_value="",
                 description="Space-separated IDs of the RGBD cameras to use. Regular cameras are not supported yet.",
             ),
             DeclareLaunchArgument(
                 "dict",
-                default_value="DICT_4X4_50",
+                default_value="4X4_50",
                 description="Dictionary of markers to use.",
             ),
             DeclareLaunchArgument(
                 "size",
-                default_value="0.1",
+                default_value="0.15",
                 description="Size of the marker including black border in meters.",
             ),
             OpaqueFunction(function=launch_setup),
