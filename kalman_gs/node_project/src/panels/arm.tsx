@@ -14,11 +14,18 @@ import {
   abortTrajectory,
   lastStatusTrajectory
 } from '../common/arm';
+import {
+  armAxisLocks,
+  currentAxisLockFocus,
+  toggleArmAxisLock
+} from '../common/gamepad-arming';
 import predefinedPoses from '../common/predefined-arm-poses';
 import '../common/predefined-arm-trajectories';
 import predefinedArmTrajectories from '../common/predefined-arm-trajectories';
 import { ros } from '../common/ros';
 import { JointState } from '../common/ros-interfaces';
+import { faLock, faLockOpen } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useState, useEffect, useCallback } from 'react';
 import { Topic } from 'roslib';
 
@@ -93,7 +100,7 @@ function isCloseEnough(
 }
 
 function ArmStatus() {
-  const [_, setRerenderCount] = useState(0);
+  const [rerenderCount, setRerenderCount] = useState(0);
   const [linearScale, setLinearScale] = useState<number | null>(
     lastServoLinearScale
   );
@@ -111,10 +118,12 @@ function ArmStatus() {
     window.addEventListener('joint-state', rerender);
     window.addEventListener('servo-linear-scale', rerender);
     window.addEventListener('servo-rotational-scale', rerender);
+    window.addEventListener('arm-axis-lock-update', rerender);
     return () => {
       window.removeEventListener('joint-state', rerender);
       window.removeEventListener('servo-linear-scale', rerender);
       window.removeEventListener('servo-rotational-scale', rerender);
+      window.removeEventListener('arm-axis-lock-update', rerender);
     };
   }, []);
 
@@ -183,10 +192,29 @@ function ArmStatus() {
     </div>
   ));
 
+  const jointLocks = Array.from({ length: 6 }, (_, i) => (
+    <div
+      className={`${styles['joint-lock']} ${currentAxisLockFocus == i + 1 ? styles['lock-selected'] : ''}`}
+      key={i + armAxisLocks[`joint_${i + 1}`] * 10}
+      onClick={() => {
+        toggleArmAxisLock(`joint_${i + 1}`);
+      }}
+    >
+      {armAxisLocks[`joint_${i + 1}`] ? (
+        <FontAwesomeIcon icon={faLock} />
+      ) : (
+        <FontAwesomeIcon icon={faLockOpen} />
+      )}
+    </div>
+  ));
+
   return (
     <div className={styles['arm-status']}>
       <h1 className={styles['status-header']}>Arm Status</h1>
       <div className={styles['status']}>
+        <div className={styles['joint-column'] + ' ' + styles['align-left']}>
+          {jointLocks}
+        </div>
         <div className={styles['joint-column'] + ' ' + styles['align-left']}>
           {jointNames}
         </div>

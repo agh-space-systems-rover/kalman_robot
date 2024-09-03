@@ -113,6 +113,34 @@ function translateGamepadToCommand({ type, input, mapping }: JointBind) {
   }
 }
 
+let previousArmButtons = new Map<GamepadInput, number>();
+
+export let armAxisLocks = {
+  'joint_1': false,
+  'joint_2': false,
+  'joint_3': false,
+  'joint_4': false,
+  'joint_5': false,
+  'joint_6': false
+};
+
+export function toggleArmAxisLock(axis: string) {
+  armAxisLocks[axis] = !armAxisLocks[axis];
+  window.dispatchEvent(new Event('arm-axis-lock-update'));
+}
+
+export let currentAxisLockFocus = 1;
+
+function resetLockedAxes(msg: ArmFkCommand) {
+  for (let axis in armAxisLocks) {
+    if (armAxisLocks[axis]) {
+      msg[axis] = 0;
+    }
+  }
+
+  return msg;
+}
+
 window.addEventListener('ros-connect', () => {
   const fkTopic = new Topic<ArmFkCommand>({
     ros: ros,
@@ -131,6 +159,33 @@ window.addEventListener('ros-connect', () => {
       gripper: translateGamepadToCommand(jointInputMapping.gripper)
     };
 
+    if (
+      readGamepads('right-shoulder', 'arm') > 0.5 &&
+      previousArmButtons?.get('right-shoulder') <= 0.5
+    ) {
+      currentAxisLockFocus = (currentAxisLockFocus % 6) + 1;
+    }
+    if (
+      readGamepads('left-shoulder', 'arm') > 0.5 &&
+      previousArmButtons?.get('left-shoulder') <= 0.5
+    ) {
+      currentAxisLockFocus = ((currentAxisLockFocus + 4) % 6) + 1;
+    }
+    if (
+      readGamepads('x-button', 'arm') > 0.5 &&
+      previousArmButtons?.get('x-button') <= 0.5
+    ) {
+      toggleArmAxisLock(`joint_${currentAxisLockFocus}`);
+    }
+
+    previousArmButtons['right-shoulder'] = readGamepads(
+      'right-shoulder',
+      'arm'
+    );
+    previousArmButtons['left-shoulder'] = readGamepads('left-shoulder', 'arm');
+    previousArmButtons['x-button'] = readGamepads('x-button', 'arm');
+
+    msg = resetLockedAxes(msg);
     fkTopic.publish(msg);
   }, 1000 / RATE);
 });
