@@ -296,14 +296,18 @@ function ArmStatus() {
           <div className={styles['lock-name']}>X: </div>
           <div className={styles['lock-name']}>Y: </div>
           <div className={styles['lock-name']}>Z: </div>
-          <div className={styles['lock-name']}>Roll: </div>
-          <div className={styles['lock-name']}>Pitch: </div>
-          <div className={styles['lock-name']}>Yaw: </div>
         </div>
         <div className={styles['scale-column']}>
           {getAxisLockIcon('x')}
           {getAxisLockIcon('y')}
           {getAxisLockIcon('z')}
+        </div>
+        <div className={styles['scale-column']}>
+          <div className={styles['lock-name']}>Roll: </div>
+          <div className={styles['lock-name']}>Pitch: </div>
+          <div className={styles['lock-name']}>Yaw: </div>
+        </div>
+        <div className={styles['scale-column']}>
           {getAxisLockIcon('roll')}
           {getAxisLockIcon('pitch')}
           {getAxisLockIcon('yaw')}
