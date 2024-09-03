@@ -16,7 +16,6 @@ def generate_launch_description():
                     )
                 ),
                 launch_arguments={
-                    # "component_container": "true",
                     "description": "true",
                     "drivers": "true",
                     "drivers.rgbd_ids": "d455_front d455_back d455_left d455_right",
