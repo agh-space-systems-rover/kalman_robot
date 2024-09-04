@@ -15,7 +15,7 @@ from std_msgs.msg import UInt8
 
 MAX_DISTANCE_RAD = 0.35  # about 20
 
-Pose = namedtuple("Pose", ["name", "path", "joints_set", "joints_checked", "joints_reversed"])
+Pose = namedtuple("Pose", ["name", "path", "joints_set", "joints_checked", "joints_reversed", "safe_previous_poses"])
 
 arm_config = get_package_share_directory("kalman_arm_config")
 
@@ -32,6 +32,7 @@ try:
                 pose["joints_set"],
                 pose["joints_checked"],
                 pose["joints_reversed"],
+                pose["safe_previous_poses"],
             )
 except:
     print("Error loading predefined poses configuration")
@@ -119,7 +120,7 @@ class PoseRequestSender(Node):
         self.reset_not_set_joints(request, pose.joints_set)
         self.reverse_joints(request, pose.joints_reversed)
         
-        if self.check_joints_too_far(request, pose.joints_checked):
+        if self.check_joints_too_far(request, pose.joints_checked) or self.check_is_from_safe_previous_poses(pose):
             self.get_logger().info("Sending pose goal...")
             self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.GOAL_SENDING))
             self.send_request(request)
@@ -196,6 +197,14 @@ class PoseRequestSender(Node):
                 close_enough = False
                 
         return close_enough
+    
+    def check_is_from_safe_previous_poses(self, pose: Pose) -> bool:
+        for safe_pose in pose.safe_previous_poses:
+            if safe_pose in PREDEFINED_POSES:
+                safe_pose = PREDEFINED_POSES[safe_pose]
+                if self.check_joints_too_far(self.get_request_from_file(safe_pose.path), safe_pose.joints_checked):
+                    return True
+        return False
         
 
     def send_request(self, request, check=True):

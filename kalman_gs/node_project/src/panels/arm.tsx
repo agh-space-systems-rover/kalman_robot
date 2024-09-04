@@ -199,10 +199,7 @@ function ArmStatus() {
   const jointLocks = Array.from({ length: 6 }, (_, i) => (
     <div
       className={`${styles['joint-lock']} ${currentAxisLockFocus == i + 1 ? styles['lock-selected'] : ''}`}
-      key={
-        i +
-        armJointsLocks[`joint_${i + 1}`] * 10 
-      }
+      key={i + armJointsLocks[`joint_${i + 1}`] * 10}
       onClick={() => {
         toggleArmJointLock(`joint_${i + 1}`);
       }}
@@ -352,6 +349,25 @@ function PoseRequester() {
     return () => clearInterval(intervalId);
   }, []);
 
+  const isStartingFromSafePose = (safePreviousPoses: number[]) => {
+    for (let i = 0; i < safePreviousPoses.length; i++) {
+      if (
+        isCloseEnough(
+          predefinedPoses.POSES_JOINTS[
+            predefinedPoses.PREDEFINED_POSES.poses[safePreviousPoses[i]].name
+          ],
+          namesAndValues.map((joint) => joint.value),
+          predefinedPoses.PREDEFINED_POSES.max_distance_rad,
+          predefinedPoses.PREDEFINED_POSES.poses[safePreviousPoses[i]]
+            .joints_checked
+        )
+      ) {
+        return true;
+      }
+    }
+    return false;
+  };
+
   const [currentPoseId, setCurrentPoseId] = useState(0);
 
   const namesAndValues = getNamesAndValues();
@@ -380,7 +396,7 @@ function PoseRequester() {
               namesAndValues.map((joint) => joint.value),
               predefinedPoses.PREDEFINED_POSES.max_distance_rad,
               predefinedPoses.PREDEFINED_POSES.poses[i].joints_checked
-            )
+            ) || isStartingFromSafePose(pose.safe_previous_poses)
               ? styles['pose-ready']
               : styles['pose-not-ready']
           }`}
@@ -426,14 +442,18 @@ function PoseRequester() {
     ))
   );
 
-  const closeEnough = isCloseEnough(
-    predefinedPoses.POSES_JOINTS[
-      predefinedPoses.PREDEFINED_POSES.poses[currentPoseId].name
-    ],
-    namesAndValues.map((joint) => joint.value),
-    predefinedPoses.PREDEFINED_POSES.max_distance_rad,
-    predefinedPoses.PREDEFINED_POSES.poses[currentPoseId].joints_checked
-  );
+  const closeEnough =
+    isCloseEnough(
+      predefinedPoses.POSES_JOINTS[
+        predefinedPoses.PREDEFINED_POSES.poses[currentPoseId].name
+      ],
+      namesAndValues.map((joint) => joint.value),
+      predefinedPoses.PREDEFINED_POSES.max_distance_rad,
+      predefinedPoses.PREDEFINED_POSES.poses[currentPoseId].joints_checked
+    ) ||
+    isStartingFromSafePose(
+      predefinedPoses.PREDEFINED_POSES.poses[currentPoseId].safe_previous_poses
+    );
   return (
     <div className={styles['pose-requester']}>
       <h2 className={styles['pose-header']}>Pose Requester</h2>

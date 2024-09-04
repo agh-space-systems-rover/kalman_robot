@@ -7,7 +7,8 @@ const PREDEFINED_POSES = {
       'name': 'Compact Herman',
       'path': 'predefined_poses/compact_herman.yaml',
       'joints_set': [1, 2, 3, 4, 5, 6],
-      'joints_checked': [1, 2, 3]
+      'joints_checked': [1, 2, 3],
+      'safe_previous_poses': [2, 3, 4, 5, 6]
     },
     {
       'id': 1,
@@ -15,42 +16,48 @@ const PREDEFINED_POSES = {
       'path': 'predefined_poses/reset.yaml',
       'joints_set': [4, 6],
       'joints_checked': [],
-      'joints_reversed': [5]
+      'joints_reversed': [5],
+      'safe_previous_poses': []
     },
     {
       'id': 2,
       'name': 'Base Front',
       'path': 'predefined_poses/base_front.yaml',
       'joints_set': [1, 2, 3, 4, 5, 6],
-      'joints_checked': [2, 3]
+      'joints_checked': [2, 3],
+      'safe_previous_poses': [0, 3, 4, 5, 6]
     },
     {
       'id': 3,
       'name': 'Base Left',
       'path': 'predefined_poses/base_left.yaml',
       'joints_set': [1, 2, 3, 4, 5, 6],
-      'joints_checked': [2, 3]
+      'joints_checked': [2, 3],
+      'safe_previous_poses': [0, 2, 4, 5]
     },
     {
       'id': 4,
       'name': 'Base Right',
       'path': 'predefined_poses/base_right.yaml',
       'joints_set': [1, 2, 3, 4, 5, 6],
-      'joints_checked': [2, 3]
+      'joints_checked': [2, 3],
+      'safe_previous_poses': [0, 2, 3, 5]
     },
     {
       'id': 5,
       'name': 'Based',
       'path': 'predefined_poses/reset.yaml',
       'joints_set': [1, 2, 3, 4, 5, 6],
-      'joints_checked': []
+      'joints_checked': [],
+      'safe_previous_poses': [0, 2, 3, 4, 5, 6]
     },
     {
       'id': 6,
       'name': 'Spectro approach',
       'path': 'predefined_poses/spectro_approach.yaml',
       'joints_set': [1, 2, 3, 4, 5, 6],
-      'joints_checked': [2, 3]
+      'joints_checked': [2, 3],
+      'safe_previous_poses': [0, 2, 5]
     }
   ]
 };
