@@ -3,6 +3,7 @@ import Feeds from './feeds';
 import Imu from './imu';
 import Map from './map';
 import MapHeader from './map.header';
+import Science from './science';
 import Supervisor from './supervisor';
 import Waypoints from './waypoints';
 import Wheels from './wheels';
@@ -14,7 +15,8 @@ import {
   faVideo,
   faDiagramProject,
   faFlag,
-  faGear
+  faGear,
+  faMicroscope
 } from '@fortawesome/free-solid-svg-icons';
 
 // Add new panels here:
@@ -24,6 +26,7 @@ export type PanelID =
   | 'supervisor'
   | 'map'
   | 'feeds'
+  | 'science'
   | 'arm'
   | 'waypoints';
 export const defaultPanel: PanelID = 'map';
@@ -53,6 +56,11 @@ export const panelInfos: Panels = {
     Component: Feeds,
     name: 'Feeds',
     icon: faVideo
+  },
+  science: {
+    Component: Science,
+    name: 'Science',
+    icon: faMicroscope
   },
   arm: {
     Component: Arms,

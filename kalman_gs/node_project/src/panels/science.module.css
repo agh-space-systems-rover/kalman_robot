@@ -1,0 +1,130 @@
+.vertical {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    flex-direction: column;
+
+  }
+
+  .horizontal {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    
+  }
+
+.weights {
+  display: flex;
+  flex-direction: row;
+}
+
+.standardWeight {
+  display: flex;
+  flex-direction: column;
+  margin: 8px;
+}
+
+.standardTitle {
+text-align: center;
+}
+
+.send-button, .tare-button, .autonomy-button {
+  flex-direction: row;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+  border-radius: 5px;
+  color: var(--strong-foreground);
+  cursor: pointer;
+  transition: 0.4s;
+  margin: 2px;
+}
+
+.inline-items {
+  display: flex;
+  flex-direction: row;
+  margin-top: 10px;
+}
+
+.send-button {
+  background-color: var(--green-background);
+  font-weight: 800;
+  width: 80px;
+  font-size: medium;
+}
+
+.autonomy-button {
+  background-color: var(--red-background);
+  font-weight: 800;
+  font-size: medium;
+}
+
+.tare-button {
+  background-color: var(--blue-background);
+  width: 25px;
+}
+
+.tare-button:hover {
+  background-color: var(--blue-foreground)
+}
+
+
+.send-button:hover {
+  background-color: var(--green-foreground)
+}
+
+.autonomy-button:hover {
+  background-color: var(--red-foreground);
+}
+
+.info-label {
+  font-size: medium;
+  font-weight: 800;
+  align-self: flex-start;
+  margin-left: 5px;
+}
+
+.info-display {
+  font-size: medium;
+  font-weight: 800;
+  color: var(--yellow-background);
+  align-self: flex-end;
+  margin-left: auto;
+  margin-right: 5px;
+}
+
+
+.icon
+{
+  font-size: 120px;
+  color: var(--weak-foreground);
+  transition: 0.4s;
+  cursor: pointer;
+  margin-left: 120px;
+  margin-right: 120px;
+  margin-top: -45px;
+
+}
+
+.icon:hover
+{
+  color: var(--weak-background);
+}
+
+
+
+.icon-digit {
+  font-size: 30px;
+  color: var(--background);
+  transition: 0.4s;
+  cursor: pointer;
+  margin-left: -195px;
+  margin-top: 20px;
+  position: absolute;
+  pointer-events: none;
+}
