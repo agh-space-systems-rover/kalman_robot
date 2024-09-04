@@ -58,10 +58,23 @@ rover: # or 'station'
     #       - stop_to_teleop
     #       - stop_to_finished
     #       - finished
-  # services:
-  #   - name: add_two_ints
-  #     type: example_interfaces/srv/AddTwoInts
-  #     retry_rate: 5
+  services:
+    - name: spoof_gps
+      type: kalman_interfaces/srv/SpoofGps
+      request_fields:
+        - path: location.latitude
+          float_range:
+            min: -90.0
+            max: 90.0
+            bytes: 4 # precision = 0.00000005 degrees = 0.5 cm
+        - path: location.longitude
+          float_range:
+            min: -180.0
+            max: 180.0
+            bytes: 4 # precision = 0.0000001 degrees = 1 cm
+    # - name: add_two_ints
+    #   type: example_interfaces/srv/AddTwoInts
+    #   retry_rate: 5
   actions: # actions served by the rover and used by the GS
     # - name: fibonacci
     #   type: example_interfaces/action/Fibonacci
@@ -173,17 +186,4 @@ rover: # or 'station'
           - bottle
 
 station:
-  services: # topics published by the GS and subscribed by the rover
-    - name: spoof_gps
-      type: kalman_interfaces/srv/SpoofGps
-      request_fields:
-        - path: location.latitude
-          float_range:
-            min: -90.0
-            max: 90.0
-            bytes: 4 # precision = 0.00000005 degrees = 0.5 cm
-        - path: location.longitude
-          float_range:
-            min: -180.0
-            max: 180.0
-            bytes: 4 # precision = 0.0000001 degrees = 1 cm
+  # topics: {} # topics published by the GS and subscribed by the rover
