@@ -43,7 +43,7 @@ const PREDEFINED_POSES = {
       'name': 'Based',
       'path': 'predefined_poses/reset.yaml',
       'joints_set': [1, 2, 3, 4, 5, 6],
-      'joints_checked': [2, 3]
+      'joints_checked': []
     },
     {
       'id': 6,
