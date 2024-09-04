@@ -2,7 +2,7 @@
 
 The software for AGH Space System's planetary rover
 
-![](./docs/cover.jpg)
+![](./docs/cover.png)
 
 ## Prerequisites
 
