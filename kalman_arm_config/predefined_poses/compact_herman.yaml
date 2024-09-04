@@ -1,0 +1,164 @@
+request:
+    workspace_parameters:
+        header:
+            stamp:
+                sec: 1716778852
+                nanosec: 879201222
+            frame_id: world
+        min_corner:
+            x: -1.0
+            y: -1.0
+            z: -1.0
+        max_corner:
+            x: 1.0
+            y: 1.0
+            z: 1.0
+    start_state:
+        joint_state:
+            header:
+                stamp:
+                    sec: 0
+                    nanosec: 0
+                frame_id: ""
+            name: []
+            position: []
+            velocity: []
+            effort: []
+        multi_dof_joint_state:
+            header:
+                stamp:
+                    sec: 0
+                    nanosec: 0
+                frame_id: ""
+            joint_names: []
+            transforms: []
+            twist: []
+            wrench: []
+        attached_collision_objects: []
+        is_diff: true
+    goal_constraints:
+        - name: ""
+          joint_constraints:
+              - joint_name: joint_1
+                position: 0.0
+                tolerance_above: 0.01
+                tolerance_below: 0.01
+                weight: 1.0
+              - joint_name: joint_2
+                position: -0.4098
+                tolerance_above: 0.01
+                tolerance_below: 0.01
+                weight: 1.0
+              - joint_name: joint_3
+                position: 2.567
+                tolerance_above: 0.01
+                tolerance_below: 0.01
+                weight: 1.0
+              - joint_name: joint_4
+                position: 0.0
+                tolerance_above: 0.01
+                tolerance_below: 0.01
+                weight: 1.0
+              - joint_name: joint_5
+                position: -0.6277
+                tolerance_above: 0.01
+                tolerance_below: 0.01
+                weight: 1.0
+              - joint_name: joint_6
+                position: 0.0
+                tolerance_above: 0.01
+                tolerance_below: 0.01
+                weight: 1.0
+          position_constraints: []
+          orientation_constraints: []
+          visibility_constraints: []
+    path_constraints:
+        name: ""
+        joint_constraints: []
+        position_constraints: []
+        orientation_constraints: []
+        visibility_constraints: []
+    trajectory_constraints:
+        constraints: []
+    reference_trajectories: []
+    pipeline_id: ompl
+    planner_id: ""
+    group_name: kalman_arm
+    num_planning_attempts: 10
+    allowed_planning_time: 5.0
+    max_velocity_scaling_factor: 0.6
+    max_acceleration_scaling_factor: 0.8
+    cartesian_speed_limited_link: ""
+    max_cartesian_speed: 0.0
+planning_options:
+    planning_scene_diff:
+        name: ""
+        robot_state:
+            joint_state:
+                header:
+                    stamp:
+                        sec: 0
+                        nanosec: 0
+                    frame_id: ""
+                name: []
+                position: []
+                velocity: []
+                effort: []
+            multi_dof_joint_state:
+                header:
+                    stamp:
+                        sec: 0
+                        nanosec: 0
+                    frame_id: ""
+                joint_names: []
+                transforms: []
+                twist: []
+                wrench: []
+            attached_collision_objects: []
+            is_diff: true
+        robot_model_name: ""
+        fixed_frame_transforms: []
+        allowed_collision_matrix:
+            entry_names: []
+            entry_values: []
+            default_entry_names: []
+            default_entry_values: []
+        link_padding: []
+        link_scale: []
+        object_colors: []
+        world:
+            collision_objects: []
+            octomap:
+                header:
+                    stamp:
+                        sec: 0
+                        nanosec: 0
+                    frame_id: ""
+                origin:
+                    position:
+                        x: 0.0
+                        y: 0.0
+                        z: 0.0
+                    orientation:
+                        x: 0.0
+                        y: 0.0
+                        z: 0.0
+                        w: 1.0
+                octomap:
+                    header:
+                        stamp:
+                            sec: 0
+                            nanosec: 0
+                        frame_id: ""
+                    binary: false
+                    id: ""
+                    resolution: 0.0
+                    data: []
+        is_diff: true
+    plan_only: false
+    look_around: false
+    look_around_attempts: 0
+    max_safe_execution_cost: 0.0
+    replan: false
+    replan_attempts: 0
+    replan_delay: 2.0

@@ -15,7 +15,7 @@ from std_msgs.msg import UInt8
 
 MAX_DISTANCE_RAD = 0.35  # about 20
 
-Pose = namedtuple("Pose", ["name", "path", "joints_set", "joints_checked"])
+Pose = namedtuple("Pose", ["name", "path", "joints_set", "joints_checked", "joints_reversed", "safe_previous_poses"])
 
 arm_config = get_package_share_directory("kalman_arm_config")
 
@@ -31,6 +31,8 @@ try:
                 f"{arm_config}/{pose['path']}",
                 pose["joints_set"],
                 pose["joints_checked"],
+                pose["joints_reversed"],
+                pose["safe_previous_poses"],
             )
 except:
     print("Error loading predefined poses configuration")
@@ -116,8 +118,9 @@ class PoseRequestSender(Node):
     def publish_pose_goal(self, pose: Pose):
         request = self.get_request_from_file(pose.path)
         self.reset_not_set_joints(request, pose.joints_set)
+        self.reverse_joints(request, pose.joints_reversed)
         
-        if self.check_joints_too_far(request, pose.joints_checked):
+        if self.check_joints_too_far(request, pose.joints_checked) or self.check_is_from_safe_previous_poses(pose):
             self.get_logger().info("Sending pose goal...")
             self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.GOAL_SENDING))
             self.send_request(request)
@@ -158,6 +161,22 @@ class PoseRequestSender(Node):
 
         goal_constraint.joint_constraints = joint_constraints
         request.request.goal_constraints = [goal_constraint]
+        
+        
+    def reverse_joints(self, request: MoveGroup.Goal, joints_to_reverse: list[str]):
+        goal_constraint: Constraints = request.request.goal_constraints[0]
+        joint_constraints: list[JointConstraint] = sorted(
+            goal_constraint.joint_constraints, key=lambda x: x.joint_name
+        )
+
+        for i in range(6):
+            if joint_constraints[i].joint_name in joints_to_reverse:
+                joint_constraints[i].position = -self.joints[
+                    joint_constraints[i].joint_name
+                ]
+
+        goal_constraint.joint_constraints = joint_constraints
+        request.request.goal_constraints = [goal_constraint]
 
         
     def check_joints_too_far(self, request: MoveGroup.Goal, joints_to_check: list[str]) -> bool:
@@ -178,6 +197,14 @@ class PoseRequestSender(Node):
                 close_enough = False
                 
         return close_enough
+    
+    def check_is_from_safe_previous_poses(self, pose: Pose) -> bool:
+        for safe_pose in pose.safe_previous_poses:
+            if safe_pose in PREDEFINED_POSES:
+                safe_pose = PREDEFINED_POSES[safe_pose]
+                if self.check_joints_too_far(self.get_request_from_file(safe_pose.path), safe_pose.joints_checked):
+                    return True
+        return False
         
 
     def send_request(self, request, check=True):

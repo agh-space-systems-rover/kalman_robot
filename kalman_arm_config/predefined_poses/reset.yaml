@@ -86,8 +86,8 @@ request:
   group_name: kalman_arm
   num_planning_attempts: 10
   allowed_planning_time: 5.0
-  max_velocity_scaling_factor: 0.4
-  max_acceleration_scaling_factor: 0.4
+  max_velocity_scaling_factor: 0.7
+  max_acceleration_scaling_factor: 0.7
   cartesian_speed_limited_link: ''
   max_cartesian_speed: 0.0
 planning_options:

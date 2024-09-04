@@ -45,22 +45,22 @@ request:
       tolerance_below: 0.01
       weight: 1.0
     - joint_name: joint_2
-      position: -0.4098
+      position: 0.28
       tolerance_above: 0.01
       tolerance_below: 0.01
       weight: 1.0
     - joint_name: joint_3
-      position: 2.567
+      position: 2.4
       tolerance_above: 0.01
       tolerance_below: 0.01
       weight: 1.0
     - joint_name: joint_4
-      position: 0.0
+      position: 3.14
       tolerance_above: 0.01
       tolerance_below: 0.01
       weight: 1.0
     - joint_name: joint_5
-      position: -0.6277
+      position: -1.7
       tolerance_above: 0.01
       tolerance_below: 0.01
       weight: 1.0
@@ -86,8 +86,8 @@ request:
   group_name: kalman_arm
   num_planning_attempts: 10
   allowed_planning_time: 5.0
-  max_velocity_scaling_factor: 0.4
-  max_acceleration_scaling_factor: 0.4
+  max_velocity_scaling_factor: 0.5
+  max_acceleration_scaling_factor: 0.5
   cartesian_speed_limited_link: ''
   max_cartesian_speed: 0.0
 planning_options:
