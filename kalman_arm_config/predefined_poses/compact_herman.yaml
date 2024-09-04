@@ -2,8 +2,8 @@ request:
   workspace_parameters:
     header:
       stamp:
-        sec: 1721567640
-        nanosec: 21168748
+        sec: 1716778852
+        nanosec: 879201222
       frame_id: world
     min_corner:
       x: -1.0
@@ -40,34 +40,34 @@ request:
   - name: ''
     joint_constraints:
     - joint_name: joint_1
-      position: 0.09117199365375231
-      tolerance_above: 0.0001
-      tolerance_below: 0.0001
+      position: 0.0
+      tolerance_above: 0.01
+      tolerance_below: 0.01
       weight: 1.0
     - joint_name: joint_2
-      position: -0.2978937881178376
-      tolerance_above: 0.0001
-      tolerance_below: 0.0001
+      position: -0.4098
+      tolerance_above: 0.01
+      tolerance_below: 0.01
       weight: 1.0
     - joint_name: joint_3
-      position: 2.2095582871604575
-      tolerance_above: 0.0001
-      tolerance_below: 0.0001
+      position: 2.567
+      tolerance_above: 0.01
+      tolerance_below: 0.01
       weight: 1.0
     - joint_name: joint_4
-      position: 0.165079650493233
-      tolerance_above: 0.0001
-      tolerance_below: 0.0001
+      position: 0.0
+      tolerance_above: 0.01
+      tolerance_below: 0.01
       weight: 1.0
     - joint_name: joint_5
-      position: -0.5709558965275761
-      tolerance_above: 0.0001
-      tolerance_below: 0.0001
+      position: -0.6277
+      tolerance_above: 0.01
+      tolerance_below: 0.01
       weight: 1.0
     - joint_name: joint_6
-      position: -0.171819288605753
-      tolerance_above: 0.0001
-      tolerance_below: 0.0001
+      position: 0.0
+      tolerance_above: 0.01
+      tolerance_below: 0.01
       weight: 1.0
     position_constraints: []
     orientation_constraints: []
@@ -86,8 +86,8 @@ request:
   group_name: kalman_arm
   num_planning_attempts: 10
   allowed_planning_time: 5.0
-  max_velocity_scaling_factor: 0.1
-  max_acceleration_scaling_factor: 0.1
+  max_velocity_scaling_factor: 0.8
+  max_acceleration_scaling_factor: 0.8
   cartesian_speed_limited_link: ''
   max_cartesian_speed: 0.0
 planning_options:

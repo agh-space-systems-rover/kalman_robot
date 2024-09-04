@@ -15,7 +15,7 @@ from std_msgs.msg import UInt8
 
 MAX_DISTANCE_RAD = 0.35  # about 20
 
-Pose = namedtuple("Pose", ["name", "path", "joints_set", "joints_checked"])
+Pose = namedtuple("Pose", ["name", "path", "joints_set", "joints_checked", "joints_reversed"])
 
 arm_config = get_package_share_directory("kalman_arm_config")
 
@@ -31,6 +31,7 @@ try:
                 f"{arm_config}/{pose['path']}",
                 pose["joints_set"],
                 pose["joints_checked"],
+                pose["joints_reversed"],
             )
 except:
     print("Error loading predefined poses configuration")
@@ -116,6 +117,7 @@ class PoseRequestSender(Node):
     def publish_pose_goal(self, pose: Pose):
         request = self.get_request_from_file(pose.path)
         self.reset_not_set_joints(request, pose.joints_set)
+        self.reverse_joints(request, pose.joints_reversed)
         
         if self.check_joints_too_far(request, pose.joints_checked):
             self.get_logger().info("Sending pose goal...")
@@ -153,6 +155,22 @@ class PoseRequestSender(Node):
         for i in range(6):
             if joint_constraints[i].joint_name not in joints_to_set:
                 joint_constraints[i].position = self.joints[
+                    joint_constraints[i].joint_name
+                ]
+
+        goal_constraint.joint_constraints = joint_constraints
+        request.request.goal_constraints = [goal_constraint]
+        
+        
+    def reverse_joints(self, request: MoveGroup.Goal, joints_to_reverse: list[str]):
+        goal_constraint: Constraints = request.request.goal_constraints[0]
+        joint_constraints: list[JointConstraint] = sorted(
+            goal_constraint.joint_constraints, key=lambda x: x.joint_name
+        )
+
+        for i in range(6):
+            if joint_constraints[i].joint_name in joints_to_reverse:
+                joint_constraints[i].position = -self.joints[
                     joint_constraints[i].joint_name
                 ]
 
