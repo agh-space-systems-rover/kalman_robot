@@ -59,7 +59,7 @@ class PositionHistory(Module):
             occupancy = self.supervisor.map.occupancy(
                 waypoint[:2], self.supervisor.tf.world_frame()
             )
-            if occupancy == Map.Occupancy.FREE:
+            if occupancy == Map.Occupancy.FREE or occupancy == Map.Occupancy.PARTIALLY_OCCUPIED:
                 return waypoint, self.supervisor.tf.world_frame()
 
         return None

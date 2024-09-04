@@ -27,10 +27,13 @@ def generate_launch_description():
                     "nav2.rgbd_ids": "d455_front d455_back d455_left d455_right",
                     "aruco": "true",
                     "aruco.rgbd_ids": "d455_front d455_back d455_left d455_right",
+                    "aruco.dict": "4X4_50",
+                    "aruco.size": "0.15",
                     "yolo": "true",
                     "yolo.rgbd_ids": "d455_front d455_back d455_left d455_right",
                     "yolo.config": "urc2024",
                     "supervisor": "true",
+                    "supervisor.deactivate_aruco": "true",
                 }.items(),
             ),
         ]

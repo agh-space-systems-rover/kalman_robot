@@ -47,6 +47,20 @@
   background-color: var(--red-foreground) !important;
 }
 
+.colored-button:global(.yellow) {
+  background-color: var(--yellow-background) !important;
+}
+.colored-button:global(.yellow):hover {
+  background-color: color-mix(
+    in srgb,
+    var(--yellow-background),
+    var(--yellow-foreground) 50%
+  ) !important;
+}
+.colored-button:global(.yellow):active {
+  background-color: var(--yellow-foreground) !important;
+}
+
 .colored-button:global(.green) {
   background-color: var(--green-background) !important;
 }
@@ -59,6 +73,20 @@
 }
 .colored-button:global(.green):active {
   background-color: var(--green-foreground) !important;
+}
+
+.colored-button:global(.cyan) {
+  background-color: var(--cyan-background) !important;
+}
+.colored-button:global(.cyan):hover {
+  background-color: color-mix(
+    in srgb,
+    var(--cyan-background),
+    var(--cyan-foreground) 50%
+  ) !important;
+}
+.colored-button:global(.cyan):active {
+  background-color: var(--cyan-foreground) !important;
 }
 
 .colored-button:global(.blue) {
@@ -92,8 +120,14 @@
 .colored-label:global(.red) {
   background-color: var(--red-background) !important;
 }
+.colored-label:global(.yellow) {
+  background-color: var(--yellow-background) !important;
+}
 .colored-label:global(.green) {
   background-color: var(--green-background) !important;
+}
+.colored-label:global(.cyan) {
+  background-color: var(--cyan-background) !important;
 }
 .colored-label:global(.blue) {
   background-color: var(--blue-background) !important;

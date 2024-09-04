@@ -226,7 +226,11 @@ class Map(Module):
         samples = 0
         while True:
             # If the point is free, return it.
-            if self.__occupancy_for_grid_coords(xy) == Map.Occupancy.FREE:
+            if (
+                self.__occupancy_for_grid_coords(xy) == Map.Occupancy.FREE
+                or self.__occupancy_for_grid_coords(xy)
+                == Map.Occupancy.PARTIALLY_OCCUPIED
+            ):
                 xy, new_frame = self.__grid_coords_to_pos(xy)
                 # The 3D point will be snapped to the Z=0 plane in the map frame.
                 pos = np.append(xy, [0])

@@ -45,11 +45,17 @@ def launch_setup(context):
         for x in LaunchConfiguration("rgbd_ids").perform(context).split(" ")
         if x != ""
     ]
+    dict = LaunchConfiguration("dict").perform(context)
+    size = float(LaunchConfiguration("size").perform(context))
 
     description = []
 
     parameters = [
-        str(get_package_share_path("kalman_aruco") / "config" / f"aruco_tracker.yaml")
+        str(get_package_share_path("kalman_aruco") / "config" / f"aruco_tracker.yaml"),
+        {
+            "marker_dict": dict,
+            "marker_size": size,
+        },
     ]
 
     if component_container:
@@ -94,7 +100,18 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument(
                 "rgbd_ids",
+                default_value="",
                 description="Space-separated IDs of the RGBD cameras to use. Regular cameras are not supported yet.",
+            ),
+            DeclareLaunchArgument(
+                "dict",
+                default_value="4X4_50",
+                description="Dictionary of markers to use.",
+            ),
+            DeclareLaunchArgument(
+                "size",
+                default_value="0.15",
+                description="Size of the marker including black border in meters.",
             ),
             OpaqueFunction(function=launch_setup),
         ]

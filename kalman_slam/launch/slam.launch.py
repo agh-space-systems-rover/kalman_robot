@@ -17,7 +17,9 @@ def load_local_ukf_config(rgbd_ids):
     # Load UKF config template
     with open(
         str(
-            get_package_share_path("kalman_slam") / "config" / "ukf_filter_node_local.yaml.j2"
+            get_package_share_path("kalman_slam")
+            / "config"
+            / "ukf_filter_node_local.yaml.j2"
         ),
         "r",
     ) as f:
@@ -53,6 +55,7 @@ def launch_setup(context):
         for x in LaunchConfiguration("gps_datum").perform(context).split(" ")
         if x != ""
     ]
+    fiducials = LaunchConfiguration("fiducials").perform(context)
 
     description = []
 
@@ -114,9 +117,7 @@ def launch_setup(context):
             executable="ukf_node",
             name="ukf_filter_node",
             parameters=[load_local_ukf_config(rgbd_ids)],
-            remappings=[
-                ("odometry/filtered", "odometry/local")
-            ],
+            remappings=[("odometry/filtered", "odometry/local")],
         ),
     ]
 
@@ -218,43 +219,69 @@ def launch_setup(context):
         ),
     ]
 
+    if fiducials != "":
+        # Fiducial odometry
+        description += [
+            Node(
+                package="kalman_slam",
+                executable="fiducial_odometry",
+                parameters=[
+                    str(
+                        get_package_share_path("kalman_slam")
+                        / "config"
+                        / "fiducial_odometry.yaml"
+                    ),
+                    {
+                        "fiducials_path": str(
+                            get_package_share_path("kalman_slam")
+                            / "fiducials"
+                            / f"{fiducials}.yaml"
+                        ),
+                    },
+                ],
+                remappings=[
+                    ("odometry", "odometry/fiducial"),
+                ],
+            ),
+        ]
+
     # if mapping:
     #     raise NotImplementedError("Mapping is not implemented yet.")
-        # sync
-        # parameters = [
-        #     str(get_package_share_path("kalman_clouds") / "config" / "cloud_sync.yaml"),
-        #     {
-        #         "number_of_inputs": len(rgbd_ids),
-        #     },
-        # ]
-        # remappings = [("output", "point_cloud/raw")] + (
-        #     [
-        #         (f"input{i}", f"{camera_id}/point_cloud")
-        #         for i, camera_id in enumerate(rgbd_ids)
-        #     ]
-        #     if len(rgbd_ids) > 1
-        #     else [("input", f"{rgbd_ids[0]}/point_cloud")] if len(rgbd_ids) == 1 else []
-        # )
-        # description += [
-        #     launch_point_cloud_utils_node("cloud_sync", parameters, remappings, component_container)
-        # ]
-        # description += [
-        #     Node(
-        #         namespace=f"rtabmap",
-        #         package="rtabmap_slam",
-        #         executable="rtabmap",
-        #         parameters=[
-        #             str(
-        #                 get_package_share_path("kalman_slam") / "config" / "rtabmap.yaml"
-        #             )
-        #         ],
-        #         remappings={
-        #             "scan_cloud": "point_cloud_sync/points",
-        #             "odom": "odometry/filtered",
-        #         }.items(),
-        #         arguments=["--delete_db_on_start"],
-        #     ),
-        # ]
+    # sync
+    # parameters = [
+    #     str(get_package_share_path("kalman_clouds") / "config" / "cloud_sync.yaml"),
+    #     {
+    #         "number_of_inputs": len(rgbd_ids),
+    #     },
+    # ]
+    # remappings = [("output", "point_cloud/raw")] + (
+    #     [
+    #         (f"input{i}", f"{camera_id}/point_cloud")
+    #         for i, camera_id in enumerate(rgbd_ids)
+    #     ]
+    #     if len(rgbd_ids) > 1
+    #     else [("input", f"{rgbd_ids[0]}/point_cloud")] if len(rgbd_ids) == 1 else []
+    # )
+    # description += [
+    #     launch_point_cloud_utils_node("cloud_sync", parameters, remappings, component_container)
+    # ]
+    # description += [
+    #     Node(
+    #         namespace=f"rtabmap",
+    #         package="rtabmap_slam",
+    #         executable="rtabmap",
+    #         parameters=[
+    #             str(
+    #                 get_package_share_path("kalman_slam") / "config" / "rtabmap.yaml"
+    #             )
+    #         ],
+    #         remappings={
+    #             "scan_cloud": "point_cloud_sync/points",
+    #             "odom": "odometry/filtered",
+    #         }.items(),
+    #         arguments=["--delete_db_on_start"],
+    #     ),
+    # ]
 
     return description
 
@@ -273,6 +300,10 @@ def generate_launch_description():
             DeclareLaunchArgument(
                 "gps_datum",
                 description="The 'latitude longitude' of the map frame. Only used if GPS is enabled. Empty to assume first recorded GPS fix.",
+            ),
+            DeclareLaunchArgument(
+                "fiducials",
+                description="Name of the list of fiducials to use. Empty disables fiducial odometry.",
             ),
             OpaqueFunction(function=launch_setup),
         ]

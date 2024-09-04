@@ -1,0 +1,9 @@
+/**:
+  ros__parameters:
+    # fiducials_path: kalman_slam/fiducials/erc2024.yaml # Set from the launch file.
+    rate: 3.0
+    time_offset: 0.1
+    odom_frame: map
+    robot_frame: base_link
+    variance: 10.0
+    max_dist: 5.0
