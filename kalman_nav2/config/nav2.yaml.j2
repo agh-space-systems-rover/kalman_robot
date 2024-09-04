@@ -249,7 +249,7 @@ controller_server:
     goal_checker_plugins: ["simple_goal_checker"]
     simple_goal_checker:
       plugin: "nav2_controller::SimpleGoalChecker"
-      xy_goal_tolerance: 0.5 # meters
+      xy_goal_tolerance: 0.1 # meters
       yaw_goal_tolerance: 4.0 # radians (allows full circle error)
       stateful: False # do not check XY after rotating
     
