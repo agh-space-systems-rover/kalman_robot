@@ -185,5 +185,5 @@ rover: # or 'station'
           - mallet # not a state, but a possible object_class value
           - bottle
 
-station:
+# station:
   # topics: {} # topics published by the GS and subscribed by the rover
