@@ -13,7 +13,7 @@ rover: # or 'station'
             bytes: 1 # precision = 0.008; will un-normalize the quaternion a bit
     - name: gps/fix
       type: sensor_msgs/msg/NavSatFix
-      max_rate: 1
+      max_rate: 2
       fields:
         - path: status.status
           int_range:
@@ -31,7 +31,7 @@ rover: # or 'station'
             bytes: 4 # precision = 0.0000001 degrees = 1 cm
     - name: gps/filtered
       type: sensor_msgs/msg/NavSatFix
-      max_rate: 1
+      max_rate: 2
       fields:
         - path: status.status
           int_range:
