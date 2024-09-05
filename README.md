@@ -1,16 +1,10 @@
 # Kalman
 
-Kalman's software stack updated to ROS 2
+The software for AGH Space System's planetary rover
 
 ![](./docs/cover.png)
 
 ## Prerequisites
-
-> [!NOTE]
-> It is strongly recommended to use [kalman_ws](https://github.com/agh-space-systems-rover/kalman_ws) as the workspace for this project.
-> It is a prebuilt ROS 2 workspace that contains all the necessary dependencies for this project.
-> It also includes useful shell macros to facilitate the installation of custom Python and APT packages.
-> This workspace requires Ubuntu Jammy, but it also fully supports execution and development in a Docker container via Distrobox.
 
 - [Spatio-Temporal Voxel Layer](https://github.com/SteveMacenski/spatio_temporal_voxel_layer) (Currently not available via rosdep and has to be built manually from source.) Required by `kalman_nav2`.
 - the latest ROS 2 Rolling version of the [realsense-ros](https://github.com/IntelRealSense/realsense-ros) package which supports way more features and has a working (!) auto-exposure feature
@@ -49,14 +43,13 @@ Multiple other launch files are available in the `kalman_bringup` package, inclu
 ## Packages
 
 Kalman's software stack is composed of multiple packages that are meant to be built and run together:
+- `kalman_arm_*` - packages that power Kalman's 6DoF arm
 - `kalman_aruco` - ArUco tags detection using aruco_opencv
 - `kalman_bringup` - launch files for the rover and the ground station
 - `kalman_clouds` - point cloud generation and filtering
 - `kalman_description` - Xacro / URDF descriptions + models for the rover
 - `kalman_drivers` - drivers for the physical hardware; only to be run separately from the simulation
-- `kalman_gazebo` - Ignition Gazebo simulation configs for Kalman
 - `kalman_interfaces` - ROS 2 messages, services and actions used by the other `kalman_` packages
-- `kalman_mapviz` - configuration and launch files for MapViz
 - `kalman_master` - drivers for our custom Master device
 - `kalman_nav2` - configuration and launch files for Nav2 and related modules; Includes a custom path follower.
 - `kalman_robot` - a metapackage that depends on all other `kalman_` packages
@@ -67,6 +60,7 @@ Kalman's software stack is composed of multiple packages that are meant to be bu
 
 ## Sub-projects
 
+- `joy_linux` - joystick_srivers/joy_linux with our modifications and improvements
 - `point_cloud_utils` - utilities for working with point clouds; Includes ROS wrappers around PCL filters and an obstacle detection node.
 - `service_based_nav2_controller` - a `FollowPath` controller plugin for Nav2 that uses a service to compute velocity commands
 - `unity_sim` - a Unity-based simulation environment that can seamlessly replace the physical hardware of AGH Space Systems' robots

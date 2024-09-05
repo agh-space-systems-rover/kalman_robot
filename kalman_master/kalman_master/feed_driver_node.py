@@ -5,7 +5,7 @@ from rclpy.node import Node
 from kalman_interfaces.srv import SetFeed
 from kalman_interfaces.msg import MasterMessage
 
-NUMBER_OF_RETRIES_PER_CALL = 10
+NUMBER_OF_RETRIES_PER_CALL = 1
 PUBLISH_RATE = 30  # NOTE: only published when there are messages to send
 MAX_MESSAGES_IN_QUEUE = 100  # About 3 seconds to process a full queue
 
