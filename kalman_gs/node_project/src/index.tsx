@@ -3,6 +3,7 @@ import './css/index.css';
 import './common/gamepad-arming';
 import './common/gamepad-driving';
 import './common/gamepad-drilling';
+import './common/science';
 import './common/keyboard-driving';
 import { splashRef, alertsRef, settingsRef } from './common/refs';
 import { currentTheme } from './common/themes';

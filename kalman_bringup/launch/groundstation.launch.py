@@ -85,6 +85,10 @@ def generate_launch_description():
             ),
             Node(
                 package="kalman_master",
+                executable="science_driver",
+            ),
+            Node(
+                package="kalman_master",
                 executable="ros_link",
                 parameters=[
                     {
@@ -107,7 +111,7 @@ def generate_launch_description():
                     )
                 ),
                 launch_arguments={
-                    "joy": "arduino",
+                    "joy": "",
                 }.items(),
             ),
             IncludeLaunchDescription(
