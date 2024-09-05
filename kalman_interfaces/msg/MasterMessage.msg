@@ -31,6 +31,12 @@ uint8 SCIENCE_DRILL = 0xD3
 
 uint8 SCIENCE_DRILL_AUTONOMY = 0xD5
 
+uint8 SCIENCE_CONTAINER = 0x50 # [0, container, {angle}]
+# container 0 lub 1
+# angle od 0 do 90
+
+
+
 
 # command number
 uint8 cmd

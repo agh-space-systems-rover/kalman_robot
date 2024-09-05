@@ -9,6 +9,11 @@ NUMBER_OF_RETRIES_PER_CALL = 1
 PUBLISH_RATE = 30  # NOTE: only published when there are messages to send
 MAX_MESSAGES_IN_QUEUE = 5
 
+CLOSED_FIRST_CONTAINER = 0
+OPENED_FIRST_CONTAINER = 90
+CLOSED_SECOND_CONTAINER = 0
+OPENED_SECOND_CONTAINER = 90
+
 
 class ScienceDriver(Node):
     def __init__(self):
@@ -83,18 +88,30 @@ class ScienceDriver(Node):
                 MasterMessage(cmd=MasterMessage.SCIENCE_DRILL_AUTONOMY, data=[0x02])
             ],
             # containers
-            # Science.Request.SCIENCE_CONTAINER1_OPEN: [
-            #     MasterMessage(cmd=MasterMessage.SCIENCE_CONTAINER1_OPEN, data=[0x02])
-            # ],
-            # Science.Request.SCIENCE_CONTAINER1_CLOSE: [
-            #     MasterMessage(cmd=MasterMessage.SCIENCE_CONTAINER1_CLOSE, data=[0x02])
-            # ],
-            # Science.Request.SCIENCE_CONTAINER2_OPEN: [
-            #     MasterMessage(cmd=MasterMessage.SCIENCE_CONTAINER2_OPEN, data=[0x02])
-            # ],
-            # Science.Request.SCIENCE_CONTAINER2_CLOSE: [
-            #     MasterMessage(cmd=MasterMessage.SCIENCE_CONTAINER2_CLOSE, data=[0x02])
-            # ],
+            Science.Request.CONTAINER1_OPEN: [
+                MasterMessage(
+                    cmd=MasterMessage.SCIENCE_CONTAINER,
+                    data=[0x00, 0x00, OPENED_FIRST_CONTAINER],
+                )
+            ],
+            Science.Request.CONTAINER1_CLOSE: [
+                MasterMessage(
+                    cmd=MasterMessage.SCIENCE_CONTAINER,
+                    data=[0x00, 0x00, CLOSED_FIRST_CONTAINER],
+                )
+            ],
+            Science.Request.CONTAINER2_OPEN: [
+                MasterMessage(
+                    cmd=MasterMessage.SCIENCE_CONTAINER,
+                    data=[0x00, 0x01, OPENED_SECOND_CONTAINER],
+                )
+            ],
+            Science.Request.CONTAINER2_CLOSE: [
+                MasterMessage(
+                    cmd=MasterMessage.SCIENCE_CONTAINER,
+                    data=[0x00, 0x01, CLOSED_SECOND_CONTAINER],
+                )
+            ],
         }
 
         msgs.extend(command_map.get(req.cmd, []))
