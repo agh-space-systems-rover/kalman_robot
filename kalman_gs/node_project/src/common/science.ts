@@ -4,21 +4,21 @@ import { Service, Topic } from 'roslib';
 import { CONTAINER1_CLOSE, CONTAINER1_OPEN, SCIENCE_AUTONOMY_PAUSE, SCIENCE_AUTONOMY_RESET, SCIENCE_AUTONOMY_START, SCIENCE_REQUEST_DRILL, SCIENCE_REQUEST_ROCKS, SCIENCE_REQUEST_SAMPLE, SCIENCE_TARE_DRILL, SCIENCE_TARE_ROCKS, SCIENCE_TARE_SAMPLE } from './ros-interfaces';
 
 export type UiData = { // weights
-  [WeightTypes.Drill]: string,
-  [WeightTypes.Rocks]: string,
-  [WeightTypes.Sample]: string,
+  [WeightTypes.DRILL]: string,
+  [WeightTypes.ROCKS]: string,
+  [WeightTypes.SAMPLE]: string,
 }
 
 export const uiData: UiData = {
-  [WeightTypes.Drill]: "0 g",
-  [WeightTypes.Rocks]: "0 g",
-  [WeightTypes.Sample]: "0 g",
+  [WeightTypes.DRILL]: "0 g",
+  [WeightTypes.ROCKS]: "0 g",
+  [WeightTypes.SAMPLE]: "0 g",
 }
 
 export const translateFrame = {
-  [0]: WeightTypes.Drill,
-  [1]: WeightTypes.Rocks,
-  [2]: WeightTypes.Sample,
+  [0]: WeightTypes.DRILL,
+  [1]: WeightTypes.ROCKS,
+  [2]: WeightTypes.SAMPLE,
 }
 
 export const translateAutonomy = {
@@ -70,44 +70,18 @@ export function onContainerClicked(state: ContainerState, container: number) {
 }
 
 export function onButtonClicked(whichWeight: WeightTypes, buttonType: ButtonTypes) {
-  // send tare/weight/autonomy to driver
-  if(setScience == undefined)
-    return;
-  let cmd = 0;
+  if (!setScience) return;
 
-  switch(whichWeight)
-  {
-    case WeightTypes.Drill:
-      if(buttonType == ButtonTypes.Tare) {
-        cmd = SCIENCE_TARE_DRILL;
-      }
-      else if(buttonType == ButtonTypes.Request) {
-        cmd = SCIENCE_REQUEST_DRILL;
-      }
-      break;
+  const commands = {
+      [WeightTypes.DRILL]: { [ButtonTypes.TARE]: SCIENCE_TARE_DRILL, [ButtonTypes.REQUEST]: SCIENCE_REQUEST_DRILL },
+      [WeightTypes.ROCKS]: { [ButtonTypes.TARE]: SCIENCE_TARE_ROCKS, [ButtonTypes.REQUEST]: SCIENCE_REQUEST_ROCKS },
+      [WeightTypes.SAMPLE]: { [ButtonTypes.TARE]: SCIENCE_TARE_SAMPLE, [ButtonTypes.REQUEST]: SCIENCE_REQUEST_SAMPLE },
+  };
 
-    case WeightTypes.Rocks:
-      if(buttonType == ButtonTypes.Tare) {
-        cmd = SCIENCE_TARE_ROCKS;
-      }
-      else if(buttonType == ButtonTypes.Request) {
-        cmd = SCIENCE_REQUEST_ROCKS;
-      }
-      break;
-
-    case WeightTypes.Sample:
-      if(buttonType == ButtonTypes.Tare) {
-        cmd = SCIENCE_TARE_SAMPLE;
-      }
-      else if(buttonType == ButtonTypes.Request) {
-        cmd = SCIENCE_REQUEST_SAMPLE;
-      }
-      break;   
+  const cmd = commands[whichWeight]?.[buttonType];
+  if (cmd) {
+      setScience.callService({ cmd }, () => {}, undefined);
   }
-
-  setScience.callService({ cmd }, () => {}, undefined);
-
-  console.log("clicked "  + buttonType + " of weight " + whichWeight);
 }
 
 

@@ -6,15 +6,15 @@ import { onAutonomyClicked, onButtonClicked, onContainerClicked, uiData } from '
 
 
 export enum ButtonTypes {
-    Tare,
-    Request,
-    Autonomy
+    TARE,
+    REQUEST,
+    AUTONOMY
 }
 
 export enum WeightTypes {
-    Drill,
-    Rocks,
-    Sample
+    DRILL,
+    ROCKS,
+    SAMPLE
 }
 
 export enum ContainerState {
@@ -30,9 +30,9 @@ export enum AutonomyButton {
 
 
 const weightButtonLabels = {
-    [WeightTypes.Drill]: "Drill",
-    [WeightTypes.Rocks]: "Rocks",
-    [WeightTypes.Sample]: "Sample"
+    [WeightTypes.DRILL]: "Drill",
+    [WeightTypes.ROCKS]: "Rocks",
+    [WeightTypes.SAMPLE]: "Sample"
 };
 type WeightInfo = {
     weightType: WeightTypes
@@ -82,11 +82,11 @@ function StandardWeight({weightType}: WeightInfo) {
     });
 
     function handleTare() {
-        onButtonClicked(weightType, ButtonTypes.Tare);
+        onButtonClicked(weightType, ButtonTypes.TARE);
     }
 
     function handleRequest() {
-        onButtonClicked(weightType, ButtonTypes.Request);
+        onButtonClicked(weightType, ButtonTypes.REQUEST);
     }
 
     return (
@@ -96,9 +96,12 @@ function StandardWeight({weightType}: WeightInfo) {
                 <div className={styles['tare-button']} onClick={handleTare}>Tare</div>
                 <div className={styles['send-button']} onClick={handleRequest}>Request</div>
             </div>
-            { weightType==WeightTypes.Drill? (
-                <><h2 style={{textAlign: "center"}}>Autonomy</h2><AutonomyPanel></AutonomyPanel></>
-            ) : ""}
+            {weightType === WeightTypes.DRILL && (
+                <>
+                    <h2 className={styles.center}>Autonomy</h2>
+                    <AutonomyPanel />
+                </>
+            )}
         </div>
     )
 }
@@ -108,9 +111,9 @@ function StandardWeight({weightType}: WeightInfo) {
 function Weights() {
     return (
         <div className={styles['weights']}>
-            <StandardWeight weightType={WeightTypes.Rocks}></StandardWeight>
-            <StandardWeight weightType={WeightTypes.Drill}></StandardWeight>
-            <StandardWeight weightType={WeightTypes.Sample}></StandardWeight>
+            <StandardWeight weightType={WeightTypes.ROCKS}></StandardWeight>
+            <StandardWeight weightType={WeightTypes.DRILL}></StandardWeight>
+            <StandardWeight weightType={WeightTypes.SAMPLE}></StandardWeight>
       </div>
     )
 }
@@ -120,13 +123,9 @@ function Container({containerNumber})
     const [containerState, setContainerState] = useState(ContainerState.CLOSE);
 
     function handleClick() {
-        if(containerState == ContainerState.CLOSE) {
-            setContainerState(ContainerState.OPEN);
-        } else {
-            setContainerState(ContainerState.CLOSE);
-        }
+        setContainerState(containerState == ContainerState.CLOSE? ContainerState.OPEN:ContainerState.CLOSE);
         onContainerClicked(containerState, containerNumber);
-      }
+    }
 
     return (
         <div>
