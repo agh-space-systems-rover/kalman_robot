@@ -4,7 +4,6 @@ from rclpy.node import Node
 
 from kalman_interfaces.srv import Science
 from kalman_interfaces.msg import MasterMessage
-from kalman_interfaces.msg import WeightMessage
 from kalman_interfaces.msg import ScienceWeight
 import struct
 
@@ -30,10 +29,17 @@ class ScienceDriver(Node):
             ScienceWeight, "science/weights", 10
         )
 
-        self.weights_sub = self.create_subscription(
+        self.weights_sub = self.create_subscription( # rock and sample
             MasterMessage,
             'master_com/master_to_ros/x5b',
             self.receive_weights,
+            10
+        )
+
+        self.weight_drill_sub = self.create_subscription( # drill
+            MasterMessage,
+            'master_com/master_to_ros/xd4',
+            self.receive_weight_drill,
             10
         )
 
@@ -97,6 +103,25 @@ class ScienceDriver(Node):
                     data=[0x01], 
                 ))
 
+
+            case Science.Request.SCIENCE_AUTONOMY_RESET:
+                msgs.append( MasterMessage(
+                    cmd=MasterMessage.SCIENCE_DRILL_AUTONOMY,
+                    data=[0x00], 
+                ))
+
+            case Science.Request.SCIENCE_AUTONOMY_START:
+                msgs.append( MasterMessage(
+                    cmd=MasterMessage.SCIENCE_DRILL_AUTONOMY,
+                    data=[0x01], 
+                ))
+
+            case Science.Request.SCIENCE_AUTONOMY_PAUSE:
+                msgs.append( MasterMessage(
+                    cmd=MasterMessage.SCIENCE_DRILL_AUTONOMY,
+                    data=[0x02], 
+                ))
+
             # case Science.Request.CONTAINER1_CLOSE:
             #     cmd = 0x02
             #     data = [0x00, 0x00]
@@ -141,12 +166,9 @@ class ScienceDriver(Node):
             uint32_value = struct.unpack('<I', bytearray(last_four_bytes))[0]
             self.weights_pub.publish( ScienceWeight(which_weight=2, weight=float(uint32_value)) )
     
-    # def receive_drill(self, msg):
-
-
-
-
-
+    def receive_weight_drill(self, msg):
+        float_value = struct.unpack('<f', bytearray(msg.data))[0]
+        self.weights_pub.publish( ScienceWeight(which_weight=0, weight=float_value) )
 
 def main():
     try:

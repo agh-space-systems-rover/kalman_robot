@@ -107,7 +107,7 @@ text-align: center;
   cursor: pointer;
   margin-left: 120px;
   margin-right: 120px;
-  margin-top: -45px;
+  margin-top: -95px;
 
 }
 
@@ -124,7 +124,7 @@ text-align: center;
   transition: 0.4s;
   cursor: pointer;
   margin-left: -195px;
-  margin-top: 20px;
+  margin-top: -30px;
   position: absolute;
   pointer-events: none;
 }

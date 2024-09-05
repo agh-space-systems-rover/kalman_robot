@@ -1,7 +1,7 @@
-import { ButtonTypes, ContainerState, WeightTypes } from '../panels/science';
+import { AutonomyButton, ButtonTypes, ContainerState, WeightTypes } from '../panels/science';
 import { ros } from './ros';
 import { Service, Topic } from 'roslib';
-import { CONTAINER1_CLOSE, CONTAINER1_OPEN, SCIENCE_AUTONOMY_DRILL, SCIENCE_REQUEST_DRILL, SCIENCE_REQUEST_ROCKS, SCIENCE_REQUEST_SAMPLE, SCIENCE_TARE_DRILL, SCIENCE_TARE_ROCKS, SCIENCE_TARE_SAMPLE } from './ros-interfaces';
+import { CONTAINER1_CLOSE, CONTAINER1_OPEN, SCIENCE_AUTONOMY_PAUSE, SCIENCE_AUTONOMY_RESET, SCIENCE_AUTONOMY_START, SCIENCE_REQUEST_DRILL, SCIENCE_REQUEST_ROCKS, SCIENCE_REQUEST_SAMPLE, SCIENCE_TARE_DRILL, SCIENCE_TARE_ROCKS, SCIENCE_TARE_SAMPLE } from './ros-interfaces';
 
 export type UiData = { // weights
   [WeightTypes.Drill]: string,
@@ -19,6 +19,12 @@ export const translateFrame = {
   [0]: WeightTypes.Drill,
   [1]: WeightTypes.Rocks,
   [2]: WeightTypes.Sample,
+}
+
+export const translateAutonomy = {
+  [AutonomyButton.RESET]: SCIENCE_AUTONOMY_RESET,
+  [AutonomyButton.PAUSE]: SCIENCE_AUTONOMY_PAUSE,
+  [AutonomyButton.PLAY]: SCIENCE_AUTONOMY_START,
 }
 
 type WeightMessage = {
@@ -75,9 +81,6 @@ export function onButtonClicked(whichWeight: WeightTypes, buttonType: ButtonType
       if(buttonType == ButtonTypes.Tare) {
         cmd = SCIENCE_TARE_DRILL;
       }
-      else if(buttonType == ButtonTypes.Autonomy) {
-        cmd = SCIENCE_AUTONOMY_DRILL;
-      }
       else if(buttonType == ButtonTypes.Request) {
         cmd = SCIENCE_REQUEST_DRILL;
       }
@@ -105,4 +108,13 @@ export function onButtonClicked(whichWeight: WeightTypes, buttonType: ButtonType
   setScience.callService({ cmd }, () => {}, undefined);
 
   console.log("clicked "  + buttonType + " of weight " + whichWeight);
+}
+
+
+export function onAutonomyClicked(whatButton: AutonomyButton) {
+  if(setScience == undefined)
+    return;
+
+  const cmd = translateAutonomy[whatButton];
+  setScience.callService({ cmd }, () => {}, undefined);
 }

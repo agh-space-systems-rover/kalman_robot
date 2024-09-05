@@ -173,9 +173,12 @@ export const SCIENCE_TARE_SAMPLE = 0x03
 export const SCIENCE_REQUEST_SAMPLE = 0x04
 export const SCIENCE_TARE_DRILL = 0x05
 export const SCIENCE_REQUEST_DRILL = 0x06
-export const SCIENCE_AUTONOMY_DRILL = 0x07
 
 export const CONTAINER1_CLOSE = 0x08
 export const CONTAINER1_OPEN = 0x09
 export const CONTAINER2_CLOSE = 0x0A
 export const CONTAINER2_OPEN = 0x0B
+
+export const SCIENCE_AUTONOMY_RESET = 0x0C
+export const SCIENCE_AUTONOMY_START = 0x0D
+export const SCIENCE_AUTONOMY_PAUSE = 0x0E

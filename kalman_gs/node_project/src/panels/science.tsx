@@ -1,8 +1,8 @@
 import styles from './science.module.css'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useEffect, useState } from 'react';
-import { fa1, fa2, faBox, faBoxOpen } from '@fortawesome/free-solid-svg-icons';
-import { onButtonClicked, onContainerClicked, uiData } from '../common/science';
+import { fa1, fa2, faBox, faBoxOpen, faPause, faPlay, faStop } from '@fortawesome/free-solid-svg-icons';
+import { onAutonomyClicked, onButtonClicked, onContainerClicked, uiData } from '../common/science';
 
 
 export enum ButtonTypes {
@@ -20,6 +20,12 @@ export enum WeightTypes {
 export enum ContainerState {
     CLOSE,
     OPEN
+}
+
+export enum AutonomyButton {
+    RESET,
+    PAUSE,
+    PLAY
 }
 
 
@@ -42,7 +48,28 @@ function DataDisplay({labelText, displayedText})
     )
 }
 
+function AutonomyPanel()
+{
+    function handleAutonomyReset() {
+        onAutonomyClicked(AutonomyButton.RESET);
+    }
 
+    function handleAutonomyPause() {
+        onAutonomyClicked(AutonomyButton.PAUSE);
+    }
+
+    function handleAutonomyPlay() {
+        onAutonomyClicked(AutonomyButton.PLAY);
+    }
+
+    return (
+        <div className={styles['horizontal']}>
+            <div onClick={handleAutonomyReset} className={styles['autonomy-button']}><FontAwesomeIcon icon={faStop}/></div>
+            <div onClick={handleAutonomyPause} className={styles['autonomy-button']}><FontAwesomeIcon icon={faPause}/></div>
+            <div onClick={handleAutonomyPlay} className={styles['autonomy-button']}><FontAwesomeIcon icon={faPlay}/></div>
+        </div>
+    )
+}
 
 
 function StandardWeight({weightType}: WeightInfo) {
@@ -62,10 +89,6 @@ function StandardWeight({weightType}: WeightInfo) {
         onButtonClicked(weightType, ButtonTypes.Request);
     }
 
-    function handleAutonomy() {
-        onButtonClicked(weightType, ButtonTypes.Autonomy);
-    }
-
     return (
         <div className={styles['standardWeight']}>
             <DataDisplay labelText={weightButtonLabels[weightType]+": "} displayedText={uiData[weightType]}></DataDisplay>
@@ -74,7 +97,7 @@ function StandardWeight({weightType}: WeightInfo) {
                 <div className={styles['send-button']} onClick={handleRequest}>Request</div>
             </div>
             { weightType==WeightTypes.Drill? (
-                <div className={styles['autonomy-button']} onClick={handleAutonomy}>Autonomy</div>
+                <><h2 style={{textAlign: "center"}}>Autonomy</h2><AutonomyPanel></AutonomyPanel></>
             ) : ""}
         </div>
     )

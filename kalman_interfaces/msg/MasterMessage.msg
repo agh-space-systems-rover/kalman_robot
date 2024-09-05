@@ -29,6 +29,8 @@ uint8 SCIENCE_REQUEST_WEIGHT = 0x57
 
 uint8 SCIENCE_DRILL = 0xD3
 
+uint8 SCIENCE_DRILL_AUTONOMY = 0xD5
+
 
 # command number
 uint8 cmd
