@@ -4,22 +4,44 @@ from rclpy.node import Node
 
 from kalman_interfaces.srv import Science
 from kalman_interfaces.msg import MasterMessage
+from kalman_interfaces.msg import WeightMessage
+from kalman_interfaces.msg import ScienceWeight
+import struct
 
-NUMBER_OF_RETRIES_PER_CALL = 10
+NUMBER_OF_RETRIES_PER_CALL = 1
 PUBLISH_RATE = 30  # NOTE: only published when there are messages to send
 MAX_MESSAGES_IN_QUEUE = 100  # About 3 seconds to process a full queue
 
 # cmd data[]
 
-
+# 0 drill 1 rocks 2 sample
+# self.weights_pub.publish( ScienceWeight(which_weight=1, weight=float(13)) )
+# master_com/master_to_ros/x5b
 
 
 class ScienceDriver(Node):
     def __init__(self):
         super().__init__("science_driver")
+
         self.master_pub = self.create_publisher(
             MasterMessage, "master_com/ros_to_master", 10
         )
+        self.weights_pub = self.create_publisher(
+            ScienceWeight, "science/weights", 10
+        )
+
+        self.weights_sub = self.create_subscription(
+            MasterMessage,
+            'master_com/master_to_ros/x5b',
+            self.receive_weights,
+            10
+        )
+
+        self.first_rock_weight = 0
+        self.second_rock_weight = 0
+        self.first_rock_received = False
+        self.second_rock_received = False
+
         self.create_service(Science, "request_science", self.request_science)
         self.msgs_to_send = []
         self.create_timer(1 / PUBLISH_RATE, self.tick)
@@ -31,57 +53,97 @@ class ScienceDriver(Node):
         msgs = []
 
         match req.cmd:
-            case MasterMessage.SCIENCE_TARE_ROCKS:
-                cmd = 0x01
-                data = [0x23, 0x34]
-            case MasterMessage.SCIENCE_REQUEST_ROCKS:
-                cmd = 0x01
-                data = [0x23, 0x35]
-            case MasterMessage.SCIENCE_TARE_SAMPLE:
-                cmd = 0x01
-                data = [0x24, 0x34]
-            case MasterMessage.SCIENCE_REQUEST_SAMPLE:
-                cmd = 0x01
-                data = [0x24, 0x35]
-            case MasterMessage.SCIENCE_TARE_DRILL:
-                cmd = 0x01
-                data = [0x25, 0x34]
-            case MasterMessage.SCIENCE_REQUEST_DRILL:
-                cmd = 0x01
-                data = [0x25, 0x35]
-            case MasterMessage.SCIENCE_AUTONOMY_DRILL:
-                cmd = 0x01
-                data = [0x25, 0x36]
+            case Science.Request.SCIENCE_TARE_ROCKS:
+                msgs.append( MasterMessage(
+                    cmd=MasterMessage.SCIENCE_TARE,
+                    data=[0x00, 0x00], 
+                ))
+                msgs.append( MasterMessage(
+                    cmd=MasterMessage.SCIENCE_TARE,
+                    data=[0x00, 0x01], 
+                ))
 
-            case MasterMessage.CONTAINER1_CLOSE:
-                cmd = 0x02
-                data = [0x00, 0x00]
-            case MasterMessage.CONTAINER1_OPEN:
-                cmd = 0x02
-                data = [0x00, 0x01]
-            case MasterMessage.CONTAINER2_CLOSE:
-                cmd = 0x02
-                data = [0x01, 0x00]
-            case MasterMessage.CONTAINER2_OPEN:
-                cmd = 0x02
-                data = [0x01, 0x01]
+            case Science.Request.SCIENCE_REQUEST_ROCKS:
+                msgs.append( MasterMessage(
+                    cmd=MasterMessage.SCIENCE_REQUEST_WEIGHT,
+                    data=[0x00, 0x00], 
+                ))
+                msgs.append( MasterMessage(
+                    cmd=MasterMessage.SCIENCE_REQUEST_WEIGHT,
+                    data=[0x00, 0x01], 
+                ))
+
+            case Science.Request.SCIENCE_TARE_SAMPLE:
+                msgs.append( MasterMessage(
+                    cmd=MasterMessage.SCIENCE_TARE,
+                    data=[0x01, 0x00], 
+                ))
+
+            case Science.Request.SCIENCE_REQUEST_SAMPLE:
+                msgs.append( MasterMessage(
+                    cmd=MasterMessage.SCIENCE_REQUEST_WEIGHT,
+                    data=[0x01, 0x00], 
+                ))
+
+            case Science.Request.SCIENCE_TARE_DRILL:
+                msgs.append( MasterMessage(
+                    cmd=MasterMessage.SCIENCE_DRILL,
+                    data=[0x00], 
+                ))
+
+            case Science.Request.SCIENCE_REQUEST_DRILL:
+                msgs.append( MasterMessage(
+                    cmd=MasterMessage.SCIENCE_DRILL,
+                    data=[0x01], 
+                ))
+
+            # case Science.Request.CONTAINER1_CLOSE:
+            #     cmd = 0x02
+            #     data = [0x00, 0x00]
+            # case Science.Request.CONTAINER1_OPEN:
+            #     cmd = 0x02
+            #     data = [0x00, 0x01]
+            # case Science.Request.CONTAINER2_CLOSE:
+            #     cmd = 0x02
+            #     data = [0x01, 0x00]
+            # case Science.Request.CONTAINER2_OPEN:
+            #     cmd = 0x02
+            #     data = [0x01, 0x01]
         
-        msgs.append(
-                MasterMessage(
-                    cmd=cmd,
-                    data=data,
-                )
-            )
+        
         
         self.msgs_to_send.extend(msgs * NUMBER_OF_RETRIES_PER_CALL)
         self.msgs_to_send = self.msgs_to_send[-MAX_MESSAGES_IN_QUEUE:]
-
-        res.weight=float(-1)
         return res
 
     def tick(self):
         if len(self.msgs_to_send) > 0:
             self.master_pub.publish(self.msgs_to_send.pop(0))
+    
+    def receive_weights(self, msg):
+        if(msg.data[0] == 0): # rock
+            last_four_bytes = msg.data[2:6]
+            uint32_value = struct.unpack('<I', bytearray(last_four_bytes))[0]
+            if(msg.data[1] == 0):
+                self.first_rock_weight = uint32_value
+                self.first_rock_received = True
+            elif(msg.data[1] == 1):
+                self.second_rock_weight = uint32_value
+                self.second_rock_received = True
+            if(self.first_rock_received and self.second_rock_received):
+                weight_sum = self.first_rock_weight + self.second_rock_weight
+                self.weights_pub.publish( ScienceWeight(which_weight=1, weight=float(weight_sum)) )
+                self.first_rock_received = False
+                self.second_rock_received = False
+                
+        elif(msg.data[0] == 1): # sample
+            last_four_bytes = msg.data[2:6]
+            uint32_value = struct.unpack('<I', bytearray(last_four_bytes))[0]
+            self.weights_pub.publish( ScienceWeight(which_weight=2, weight=float(uint32_value)) )
+    
+    # def receive_drill(self, msg):
+
+
 
 
 

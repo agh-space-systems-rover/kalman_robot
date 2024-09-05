@@ -1,0 +1,2 @@
+uint8 which_weight
+float32 weight

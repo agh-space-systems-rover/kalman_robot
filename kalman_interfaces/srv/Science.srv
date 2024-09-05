@@ -13,5 +13,4 @@ uint8 CONTAINER2_OPEN = 0x0B
 
 uint8 cmd
 ---
-#response constants
-float32 weight
+# no response

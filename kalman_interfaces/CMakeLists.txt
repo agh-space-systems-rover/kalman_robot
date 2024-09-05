@@ -34,6 +34,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/NewScienceResp.msg"
   "msg/PlatformState.msg"
   "msg/ScienceState.msg"
+  "msg/ScienceWeight.msg"
   "msg/SmartProbe.msg"
   "msg/WheelsCommand.msg"
   "msg/WheelState.msg"
