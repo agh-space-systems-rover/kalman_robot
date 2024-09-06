@@ -97,6 +97,7 @@ class TwistController(rclpy.node.Node):
         self.declare_parameter("wheel_turn_vel", 1.57)
         self.declare_parameter("max_wheel_turn_diff", 0.8)
         self.declare_parameter("min_wheel_turn_diff", 0.2)
+        self.declare_parameter("max_wheel_angle", np.pi / 2) # >= 90 degrees
 
         # Initialize current wheel states.
         self.state: State = DriveState()
@@ -144,12 +145,16 @@ class TwistController(rclpy.node.Node):
                 wheel_angles[i] = flip_angle(wheel_angles[i])
                 wheel_velocities[i] *= -1
 
-        # Flip wheel velocities and angles if the absolute angle exceeds 110 degrees.
+        # Flip wheel velocities and angles if the absolute angle exceeds max rotation.
         # Also flip the velocity sign.
+        max_angle = self.get_parameter("max_wheel_angle").value
         for i in range(len(wheel_angles)):
-            if abs(wheel_angles[i]) > np.deg2rad(110):
+            if abs(wheel_angles[i]) > max_angle:
                 wheel_angles[i] = flip_angle(wheel_angles[i])
                 wheel_velocities[i] *= -1
+                if abs(wheel_angles[i]) > max_angle:
+                    # If the angle is still too large, just set it to the maximum.
+                    wheel_angles[i] = np.sign(wheel_angles[i]) * max_angle
 
         # Limit wheel velocities.
         wheel_vel_limit = self.get_parameter("max_wheel_vel").value
