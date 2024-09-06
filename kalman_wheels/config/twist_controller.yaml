@@ -17,4 +17,4 @@
     # maximum difference between current and target wheel swivel angle to stop adjusting wheels in place (rad)
     min_wheel_turn_diff: 0.2
     # maximum wheel swivel angle (rad)
-    max_wheel_angle: 1.396262222 # 80 degrees
+    max_wheel_angle: 1.57 # 90 degrees

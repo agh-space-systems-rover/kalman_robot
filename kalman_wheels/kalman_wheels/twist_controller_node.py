@@ -152,9 +152,6 @@ class TwistController(rclpy.node.Node):
             if abs(wheel_angles[i]) > max_angle:
                 wheel_angles[i] = flip_angle(wheel_angles[i])
                 wheel_velocities[i] *= -1
-                if abs(wheel_angles[i]) > max_angle:
-                    # If the angle is still too large, just set it to the maximum.
-                    wheel_angles[i] = np.sign(wheel_angles[i]) * max_angle
 
         # Limit wheel velocities.
         wheel_vel_limit = self.get_parameter("max_wheel_vel").value
