@@ -62,3 +62,19 @@ poses:
       joints_checked: ["joint_2", "joint_3"]
       joints_reversed: []
       safe_previous_poses: [0, 2, 5]
+    - id: 7
+      name: "Sample storage"
+      path: "predefined_poses/sample_storage.yaml"
+      joints_set:
+          ["joint_1", "joint_2", "joint_3", "joint_4", "joint_5", "joint_6"]
+      joints_checked: ["joint_2", "joint_3"]
+      joints_reversed: []
+      safe_previous_poses: [0, 2, 5]
+    - id: 8
+      name: "Rock storage"
+      path: "predefined_poses/rock_storage.yaml"
+      joints_set:
+          ["joint_1", "joint_2", "joint_3", "joint_4", "joint_5", "joint_6"]
+      joints_checked: ["joint_2", "joint_3"]
+      joints_reversed: []
+      safe_previous_poses: [0, 2, 5]
