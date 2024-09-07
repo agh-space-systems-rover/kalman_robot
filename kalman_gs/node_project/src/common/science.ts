@@ -63,9 +63,9 @@ export function onContainerClicked(state: ContainerState, container: number) {
     return;
   
   const req = {
-    cmd: CONTAINER1_CLOSE + container*2 + (state^1)
+    cmd: CONTAINER1_CLOSE + container*2 + state
   };
-
+  updateUi(); // because of weird react glitches
   setScience.callService(req, () => {}, undefined);
 }
 

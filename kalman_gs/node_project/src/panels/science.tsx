@@ -120,10 +120,19 @@ function Weights() {
 
 function Container({containerNumber})
 {
+    const [count, setCount] = useState(0); // to force re-render
+    useEffect(() => {
+        window.addEventListener("science-updated", ()=> {
+            setCount(count+1);
+        });
+    });
+
     const [containerState, setContainerState] = useState(ContainerState.CLOSE);
 
     function handleClick() {
         setContainerState(containerState == ContainerState.CLOSE? ContainerState.OPEN:ContainerState.CLOSE);
+        onContainerClicked(containerState, containerNumber);
+        onContainerClicked(containerState, containerNumber);
         onContainerClicked(containerState, containerNumber);
     }
 

@@ -9,10 +9,10 @@ NUMBER_OF_RETRIES_PER_CALL = 1
 PUBLISH_RATE = 30  # NOTE: only published when there are messages to send
 MAX_MESSAGES_IN_QUEUE = 5
 
-CLOSED_FIRST_CONTAINER = 0
-OPENED_FIRST_CONTAINER = 90
-CLOSED_SECOND_CONTAINER = 0
-OPENED_SECOND_CONTAINER = 90
+CLOSED_FIRST_CONTAINER = 53
+OPENED_FIRST_CONTAINER = 125
+CLOSED_SECOND_CONTAINER = 155
+OPENED_SECOND_CONTAINER = 95
 
 
 class ScienceDriver(Node):
@@ -103,13 +103,13 @@ class ScienceDriver(Node):
             Science.Request.CONTAINER2_OPEN: [
                 MasterMessage(
                     cmd=MasterMessage.SCIENCE_CONTAINER,
-                    data=[0x00, 0x01, OPENED_SECOND_CONTAINER],
+                    data=[0x01, 0x00, OPENED_SECOND_CONTAINER],
                 )
             ],
             Science.Request.CONTAINER2_CLOSE: [
                 MasterMessage(
                     cmd=MasterMessage.SCIENCE_CONTAINER,
-                    data=[0x00, 0x01, CLOSED_SECOND_CONTAINER],
+                    data=[0x01, 0x00, CLOSED_SECOND_CONTAINER],
                 )
             ],
         }
@@ -127,12 +127,12 @@ class ScienceDriver(Node):
     def receive_weights(self, msg):
         if msg.data[0] == 0:  # rock
             last_four_bytes = msg.data[2:6]
-            uint32_value = struct.unpack("<I", bytearray(last_four_bytes))[0]
+            int32_value = struct.unpack("<i", bytearray(last_four_bytes))[0]
             if msg.data[1] == 0:
-                self.first_rock_weight = uint32_value
+                self.first_rock_weight = int32_value
                 self.first_rock_received = True
             elif msg.data[1] == 1:
-                self.second_rock_weight = uint32_value
+                self.second_rock_weight = int32_value
                 self.second_rock_received = True
             if self.first_rock_received and self.second_rock_received:
                 weight_sum = self.first_rock_weight + self.second_rock_weight
@@ -144,9 +144,9 @@ class ScienceDriver(Node):
 
         elif msg.data[0] == 1:  # sample
             last_four_bytes = msg.data[2:6]
-            uint32_value = struct.unpack("<I", bytearray(last_four_bytes))[0]
+            int32_value = struct.unpack("<i", bytearray(last_four_bytes))[0]
             self.weights_pub.publish(
-                ScienceWeight(which_weight=2, weight=float(uint32_value))
+                ScienceWeight(which_weight=2, weight=float(int32_value))
             )
 
     def receive_weight_drill(self, msg):
