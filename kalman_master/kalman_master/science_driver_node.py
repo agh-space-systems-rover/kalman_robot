@@ -103,13 +103,13 @@ class ScienceDriver(Node):
             Science.Request.CONTAINER2_OPEN: [
                 MasterMessage(
                     cmd=MasterMessage.SCIENCE_CONTAINER,
-                    data=[0x01, 0x00, OPENED_SECOND_CONTAINER],
+                    data=[0x00, 0x00, OPENED_SECOND_CONTAINER],
                 )
             ],
             Science.Request.CONTAINER2_CLOSE: [
                 MasterMessage(
                     cmd=MasterMessage.SCIENCE_CONTAINER,
-                    data=[0x01, 0x00, CLOSED_SECOND_CONTAINER],
+                    data=[0x00, 0x01, CLOSED_SECOND_CONTAINER],
                 )
             ],
         }

@@ -101,7 +101,7 @@ text-align: center;
 
 .icon
 {
-  font-size: 120px;
+  font-size: 80px;
   color: var(--weak-foreground);
   transition: 0.4s;
   cursor: pointer;
@@ -116,6 +116,10 @@ text-align: center;
   color: var(--weak-background);
 }
 
+.column {
+  display: flex;
+  flex-direction: column;
+}
 
 
 .icon-digit {
@@ -123,8 +127,12 @@ text-align: center;
   color: var(--background);
   transition: 0.4s;
   cursor: pointer;
-  margin-left: -195px;
+  margin-left: -175px;
   margin-top: -30px;
   position: absolute;
   pointer-events: none;
+}
+
+.icon_second {
+  margin-top: 15px;
 }
