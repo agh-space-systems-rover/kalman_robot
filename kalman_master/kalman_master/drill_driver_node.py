@@ -18,9 +18,14 @@ class DrillDriver(Node):
         self.zero_rack = 0
         self.zero_drill = 0
 
+        
         self.master_pub = self.create_publisher(
             MasterMessage, "master_com/ros_to_master", 10
         )
+        self.master_pub.publish(
+                MasterMessage(cmd=32, data=[0x01])
+            )
+
 
         self.create_subscription(Drill, "drill", self.drill_data, 1)
 

@@ -24,6 +24,19 @@ uint8 DRILL_ARM = 0xD0
 uint8 DRILL_RACK = 0xD1
 uint8 DRILL_DRILL = 0xD2
 
+uint8 SCIENCE_TARE = 0x58
+uint8 SCIENCE_REQUEST_WEIGHT = 0x57
+
+uint8 SCIENCE_DRILL = 0xD3
+
+uint8 SCIENCE_DRILL_AUTONOMY = 0xD5
+
+uint8 SCIENCE_CONTAINER = 0x50 # [0, container, {angle}]
+# container 0 lub 1
+# angle od 0 do 90
+
+
+
 
 # command number
 uint8 cmd
