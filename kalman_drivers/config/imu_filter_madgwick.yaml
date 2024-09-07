@@ -4,7 +4,7 @@
     use_mag: true
     publish_tf: false
     reverse_tf: false
-    fixed_frame: "odom"
+    fixed_frame: "odom" # use with publish_tf
     constant_dt: 0.0
     remove_gravity_vector: false
     publish_debug_topics: false
@@ -14,7 +14,7 @@
     # For now, this value can be read from online resources,
     # but it often must be adjusted experimentally
     # since there is are lots of EM sources onboard.
-    declination: 0.1570795
+    declination: 0.110304716
     world_frame: "enu"
     gain: 0.01 # NOTE: Smaller value turned out to work better with the UKF.
     zeta: 0.0

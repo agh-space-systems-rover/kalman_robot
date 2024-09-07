@@ -77,6 +77,7 @@ export default function Waypoints() {
               const longTrunc = parseFloat(mapMarker.longitude.toFixed(8));
               latRef.current.setValue(latTrunc);
               lonRef.current.setValue(longTrunc);
+              setRerenderCount(rerenderCount + 1);
             }}
           >
             <FontAwesomeIcon icon={faLocationDot} />

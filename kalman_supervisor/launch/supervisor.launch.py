@@ -24,6 +24,9 @@ def launch_setup(context):
         for x in LaunchConfiguration("aruco_rgbd_ids").perform(context).split(" ")
         if x != ""
     ]
+    deactivate_aruco = (
+        LaunchConfiguration("deactivate_aruco").perform(context).lower() == "true"
+    )
     yolo_enabled = (
         LaunchConfiguration("yolo_enabled").perform(context).lower() == "true"
     )
@@ -69,6 +72,7 @@ def launch_setup(context):
                 {
                     "aruco": {
                         "enabled": len(aruco_rgbd_ids) > 0,
+                        "deactivate_unused": deactivate_aruco,
                         "num_cameras": len(aruco_rgbd_ids),
                     },
                     "yolo": {"enabled": yolo_enabled},
@@ -86,6 +90,11 @@ def generate_launch_description():
                 "aruco_rgbd_ids",
                 description="Space-separated IDs of the depth cameras that were configured in kalman_aruco.",
                 default_value="d455_front d455_back d455_left d455_right",
+            ),
+            DeclareLaunchArgument(
+                "deactivate_aruco",
+                description="Deactivate ArUco detection nodes when supervisor is not activaly looking for tags.",
+                default_value="false",
             ),
             DeclareLaunchArgument(
                 "yolo_enabled",

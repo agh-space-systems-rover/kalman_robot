@@ -1,4 +1,4 @@
-const waypointColors = ['red', 'green', 'blue', 'magenta'] as const;
+const waypointColors = ['red', 'yellow', 'green', 'cyan', 'blue', 'magenta'] as const;
 type WaypointColor = (typeof waypointColors)[number];
 
 type Waypoint = {

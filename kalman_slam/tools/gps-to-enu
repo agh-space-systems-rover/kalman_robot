@@ -1,0 +1,36 @@
+#!/bin/python3
+
+import argparse
+import numpy as np
+import pyproj
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Convert .")
+    parser.add_argument("ORIGIN_LATITUDE", type=float, help="latitude of 0,0")
+    parser.add_argument("ORIGIN_LONGITUDE", type=float, help="longitude of 0,0")
+    parser.add_argument("LATITUDE", type=float, help="latitude to convert")
+    parser.add_argument("LONGITUDE", type=float, help="longitude to convert")
+    return parser.parse_args()
+
+
+def main():
+    args = parse_args()
+
+    # Use WGS84 ellipsoid.
+    geod = pyproj.Geod(ellps="WGS84")
+
+    # Calculate the azimuth and distance between the origin and the point.
+    azimuth, _, distance = geod.inv(
+        args.ORIGIN_LONGITUDE, args.ORIGIN_LATITUDE, args.LONGITUDE, args.LATITUDE
+    )
+
+    # Convert the azimuth and distance to ENU coordinates.
+    x = distance * np.sin(np.radians(azimuth))
+    y = distance * np.cos(np.radians(azimuth))
+
+    print(f"{x} {y}")
+
+
+if __name__ == "__main__":
+    main()

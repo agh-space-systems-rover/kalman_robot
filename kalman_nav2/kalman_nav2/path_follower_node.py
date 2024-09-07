@@ -119,6 +119,14 @@ class PathFollower(rclpy.node.Node):
             ),
         )
         self.declare_parameter(
+            "approach_linear_velocity",
+            0.2,
+            ParameterDescriptor(
+                type=ParameterType.PARAMETER_DOUBLE,
+                description="how fast the robot moves when approaching the goal (m/s)",
+            ),
+        )
+        self.declare_parameter(
             "slow_linear_velocity",
             0.5,
             ParameterDescriptor(
@@ -391,7 +399,9 @@ class PathFollower(rclpy.node.Node):
             distance_to_end_of_path = np.linalg.norm(path_vertices[-1])
 
             # Choose the appropriate speed.
-            if path_is_straight and distance_to_end_of_path > approach_distance:
+            if distance_to_end_of_path < approach_distance:
+                linear_velocity = self.get_parameter("approach_linear_velocity").value
+            elif path_is_straight:
                 linear_velocity = self.get_parameter("fast_linear_velocity").value
             else:
                 linear_velocity = self.get_parameter("slow_linear_velocity").value

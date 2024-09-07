@@ -3,7 +3,7 @@
     cam_base_topic: color/image_raw
     output_frame: ''
 
-    marker_dict: 4X4_50
+    # marker_dict: 4X4_50 # Set in the launch file.
 
     image_sub_compressed: true
     image_sub_qos:
@@ -12,7 +12,7 @@
       depth: 1
 
     publish_tf: true
-    marker_size: 0.15 # including the black border
+    # marker_size: 0.15 # including the black border; Set in the launch file.
 
     # Dynamically reconfigurable Detector parameters
     # https://docs.opencv.org/4.2.0/d5/dae/tutorial_aruco_detection.html
@@ -21,7 +21,7 @@
       adaptiveThreshWinSizeMax: 23
       adaptiveThreshWinSizeStep: 10
       adaptiveThreshConstant: 7.0
-      minMarkerPerimeterRate: 0.07 # default: 0.03
+      minMarkerPerimeterRate: 0.03
       maxMarkerPerimeterRate: 4.0
       polygonalApproxAccuracyRate: 0.03
       minCornerDistanceRate: 0.05

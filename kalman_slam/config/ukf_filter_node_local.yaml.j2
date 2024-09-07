@@ -89,7 +89,7 @@
     odom{{ loop.index0 }}_config: [false, false, false,
                                    false, false, false,
                                    true,  true,  true,
-                                   false, false, false,
+                                   true,  true,  true,
                                    false, false, false]
 
     # If you have high-frequency data or are running with a low frequency parameter value, then you may want to increase
@@ -121,7 +121,7 @@
                   false, false, false]
     imu0_differential: false
     # Because odom's rotation should be aligned with base_link:
-    imu0_relative: true
+    imu0_relative: false
     # NOTE: The frame aligned with true north would be "map".
     imu0_queue_size: 10
 

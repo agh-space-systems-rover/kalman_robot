@@ -4,6 +4,6 @@
 align_depth:
   enable: true
 rgb_camera:
-  color_profile: 640x360x15
+  color_profile: 1280x720x15
 depth_module:
   depth_profile: 640x360x15
