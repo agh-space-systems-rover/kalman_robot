@@ -2,8 +2,11 @@
 @import url('./roboto-condensed.css');
 @import url('./bai-jamjuree.css');
 
-body {
+html, body {
   margin: 0;
+  overscroll-behavior-y: contain;
+  overflow: hidden;
+  height: 100vh;
 }
 
 .svg-inline--fa {

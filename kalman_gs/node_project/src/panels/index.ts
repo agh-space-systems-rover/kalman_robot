@@ -3,6 +3,7 @@ import Feeds from './feeds';
 import Imu from './imu';
 import Map from './map';
 import MapHeader from './map.header';
+import Mobile from './mobile';
 import Supervisor from './supervisor';
 import Waypoints from './waypoints';
 import Wheels from './wheels';
@@ -14,7 +15,8 @@ import {
   faVideo,
   faDiagramProject,
   faFlag,
-  faGear
+  faGear,
+  faMobileScreenButton
 } from '@fortawesome/free-solid-svg-icons';
 
 // Add new panels here:
@@ -25,7 +27,8 @@ export type PanelID =
   | 'map'
   | 'feeds'
   | 'arm'
-  | 'waypoints';
+  | 'waypoints'
+  | 'mobile';
 export const defaultPanel: PanelID = 'map';
 export const panelInfos: Panels = {
   imu: {
@@ -63,6 +66,11 @@ export const panelInfos: Panels = {
     Component: Waypoints,
     name: 'Waypoints',
     icon: faFlag
+  },
+  mobile: {
+    Component: Mobile,
+    name: 'Mobile',
+    icon: faMobileScreenButton
   }
 };
 
