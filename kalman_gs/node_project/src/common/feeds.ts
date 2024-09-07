@@ -44,7 +44,7 @@ window.addEventListener('ros-connect', () => {
   let prevPowers = [0, 0];
   let lastActionableReq = null;
 
-  const sendCall = () => {
+  const sendCall = (silent = false) => {
     let errorShownOnce = false; // Prevents from showing two errors, one for each feed.
     // For each of the two feeds, send a call if any of the values have changed.
     for (let feed = 0; feed < 2; feed++) {
@@ -65,7 +65,7 @@ window.addEventListener('ros-connect', () => {
 
       // If any of the values have changed, send the call.
       const errorCb = (error: string) => {
-        if (!errorShownOnce) {
+        if (!errorShownOnce && !silent) {
           alertsRef.current?.pushAlert('Failed to update feeds: ' + error);
           errorShownOnce = true;
         }
@@ -81,7 +81,7 @@ window.addEventListener('ros-connect', () => {
   };
 
   window.addEventListener('feeds-updated', () => sendCall());
-  sendCall();
+  sendCall(true);
 });
 
 // Keybinds
