@@ -68,10 +68,6 @@ def generate_launch_description():
                 executable="spacenav_to_master",
             ),
             Node(
-                package="wheel_controller",
-                executable="wheel_controller",
-            ),
-            Node(
                 package="kalman_master",
                 executable="wheel_driver",
             ),

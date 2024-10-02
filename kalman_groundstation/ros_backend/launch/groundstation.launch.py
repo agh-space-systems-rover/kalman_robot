@@ -6,6 +6,7 @@ from launch_ros.substitutions import FindPackageShare
 
 from ament_index_python import get_package_share_path
 
+
 def generate_launch_description():
     robot_description_content = Command(
         [
@@ -28,10 +29,9 @@ def generate_launch_description():
         output="both",
         parameters=[robot_description, {"ignore_timestamp": True}],
         remappings=[
-            ('/joint_states', '/arm_controllers/joint_states'),
-        ]
+            ("/joint_states", "/arm_controllers/joint_states"),
+        ],
     )
-
 
     return LaunchDescription(
         [
@@ -81,10 +81,6 @@ def generate_launch_description():
                 executable="spacenav_to_master",
             ),
             Node(
-                package="wheel_controller",
-                executable="wheel_controller",
-            ),
-            Node(
                 package="kalman_master",
                 executable="wheel_driver",
             ),
@@ -104,22 +100,19 @@ def generate_launch_description():
                 ],
             ),
             Node(
-                package='kalman_groundstation_frontend_launcher',
-                executable='launcher',
-                name='kalman_groundstation_frontend_launcher',
-                output='screen',
+                package="kalman_groundstation_frontend_launcher",
+                executable="launcher",
+                name="kalman_groundstation_frontend_launcher",
+                output="screen",
                 emulate_tty=True,
-                arguments=[('__log_level:=debug')]
+                arguments=[("__log_level:=debug")],
             ),
             Node(
                 package="rviz2",
                 executable="rviz2",
                 arguments=[
                     "-d",
-                    str(
-                        get_package_share_path("kalman_arm_config")
-                        / "rviz/arm1.rviz"
-                    ),
+                    str(get_package_share_path("kalman_arm_config") / "rviz/arm1.rviz"),
                     "--ros-args",
                     "--log-level",
                     "warn",
@@ -130,10 +123,7 @@ def generate_launch_description():
                 executable="rviz2",
                 arguments=[
                     "-d",
-                    str(
-                        get_package_share_path("kalman_arm_config")
-                        / "rviz/arm2.rviz"
-                    ),
+                    str(get_package_share_path("kalman_arm_config") / "rviz/arm2.rviz"),
                     "--ros-args",
                     "--log-level",
                     "warn",
@@ -144,10 +134,7 @@ def generate_launch_description():
                 executable="rviz2",
                 arguments=[
                     "-d",
-                    str(
-                        get_package_share_path("kalman_arm_config")
-                        / "rviz/arm3.rviz"
-                    ),
+                    str(get_package_share_path("kalman_arm_config") / "rviz/arm3.rviz"),
                     "--ros-args",
                     "--log-level",
                     "warn",
