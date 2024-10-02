@@ -113,19 +113,6 @@ def launch_setup(context):
             ),
         ]
 
-    if get_bool("gazebo"):
-        description += [
-            IncludeLaunchDescription(
-                PythonLaunchDescriptionSource(
-                    str(
-                        get_package_share_path("kalman_gazebo")
-                        / "launch"
-                        / "gazebo.launch.py"
-                    )
-                ),
-            ),
-        ]
-
     if get_bool("drivers"):
         description += [
             IncludeLaunchDescription(
@@ -352,11 +339,6 @@ def generate_launch_description():
                 "unity_sim.scene",
                 default_value="",
                 description="The scene to load in Unity.",
-            ),
-            DeclareLaunchArgument(
-                "gazebo",
-                default_value="false",
-                description="Start up the Gazebo simulator with virtual sensors and actuators.",
             ),
             DeclareLaunchArgument(
                 "drivers",
