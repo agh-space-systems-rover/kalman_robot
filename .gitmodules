@@ -7,3 +7,15 @@
 [submodule "joy_linux"]
 	path = joy_linux
 	url = git@github.com:agh-space-systems-rover/joy_linux.git
+[submodule "rosbridge_suite"]
+	path = rosbridge_suite
+	url = git@github.com:RobotWebTools/rosbridge_suite.git
+[submodule "compressed_depth_image_transport"]
+	path = compressed_depth_image_transport
+	url = git@github.com:agh-space-systems-rover/compressed_depth_image_transport.git
+[submodule "rtabmap_odom"]
+	path = rtabmap_odom
+	url = git@github.com:agh-space-systems-rover/rtabmap_odom.git
+[submodule "moveit_msgs"]
+	path = moveit_msgs
+	url = git@github.com:moveit/moveit_msgs.git
