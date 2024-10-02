@@ -6,12 +6,6 @@ The software for AGH Space System's planetary rover
 
 ## Prerequisites
 
-- [Spatio-Temporal Voxel Layer](https://github.com/SteveMacenski/spatio_temporal_voxel_layer) (Currently not available via rosdep and has to be built manually from source.) Required by `kalman_nav2`.
-- the latest ROS 2 Rolling version of the [realsense-ros](https://github.com/IntelRealSense/realsense-ros) package which supports way more features and has a working (!) auto-exposure feature
-- the latest commit of [rosbridge_suite](https://github.com/RobotWebTools/rosbridge_suite) which has support for ROS 2 actions. It is used in `kalman_gs` package.
-- our custom version of [compressed_depth_image_transport](https://github.com/agh-space-systems-rover/compressed_depth_image_transport) that supports RVL compression and does not clash with `compressed_image_transport`'s params
-- our custom version of [rtabmap_odom](https://github.com/agh-space-systems-rover/rtabmap_odom) that supports compressed image transports
-- latest version of the [ros2 branch of moveit_msgs](https://github.com/moveit/moveit_msgs/tree/ros2)
 - All Python packages listed in the `requirements.txt` files in the directories of some Colcon packages.
 - All APT packages listed in the `apt_packages.txt` files in the directories of some Colcon packages.
 
