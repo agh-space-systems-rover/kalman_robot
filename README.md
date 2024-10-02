@@ -88,6 +88,20 @@ As mentioned in [Launch Hierarchy](#launch-hierarchy), top-level modules may inc
 - Whenever possible, design your C++ nodes as components. See [this tutorial](https://docs.ros.org/en/iron/Tutorials/Intermediate/Writing-a-Composable-Node.html) for more information.
 - If a dependency is not available in rosdep, please add it to the `apt_packages.txt` or `requirements.txt` file created next to `package.xml`. Always prefer rosdep over those files.
 
-## Known Issues
+## Troubleshooting
 
-- Nav2 (STVL) on random occasions when booting up, starts spamming TF errors and takes up 100% of the CPU. Issue is present both in simulation and on the physical rover.
+### Out of Memory
+
+`kalman_robot` builds some third-party C++ dependencies from source. By default Colcon allocates jobs without rescheduling them when memory usage approaches maximum. In turn your system may run out of memory while a build is running. To avoid this, create a swap file on your system:
+```bash
+sudo fallocate -l 16G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+```
+After the build is done, you can remove the swap file:
+```bash
+sudo swapoff /swapfile
+sudo rm /swapfile
+```
+Subsequent incremental builds should not need that much memory.
