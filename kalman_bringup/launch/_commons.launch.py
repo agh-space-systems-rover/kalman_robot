@@ -66,19 +66,6 @@ def launch_setup(context):
             ),
         ]
 
-    if get_bool("mapviz"):
-        description += [
-            IncludeLaunchDescription(
-                PythonLaunchDescriptionSource(
-                    str(
-                        get_package_share_path("kalman_mapviz")
-                        / "launch"
-                        / "mapviz.launch.py"
-                    )
-                ),
-            ),
-        ]
-
     if get_bool("description"):
         description += [
             IncludeLaunchDescription(
@@ -314,11 +301,6 @@ def generate_launch_description():
                 "rviz.config",
                 default_value="",
                 description="RViz configuration file.",
-            ),
-            DeclareLaunchArgument(
-                "mapviz",
-                default_value="false",
-                description="Launch MapViz.",
             ),
             DeclareLaunchArgument(
                 "description",
