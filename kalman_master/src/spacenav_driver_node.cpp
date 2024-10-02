@@ -1,15 +1,20 @@
-#include "builtin_interfaces/msg/time.hpp"
-#include "geometry_msgs/msg/twist.hpp"
-#include "geometry_msgs/msg/twist_stamped.hpp"
-#include "kalman_interfaces/msg/master_message.hpp"
-#include "kalman_interfaces/msg/arm_axes_locks.hpp"
-#include "rclcpp/rclcpp.hpp"
 #include <chrono>
 
-class TwistRepublisher : public rclcpp::Node
+#include <rclcpp/rclcpp.hpp>
+#include <rclcpp_components/register_node_macro.hpp>
+#include <builtin_interfaces/msg/time.hpp>
+#include <geometry_msgs/msg/twist.hpp>
+#include <geometry_msgs/msg/twist_stamped.hpp>
+
+#include <kalman_interfaces/msg/master_message.hpp>
+#include <kalman_interfaces/msg/arm_axes_locks.hpp>
+
+namespace kalman_master {
+
+class SpacenavDriver : public rclcpp::Node
 {
 public:
-  TwistRepublisher() : Node("spacenav_to_master")
+  SpacenavDriver(const rclcpp::NodeOptions &options) : Node("spacenav_driver", options)
   {
     this->declare_parameter<double>("rate", 10.0);
     this->get_parameter("rate", rate_);
@@ -135,11 +140,6 @@ private:
   kalman_interfaces::msg::ArmAxesLocks::SharedPtr axes_locks_;
 };
 
-int main(int argc, char *argv[])
-{
-  rclcpp::init(argc, argv);
-  auto node = std::make_shared<TwistRepublisher>();
-  rclcpp::spin(node);
-  rclcpp::shutdown();
-  return 0;
-}
+} // namespace kalman_master
+
+RCLCPP_COMPONENTS_REGISTER_NODE(kalman_master::SpacenavDriver)
