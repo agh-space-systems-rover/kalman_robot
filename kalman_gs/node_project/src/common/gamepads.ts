@@ -64,7 +64,7 @@ function readGamepads(input: GamepadInput, mode: GamepadMode): number {
     value += readGamepad(pad, input);
     numPads++;
   }
-  return value / numPads;
+  return value / Math.max(numPads, 1);
 }
 
 export {
