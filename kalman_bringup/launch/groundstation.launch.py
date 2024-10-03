@@ -38,10 +38,14 @@ def generate_launch_description():
     return LaunchDescription(
         [
             robot_state_publisher,
-            Node(
-                package="spacenav",
-                executable="spacenav_node",
-                name="spacenav",
+            IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(
+                    str(
+                        get_package_share_path("kalman_spacenav")
+                        / "launch"
+                        / "spacenav.launch.py"
+                    )
+                ),
             ),
             Node(
                 package="kalman_master",
