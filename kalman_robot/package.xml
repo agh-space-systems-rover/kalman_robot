@@ -22,7 +22,9 @@
   <depend>kalman_interfaces</depend>
   <depend>kalman_master</depend>
   <depend>kalman_nav2</depend>
+  <depend>kalman_rviz</depend>
   <depend>kalman_slam</depend>
+  <depend>kalman_spacenav</depend>
   <depend>kalman_supervisor</depend>
   <depend>kalman_wheels</depend>
   <depend>kalman_yolo</depend>

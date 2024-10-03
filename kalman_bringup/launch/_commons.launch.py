@@ -49,20 +49,17 @@ def launch_setup(context):
 
     if get_bool("rviz"):
         description += [
-            Node(
-                package="rviz2",
-                executable="rviz2",
-                arguments=[
-                    "-d",
+            IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(
                     str(
-                        get_package_share_path("kalman_bringup")
-                        / "rviz"
-                        / get_str("rviz.config")
-                    ),
-                    "--ros-args",
-                    "--log-level",
-                    "warn",
-                ],
+                        get_package_share_path("kalman_rviz")
+                        / "launch"
+                        / "rviz.launch.py"
+                    )
+                ),
+                launch_arguments={
+                    "config": get_str("rviz.config"),
+                }.items(),
             ),
         ]
 
@@ -121,13 +118,27 @@ def launch_setup(context):
                     "rgbd_ids": get_str("drivers.rgbd_ids"),
                     "imu": get_str("drivers.imu"),
                     "compass_calibration": get_str("drivers.compass_calibration"),
-                    "compass_calibration.delay": get_str("drivers.compass_calibration.delay"),
-                    "compass_calibration.duration": get_str("drivers.compass_calibration.duration"),
-                    "compass_calibration.angular_velocity": get_str("drivers.compass_calibration.angular_velocity"),
-                    "declination_calibration": get_str("drivers.declination_calibration"),
-                    "declination_calibration.delay": get_str("drivers.declination_calibration.delay"),
-                    "declination_calibration.duration": get_str("drivers.declination_calibration.duration"),
-                    "declination_calibration.velocity": get_str("drivers.declination_calibration.velocity"),
+                    "compass_calibration.delay": get_str(
+                        "drivers.compass_calibration.delay"
+                    ),
+                    "compass_calibration.duration": get_str(
+                        "drivers.compass_calibration.duration"
+                    ),
+                    "compass_calibration.angular_velocity": get_str(
+                        "drivers.compass_calibration.angular_velocity"
+                    ),
+                    "declination_calibration": get_str(
+                        "drivers.declination_calibration"
+                    ),
+                    "declination_calibration.delay": get_str(
+                        "drivers.declination_calibration.delay"
+                    ),
+                    "declination_calibration.duration": get_str(
+                        "drivers.declination_calibration.duration"
+                    ),
+                    "declination_calibration.velocity": get_str(
+                        "drivers.declination_calibration.velocity"
+                    ),
                     "gps": get_str("drivers.gps"),
                 }.items(),
             ),
@@ -277,6 +288,19 @@ def launch_setup(context):
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
                     str(get_package_share_path("kalman_gs") / "launch" / "gs.launch.py")
+                ),
+            ),
+        ]
+
+    if get_bool("spacenav"):
+        description += [
+            IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(
+                    str(
+                        get_package_share_path("kalman_spacenav")
+                        / "launch"
+                        / "spacenav.launch.py"
+                    )
                 ),
             ),
         ]
@@ -521,6 +545,11 @@ def generate_launch_description():
                 "gs",
                 default_value="false",
                 description="Start up GS.",
+            ),
+            DeclareLaunchArgument(
+                "spacenav",
+                default_value="false",
+                description="Start up the SpaceNav driver.",
             ),
             OpaqueFunction(function=launch_setup),
         ]
