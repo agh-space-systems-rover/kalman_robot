@@ -37,6 +37,7 @@ class GS(Node):
         if latest_package_json_modified > last_gs_npm_install_time:
             self.get_logger().info("Running 'npm install':")
             if self.run_command("npm install") == 0:
+                os.makedirs(os.path.dirname(marker_file), exist_ok=True)
                 with open(marker_file, "w") as f:
                     f.write(str(latest_package_json_modified))
             else:
