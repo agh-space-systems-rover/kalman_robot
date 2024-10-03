@@ -10,8 +10,9 @@ from launch.substitutions import LaunchConfiguration
 
 
 def launch_setup(context):
-    def get_str(name):
-        return LaunchConfiguration(name).perform(context)
+    configs = [
+        x for x in LaunchConfiguration("config").perform(context).split(" ") if x != ""
+    ]
 
     return [
         Node(
@@ -19,16 +20,13 @@ def launch_setup(context):
             executable="rviz2",
             arguments=[
                 "-d",
-                str(
-                    get_package_share_path("kalman_rviz")
-                    / "rviz"
-                    / get_str("rviz.config")
-                ),
+                str(get_package_share_path("kalman_rviz") / "rviz" / f"{config}.rviz"),
                 "--ros-args",
                 "--log-level",
                 "warn",
             ],
-        ),
+        )
+        for config in configs
     ]
 
 
@@ -38,7 +36,7 @@ def generate_launch_description():
             DeclareLaunchArgument(
                 "config",
                 default_value="",
-                description="RViz configuration file name without extension, e.g. autonomy",
+                description="Space separated RViz configuration file names without extensions, e.g. 'autonomy demo_rgbd'",
             ),
             OpaqueFunction(function=launch_setup),
         ]
