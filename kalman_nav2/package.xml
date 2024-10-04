@@ -19,7 +19,6 @@
   <!-- path follower dependencies -->
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>tf2_ros</exec_depend>
-  <exec_depend>python-numpy-quaternion-pip</exec_depend>
   <exec_depend>service_based_nav2_controller_srvs</exec_depend>
 
   <test_depend>ament_lint_auto</test_depend>
