@@ -230,15 +230,19 @@ class PathFollower(rclpy.node.Node):
             [transform.translation.x, transform.translation.y, transform.translation.z]
         )
 
-        transform = np.eye(4)
-        transform[:3, :3] = quat_to_basis(
-            transform.rotation.w,
-            transform.rotation.x,
-            transform.rotation.y,
-            transform.rotation.z,
+        mat = np.eye(4)
+        mat[:3, :3] = quat_to_basis(
+            np.array(
+                [
+                    transform.rotation.w,
+                    transform.rotation.x,
+                    transform.rotation.y,
+                    transform.rotation.z,
+                ]
+            )
         )
-        transform[:3, 3] = pos
-        return transform
+        mat[:3, 3] = pos
+        return mat
 
     def compute_velocity_commands_callback(
         self,
