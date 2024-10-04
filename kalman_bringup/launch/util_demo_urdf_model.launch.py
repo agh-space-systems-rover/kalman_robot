@@ -17,7 +17,7 @@ def generate_launch_description():
                 ),
                 launch_arguments={
                     "rviz": "true",
-                    "rviz.config": "demo_urdf_model.rviz",
+                    "rviz.config": "demo_urdf_model",
                     "description": "true",
                     "description.joint_state_publisher_gui": "true",
                 }.items(),

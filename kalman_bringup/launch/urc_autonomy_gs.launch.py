@@ -17,9 +17,9 @@ def generate_launch_description():
                 ),
                 launch_arguments={
                     # "rviz": "true",
-                    # "rviz.config": "autonomy.rviz",
+                    # "rviz.config": "autonomy",
                     "drivers": "true",
-                    "drivers.master": "true", # WARNING: Having two master drivers enabled on the same network will cause messages on topics shared via RF to loop around over network and cause a positive feedback loop! Remember to disable master here or disconnect it physically when connecting to the robot over network.
+                    "drivers.master": "true",  # WARNING: Having two master drivers enabled on the same network will cause messages on topics shared via RF to loop around over network and cause a positive feedback loop! Remember to disable master here or disconnect it physically when connecting to the robot over network.
                     "drivers.master.mode": "gs",
                     "gs": "true",
                     "wheels": "true",

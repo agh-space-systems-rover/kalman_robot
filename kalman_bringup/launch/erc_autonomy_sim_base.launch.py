@@ -19,7 +19,7 @@ def generate_launch_description():
                     "unity_sim": "true",
                     "unity_sim.scene": "ERC2024",
                     "rviz": "true",
-                    "rviz.config": "autonomy.rviz",
+                    "rviz.config": "autonomy",
                     "gs": "true",
                     "wheels": "true",
                 }.items(),

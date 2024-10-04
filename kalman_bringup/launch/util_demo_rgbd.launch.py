@@ -33,7 +33,7 @@ def generate_launch_description():
                 launch_arguments={
                     "component_container": LaunchConfiguration("composition"),
                     "rviz": LaunchConfiguration("rviz"),
-                    "rviz.config": "demo_rgbd.rviz",
+                    "rviz.config": "demo_rgbd",
                     "description": "true",
                     "drivers": "true",
                     "drivers.composition": LaunchConfiguration("composition"),
