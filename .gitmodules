@@ -1,21 +1,30 @@
 [submodule "unity_sim"]
-	path = unity_sim
+	path = vendor/unity_sim
 	url = git@github.com:agh-space-systems-rover/unity_sim.git
 [submodule "kalman_yolo"]
 	path = kalman_yolo
 	url = git@github.com:agh-space-systems-rover/kalman_yolo.git
 [submodule "joy_linux"]
-	path = joy_linux
+	path = vendor/joy_linux
 	url = git@github.com:agh-space-systems-rover/joy_linux.git
 [submodule "rosbridge_suite"]
-	path = rosbridge_suite
+	path = vendor/rosbridge_suite
 	url = git@github.com:RobotWebTools/rosbridge_suite.git
 [submodule "compressed_depth_image_transport"]
-	path = compressed_depth_image_transport
+	path = vendor/compressed_depth_image_transport
 	url = git@github.com:agh-space-systems-rover/compressed_depth_image_transport.git
 [submodule "rtabmap_odom"]
-	path = rtabmap_odom
+	path = vendor/rtabmap_odom
 	url = git@github.com:agh-space-systems-rover/rtabmap_odom.git
 [submodule "moveit_msgs"]
-	path = moveit_msgs
+	path = vendor/moveit_msgs
 	url = git@github.com:moveit/moveit_msgs.git
+[submodule "vendor/service_based_nav2_controller"]
+	path = vendor/service_based_nav2_controller
+	url = git@github.com:agh-space-systems-rover/service_based_nav2_controller.git
+[submodule "vendor/yolo_ros"]
+	path = vendor/yolo_ros
+	url = git@github.com:agh-space-systems-rover/yolo_ros.git
+[submodule "vendor/point_cloud_utils"]
+	path = vendor/point_cloud_utils
+	url = git@github.com:agh-space-systems-rover/point_cloud_utils.git
