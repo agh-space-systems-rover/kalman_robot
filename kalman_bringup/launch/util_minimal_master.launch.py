@@ -23,9 +23,9 @@ def generate_launch_description():
                     )
                 ),
                 launch_arguments={
-                    "drivers": "true",
-                    "drivers.master": "true",
-                    "drivers.master.mode": LaunchConfiguration("mode"),
+                    "hardware": "true",
+                    "hardware.master": "true",
+                    "hardware.master.mode": LaunchConfiguration("mode"),
                     "wheels": "true",
                 }.items(),
             ),

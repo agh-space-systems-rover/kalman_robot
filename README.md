@@ -42,7 +42,7 @@ Kalman's software stack is composed of multiple packages that are meant to be bu
 - `kalman_bringup` - launch files for the rover and the ground station
 - `kalman_clouds` - point cloud generation and filtering
 - `kalman_description` - Xacro / URDF descriptions + models for the rover
-- `kalman_drivers` - drivers for the physical hardware; only to be run separately from the simulation
+- `kalman_hardware` - drivers, tools and launch scripts for the physical hardware onboard; Only to be run separately from the simulation on a physical robot.
 - `kalman_interfaces` - ROS 2 messages, services and actions used by the other `kalman_` packages
 - `kalman_master` - drivers for our custom Master device
 - `kalman_nav2` - configuration and launch files for Nav2 and related modules; Includes a custom path follower.
@@ -64,13 +64,13 @@ Kalman's software stack is composed of multiple packages that are meant to be bu
 
 Launch files are organized in a hierarchical manner. The `kalman_bringup` package contains main launch files that are meant to be the only ones used via `ros2 launch`. `kalman_bringup` includes many other launch files from other `kalman_` packages, which in turn may include even more launch files from other packages:
 
-![](https://quickchart.io/graphviz?graph=digraph{kalman_bringup->kalman_description;kalman_bringup->kalman_drivers->kalman_master;kalman_bringup->kalman_slam;kalman_bringup->kalman_nav2;kalman_bringup->kalman_wheels;kalman_bringup->"...";})
+![](https://quickchart.io/graphviz?graph=digraph{kalman_bringup->kalman_description;kalman_bringup->kalman_hardware->kalman_master;kalman_bringup->kalman_slam;kalman_bringup->kalman_nav2;kalman_bringup->kalman_wheels;kalman_bringup->"...";})
 
 ## Data Flow
 
 All `kalman_` packages are designed to work together and exchange data in a complex manner. The following diagram shows a high-level overview of the data flow between top-level modules:
 
-![](https://quickchart.io/graphviz?graph=digraph{kalman_drivers->kalman_clouds[label="RGB-D"];kalman_drivers->kalman_slam[label="IMU,%20RGB-D"];kalman_clouds->kalman_slam[label="Point%20Cloud"];kalman_clouds->kalman_nav2[label="Point%20Cloud"];kalman_slam->kalman_nav2[label="Odometry"];kalman_nav2->kalman_wheels[label="Twist"];kalman_wheels->kalman_drivers[label="Wheel%20State"];kalman_supervisor->kalman_nav2[label="Send%20Goal"];kalman_nav2->kalman_supervisor[label="Goal%20Status"];kalman_drivers->kalman_aruco[label="RGB"];kalman_aruco->kalman_supervisor[label="Detections"];kalman_gs->kalman_supervisor[label="Objectives"];kalman_supervisor->kalman_drivers[label="Status%20Signaling"]})
+![](https://quickchart.io/graphviz?graph=digraph{kalman_hardware->kalman_clouds[label="RGB-D"];kalman_hardware->kalman_slam[label="IMU,%20RGB-D"];kalman_clouds->kalman_slam[label="Point%20Cloud"];kalman_clouds->kalman_nav2[label="Point%20Cloud"];kalman_slam->kalman_nav2[label="Odometry"];kalman_nav2->kalman_wheels[label="Twist"];kalman_wheels->kalman_hardware[label="Wheel%20State"];kalman_supervisor->kalman_nav2[label="Send%20Goal"];kalman_nav2->kalman_supervisor[label="Goal%20Status"];kalman_hardware->kalman_aruco[label="RGB"];kalman_aruco->kalman_supervisor[label="Detections"];kalman_gs->kalman_supervisor[label="Objectives"];kalman_supervisor->kalman_hardware[label="Status%20Signaling"]})
 
 As mentioned in [Launch Hierarchy](#launch-hierarchy), top-level modules may include other modules that are not shown in the diagram. Each module contains a set of nodes that actually perform the data processing and exchange.
 

@@ -14,7 +14,7 @@
   <depend>kalman_arm_utils</depend>
   <depend>kalman_bringup</depend>
   <depend>kalman_description</depend>
-  <depend>kalman_drivers</depend>
+  <depend>kalman_hardware</depend>
   <depend>kalman_gs</depend>
   <depend>kalman_interfaces</depend>
   <depend>kalman_master</depend>

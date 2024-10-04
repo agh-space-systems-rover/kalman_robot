@@ -16,8 +16,8 @@ def generate_launch_description():
                     )
                 ),
                 launch_arguments={
-                    "drivers": "true",
-                    "drivers.gps": "true",
+                    "hardware": "true",
+                    "hardware.gps": "true",
                     "gs": "true",
                 }.items(),
             ),

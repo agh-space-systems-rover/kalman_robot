@@ -103,7 +103,7 @@ def launch_setup(context):
                     "camera_namespace": "",
                     "serial_no": serial_no,
                     "config_file": str(  # Must use external config file for non-configurable options.
-                        get_package_share_path("kalman_drivers")
+                        get_package_share_path("kalman_hardware")
                         / "config"
                         / "realsense2_camera.yaml"
                     ),
@@ -139,7 +139,7 @@ def launch_setup(context):
                             plugin="phidgets::SpatialRosI",
                             parameters=[
                                 str(
-                                    get_package_share_path("kalman_drivers")
+                                    get_package_share_path("kalman_hardware")
                                     / "config"
                                     / "phidgets_spatial.yaml"
                                 ),
@@ -152,7 +152,7 @@ def launch_setup(context):
                             plugin="ImuFilterMadgwickRos",
                             parameters=[
                                 str(
-                                    get_package_share_path("kalman_drivers")
+                                    get_package_share_path("kalman_hardware")
                                     / "config"
                                     / "imu_filter_madgwick.yaml"
                                 ),
@@ -175,7 +175,7 @@ def launch_setup(context):
                             plugin="phidgets::SpatialRosI",
                             parameters=[
                                 str(
-                                    get_package_share_path("kalman_drivers")
+                                    get_package_share_path("kalman_hardware")
                                     / "config"
                                     / "phidgets_spatial.yaml"
                                 ),
@@ -189,7 +189,7 @@ def launch_setup(context):
                     executable="imu_filter_madgwick_node",
                     parameters=[
                         str(
-                            get_package_share_path("kalman_drivers")
+                            get_package_share_path("kalman_hardware")
                             / "config"
                             / "imu_filter_madgwick.yaml"
                         )
@@ -200,7 +200,7 @@ def launch_setup(context):
     if compass_calibration:
         description += [
             Node(
-                package="kalman_drivers",
+                package="kalman_hardware",
                 executable="compass_calibration",
                 parameters=[
                     {
@@ -215,7 +215,7 @@ def launch_setup(context):
     if declination_calibration:
         description += [
             Node(
-                package="kalman_drivers",
+                package="kalman_hardware",
                 executable="declination_calibration",
                 parameters=[
                     {
@@ -234,7 +234,7 @@ def launch_setup(context):
                 executable="nmea_serial_driver",
                 parameters=[
                     str(
-                        get_package_share_path("kalman_drivers")
+                        get_package_share_path("kalman_hardware")
                         / "config"
                         / "nmea_navsat_driver.yaml"
                     )

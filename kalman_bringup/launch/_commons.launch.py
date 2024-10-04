@@ -97,49 +97,49 @@ def launch_setup(context):
             ),
         ]
 
-    if get_bool("drivers"):
+    if get_bool("hardware"):
         description += [
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
                     str(
-                        get_package_share_path("kalman_drivers")
+                        get_package_share_path("kalman_hardware")
                         / "launch"
-                        / "drivers.launch.py"
+                        / "hardware.launch.py"
                     )
                 ),
                 launch_arguments={
                     "component_container": (
                         COMPONENT_CONTAINER_NAME
-                        if get_bool("drivers.composition")
+                        if get_bool("hardware.composition")
                         else ""
                     ),
-                    "master": get_str("drivers.master"),
-                    "master.mode": get_str("drivers.master.mode"),
-                    "rgbd_ids": get_str("drivers.rgbd_ids"),
-                    "imu": get_str("drivers.imu"),
-                    "compass_calibration": get_str("drivers.compass_calibration"),
+                    "master": get_str("hardware.master"),
+                    "master.mode": get_str("hardware.master.mode"),
+                    "rgbd_ids": get_str("hardware.rgbd_ids"),
+                    "imu": get_str("hardware.imu"),
+                    "compass_calibration": get_str("hardware.compass_calibration"),
                     "compass_calibration.delay": get_str(
-                        "drivers.compass_calibration.delay"
+                        "hardware.compass_calibration.delay"
                     ),
                     "compass_calibration.duration": get_str(
-                        "drivers.compass_calibration.duration"
+                        "hardware.compass_calibration.duration"
                     ),
                     "compass_calibration.angular_velocity": get_str(
-                        "drivers.compass_calibration.angular_velocity"
+                        "hardware.compass_calibration.angular_velocity"
                     ),
                     "declination_calibration": get_str(
-                        "drivers.declination_calibration"
+                        "hardware.declination_calibration"
                     ),
                     "declination_calibration.delay": get_str(
-                        "drivers.declination_calibration.delay"
+                        "hardware.declination_calibration.delay"
                     ),
                     "declination_calibration.duration": get_str(
-                        "drivers.declination_calibration.duration"
+                        "hardware.declination_calibration.duration"
                     ),
                     "declination_calibration.velocity": get_str(
-                        "drivers.declination_calibration.velocity"
+                        "hardware.declination_calibration.velocity"
                     ),
-                    "gps": get_str("drivers.gps"),
+                    "gps": get_str("hardware.gps"),
                 }.items(),
             ),
         ]
@@ -347,77 +347,77 @@ def generate_launch_description():
                 description="The scene to load in Unity.",
             ),
             DeclareLaunchArgument(
-                "drivers",
+                "hardware",
                 default_value="false",
                 description="Launch with physical sensors and actuators.",
             ),
             DeclareLaunchArgument(
-                "drivers.composition",
+                "hardware.composition",
                 default_value="false",
                 description="Use node composition.",
             ),
             DeclareLaunchArgument(
-                "drivers.rgbd_ids",
+                "hardware.rgbd_ids",
                 default_value="",
                 description="Space-separated IDs of the depth cameras to use.",
             ),
             DeclareLaunchArgument(
-                "drivers.master",
+                "hardware.master",
                 default_value="false",
                 description="Start the master driver.",
             ),
             DeclareLaunchArgument(
-                "drivers.master.mode",
+                "hardware.master.mode",
                 default_value="pc",
                 description="Run master drivers in 'pc', 'gs' or 'arm' mode.",
             ),
             DeclareLaunchArgument(
-                "drivers.imu",
+                "hardware.imu",
                 default_value="false",
                 description="Start the IMU driver.",
             ),
             DeclareLaunchArgument(
-                "drivers.compass_calibration",
+                "hardware.compass_calibration",
                 default_value="false",
                 description="Start the IMU compass calibration service node. IMU must be disabled in order to calibrate the compass.",
             ),
             DeclareLaunchArgument(
-                "drivers.compass_calibration.delay",
+                "hardware.compass_calibration.delay",
                 default_value="0",
                 description="The delay before the node will start the calibration.",
             ),
             DeclareLaunchArgument(
-                "drivers.compass_calibration.duration",
+                "hardware.compass_calibration.duration",
                 default_value="0",
                 description="For how long the robot will keep rotating during compass calibration.",
             ),
             DeclareLaunchArgument(
-                "drivers.compass_calibration.angular_velocity",
+                "hardware.compass_calibration.angular_velocity",
                 default_value="0",
                 description="The angular velocity to rotate at during the compass calibration (rad/s).",
             ),
             DeclareLaunchArgument(
-                "drivers.declination_calibration",
+                "hardware.declination_calibration",
                 default_value="false",
                 description="Start the IMU declination calibration node. IMU must be enabled in order to calibrate the declination.",
             ),
             DeclareLaunchArgument(
-                "drivers.declination_calibration.delay",
+                "hardware.declination_calibration.delay",
                 default_value="0",
                 description="The delay before the node will start the calibration.",
             ),
             DeclareLaunchArgument(
-                "drivers.declination_calibration.duration",
+                "hardware.declination_calibration.duration",
                 default_value="0",
                 description="How long the robot will drive forward during declination calibration.",
             ),
             DeclareLaunchArgument(
-                "drivers.declination_calibration.velocity",
+                "hardware.declination_calibration.velocity",
                 default_value="0",
                 description="The velocity to drive at during the declination calibration. (m/s)",
             ),
             DeclareLaunchArgument(
-                "drivers.gps",
+                "hardware.gps",
                 default_value="false",
                 description="Start the GPS driver.",
             ),
