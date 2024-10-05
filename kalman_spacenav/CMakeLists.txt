@@ -3,6 +3,11 @@ project(kalman_spacenav)
 
 find_package(ament_cmake REQUIRED)
 
+install(PROGRAMS
+  scripts/throttle_output
+  DESTINATION lib/${PROJECT_NAME}
+)
+
 install(DIRECTORY launch
   DESTINATION share/${PROJECT_NAME}
 )
