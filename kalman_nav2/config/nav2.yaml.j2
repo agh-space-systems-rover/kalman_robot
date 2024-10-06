@@ -45,15 +45,15 @@ behavior_server:
     # List of plugin names to use, also matches action server names.
     behavior_plugins: ["spin", "backup", "drive_on_heading", "wait", "assisted_teleop"]
     spin:
-      plugin: "nav2_behaviors/Spin"
+      plugin: "nav2_behaviors::Spin"
     backup:
-      plugin: "nav2_behaviors/BackUp"
+      plugin: "nav2_behaviors::BackUp"
     drive_on_heading:
-      plugin: "nav2_behaviors/DriveOnHeading"
+      plugin: "nav2_behaviors::DriveOnHeading"
     wait:
-      plugin: "nav2_behaviors/Wait"
+      plugin: "nav2_behaviors::Wait"
     assisted_teleop:
-      plugin: "nav2_behaviors/AssistedTeleop"
+      plugin: "nav2_behaviors::AssistedTeleop"
 
 # The BT Navigator (Behavior Tree Navigator) module implements the NavigateToPose, NavigateThroughPoses, and other task interfaces. It is a Behavior Tree-based implementation of navigation that is intended to allow for flexibility in the navigation task and provide a way to easily specify complex robot behaviors, including recovery.
 # Consider checking out the Groot - Interacting with Behavior Trees tutorial for using Groot to visualize and modify behavior trees.
@@ -78,11 +78,11 @@ bt_navigator:
     # Path to the default behavior tree XML description for NavigateToPose, see Behavior Tree XML Nodes for details on this file. Used to be default_bt_xml_filename pre-Galactic. You can use substitution to specify file path like $(find-pkg-share my_package)/behavior_tree/my_nav_to_pose_bt.xml.
     default_nav_to_pose_bt_xml: $(find-pkg-share kalman_nav2)/behavior_trees/nav_to_pose.xml
     navigate_to_pose:
-      plugin: "nav2_bt_navigator/NavigateToPoseNavigator"
+      plugin: "nav2_bt_navigator::NavigateToPoseNavigator"
     # Path to the default behavior tree XML description for NavigateThroughPoses, see Behavior Tree XML Nodes for details on this file. New to Galactic after NavigateThroughPoses was added. You can use substitution to specify file path like $(find-pkg-share my_package)/behavior_tree/my_nav_through_poses_bt.xml.
     default_nav_through_poses_bt_xml: $(find-pkg-share kalman_nav2)/behavior_trees/nav_through_poses.xml
     navigate_through_poses:
-      plugin: "nav2_bt_navigator/NavigateThroughPosesNavigator"
+      plugin: "nav2_bt_navigator::NavigateThroughPosesNavigator"
 
     # Duration (in milliseconds) for each iteration of BT execution.
     bt_loop_duration: 10
@@ -96,54 +96,8 @@ bt_navigator:
     transform_tolerance: 0.1 # seconds
     
     # List of behavior tree node shared libraries.
-    plugin_lib_names:
-      - nav2_compute_path_to_pose_action_bt_node
-      - nav2_compute_path_through_poses_action_bt_node
-      - nav2_smooth_path_action_bt_node
-      - nav2_follow_path_action_bt_node
-      - nav2_spin_action_bt_node
-      - nav2_wait_action_bt_node
-      - nav2_assisted_teleop_action_bt_node
-      - nav2_back_up_action_bt_node
-      - nav2_drive_on_heading_bt_node
-      - nav2_clear_costmap_service_bt_node
-      - nav2_is_stuck_condition_bt_node
-      - nav2_goal_reached_condition_bt_node
-      - nav2_goal_updated_condition_bt_node
-      - nav2_globally_updated_goal_condition_bt_node
-      - nav2_is_path_valid_condition_bt_node
-      - nav2_initial_pose_received_condition_bt_node
-      - nav2_reinitialize_global_localization_service_bt_node
-      - nav2_rate_controller_bt_node
-      - nav2_distance_controller_bt_node
-      - nav2_speed_controller_bt_node
-      - nav2_truncate_path_action_bt_node
-      - nav2_truncate_path_local_action_bt_node
-      - nav2_goal_updater_node_bt_node
-      - nav2_recovery_node_bt_node
-      - nav2_pipeline_sequence_bt_node
-      - nav2_round_robin_node_bt_node
-      - nav2_transform_available_condition_bt_node
-      - nav2_time_expired_condition_bt_node
-      - nav2_path_expiring_timer_condition
-      - nav2_distance_traveled_condition_bt_node
-      - nav2_single_trigger_bt_node
-      - nav2_goal_updated_controller_bt_node
-      - nav2_is_battery_low_condition_bt_node
-      - nav2_navigate_through_poses_action_bt_node
-      - nav2_navigate_to_pose_action_bt_node
-      - nav2_remove_passed_goals_action_bt_node
-      - nav2_planner_selector_bt_node
-      - nav2_controller_selector_bt_node
-      - nav2_goal_checker_selector_bt_node
-      - nav2_controller_cancel_bt_node
-      - nav2_path_longer_on_approach_bt_node
-      - nav2_wait_cancel_bt_node
-      - nav2_spin_cancel_bt_node
-      - nav2_back_up_cancel_bt_node
-      - nav2_assisted_teleop_cancel_bt_node
-      - nav2_drive_on_heading_cancel_bt_node
-      - nav2_is_battery_charging_condition_bt_node
+    # plugin_lib_names: []
+
     # List of of error codes to compare.
     error_code_names:
       - compute_path_error_code
@@ -160,14 +114,14 @@ planner_server:
     # List of Mapped plugin names for parameters and processing requests.
     planner_plugins: ["GridBased"]
     GridBased:
-      plugin: "nav2_navfn_planner/NavfnPlanner"
+      plugin: "nav2_navfn_planner::NavfnPlanner"
       tolerance: 0.5 # Plan path to a point max meters from goal; Navfn will loop (2 * tolerance / grid resolution)^2 = 10000 times
       use_astar: True # Use A* or Dijkstra's?
       allow_unknown: True # Plan in unknown space?
       use_final_approach_orientation: False # Last rotation in path aligned with the goal?
     # GridBased:
     #   # This planner implements a cost-aware holonomic A* algorithm within the Smac Planner framework sharing the same code and behaviors as the Hybrid-A* and State Lattice planners.
-    #   plugin: "nav2_smac_planner/SmacPlanner2D"
+    #   plugin: "nav2_smac_planner::SmacPlanner2D"
       
     #   # Tolerance in meters between requested goal pose and end of path.
     #   tolerance: 2.0 # default: 0.125
