@@ -13,34 +13,34 @@ import yaml
 import os
 
 
-def load_local_ukf_config(rgbd_ids):
+def load_local_ekf_config(rgbd_ids):
     # Load UKF config template
     with open(
         str(
             get_package_share_path("kalman_slam")
             / "config"
-            / "ukf_filter_node_local.yaml.j2"
+            / "ekf_filter_node_local.yaml.j2"
         ),
         "r",
     ) as f:
-        ukf_config_template = jinja2.Template(f.read())
+        ekf_config_template = jinja2.Template(f.read())
 
     # Render UKF config with camera IDs
-    ukf_config = ukf_config_template.render(
+    ekf_config = ekf_config_template.render(
         rgbd_ids=rgbd_ids,
     )
 
     # Load UKF config
-    ukf_params = yaml.load(ukf_config, Loader=yaml.FullLoader)
+    ekf_params = yaml.load(ekf_config, Loader=yaml.FullLoader)
 
     # Save UKF config to file
-    ukf_params_path = "/tmp/kalman/ukf_filter_node_local." + str(os.getpid()) + ".yaml"
-    os.makedirs(os.path.dirname(ukf_params_path), exist_ok=True)
-    with open(ukf_params_path, "w") as f:
-        yaml.dump(ukf_params, f)
+    ekf_params_path = "/tmp/kalman/ekf_filter_node_local." + str(os.getpid()) + ".yaml"
+    os.makedirs(os.path.dirname(ekf_params_path), exist_ok=True)
+    with open(ekf_params_path, "w") as f:
+        yaml.dump(ekf_params, f)
 
     # Return path to UKF config
-    return ukf_params_path
+    return ekf_params_path
 
 
 def launch_setup(context):
@@ -114,9 +114,9 @@ def launch_setup(context):
     description += [
         Node(
             package="robot_localization",
-            executable="ukf_node",
-            name="ukf_filter_node",
-            parameters=[load_local_ukf_config(rgbd_ids)],
+            executable="ekf_node",
+            name="ekf_filter_node",
+            parameters=[load_local_ekf_config(rgbd_ids)],
             remappings=[("odometry/filtered", "odometry/local")],
         ),
     ]
@@ -169,23 +169,23 @@ def launch_setup(context):
                 # IMU is theoretically not used by navsat_transform_node because it has the heading from filtered global odometry.
                 "gps/fix": "gps/fix/filtered",
                 # "gps/filtered": "gps/filtered",
-                # "odometry/gps": "odometry/gps", # Sends raw GPS odometry to ukf_filter_node_gps.
-                "odometry/filtered": "odometry/global",  # Receives filtered odometry from ukf_filter_node_gps.
+                # "odometry/gps": "odometry/gps", # Sends raw GPS odometry to ekf_filter_node_gps.
+                "odometry/filtered": "odometry/global",  # Receives filtered odometry from ekf_filter_node_gps.
             }.items(),
         ),
         Node(
             package="robot_localization",
-            executable="ukf_node",
-            name="ukf_filter_node_gps",
+            executable="ekf_node",
+            name="ekf_filter_node_gps",
             parameters=[
                 str(
                     get_package_share_path("kalman_slam")
                     / "config"
-                    / "ukf_filter_node_global.yaml"
+                    / "ekf_filter_node_global.yaml"
                 )
                 # In config:
-                # - ukf_filter_node_gps receives raw GPS odometry from navsat_transform_node.
-                # - ukf_filter_node_gps receives filtered IMU from sensors.
+                # - ekf_filter_node_gps receives raw GPS odometry from navsat_transform_node.
+                # - ekf_filter_node_gps receives filtered IMU from sensors.
             ],
             remappings={
                 "odometry/filtered": "odometry/global",  # Sends filtered odometry to navsat_transform_node.

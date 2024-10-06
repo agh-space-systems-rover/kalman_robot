@@ -1,4 +1,4 @@
-# docs in ukf_filter_node.yaml.j2
+# docs in ekf_filter_node.yaml.j2
 
 /**:
   ros__parameters:
