@@ -10,15 +10,9 @@
 [submodule "rosbridge_suite"]
 	path = vendor/rosbridge_suite
 	url = ../../RobotWebTools/rosbridge_suite.git
-[submodule "compressed_depth_image_transport"]
-	path = vendor/compressed_depth_image_transport
-	url = ../../agh-space-systems-rover/compressed_depth_image_transport.git
 [submodule "rtabmap_odom"]
 	path = vendor/rtabmap_odom
 	url = ../../agh-space-systems-rover/rtabmap_odom.git
-[submodule "moveit_msgs"]
-	path = vendor/moveit_msgs
-	url = ../../moveit/moveit_msgs.git
 [submodule "vendor/service_based_nav2_controller"]
 	path = vendor/service_based_nav2_controller
 	url = ../../agh-space-systems-rover/service_based_nav2_controller.git
