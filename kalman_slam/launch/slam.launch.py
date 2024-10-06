@@ -265,6 +265,7 @@ def generate_launch_description():
         [
             DeclareLaunchArgument(
                 "component_container",
+                default_value="",
                 description="Name of an existing component container to use. Empty to disable composition.",
             ),
             DeclareLaunchArgument(
@@ -273,10 +274,12 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument(
                 "gps_datum",
+                default_value="",
                 description="The 'latitude longitude' of the map frame. Only used if GPS is enabled. Empty to assume first recorded GPS fix.",
             ),
             DeclareLaunchArgument(
                 "fiducials",
+                default_value="",
                 description="Name of the list of fiducials to use. Empty disables fiducial odometry.",
             ),
             OpaqueFunction(function=launch_setup),

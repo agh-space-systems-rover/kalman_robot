@@ -225,7 +225,6 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument(
                 "rgbd_ids",
-                default_value="d455_front d455_back d455_left d455_right",
                 description="Space-separated IDs of the depth cameras to use.",
             ),
             DeclareLaunchArgument(

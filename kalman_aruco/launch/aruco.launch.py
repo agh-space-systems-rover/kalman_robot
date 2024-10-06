@@ -68,7 +68,6 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument(
                 "rgbd_ids",
-                default_value="",
                 description="Space-separated IDs of the RGBD cameras to use. Regular cameras are not supported yet.",
             ),
             DeclareLaunchArgument(
