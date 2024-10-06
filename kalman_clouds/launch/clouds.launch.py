@@ -118,6 +118,7 @@ def generate_launch_description():
         [
             DeclareLaunchArgument(
                 "component_container",
+                default_value="",
                 description="Name of an existing component container to use. Empty to disable composition.",
             ),
             DeclareLaunchArgument(

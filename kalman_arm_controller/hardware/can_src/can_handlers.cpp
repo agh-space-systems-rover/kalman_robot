@@ -2,6 +2,8 @@
 #include "kalman_arm_controller/can_libs/can_vars.hpp"
 #include "kalman_arm_controller/can_libs/can_messages.hpp"
 
+#define UNUSED(x) (void)(x)
+
 namespace CAN_handlers
 {
 // Define the command handler array
@@ -18,8 +20,10 @@ const std::unordered_map<uint8_t, canCmdHandler_t> HANDLES = {
  */
 int handle_joint_status(uint32_t identifier, uint8_t* data, uint8_t len)
 {
+    UNUSED(len);
+
     uint8_t joint_id = identifier >> 7;
-    uint8_t command = identifier - (joint_id << 7);
+    // uint8_t command = identifier - (joint_id << 7);
 
     joint_id--;
 
@@ -37,8 +41,10 @@ int handle_joint_status(uint32_t identifier, uint8_t* data, uint8_t len)
  */
 int handle_joint_fast_status(uint32_t identifier, uint8_t* data, uint8_t len)
 {
+    UNUSED(len);
+
     uint8_t joint_id = identifier >> 7;
-    uint8_t command = identifier - (joint_id << 7);
+    // uint8_t command = identifier - (joint_id << 7);
 
     joint_id--;
 
@@ -51,6 +57,9 @@ int handle_joint_fast_status(uint32_t identifier, uint8_t* data, uint8_t len)
 
 int handle_gripper_status(uint32_t identifier, uint8_t* data, uint8_t len)
 {
+    UNUSED(identifier);
+    UNUSED(len);
+
     CAN_vars::gripper_position = *((uint16_t*)data);
     return 0;
 }

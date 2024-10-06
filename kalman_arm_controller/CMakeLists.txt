@@ -1,10 +1,8 @@
 cmake_minimum_required(VERSION 3.16)
-project(kalman_arm_controller LANGUAGES CXX)
+project(kalman_arm_controller)
 
-add_definitions("-DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_CXX_COMPILER=clang++")
-
-if(CMAKE_CXX_COMPILER_ID MATCHES "(GNU|Clang)")
-  add_compile_options(-Wall -Wextra)
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
 # find dependencies
@@ -13,6 +11,7 @@ set(HW_IF_INCLUDE_DEPENDS
   rcpputils
   hardware_interface
   rclcpp
+  rclcpp_lifecycle
 )
 
 set(THIS_PACKAGE_INCLUDE_DEPENDS

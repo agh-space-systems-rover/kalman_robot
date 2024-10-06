@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>kalman_meta_gs</name>
+  <version>0.0.0</version>
+  <description>packages for Kalman's ground station</description>
+  <maintainer email="63957587+rayferric@users.noreply.github.com">rayferric</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>kalman_arm_config</depend>
+  <depend>kalman_arm_moveit_config</depend>
+  <depend>kalman_arm_utils</depend>
+  <depend>kalman_bringup</depend>
+  <depend>kalman_description</depend>
+  <depend>kalman_hardware</depend>
+  <depend>kalman_gs</depend>
+  <depend>kalman_interfaces</depend>
+  <depend>kalman_master</depend>
+  <depend>kalman_rviz</depend>
+  <depend>kalman_spacenav</depend>
+  <depend>kalman_wheels</depend>
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

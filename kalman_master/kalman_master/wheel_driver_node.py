@@ -1,6 +1,7 @@
 import rclpy
-from rclpy.node import Node
 import numpy as np
+import time
+from rclpy.node import Node
 from struct import pack
 
 from kalman_interfaces.msg import (
@@ -13,6 +14,9 @@ from kalman_interfaces.msg import (
 
 
 METRIC_VELOCITY_TO_MOTOR_VALUE_FACTOR = 100
+MAX_RATE = 10
+MIN_DT = 1 / MAX_RATE
+WARN_RATE = 100
 
 
 def decode_u2(data):
@@ -26,9 +30,7 @@ class WheelDriver(Node):
             MasterMessage, "master_com/ros_to_master", 10
         )
 
-        self.create_subscription(
-            WheelStates, "wheel_states", self.controller_state_received, 1
-        )
+        self.create_subscription(WheelStates, "wheel_states", self.states_received, 1)
         self.create_subscription(
             MasterMessage,
             f"master_com/master_to_ros/{hex(MasterMessage.MOTOR_GET_WHEELS)[1:]}",
@@ -44,8 +46,28 @@ class WheelDriver(Node):
 
         self.return_pub = self.create_publisher(WheelStates, "wheel_states/return", 10)
         self.temp_pub = self.create_publisher(WheelTemperatures, "wheel_temps", 10)
+        self.last_publish_time = 0
+        self.rate_warn_msgs_since_last_check = 0
+        self.rate_warn_last_check_time = 0
 
-    def controller_state_received(self, msg: WheelStates):
+    def states_received(self, msg: WheelStates):
+        # Monitor wheel states rate.
+        current_time = time.time()
+        if current_time - self.rate_warn_last_check_time > 1:
+            if self.rate_warn_msgs_since_last_check > WARN_RATE:
+                self.get_logger().warn(
+                    f"Wheel states rate seems way too high: {self.rate_warn_msgs_since_last_check} Hz"
+                )
+            self.rate_warn_msgs_since_last_check = 0
+            self.rate_warn_last_check_time = current_time
+
+        # Throttle publishing rate.
+        time_since_last_publish = current_time - self.last_publish_time
+        if time_since_last_publish < MIN_DT:
+            # Skip publishing if the rate is too high.
+            return
+        self.last_publish_time = current_time
+
         data = [
             msg.front_right.velocity * METRIC_VELOCITY_TO_MOTOR_VALUE_FACTOR,
             msg.back_right.velocity * METRIC_VELOCITY_TO_MOTOR_VALUE_FACTOR,
