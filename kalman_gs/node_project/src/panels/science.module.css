@@ -1,31 +1,33 @@
 .vertical {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    user-select: none;
-    flex-direction: column;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  flex-direction: column;
 
-  }
+}
 
-  .horizontal {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    user-select: none;
-    
-  }
+.horizontal {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  flex-direction: row;
+  
+}
+
+
 
 .weights {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
 }
 
 .standardWeight {
   display: flex;
   flex-direction: column;
-  margin: 8px;
 }
 
 .standardTitle {
@@ -48,7 +50,7 @@ text-align: center;
 .inline-items {
   display: flex;
   flex-direction: row;
-  margin-top: 10px;
+  margin-top: 5px;
 }
 
 .send-button {
@@ -105,10 +107,8 @@ text-align: center;
   color: var(--weak-foreground);
   transition: 0.4s;
   cursor: pointer;
-  margin-left: 120px;
-  margin-right: 120px;
-  margin-top: -95px;
-
+  margin-left: 4px;
+  margin-right: 4px;
 }
 
 .icon:hover
@@ -120,6 +120,11 @@ text-align: center;
   display: flex;
   flex-direction: column;
 }
+.row {
+  display: flex;
+  flex-direction: row;
+}
+
 
 
 .icon-digit {
@@ -127,12 +132,9 @@ text-align: center;
   color: var(--background);
   transition: 0.4s;
   cursor: pointer;
-  margin-left: -175px;
-  margin-top: -30px;
   position: absolute;
   pointer-events: none;
-}
 
-.icon_second {
-  margin-top: 15px;
+  margin-left: -58px;
+  margin-top:33px;
 }

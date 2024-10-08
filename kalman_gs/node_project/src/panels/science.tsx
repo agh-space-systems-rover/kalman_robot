@@ -96,12 +96,6 @@ function StandardWeight({weightType}: WeightInfo) {
                 <div className={styles['tare-button']} onClick={handleTare}>Tare</div>
                 <div className={styles['send-button']} onClick={handleRequest}>Request</div>
             </div>
-            {weightType === WeightTypes.DRILL && (
-                <>
-                    <h2 className={styles.center}>Autonomy</h2>
-                    <AutonomyPanel />
-                </>
-            )}
         </div>
     )
 }
@@ -127,33 +121,35 @@ function Container({containerNumber})
         });
     });
 
-    const [containerState, setContainerState] = useState(ContainerState.CLOSE);
-
     function handleClick(state) {
-        setContainerState(containerState == ContainerState.CLOSE? ContainerState.OPEN:ContainerState.CLOSE);
         onContainerClicked(state, containerNumber);
-        // onContainerClicked(state, containerNumber);
-        // onContainerClicked(state, containerNumber);
     }
 
     return (
         <div className={styles['column']}>
-        <FontAwesomeIcon
-        onClick={() => handleClick(ContainerState.OPEN)}
-        className={styles['icon']}
-        icon={faBoxOpen}/>
-        <FontAwesomeIcon
-            className={styles['icon-digit']}
-            icon={[fa1, fa2][containerNumber]}
-          />
-        <FontAwesomeIcon
-          onClick={() => handleClick(ContainerState.CLOSE)}
-          className={styles['icon'] + " " + styles['icon_second']}
-          icon={faBox}/>
-          <FontAwesomeIcon
-              className={styles['icon-digit']}
-              icon={[fa1, fa2][containerNumber]}
-            />
+            <div>
+                <FontAwesomeIcon
+                    onClick={() => handleClick(ContainerState.OPEN)}
+                    className={styles['icon']}
+                    icon={faBoxOpen}
+                />
+                <FontAwesomeIcon
+                    className={styles['icon-digit']}
+                    icon={[fa1, fa2][containerNumber]}
+                />
+            </div>
+
+            <div>
+                <FontAwesomeIcon
+                    onClick={() => handleClick(ContainerState.CLOSE)}
+                    className={styles['icon']}
+                    icon={faBox}
+                />
+                <FontAwesomeIcon
+                    className={styles['icon-digit']}
+                    icon={[fa1, fa2][containerNumber]}
+                />
+            </div>
         </div>
         
     )
@@ -162,11 +158,14 @@ function Container({containerNumber})
 
 export default function Science() {
     return (
-      <div className={styles['vertical']}>
-        <div className={styles['horizontal']}><Weights></Weights></div>
+      <div className={styles['horizontal']}>
+        <div className={styles['vertical']}><Weights></Weights></div>
+        <div className={styles['vertical']}>
         <div className={styles['horizontal']}>
             <Container containerNumber="0"></Container>
             <Container containerNumber="1"></Container>
+        </div>
+        <AutonomyPanel />
         </div>
       </div>
     );
