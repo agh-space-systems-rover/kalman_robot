@@ -73,10 +73,10 @@ class WheelDriver(Node):
             msg.back_right.velocity * METRIC_VELOCITY_TO_MOTOR_VALUE_FACTOR,
             msg.back_left.velocity * METRIC_VELOCITY_TO_MOTOR_VALUE_FACTOR,
             msg.front_left.velocity * METRIC_VELOCITY_TO_MOTOR_VALUE_FACTOR,
-            -np.rad2deg(msg.front_right.angle),
-            np.rad2deg(msg.back_right.angle),
-            np.rad2deg(msg.back_left.angle),
-            -np.rad2deg(msg.front_left.angle),
+            -np.clip(np.rad2deg(msg.front_right.angle), -90, 90),
+            np.clip(np.rad2deg(msg.back_right.angle), -90, 90),
+            np.clip(np.rad2deg(msg.back_left.angle), -90, 90),
+            -np.clip(np.rad2deg(msg.front_left.angle), -90, 90),
         ]
         data = [int(x) for x in data]
         data = list(pack("b" * len(data), *data))

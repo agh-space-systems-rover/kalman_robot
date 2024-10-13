@@ -10,7 +10,6 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <depend>kalman_arm_config</depend>
-  <depend>kalman_arm_moveit_config</depend>
   <depend>kalman_arm_utils</depend>
   <depend>kalman_bringup</depend>
   <depend>kalman_description</depend>
