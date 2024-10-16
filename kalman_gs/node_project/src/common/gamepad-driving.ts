@@ -9,9 +9,13 @@ const SPEED_FACTOR_RATE_OF_CHANGE = 0.5;
 const MIN_SPEED_FACTOR = 0.2;
 const TURN_RADIUS = 0.75;
 const ROTATE_IN_PLACE_SPEED = 1.57;
+const TRUMPET_LEFT = new Audio('bike_horn.mp3');
+const TRUMPET_RIGHT = new Audio('bells.mp3');
 
 let lastDrive: Drive = null;
-let speedFactor = 1;
+let speedFactor = MIN_SPEED_FACTOR;
+let trumpetLeft = 0;
+let trumpetRight = 0;
 
 window.addEventListener('ros-connect', () => {
   const drive = new Topic<Drive>({
@@ -33,7 +37,17 @@ window.addEventListener('ros-connect', () => {
     shoulder = readGamepads('left-shoulder', 'wheels') > 0 || readGamepads('right-shoulder', 'wheels') > 0;
     changeSpeed = readGamepads('y-button', 'wheels') - readGamepads('x-button', 'wheels');
 
-    speedFactor += changeSpeed * SPEED_FACTOR_RATE_OF_CHANGE / RATE;
+    if (readGamepads('left-stick', 'wheels') == 1 && trumpetLeft == 0) {
+      TRUMPET_LEFT.play();
+    }
+    trumpetLeft = readGamepads('left-stick', 'wheels');
+
+    if (readGamepads('right-stick', 'wheels') == 1 && trumpetRight == 0) {
+      TRUMPET_RIGHT.play();
+    }
+    trumpetRight = readGamepads('right-stick', 'wheels');
+
+    speedFactor += (changeSpeed * SPEED_FACTOR_RATE_OF_CHANGE) / RATE;
     speedFactor = Math.max(MIN_SPEED_FACTOR, Math.min(1, speedFactor));
     speed *= speedFactor;
 

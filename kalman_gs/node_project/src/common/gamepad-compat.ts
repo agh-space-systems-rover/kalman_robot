@@ -1,4 +1,4 @@
-const DEADZONE = 0.05;
+const DEADZONE = 0.02;
 
 type GamepadInput =
   | 'left-x' // right is positive
