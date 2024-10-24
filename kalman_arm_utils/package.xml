@@ -2,10 +2,10 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>kalman_arm_utils</name>
-  <version>0.0.0</version>
-  <description>TODO: Package description</description>
-  <maintainer email="kacper.iwi@gmail.com">root</maintainer>
-  <license>TODO: License declaration</license>
+  <version>1.0.0</version>
+  <description>Utilities for integration and features for Kalman's arm</description>
+  <maintainer email="69985093+kapi117@users.noreply.github.com">Kacper Iwicki</maintainer>
+  <license>MIT</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 

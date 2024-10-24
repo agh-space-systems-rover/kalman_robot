@@ -21,7 +21,7 @@ install(PROGRAMS
   DESTINATION lib/${PROJECT_NAME}
 )
 
-add_executable(joint_republisher src/joint_republisher.cpp)
+add_executable(joint_republisher src/gs/joint_republisher.cpp)
 target_include_directories(joint_republisher PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
@@ -33,7 +33,7 @@ install(TARGETS joint_republisher
   DESTINATION lib/${PROJECT_NAME})
 
 
-add_executable(gripper_republisher src/gripper_republisher.cpp)
+add_executable(gripper_republisher src/gs/gripper_republisher.cpp)
 target_include_directories(gripper_republisher PUBLIC
 $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 $<INSTALL_INTERFACE:include>)
@@ -45,7 +45,7 @@ install(TARGETS gripper_republisher
 DESTINATION lib/${PROJECT_NAME})  
 
 
-add_executable(arm_state_republisher src/arm_state_republisher.cpp)
+add_executable(arm_state_republisher src/gs/arm_state_republisher.cpp)
 target_include_directories(arm_state_republisher PUBLIC
 $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 $<INSTALL_INTERFACE:include>)

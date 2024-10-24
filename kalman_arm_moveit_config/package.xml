@@ -3,10 +3,9 @@
 <package format="3">
   <name>kalman_arm_moveit_config</name>
   <version>0.3.0</version>
-  <description>
-     An automatically generated package with all the configuration and launch files for using the arm with the MoveIt Motion Planning Framework
-  </description>
-  <maintainer email="todo@todo.com">todo</maintainer>
+  <description> An automatically generated package with all the configuration and launch files for
+    using the arm with the MoveIt Motion Planning Framework </description>
+  <maintainer email="69985093+kapi117@users.noreply.github.com">Kacper Iwicki</maintainer>
 
   <license>BSD</license>
 
@@ -14,7 +13,8 @@
   <url type="bugtracker">https://github.com/ros-planning/moveit2/issues</url>
   <url type="repository">https://github.com/ros-planning/moveit2</url>
 
-  <author email="todo@todo.com">todo</author>
+  <author email="69985093+kapi117@users.noreply.github.com">Kacper Iwicki
+  </author>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
@@ -45,6 +45,6 @@
 
 
   <export>
-      <build_type>ament_cmake</build_type>
+    <build_type>ament_cmake</build_type>
   </export>
 </package>
