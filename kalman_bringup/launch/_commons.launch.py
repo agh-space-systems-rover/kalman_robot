@@ -77,6 +77,7 @@ def launch_setup(context):
                     "joint_state_publisher_gui": get_str(
                         "description.joint_state_publisher_gui"
                     ),
+                    "with_arm": get_str("description.with_arm"),
                 }.items(),
             )
         ]
@@ -115,6 +116,12 @@ def launch_setup(context):
                     ),
                     "master": get_str("hardware.master"),
                     "master.mode": get_str("hardware.master.mode"),
+                    "master.autonomy": get_str("hardware.master.autonomy"),
+                    "master.drivers.arm": get_str("hardware.master.drivers.arm"),
+                    "master.drivers.ueuos": get_str("hardware.master.drivers.ueuos"),
+                    "master.drivers.feed": get_str("hardware.master.drivers.feed"),
+                    "master.drivers.tunnel": get_str("hardware.master.drivers.tunnel"),
+                    "master.drivers.drill": get_str("hardware.master.drivers.drill"),
                     "rgbd_ids": get_str("hardware.rgbd_ids"),
                     "imu": get_str("hardware.imu"),
                     "compass_calibration": get_str("hardware.compass_calibration"),
@@ -283,6 +290,19 @@ def launch_setup(context):
             ),
         ]
 
+    if get_bool("arm_utils"):
+        description += [
+            IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(
+                    str(
+                        get_package_share_path("kalman_arm_utils")
+                        / "launch"
+                        / "gs.launch.py"
+                    )
+                ),
+            ),
+        ]
+
     if get_bool("gs"):
         description += [
             IncludeLaunchDescription(
@@ -332,6 +352,11 @@ def generate_launch_description():
                 description="Start up state publishers for the robot description.",
             ),
             DeclareLaunchArgument(
+                "description.with_arm",
+                default_value="false",
+                description="Start up the robot description with the arm.",
+            ),
+            DeclareLaunchArgument(
                 "description.joint_state_publisher_gui",
                 default_value="false",
                 description="Start up the joint state publisher with a GUI.",
@@ -370,6 +395,36 @@ def generate_launch_description():
                 "hardware.master.mode",
                 default_value="pc",
                 description="Run master drivers in 'pc', 'gs' or 'arm' mode.",
+            ),
+            DeclareLaunchArgument(
+                "hardware.master.autonomy",
+                default_value="false",
+                description="Start the master autonomy related nodes.",
+            ),
+            DeclareLaunchArgument(
+                "hardware.master.drivers.arm",
+                default_value="false",
+                description="Start the arm driver.",
+            ),
+            DeclareLaunchArgument(
+                "hardware.master.drivers.ueuos",
+                default_value="false",
+                description="Start the UEUOS driver.",
+            ),
+            DeclareLaunchArgument(
+                "hardware.master.drivers.feed",
+                default_value="false",
+                description="Start the feed driver.",
+            ),
+            DeclareLaunchArgument(
+                "hardware.master.drivers.tunnel",
+                default_value="false",
+                description="Start the tunnel client.",
+            ),
+            DeclareLaunchArgument(
+                "hardware.master.drivers.drill",
+                default_value="false",
+                description="Start the drill driver.",
             ),
             DeclareLaunchArgument(
                 "hardware.imu",
@@ -540,6 +595,11 @@ def generate_launch_description():
                 "supervisor.deactivate_aruco",
                 default_value="false",
                 description="Deactivate ArUco detection nodes when supervisor is not actively looking for tags.",
+            ),
+            DeclareLaunchArgument(
+                "arm_utils",
+                default_value="false",
+                description="Start up the arm utilities.",
             ),
             DeclareLaunchArgument(
                 "gs",

@@ -34,23 +34,6 @@ def launch_setup(context):
         ),
         Node(
             package="kalman_master",
-            executable="ros_link",
-            parameters=[
-                {
-                    "config_path": str(
-                        get_package_share_path("kalman_master") / "config/ros_link.yaml"
-                    ),
-                    "side": (
-                        "station" if get_str("mode") == "gs" else "rover"
-                    ),  # station or rover
-                    "rover_endpoint": (
-                        "arm" if get_str("mode") == "arm" else "pc"
-                    ),  # arm or pc
-                },
-            ],
-        ),
-        Node(
-            package="kalman_master",
             executable="wheel_driver",
         ),  # Used by autonomy on PC or for teleop on GS.
     ]
@@ -61,21 +44,77 @@ def launch_setup(context):
                 package="kalman_master",
                 executable="autonomy_switch_spam",
             ),
+        ]
+
+    if get_bool("autonomy"):
+        description += [
+            Node(
+                package="kalman_master",
+                executable="ros_link",
+                parameters=[
+                    {
+                        "config_path": str(
+                            get_package_share_path("kalman_master")
+                            / "config/pc_ros_link.yaml"
+                        ),
+                        "side": (
+                            "station" if get_str("mode") == "gs" else "rover"
+                        ),  # station or rover
+                        "rover_endpoint": (
+                            "arm" if get_str("mode") == "arm" else "pc"
+                        ),  # arm or pc
+                    },
+                ],
+            ),
+        ]
+
+    if get_bool("drivers.arm"):
+        description += [
+            Node(
+                package="kalman_master",
+                executable="ros_link",
+                parameters=[
+                    {
+                        "config_path": str(
+                            get_package_share_path("kalman_master")
+                            / "config/arm_ros_link.yaml"
+                        ),
+                        "side": (
+                            "station" if get_str("mode") == "gs" else "rover"
+                        ),  # station or rover
+                        "rover_endpoint": (
+                            "arm" if get_str("mode") == "arm" else "pc"
+                        ),  # arm or pc
+                    },
+                ],
+            ),
+            Node(
+                package="kalman_master",
+                executable="spacenav_driver",
+            ),
+        ]
+
+    if get_bool("drivers.ueuos"):
+        description += [
             Node(
                 package="kalman_master",
                 executable="ueuos_driver",
             ),
         ]
 
-    if get_str("mode") == "gs":
+    if get_bool("drivers.feed"):
+        description += [
+            Node(
+                package="kalman_master",
+                executable="feed_driver",
+            ),
+        ]
+
+    if get_bool("drivers.tunnel"):
         description += [
             Node(
                 package="kalman_master",
                 executable="tunnel_client",
-            ),
-            Node(
-                package="kalman_master",
-                executable="feed_driver",
             ),
         ]
 
@@ -89,6 +128,36 @@ def generate_launch_description():
                 "mode",
                 default_value="pc",
                 description="Set to 'gs' if master is being run on the ground station or to 'arm' if master is being run on the arm.",
+            ),
+            DeclareLaunchArgument(
+                "autonomy",
+                default_value="false",
+                description="Set to 'true' to enable autonomy. Starts ros_link and wheel_driver.",
+            ),
+            DeclareLaunchArgument(
+                "drivers.arm",
+                default_value="false",
+                description="Set to 'true' to enable arm-specific drivers. Starts ros_link and wheel_driver.",
+            ),
+            DeclareLaunchArgument(
+                "drivers.ueuos",
+                default_value="false",
+                description="Set to 'true' to enable ueuos driver.",
+            ),
+            DeclareLaunchArgument(
+                "drivers.feed",
+                default_value="false",
+                description="Set to 'true' to enable feed driver.",
+            ),
+            DeclareLaunchArgument(
+                "drivers.tunnel",
+                default_value="false",
+                description="Set to 'true' to enable tunnel client.",
+            ),
+            DeclareLaunchArgument(
+                "drivers.drill",
+                default_value="false",
+                description="Set to 'true' to enable drill driver.",
             ),
             OpaqueFunction(function=launch_setup),
         ]
