@@ -42,11 +42,16 @@ def generate_launch_description():
                 launch_arguments={
                     "hardware": "true",
                     "hardware.master": "true",
+                    "hardware.master.autonomy": "true",
                     "hardware.master.mode": "pc",
                     "hardware.compass_calibration": "true",
                     "hardware.compass_calibration.delay": LaunchConfiguration("delay"),
-                    "hardware.compass_calibration.duration": LaunchConfiguration("duration"),
-                    "hardware.compass_calibration.angular_velocity": LaunchConfiguration("angular_velocity"),
+                    "hardware.compass_calibration.duration": LaunchConfiguration(
+                        "duration"
+                    ),
+                    "hardware.compass_calibration.angular_velocity": LaunchConfiguration(
+                        "angular_velocity"
+                    ),
                     "wheels": "true",
                 }.items(),
             ),

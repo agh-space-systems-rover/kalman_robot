@@ -42,12 +42,19 @@ def generate_launch_description():
                 launch_arguments={
                     "hardware": "true",
                     "hardware.master": "true",
+                    "hardware.master.autonomy": "true",
                     "hardware.master.mode": "pc",
                     "hardware.imu": "true",
                     "hardware.declination_calibration": "true",
-                    "hardware.declination_calibration.delay": LaunchConfiguration("delay"),
-                    "hardware.declination_calibration.duration": LaunchConfiguration("duration"),
-                    "hardware.declination_calibration.velocity": LaunchConfiguration("velocity"),
+                    "hardware.declination_calibration.delay": LaunchConfiguration(
+                        "delay"
+                    ),
+                    "hardware.declination_calibration.duration": LaunchConfiguration(
+                        "duration"
+                    ),
+                    "hardware.declination_calibration.velocity": LaunchConfiguration(
+                        "velocity"
+                    ),
                     "hardware.gps": "true",
                     "wheels": "true",
                 }.items(),

@@ -25,6 +25,7 @@ def generate_launch_description():
                 launch_arguments={
                     "hardware": "true",
                     "hardware.master": "true",
+                    "hardware.master.autonomy": "true",
                     "hardware.master.mode": LaunchConfiguration("mode"),
                     "wheels": "true",
                 }.items(),

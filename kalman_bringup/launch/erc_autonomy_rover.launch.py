@@ -21,6 +21,8 @@ def generate_launch_description():
                     "hardware.rgbd_ids": "d455_front d455_back d455_left d455_right",
                     "hardware.master": "true",
                     "hardware.master.mode": "pc",
+                    "hardware.master.autonomy": "true",
+                    "hardware.master.drivers.ueuos": "true",
                     "hardware.imu": "true",
                     "clouds": "true",
                     "clouds.rgbd_ids": "d455_front d455_back d455_left d455_right",
