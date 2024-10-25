@@ -16,19 +16,6 @@ def launch_setup(context):
                 get_package_share_path("kalman_description") / "urdf" / "arm.urdf.xacro"
             )
         ).toxml()
-
-        # robot structure TF publisher
-        description = [
-            Node(
-                package="robot_state_publisher",
-                executable="robot_state_publisher",
-                output="both",
-                parameters=[{"robot_description": urdf}, {"ignore_timestamp": True}],
-                remappings=[
-                    ("/joint_states", "/arm_controllers/joint_states"),
-                ],
-            ),
-        ]
     else:
         urdf = xacro.process_file(
             str(
@@ -38,14 +25,14 @@ def launch_setup(context):
             )
         ).toxml()
 
-        # robot structure TF publisher
-        description = [
-            Node(
-                package="robot_state_publisher",
-                executable="robot_state_publisher",
-                parameters=[{"robot_description": urdf}],
-            ),
-        ]
+    # robot structure TF publisher
+    description = [
+        Node(
+            package="robot_state_publisher",
+            executable="robot_state_publisher",
+            parameters=[{"robot_description": urdf}, {"ignore_timestamp": True}],
+        ),
+    ]
 
     # alternative joint state publisher with GUI
     if get_bool("joint_state_publisher_gui"):
@@ -63,7 +50,16 @@ def launch_setup(context):
             Node(
                 package="joint_state_publisher",
                 executable="joint_state_publisher",
-                parameters=[{"rate": 10}],
+                parameters=[
+                    {"rate": 10},
+                    {
+                        "source_list": (
+                            ["/arm_controllers/joint_states"]
+                            if get_bool("with_arm")
+                            else []
+                        )
+                    },
+                ],
             ),
         ]
 
