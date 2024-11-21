@@ -56,7 +56,7 @@ def launch_setup(context):
                         "source_list": (
                             ["/arm_controllers/joint_states"]
                             if get_bool("with_arm")
-                            else []
+                            else [""]
                         )
                     },
                 ],

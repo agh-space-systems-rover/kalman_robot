@@ -110,6 +110,14 @@ def launch_setup(context):
             ),
         ]
 
+    if get_bool("drivers.drill"):
+        description += [
+            Node(
+                package="kalman_master",
+                executable="drill_driver",
+            ),
+        ]
+
     if get_bool("drivers.tunnel"):
         description += [
             Node(

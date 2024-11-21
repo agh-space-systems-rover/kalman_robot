@@ -34,6 +34,12 @@ def launch_setup(context):
     component_container = get_str("component_container")
     master = get_bool("master")
     master_mode = get_str("master.mode")
+    master_autonomy = get_str("master.autonomy")
+    master_drivers_arm = get_str("master.drivers.arm")
+    master_drivers_ueuos = get_str("master.drivers.ueuos")
+    master_drivers_feed = get_str("master.drivers.feed")
+    master_drivers_tunnel = get_str("master.drivers.tunnel")
+    master_drivers_drill = get_str("master.drivers.drill")
     rgbd_ids = [
         x
         for x in LaunchConfiguration("rgbd_ids").perform(context).split(" ")
@@ -81,7 +87,15 @@ def launch_setup(context):
                         / "master.launch.py"
                     )
                 ),
-                launch_arguments={"mode": master_mode}.items(),
+                launch_arguments={
+                    "mode": master_mode,
+                    "autonomy": master_autonomy,
+                    "drivers.arm": master_drivers_arm,
+                    "drivers.ueuos": master_drivers_ueuos,
+                    "drivers.feed": master_drivers_feed,
+                    "drivers.tunnel": master_drivers_tunnel,
+                    "drivers.drill": master_drivers_drill,
+                }.items(),
             )
         ]
 
@@ -266,7 +280,37 @@ def generate_launch_description():
             DeclareLaunchArgument(
                 "master.mode",
                 default_value="pc",
-                description="Start the master driver with the RF module baud rate.",
+                description="Run master drivers in 'pc', 'gs' or 'arm' mode.",
+            ),
+            DeclareLaunchArgument(
+                "master.autonomy",
+                default_value="false",
+                description="Start the master autonomy related nodes.",
+            ),
+            DeclareLaunchArgument(
+                "master.drivers.arm",
+                default_value="false",
+                description="Start the arm driver.",
+            ),
+            DeclareLaunchArgument(
+                "master.drivers.ueuos",
+                default_value="false",
+                description="Start the UEUOS driver.",
+            ),
+            DeclareLaunchArgument(
+                "master.drivers.feed",
+                default_value="false",
+                description="Start the feed driver.",
+            ),
+            DeclareLaunchArgument(
+                "master.drivers.tunnel",
+                default_value="false",
+                description="Start the tunnel client.",
+            ),
+            DeclareLaunchArgument(
+                "master.drivers.drill",
+                default_value="false",
+                description="Start the drill driver.",
             ),
             DeclareLaunchArgument(
                 "rgbd_ids",
