@@ -10,6 +10,6 @@ Additionally in this pacakge there are some scripts used for testing and providi
 
 ## Kalman's Arm Description
 
-![](../docs/arm_control.drawio.svg)
+![](docs/arm_control.drawio.svg)
 
 Above you can find a simple diagram showing data flow in arm. Green blocks represent code that is written for custom usage of ROS2 Control.
