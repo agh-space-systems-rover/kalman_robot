@@ -10,20 +10,16 @@ def launch_setup(context):
     def get_bool(name):
         return LaunchConfiguration(name).perform(context).lower() == "true"
 
-    if get_bool("with_arm"):
-        urdf = xacro.process_file(
-            str(
-                get_package_share_path("kalman_description") / "urdf" / "arm.urdf.xacro"
-            )
-        ).toxml()
-    else:
-        urdf = xacro.process_file(
-            str(
-                get_package_share_path("kalman_description")
-                / "urdf"
-                / "kalman.urdf.xacro"
-            )
-        ).toxml()
+    def get_str(name):
+        return LaunchConfiguration(name).perform(context)
+
+    urdf = xacro.process_file(
+        str(
+            get_package_share_path("kalman_description")
+            / "layouts"
+            / f"{get_str('layout')}.urdf.xacro"
+        )
+    ).toxml()
 
     # robot structure TF publisher
     description = [
@@ -34,18 +30,17 @@ def launch_setup(context):
         ),
     ]
 
-    # alternative joint state publisher with GUI
     if get_bool("joint_state_publisher_gui"):
+        # alternative joint state publisher with GUI
         description += [
             Node(
                 package="joint_state_publisher_gui",
                 executable="joint_state_publisher_gui",
             ),
         ]
-    # joint state publisher
-    # Required for 3D model joints to show up.
-    # This node is written in Python and is not composable.
     else:
+        # joint state publisher
+        # Required for 3D model joints to show up.
         description += [
             Node(
                 package="joint_state_publisher",
@@ -75,9 +70,9 @@ def generate_launch_description():
                 description="Start the joint state publisher in GUI mode.",
             ),
             DeclareLaunchArgument(
-                "with_arm",
-                default_value="false",
-                description="Set robot description to include the arm.",
+                "layout",
+                default_value="autonomy",
+                description="layout of the robot: autonomy, arm",
             ),
             OpaqueFunction(function=launch_setup),
         ]
