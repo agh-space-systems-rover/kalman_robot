@@ -61,32 +61,33 @@ def launch_setup(context):
 
     # visual odometry
     if component_container:
-        description += [
-            LoadComposableNodes(
-                target_container=component_container,
-                composable_node_descriptions=[
-                    ComposableNode(
-                        package="rtabmap_odom",
-                        plugin="rtabmap_odom::RGBDOdometry",
-                        namespace=f"{camera_id}",
-                        parameters=[
-                            str(
-                                get_package_share_path("kalman_slam")
-                                / "config"
-                                / "rgbd_odometry.yaml"
-                            )
-                        ],
-                        remappings={
-                            "rgb/image": f"color/image_raw",
-                            "depth/image": f"aligned_depth_to_color/image_raw",
-                            "rgb/camera_info": f"color/camera_info",
-                        }.items(),
-                        extra_arguments=[{"use_intra_process_comms": True}],
-                    )
-                    for camera_id in rgbd_ids
-                ],
-            ),
-        ]
+        if rgbd_ids:
+            description += [
+                LoadComposableNodes(
+                    target_container=component_container,
+                    composable_node_descriptions=[
+                        ComposableNode(
+                            package="rtabmap_odom",
+                            plugin="rtabmap_odom::RGBDOdometry",
+                            namespace=f"{camera_id}",
+                            parameters=[
+                                str(
+                                    get_package_share_path("kalman_slam")
+                                    / "config"
+                                    / "rgbd_odometry.yaml"
+                                )
+                            ],
+                            remappings={
+                                "rgb/image": f"color/image_raw",
+                                "depth/image": f"aligned_depth_to_color/image_raw",
+                                "rgb/camera_info": f"color/camera_info",
+                            }.items(),
+                            extra_arguments=[{"use_intra_process_comms": True}],
+                        )
+                        for camera_id in rgbd_ids
+                    ],
+                ),
+            ]
     else:
         description += [
             Node(

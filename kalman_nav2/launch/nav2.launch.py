@@ -96,23 +96,24 @@ def launch_setup(context):
 
     # obstacle detection
     if component_container:
-        description += [
-            LoadComposableNodes(
-                target_container=component_container,
-                composable_node_descriptions=[
-                    ComposableNode(
-                        package="point_cloud_utils",
-                        plugin="point_cloud_utils::ObstacleDetection",
-                        namespace=camera_id,
-                        remappings={
-                            "input": "point_cloud",
-                            "output": "point_cloud/obstacles",
-                        }.items(),
-                    )
-                    for camera_id in rgbd_ids
-                ],
-            ),
-        ]
+        if rgbd_ids:
+            description += [
+                LoadComposableNodes(
+                    target_container=component_container,
+                    composable_node_descriptions=[
+                        ComposableNode(
+                            package="point_cloud_utils",
+                            plugin="point_cloud_utils::ObstacleDetection",
+                            namespace=camera_id,
+                            remappings={
+                                "input": "point_cloud",
+                                "output": "point_cloud/obstacles",
+                            }.items(),
+                        )
+                        for camera_id in rgbd_ids
+                    ],
+                ),
+            ]
     else:
         description += [
             Node(

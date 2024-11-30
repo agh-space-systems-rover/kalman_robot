@@ -100,7 +100,7 @@ def launch_setup(context):
         ]
 
     # RGBD cameras are togglable.
-    if len(rgbd_ids) > 0:
+    if rgbd_ids:
         # Those nodes facilitate the communication with the RealSense devices
         # and publish data to ROS topics.
         description += [
@@ -125,6 +125,7 @@ def launch_setup(context):
             )
             for camera_name, serial_no in rgbd_ids_sns
         ]
+    # TODO: Composition
 
     # The IMU may also be disabled to allow for compass calibration.
     if imu:
