@@ -11,24 +11,24 @@
 
 namespace kalman_master {
 
-class SpacenavDriver : public rclcpp::Node
+class ArmTwistDriver : public rclcpp::Node
 {
 public:
-  SpacenavDriver(const rclcpp::NodeOptions &options) : Node("spacenav_driver", options)
+  ArmTwistDriver(const rclcpp::NodeOptions &options) : Node("arm_twist_driver", options)
   {
     this->declare_parameter<double>("rate", 10.0);
     this->get_parameter("rate", rate_);
 
     last_time_ = rclcpp::Clock().now();
 
-    publisher_ = this->create_publisher<kalman_interfaces::msg::MasterMessage>("/master_com/ros_to_master", 10);
+    publisher_ = this->create_publisher<kalman_interfaces::msg::MasterMessage>("master_com/ros_to_master", 10);
 
     subscription_ = this->create_subscription<geometry_msgs::msg::Twist>(
-        "/spacenav/twist", 10, [this](geometry_msgs::msg::Twist::SharedPtr msg)
+        "arm/twist", 10, [this](geometry_msgs::msg::Twist::SharedPtr msg)
         { sub_callback(msg); });
 
     axes_locks_sub_ = this->create_subscription<kalman_interfaces::msg::ArmAxesLocks>(
-        "/arm/axes_locks", 10, [this](kalman_interfaces::msg::ArmAxesLocks::SharedPtr msg)
+        "arm/axes_locks", 10, [this](kalman_interfaces::msg::ArmAxesLocks::SharedPtr msg)
         { axes_locks_ = msg; });
   }
 
@@ -142,4 +142,4 @@ private:
 
 } // namespace kalman_master
 
-RCLCPP_COMPONENTS_REGISTER_NODE(kalman_master::SpacenavDriver)
+RCLCPP_COMPONENTS_REGISTER_NODE(kalman_master::ArmTwistDriver)
