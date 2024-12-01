@@ -27,35 +27,19 @@ def launch_setup(context):
 
     def get_str(name):
         return LaunchConfiguration(name).perform(context)
-
+    
     def get_float(name):
         return float(LaunchConfiguration(name).perform(context))
 
     component_container = get_str("component_container")
-    master = get_bool("master")
-    master_mode = get_str("master.mode")
-    master_autonomy = get_str("master.autonomy")
-    master_drivers_arm = get_str("master.drivers.arm")
-    master_drivers_ueuos = get_str("master.drivers.ueuos")
-    master_drivers_feed = get_str("master.drivers.feed")
-    master_drivers_tunnel = get_str("master.drivers.tunnel")
-    master_drivers_drill = get_str("master.drivers.drill")
+    master = get_str("master")
     rgbd_ids = [
         x
         for x in LaunchConfiguration("rgbd_ids").perform(context).split(" ")
         if x != ""
     ]
     imu = get_bool("imu")
-    compass_calibration = get_bool("compass_calibration")
-    compass_calibration_delay = get_float("compass_calibration.delay")
-    compass_calibration_duration = get_float("compass_calibration.duration")
-    compass_calibration_angular_velocity = get_float(
-        "compass_calibration.angular_velocity"
-    )
-    declination_calibration = get_bool("declination_calibration")
-    declination_calibration_delay = get_float("declination_calibration.delay")
-    declination_calibration_duration = get_float("declination_calibration.duration")
-    declination_calibration_velocity = get_float("declination_calibration.velocity")
+    compass_calibration = get_float("compass_calibration")
     gps = get_bool("gps")
 
     if len(rgbd_ids) > 0:
@@ -65,19 +49,14 @@ def launch_setup(context):
             if x in REALSENSE_SERIAL_NUMBERS
         ]
 
-    if imu and compass_calibration:
+    if imu and compass_calibration > 1e-6:
         raise RuntimeError(
             "IMU cannot be started simultaneously with the compass_calibration node. Please start either one of them separately or do not start them at all."
         )
 
-    if not imu and declination_calibration:
-        raise RuntimeError(
-            "IMU must be started in order to calibrate the declination. Please set imu=true."
-        )
-
     description = []
 
-    if master:
+    if master != "":
         description += [
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
@@ -88,13 +67,7 @@ def launch_setup(context):
                     )
                 ),
                 launch_arguments={
-                    "mode": master_mode,
-                    "autonomy": master_autonomy,
-                    "drivers.arm": master_drivers_arm,
-                    "drivers.ueuos": master_drivers_ueuos,
-                    "drivers.feed": master_drivers_feed,
-                    "drivers.tunnel": master_drivers_tunnel,
-                    "drivers.drill": master_drivers_drill,
+                    "mode": master,
                 }.items(),
             )
         ]
@@ -212,31 +185,14 @@ def launch_setup(context):
                 ),
             ]
 
-    if compass_calibration:
+    if compass_calibration > 1e-6:
         description += [
             Node(
                 package="kalman_hardware",
                 executable="compass_calibration",
                 parameters=[
                     {
-                        "delay": compass_calibration_delay,
-                        "duration": compass_calibration_duration,
-                        "angular_velocity": compass_calibration_angular_velocity,
-                    }
-                ],
-            ),
-        ]
-
-    if declination_calibration:
-        description += [
-            Node(
-                package="kalman_hardware",
-                executable="declination_calibration",
-                parameters=[
-                    {
-                        "delay": declination_calibration_delay,
-                        "duration": declination_calibration_duration,
-                        "velocity": declination_calibration_velocity,
+                        "duration": compass_calibration,
                     }
                 ],
             ),
@@ -276,90 +232,20 @@ def generate_launch_description():
                 description="Name of an existing component container to use. Empty by default to disable composition.",
             ),
             DeclareLaunchArgument(
-                "master", default_value="false", description="Start the master driver."
-            ),
-            DeclareLaunchArgument(
-                "master.mode",
-                default_value="pc",
-                description="Run master drivers in 'pc', 'gs' or 'arm' mode.",
-            ),
-            DeclareLaunchArgument(
-                "master.autonomy",
-                default_value="false",
-                description="Start the master autonomy related nodes.",
-            ),
-            DeclareLaunchArgument(
-                "master.drivers.arm",
-                default_value="false",
-                description="Start the arm driver.",
-            ),
-            DeclareLaunchArgument(
-                "master.drivers.ueuos",
-                default_value="false",
-                description="Start the UEUOS driver.",
-            ),
-            DeclareLaunchArgument(
-                "master.drivers.feed",
-                default_value="false",
-                description="Start the feed driver.",
-            ),
-            DeclareLaunchArgument(
-                "master.drivers.tunnel",
-                default_value="false",
-                description="Start the tunnel client.",
-            ),
-            DeclareLaunchArgument(
-                "master.drivers.drill",
-                default_value="false",
-                description="Start the drill driver.",
+                "master", default_value="", description="Start the master driver in a given mode ('pc', 'gs' or 'arm'). Leave empty to disable."
             ),
             DeclareLaunchArgument(
                 "rgbd_ids",
-                default_value="d455_front d455_back d455_left d455_right",
-                description="Space-separated IDs of the depth cameras to use.",
+                default_value="",
+                description="Space-separated IDs of the depth cameras to use (d455_front, d455_back, ...). Leave empty to disable the cameras.",
             ),
             DeclareLaunchArgument(
                 "imu", default_value="false", description="Start the IMU driver."
             ),
             DeclareLaunchArgument(
                 "compass_calibration",
-                default_value="false",
-                description="Start the IMU compass calibration service node. IMU must be disabled in order to calibrate the compass.",
-            ),
-            DeclareLaunchArgument(
-                "compass_calibration.delay",
-                default_value="3",
-                description="The delay before the node will start the calibration.",
-            ),
-            DeclareLaunchArgument(
-                "compass_calibration.duration",
-                default_value="30",
-                description="For how long the robot will keep rotating during compass calibration.",
-            ),
-            DeclareLaunchArgument(
-                "compass_calibration.angular_velocity",
-                default_value="0.5",
-                description="The angular velocity to rotate at during the compass calibration (rad/s).",
-            ),
-            DeclareLaunchArgument(
-                "declination_calibration",
-                default_value="false",
-                description="Start the IMU declination calibration node. IMU must be enabled in order to calibrate the declination.",
-            ),
-            DeclareLaunchArgument(
-                "declination_calibration.delay",
-                default_value="3",
-                description="The delay before the node will start the calibration.",
-            ),
-            DeclareLaunchArgument(
-                "declination_calibration.duration",
-                default_value="10",
-                description="How long the robot will drive forward during declination calibration.",
-            ),
-            DeclareLaunchArgument(
-                "declination_calibration.velocity",
-                default_value="1",
-                description="The velocity to drive at during the declination calibration. (m/s)",
+                default_value="0.0",
+                description="Start IMU compass calibration node for a given number of seconds. IMU must be disabled in order to calibrate the compass. Zero to run in normal mode, without calibration.",
             ),
             DeclareLaunchArgument(
                 "gps", default_value="false", description="Start the GPS driver."
