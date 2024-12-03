@@ -133,7 +133,7 @@ class MasterToServo : public rclcpp::Node
         auto twist_msg = std::make_unique<geometry_msgs::msg::TwistStamped>();
 
         twist_msg->header.stamp = this->now();
-        twist_msg->header.frame_id = "ee";
+        twist_msg->header.frame_id = "arm_link_end";
         twist_msg->twist.linear.x = convert_data_to_spacenav(msg->data[0]);
         twist_msg->twist.linear.y = convert_data_to_spacenav(msg->data[1]);
         twist_msg->twist.linear.z = convert_data_to_spacenav(msg->data[2]);

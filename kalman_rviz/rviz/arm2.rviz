@@ -83,7 +83,7 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        ee:
+        arm_link_end:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -101,27 +101,27 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        link1:
+        arm_link_1:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        link2:
+        arm_link_2:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        link3:
+        arm_link_3:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        link4:
+        arm_link_4:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        link5:
+        arm_link_5:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -131,7 +131,7 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        link6:
+        arm_link_6:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -217,7 +217,7 @@ Visualization Manager:
           Value: false
         body_link:
           Value: false
-        ee:
+        arm_link_end:
           Value: true
         flange:
           Value: true
@@ -225,19 +225,19 @@ Visualization Manager:
           Value: true
         gripper_moving:
           Value: true
-        link1:
+        arm_link_1:
           Value: true
-        link2:
+        arm_link_2:
           Value: true
-        link3:
+        arm_link_3:
           Value: true
-        link4:
+        arm_link_4:
           Value: true
-        link5:
+        arm_link_5:
           Value: true
         link5_ext:
           Value: true
-        link6:
+        arm_link_6:
           Value: true
         link6_ext:
           Value: true
@@ -290,15 +290,15 @@ Visualization Manager:
                     swivel_fr_link:
                       wheel_fr_link:
                         {}
-              link1:
-                link2:
-                  link3:
-                    link4:
-                      link5:
+              arm_link_1:
+                arm_link_2:
+                  arm_link_3:
+                    arm_link_4:
+                      arm_link_5:
                         link5_ext:
-                          link6:
+                          arm_link_6:
                             link6_ext:
-                              ee:
+                              arm_link_end:
                                 {}
                               link6_to_gripper:
                                 gripper_fixed:

@@ -1,3 +1,5 @@
+import os
+
 from ament_index_python import get_package_share_path
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
@@ -13,11 +15,20 @@ def launch_setup(context):
     def get_str(name):
         return LaunchConfiguration(name).perform(context)
 
+    layout = get_str("layout")
+    available_layouts = [
+        x.name.split(".")[0] for x in (get_package_share_path("kalman_description") / "layouts").glob("*.urdf.xacro")
+    ]
+    available_layouts_str = '\n - '.join(available_layouts)
+
+    if layout not in available_layouts:
+        raise ValueError(f"\n\nUnknown URDF layout: \"{layout}\". Please set layout:=... Choose one of:\n - {available_layouts_str}\n")
+
     urdf = xacro.process_file(
         str(
             get_package_share_path("kalman_description")
             / "layouts"
-            / f"{get_str('layout')}.urdf.xacro"
+            / f"{layout}.urdf.xacro"
         )
     ).toxml()
 
@@ -36,6 +47,10 @@ def launch_setup(context):
             Node(
                 package="joint_state_publisher_gui",
                 executable="joint_state_publisher_gui",
+                parameters=[
+                    {"rate": 10},
+                    {"source_list": ["arm_controllers/joint_states"]},
+                ],
             ),
         ]
     else:
@@ -47,13 +62,7 @@ def launch_setup(context):
                 executable="joint_state_publisher",
                 parameters=[
                     {"rate": 10},
-                    {
-                        "source_list": (
-                            ["/arm_controllers/joint_states"]
-                            if get_bool("with_arm")
-                            else [""]
-                        )
-                    },
+                    {"source_list": ["arm_controllers/joint_states"]},
                 ],
             ),
         ]
@@ -65,14 +74,14 @@ def generate_launch_description():
     return LaunchDescription(
         [
             DeclareLaunchArgument(
-                "joint_state_publisher_gui",
-                default_value="true",
-                description="Start the joint state publisher in GUI mode.",
+                "layout",
+                default_value="",
+                description="layout of the robot: autonomy, arm",
             ),
             DeclareLaunchArgument(
-                "layout",
-                default_value="autonomy",
-                description="layout of the robot: autonomy, arm",
+                "joint_state_publisher_gui",
+                default_value="false",
+                description="Start the joint state publisher in GUI mode.",
             ),
             OpaqueFunction(function=launch_setup),
         ]

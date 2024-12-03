@@ -7,6 +7,4 @@
     <!-- arm links -->
     <xacro:include filename="$(find kalman_description)/urdf/arm.urdf.xacro" />
     <xacro:arm base_link="base_link" />
-
-    <!-- <xacro:include filename="$(find kalman_arm_moveit_config)/urdf/gripper.urdf.xacro" /> -->
 </robot>

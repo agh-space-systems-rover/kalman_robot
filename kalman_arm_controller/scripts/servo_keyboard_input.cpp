@@ -79,7 +79,7 @@ const std::string TWIST_TOPIC = "/servo_node/delta_twist_cmds";
 const std::string JOINT_TOPIC = "/servo_node/delta_joint_cmds";
 const size_t ROS_QUEUE_SIZE = 10;
 const std::string PLANNING_FRAME_ID = "arm_link";
-const std::string EE_FRAME_ID = "ee";
+const std::string EE_FRAME_ID = "arm_link_end";
 }  // namespace
 
 // A class for reading the key inputs from the terminal

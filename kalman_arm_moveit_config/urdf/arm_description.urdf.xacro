@@ -27,7 +27,7 @@
         </inertial>
     </link>
 
-    <link name="link1">
+    <link name="arm_link_1">
         <visual>
             <geometry>
                 <box size="0.1275 0.089 0.089"/>
@@ -51,11 +51,11 @@
         <axis xyz="0 0 1"/>
         <limit effort="1000.0" lower="-6.2815926" upper="6.2815926" velocity="0.5"/>
         <parent link="arm_link"/>
-        <child link="link1"/>
+        <child link="arm_link_1"/>
         <origin rpy="0 0 1.570796" xyz="0 0 0.172"/>
     </joint>
 
-    <link name="link2">
+    <link name="arm_link_2">
         <visual>
             <geometry>
                 <cylinder length="${link_2_length}" radius="0.0125"/>
@@ -78,12 +78,12 @@
     <joint name="joint_2" type="revolute">
         <axis xyz="1 0 0"/>
         <limit effort="1000.0" lower="-3.1415926" upper="3.1415926" velocity="0.5"/>
-        <parent link="link1"/>
-        <child link="link2"/>
+        <parent link="arm_link_1"/>
+        <child link="arm_link_2"/>
         <origin xyz="0 0 0"/>
     </joint>
 
-    <link name="link3">
+    <link name="arm_link_3">
         <visual>
             <geometry>
                 <box size="0.115 0.089 0.089"/>
@@ -106,12 +106,12 @@
     <joint name="joint_3" type="revolute">
         <axis xyz="1 0 0"/>
         <limit effort="1000.0" lower="-2.88" upper="2.88" velocity="0.5"/>
-        <parent link="link2"/>
-        <child link="link3"/>
+        <parent link="arm_link_2"/>
+        <child link="arm_link_3"/>
         <origin xyz="0 0 ${link_2_length}"/>
     </joint>
 
-    <link name="link4">
+    <link name="arm_link_4">
         <visual>
             <geometry>
                 <cylinder length="${link_4_length}" radius="0.0125"/>
@@ -134,11 +134,11 @@
     <joint name="joint_4" type="revolute">
         <axis xyz="0 0 1"/>
         <limit effort="1000.0" lower="-6.4" upper="6.4" velocity="0.5"/>
-        <parent link="link3"/>
-        <child link="link4"/>
+        <parent link="arm_link_3"/>
+        <child link="arm_link_4"/>
     </joint>
 
-    <link name="link5">
+    <link name="arm_link_5">
         <visual>
             <geometry>
                 <cylinder length="${link_5_length}" radius="0.02"/>
@@ -162,7 +162,7 @@
         <axis xyz="1 0 0"/>
         <!-- 100 stopni -->
         <limit effort="1000.0" lower="-1.75" upper="1.75" velocity="0.5"/> 
-        <parent link="link5"/>
+        <parent link="arm_link_5"/>
         <child link="link5_ext"/>
         <origin rpy="0 0 0" xyz="0 0 ${link_5_length/2}"/>
     </joint>
@@ -187,7 +187,7 @@
         </inertial>
     </link>
 
-    <link name="link6">
+    <link name="arm_link_6">
         <visual>
             <geometry>
                 <cylinder length="0.001" radius="0.0445"/>
@@ -218,13 +218,13 @@
 
     </link>
     <joint name="joint_5_fix" type="fixed">
-        <parent link="link4"/>
-        <child link="link5"/>
+        <parent link="arm_link_4"/>
+        <child link="arm_link_5"/>
         <origin rpy="0 0 0" xyz="0 0 ${link_4_length + link_5_length/2.0}"/>
     </joint>
 
     <joint name="joint_6_fix" type="fixed">
-        <parent link="link6"/>
+        <parent link="arm_link_6"/>
         <child link="link6_ext"/>
         <origin rpy="-1.57 -1.57 0" xyz="0 0 0"/>
 
@@ -234,7 +234,7 @@
         <axis xyz="0 0 1"/>
         <limit effort="1000.0" lower="-3.4032" upper="3.4032" velocity="0.75"/>
         <parent link="link5_ext"/>
-        <child link="link6"/>
+        <child link="arm_link_6"/>
         <!-- <origin rpy="0 0 0" xyz="0.02 0.0 0.0"/> -->
         <origin rpy="0 0 0" xyz="0.0 0.0 0.0"/>
     </joint>
