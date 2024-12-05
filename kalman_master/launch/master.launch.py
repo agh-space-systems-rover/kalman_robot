@@ -1,7 +1,7 @@
 from launch import LaunchDescription
-from launch_ros.actions import Node
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
 from launch.substitutions import LaunchConfiguration
+from launch_ros.actions import Node
 from ament_index_python import get_package_share_path
 
 
@@ -34,10 +34,12 @@ def start_ros_link(side: str, rover_endpoint: str) -> Node:
 def launch_setup(context):
     def get_str(name):
         return LaunchConfiguration(name).perform(context)
-    
+
     mode = get_str("mode")
     if mode not in ["pc", "gs", "arm"]:
-        raise ValueError(f"\n\nInvalid Master mode: \"{mode}\". Please set mode:=... Choose one of: pc, gs, arm")
+        raise ValueError(
+            f'\n\nInvalid Master mode: "{mode}". Please set mode:=... Choose one of: pc, gs, arm'
+        )
 
     nodes = {
         "master_com": Node(
@@ -120,8 +122,10 @@ def generate_launch_description():
         [
             DeclareLaunchArgument(
                 "mode",
-                default_value="",
-                description="On what hardware is this module being run? Available modes: gs, pc, arm",
+                default_value="gs",
+                description="On what hardware is this module being run? \
+                    Available modes: gs, pc, arm",
+                choices=["gs", "pc", "arm"],
             ),
             OpaqueFunction(function=launch_setup),
         ]
