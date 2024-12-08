@@ -6,7 +6,7 @@ from typing import Literal, TypedDict
 
 class Yolo(TypedDict):
     rgbd_ids: str
-    config: str
+    config: Literal["urc2024"]
 
 
 class UnitySim(TypedDict):
@@ -16,14 +16,14 @@ class UnitySim(TypedDict):
 class Nav2(TypedDict):
     component_container: str
     rgbd_ids: str
-    static_map: str
+    static_map: Literal["", "erc2023", "erc2024"]
 
 
 class Slam(TypedDict):
     component_container: str
     rgbd_ids: str
     gps_datum: str
-    fiducials: str
+    fiducials: Literal["", "terc2024", "erc2024"]
 
 
 class Gs(TypedDict):
@@ -36,14 +36,14 @@ class Clouds(TypedDict):
 
 
 class Wheels(TypedDict):
-    joy: str
+    joy: Literal["", "gamepad", "arduino"]
 
 
 class Supervisor(TypedDict):
     aruco_rgbd_ids: str
-    aruco_deactivate_unused: str
-    yolo_enabled: str
-    yolo_deactivate_unused: str
+    aruco_deactivate_unused: Literal["true", "false"]
+    yolo_enabled: Literal["true", "false"]
+    yolo_deactivate_unused: Literal["true", "false"]
 
 
 class Spacenav(TypedDict):
@@ -64,22 +64,22 @@ class ArmUtils(TypedDict):
 
 class Hardware(TypedDict):
     component_container: str
-    master: str
+    master: Literal["pc", "gs", "arm"]
     rgbd_ids: str
-    imu: str
+    imu: Literal["true", "false"]
     compass_calibration: str
-    gps: str
+    gps: Literal["true", "false"]
 
 
 class Description(TypedDict):
-    layout: Literal["", "autonomy", "arm"]
+    layout: Literal["autonomy", "arm"]
     joint_state_publisher_gui: Literal["true", "false"]
 
 
 class Aruco(TypedDict):
     component_container: str
     rgbd_ids: str
-    dict: str
+    dict: Literal["4X4_50", "4X4_100", "4X4_250", "4X4_1000", "5X5_50", "5X5_100", "5X5_250", "5X5_1000", "6X6_50", "6X6_100", "6X6_250", "6X6_1000", "7X7_50", "7X7_100", "7X7_250", "7X7_1000", "8X8_50", "8X8_100", "8X8_250", "8X8_1000", "ARUCO_ORIGINAL"]
     size: str
 
 

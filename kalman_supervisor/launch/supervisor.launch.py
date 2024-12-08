@@ -94,23 +94,26 @@ def generate_launch_description():
         [
             DeclareLaunchArgument(
                 "aruco_rgbd_ids",
-                description="Space-separated IDs of the depth cameras that were configured in kalman_aruco.",
                 default_value="",
+                description="Space-separated IDs of the depth cameras that were configured in kalman_aruco.",
             ),
             DeclareLaunchArgument(
                 "aruco_deactivate_unused",
-                description="Deactivate ArUco detection nodes when supervisor is not actively looking for tags.",
                 default_value="false",
+                choices=["true", "false"],
+                description="Deactivate ArUco detection nodes when supervisor is not actively looking for tags.",
             ),
             DeclareLaunchArgument(
                 "yolo_enabled",
-                description="Whether YOLO detection is enabled.",
                 default_value="false",
+                choices=["true", "false"],
+                description="Whether YOLO detection is enabled.",
             ),
             DeclareLaunchArgument(
                 "yolo_deactivate_unused",
-                description="Deactivate YOLO detection when supervisor is not actively looking for objects.",
                 default_value="false",
+                choices=["true", "false"],
+                description="Deactivate YOLO detection when supervisor is not actively looking for objects.",
             ),
             OpaqueFunction(function=launch_setup),
         ]

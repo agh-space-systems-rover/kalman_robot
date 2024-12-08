@@ -27,7 +27,7 @@ def launch_setup(context):
 
     def get_str(name):
         return LaunchConfiguration(name).perform(context)
-    
+
     def get_float(name):
         return float(LaunchConfiguration(name).perform(context))
 
@@ -232,7 +232,9 @@ def generate_launch_description():
                 description="Name of an existing component container to use. Empty by default to disable composition.",
             ),
             DeclareLaunchArgument(
-                "master", default_value="", description="Start the master driver in a given mode ('pc', 'gs' or 'arm'). Leave empty to disable."
+                "master",
+                choices=["pc", "gs", "arm"],
+                description="Start the master driver in a given mode ('pc', 'gs' or 'arm'). Leave empty to disable.",
             ),
             DeclareLaunchArgument(
                 "rgbd_ids",
@@ -240,7 +242,10 @@ def generate_launch_description():
                 description="Space-separated IDs of the depth cameras to use (d455_front, d455_back, ...). Leave empty to disable the cameras.",
             ),
             DeclareLaunchArgument(
-                "imu", default_value="false", description="Start the IMU driver."
+                "imu",
+                default_value="false",
+                choices=["true", "false"],
+                description="Start the IMU driver.",
             ),
             DeclareLaunchArgument(
                 "compass_calibration",
@@ -248,7 +253,10 @@ def generate_launch_description():
                 description="Start IMU compass calibration node for a given number of seconds. IMU must be disabled in order to calibrate the compass. Zero to run in normal mode, without calibration.",
             ),
             DeclareLaunchArgument(
-                "gps", default_value="false", description="Start the GPS driver."
+                "gps",
+                default_value="false",
+                choices=["true", "false"],
+                description="Start the GPS driver.",
             ),
             OpaqueFunction(function=launch_setup),
         ]

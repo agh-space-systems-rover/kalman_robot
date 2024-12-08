@@ -8,6 +8,10 @@ from launch.actions import (
 )
 from launch.substitutions import LaunchConfiguration
 
+def find_available_configs() -> set:
+    rviz_dir = get_package_share_path("kalman_rviz") / "rviz"
+    configs = [f.stem for f in rviz_dir.glob("*.rviz")]
+    return set(configs)
 
 def launch_setup(context):
     configs = [
@@ -15,10 +19,7 @@ def launch_setup(context):
     ]
 
     if len(configs) == 0:
-        available = [
-            x.stem for x in (get_package_share_path("kalman_rviz") / "rviz").glob("*.rviz")
-        ]
-        available = '\n - '.join(available)
+        available = '\n - '.join(find_available_configs())
         raise RuntimeError(f"\n\nNo RViz configurations were chosen. Please set configs:=\"config1 config2 ...\". Available:\n - {available}")
 
     return [

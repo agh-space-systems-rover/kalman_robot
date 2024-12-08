@@ -123,9 +123,8 @@ def generate_launch_description():
             DeclareLaunchArgument(
                 "mode",
                 default_value="gs",
-                description="On what hardware is this module being run? \
-                    Available modes: gs, pc, arm",
                 choices=["gs", "pc", "arm"],
+                description="On what hardware is this module being run? Available modes: gs, pc, arm",
             ),
             OpaqueFunction(function=launch_setup),
         ]

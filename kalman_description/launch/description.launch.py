@@ -1,5 +1,3 @@
-import os
-
 from ament_index_python import get_package_share_path
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
@@ -24,20 +22,11 @@ def launch_setup(context):
     def get_str(name):
         return LaunchConfiguration(name).perform(context)
 
-    layout = get_str("layout")
-    available_layouts = get_layouts()
-    available_layouts_str = "\n - ".join(available_layouts)
-
-    if layout not in available_layouts:
-        raise ValueError(
-            f'\n\nUnknown URDF layout: "{layout}". Please set layout:=... Choose one of:\n - {available_layouts_str}\n'
-        )
-
     urdf = xacro.process_file(
         str(
             get_package_share_path("kalman_description")
             / "layouts"
-            / f"{layout}.urdf.xacro"
+            / f"{get_str('layout')}.urdf.xacro"
         )
     ).toxml()
 
@@ -84,15 +73,14 @@ def generate_launch_description():
         [
             DeclareLaunchArgument(
                 "layout",
-                default_value="",
+                choices=[*get_layouts()],
                 description="layout of the robot: autonomy, arm",
-                choices=["", *get_layouts()],
             ),
             DeclareLaunchArgument(
                 "joint_state_publisher_gui",
                 default_value="false",
-                description="Start the joint state publisher in GUI mode.",
                 choices=["true", "false"],
+                description="Start the joint state publisher in GUI mode.",
             ),
             OpaqueFunction(function=launch_setup),
         ]

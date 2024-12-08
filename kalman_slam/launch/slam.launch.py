@@ -42,6 +42,10 @@ def load_local_ukf_config(rgbd_ids):
     # Return path to UKF config
     return ukf_params_path
 
+def find_available_fiducial_configs() -> set[str]:
+    fiducials_dir = get_package_share_path("kalman_slam") / "fiducials"
+    configs = [f.stem for f in fiducials_dir.glob("*.yaml")]
+    return set(configs)
 
 def launch_setup(context):
     component_container = LaunchConfiguration("component_container").perform(context)
@@ -271,6 +275,7 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument(
                 "rgbd_ids",
+                default_value="",
                 description="Space-separated IDs of the depth cameras to use.",
             ),
             DeclareLaunchArgument(
@@ -281,6 +286,7 @@ def generate_launch_description():
             DeclareLaunchArgument(
                 "fiducials",
                 default_value="",
+                choices=["", *find_available_fiducial_configs()],
                 description="Name of the list of fiducials to use. Empty disables fiducial odometry.",
             ),
             OpaqueFunction(function=launch_setup),
