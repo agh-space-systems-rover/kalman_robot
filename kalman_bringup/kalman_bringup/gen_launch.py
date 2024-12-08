@@ -1,5 +1,4 @@
 import os
-import importlib.util
 
 from ament_index_python import (
     get_package_share_path,
@@ -13,41 +12,20 @@ from launch.actions import (
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 
+from kalman_bringup.utils import get_arg_decls, is_kalman_composable
+
+# If type checking, import the right TypedDict instead of using regular dict
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from kalman_bringup.type_hints import BringupConfig
+else:
+    BringupConfig = dict
+
 COMPONENT_CONTAINER_NAME = "kalman_container"
 
 
-# Extract arguments declared in a launch file
-def get_arg_decls(launch_file: str):
-    # Import generate_launch_description() from the specified launch file
-    import_name = launch_file.split("/share/")[-1].replace("/", ".")[:-10]
-    spec = importlib.util.spec_from_file_location(f"{import_name}", launch_file)
-    launch_module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(launch_module)
-
-    # Generate the launch description
-    launch_desc: LaunchDescription = launch_module.generate_launch_description()
-
-    # Extract the arguments from the launch description
-    args: list[tuple[str, str]] = []  # name: desc
-    for action in launch_desc.get_launch_arguments():
-        args.append((action.name, action.description))
-
-    return args
-
-
-# See if a kalman_ launch file is composable
-def is_kalman_composable(launch_file: str):
-    args = get_arg_decls(launch_file)
-
-    # Check if there's a component_container arg
-    for arg_name, _ in args:
-        if arg_name == "component_container":
-            return True
-
-
-def gen_launch(
-    config: dict[str, dict[str, str]], composition=False
-) -> LaunchDescription:
+def gen_launch(config: BringupConfig, composition=False) -> LaunchDescription:
     desc = []
     installed_packages = [x.split("/")[-1] for x in get_search_paths()]
 
@@ -62,28 +40,48 @@ def gen_launch(
             )
         ]
 
-    for module, args in config.items():
-        module_name = module
-        if module not in installed_packages:
-            module_name = f"kalman_{module}"
+    for module_name, args in config.items():
+        if module_name not in installed_packages:
+            module_pkg = f"kalman_{module_name}"
+        else:
+            module_pkg = module_name
 
         # Get the launch file path
         try:
             launch_path = str(
-                get_package_share_path(module_name) / "launch" / f"{module}.launch.py"
+                get_package_share_path(module_pkg)
+                / "launch"
+                / f"{module_name}.launch.py"
             )
         except PackageNotFoundError:
-            print(f"Package {module_name} not found")
-            continue
+            raise ValueError(f"Package {module_pkg} not found")
 
         if not os.path.exists(launch_path):
-            print(f"Launch file {launch_path} not found")
-            continue
+            raise ValueError(f"Launch file {launch_path} not found")
 
         # Add component_container argument if composition is enabled
         launch_arguments = args.items()
-        if composition:
+        if composition and is_kalman_composable(launch_path):
             launch_arguments += [("component_container", COMPONENT_CONTAINER_NAME)]
+
+        # Verify if arguments are valid:
+        arg_decls = get_arg_decls(launch_path)
+        for key, value in launch_arguments:
+            if key not in [x[0] for x in arg_decls]:
+                raise ValueError(
+                    f'Invalid argument "{key}" for "{module_name}". '
+                    f"Valid arguments are: {[x[0] for x in arg_decls]}. "
+                    f"Argument description: {desc}"
+                )
+
+            choices = [x[2] for x in arg_decls if x[0] == key]
+            choices = choices[0] if choices else None
+            if choices and value not in choices:
+                raise ValueError(
+                    f'Invalid choice "{value}" for argument "{key}". '
+                    f"Valid choices are: {choices}. "
+                    f"Argument description: {desc}"
+                )
 
         # Include the launch file
         desc.append(
