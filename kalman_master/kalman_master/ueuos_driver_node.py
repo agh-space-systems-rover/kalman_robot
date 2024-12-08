@@ -26,7 +26,7 @@ class UeuosDriver(Node):
         self.tick_msg = MasterMessage(
             cmd=MasterMessage.UEUOS_SET_STATE, data=[SetUeuosState.Request.OFF]
         )
-        self.frames_to_send = 3
+        self.frames_to_send = NUMBER_OF_RETRIES_PER_CALL
         self.create_timer(1.0, self.tick)
 
     def set_color(

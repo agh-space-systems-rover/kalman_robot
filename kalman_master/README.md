@@ -4,6 +4,16 @@ driver for our custom "Master" device
 
 Communicates with the Master over serial and exposes its functionality as a ROS 2 API, using messages and services.
 
+
+> [!NOTE]
+> Master is a device that controls the rover's subsystems.
+> It communicates over a serial port using a custom protocol.
+> The protocol is based on a frame structure, where each frame has a unique ID and a payload.
+> The ID determines the function of the frame, and the payload is the data that the frame carries.
+> The frames forwarded by Master can control of the rover's wheels, drill, and other actuators, as well as read data from sensors like the IMU and encoders.
+> Additionally, the Master can send data over the radio to a remote adapter connected to the ground station.
+
+
 ## Nodes
 
 #### master_com
@@ -24,7 +34,7 @@ Later, other nodes, such as `feed_driver`, `drill_driver`, `ueuos_driver`, `whee
 
 This node leverages the Master's ability to send data over the radio to connect two independent ROS instances (here ground station and the rover) using RF comms.
 
-It reads a [YAMl config](./config/pc_ros_link.yaml) to determine which topics/services/actions to forward to the other end. The config specifies two sides of communication and must be replicated on both ends for the link to work.
+It reads a [YAML config](./config/pc_ros_link.yaml) to determine which topics/services/actions to forward to the other end. The config specifies two sides of communication and must be replicated on both ends for the link to work.
 
 #### master_loopback
 
