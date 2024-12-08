@@ -1,6 +1,6 @@
-# kalman_arm_config
+# Arm Config
 
-This package contains configuration files for the arm of AGH Space Systems' planetary rover Kalman. In this folder there are no source files, only configuration files and launch files.
+configuration and launch files for the arm
 
 ## Description
 

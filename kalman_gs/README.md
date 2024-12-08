@@ -25,9 +25,9 @@ Every panel consists of a header, and a working area. The default header contain
 
 ![](./docs/panel-header.png)
 
-The working area is what the panel is all about - it can display a map, a chart, a table, etc.
+The working area is what the panel is all about - it can display a map, a chart, controls, or any other kind of user interface.
 
-Some panels extend this header with additional controls. Namely, the map uses this real estate to display a search bar and buttons to control the location marker.
+Some panels extend the header with additional controls. Namely, the map uses this real estate to display a search bar and buttons to control the location marker.
 
 ![](./docs/map-header.png)
 

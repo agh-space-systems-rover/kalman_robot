@@ -1,15 +1,17 @@
-# kalman_arm_controller
+# Arm Controller
 
-ROS package for controlling Kalman's arm. It includes CAN related library to interface with joints as well as MoveIt controllers.
+a set of nodes that use ROS2 Control and CAN to interface with joints and MoveIt controllers
 
 ## Description
 
-The main element of this package is hardware controller used by ROS2 control to interface with the arm joints. For interfacing it uses CAN FD protocol.
+The main element is the hardware controller, which is used by ROS2 control to interface with arm's joints using CAN FS protocol.
 
-Additionally in this pacakge there are some scripts used for testing and providing extra functionalities.
+Additionally, there are some extra ROS nodes in the `scripts` directory. Those are used during development.
 
 ## Kalman's Arm Description
 
+Here's a diagram of data flow between the arm's subsystems. Our custom nodes are colored in green:
+
 ![](docs/arm_control.drawio.svg)
 
-Above you can find a simple diagram showing data flow in arm. Green blocks represent code that is written for custom usage of ROS2 Control.
+(Excuse Polish language in the diagram.)

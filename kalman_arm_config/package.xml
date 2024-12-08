@@ -3,7 +3,7 @@
 <package format="3">
   <name>kalman_arm_config</name>
   <version>1.0.0</version>
-  <description>Configuration files for Kalman's arm</description>
+  <description>configuration and launch files for the arm</description>
   <maintainer email="69985093+kapi117@users.noreply.github.com">Kacper Iwicki</maintainer>
   <license>MIT</license>
 

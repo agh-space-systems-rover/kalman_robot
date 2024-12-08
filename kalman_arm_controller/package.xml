@@ -3,7 +3,8 @@
 <package format="3">
   <name>kalman_arm_controller</name>
   <version>1.0.0</version>
-  <description>Controller implementation for Kalman's arm</description>
+  <description>a set of nodes that use ROS2 Control and CAN to interface with joints and MoveIt
+    controllers</description>
 
   <maintainer email="69985093+kapi117@users.noreply.github.com">Kacper Iwicki</maintainer>
 
