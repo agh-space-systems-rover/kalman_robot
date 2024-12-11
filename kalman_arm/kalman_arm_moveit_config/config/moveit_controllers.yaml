@@ -1,0 +1,19 @@
+# MoveIt uses this configuration for controller management
+ros_control_namespace: /
+
+moveit_controller_manager: moveit_ros_control_interface/Ros2ControlManager
+moveit_simple_controller_manager:
+  controller_names:
+    - joint_trajectory_controller
+  joint_trajectory_controller:
+    action_ns: follow_joint_trajectory
+    type: FollowJointTrajectory
+    default: true
+    joints:
+      - arm_joint_1
+      - arm_joint_2
+      - arm_joint_3
+      - arm_joint_4
+      - arm_joint_5
+      - arm_joint_6
+

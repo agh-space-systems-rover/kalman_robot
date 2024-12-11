@@ -43,8 +43,9 @@ Multiple other launch files are available in the `kalman_bringup` package, inclu
 
 Kalman's software stack is composed of multiple packages that are meant to be built and run together:
 
-- `kalman_arm_config` - configuration and launch files for the arm
+- `kalman_arm` - configuration and launch files for the arm
 - `kalman_arm_controller` - a set of nodes that use ROS2 Control and CAN to interface with joints and MoveIt controllers
+- `kalman_arm_gs` - nodes for interfacing with the arm from the ground station
 - `kalman_arm_moveit_config` - MoveIt configuration and launch files for the arm
 - `kalman_arm_utils` - utility nodes for the arm
 - `kalman_aruco` - ArUco tags detection using aruco_opencv
