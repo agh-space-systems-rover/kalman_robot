@@ -13,7 +13,6 @@ kalman_arm_config
 |   ├── phidgets_spatial.yaml           # Configuration file for the Phidgets Spatial driver (IMU)
 |   ├── predefined_poses.yaml           # Configuration file for predefined arm poses (thresholds and poses list)
 |   ├── predefined_trajectories.yaml    # Configuration file for predefined arm trajectories (thresholds and trajectories list)
-|   ├── ros_link.yaml                   # Configuration file for the ROS link for data serialization
 |   ├── servo_config.yaml               # Configuration file for the MoveIt servo controller
 ├── launch
 │   ├── arm_controller.launch.py        # Launch file for the arm controllers, ROS2 control, state publisher and broadcaster

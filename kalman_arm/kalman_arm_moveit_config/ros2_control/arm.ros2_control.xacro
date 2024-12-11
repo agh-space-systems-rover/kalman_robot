@@ -99,7 +99,7 @@
         <state_interface name="velocity"/>
       </joint>
 
-      <joint name="gripper_moving_joint">
+      <joint name="arm_joint_jaw">
         <command_interface name="position">
           <param name="min">{-2*pi}</param>
           <param name="max">{2*pi}</param>

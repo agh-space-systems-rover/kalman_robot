@@ -39,32 +39,32 @@ request:
     goal_constraints:
         - name: ""
           joint_constraints:
-              - joint_name: joint_1
+              - joint_name: arm_joint_1
                 position: 2.2435
                 tolerance_above: 0.01
                 tolerance_below: 0.01
                 weight: 1.0
-              - joint_name: joint_2
+              - joint_name: arm_joint_2
                 position: 0.3388
                 tolerance_above: 0.01
                 tolerance_below: 0.01
                 weight: 1.0
-              - joint_name: joint_3
+              - joint_name: arm_joint_3
                 position: 1.7765
                 tolerance_above: 0.01
                 tolerance_below: 0.01
                 weight: 1.0
-              - joint_name: joint_4
+              - joint_name: arm_joint_4
                 position: 0.0
                 tolerance_above: 0.01
                 tolerance_below: 0.01
                 weight: 1.0
-              - joint_name: joint_5
+              - joint_name: arm_joint_5
                 position: 1.0902
                 tolerance_above: 0.01
                 tolerance_below: 0.01
                 weight: 1.0
-              - joint_name: joint_6
+              - joint_name: arm_joint_6
                 position: 0.7
                 tolerance_above: 0.01
                 tolerance_below: 0.01
