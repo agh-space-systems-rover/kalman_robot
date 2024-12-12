@@ -24,9 +24,9 @@
     <!--END EFFECTOR: Purpose: Represent information about an end effector.-->
     <end_effector name="arm_link_end" parent_link="arm_link_end" group="kalman_arm"/>
     <!--VIRTUAL JOINT: Purpose: this element defines a virtual joint between a robot link and an external frame of reference (considered fixed with respect to the robot)-->
-    <virtual_joint name="virtual_mount_joint" type="fixed" parent_frame="world" child_link="flange"/>
+    <!-- <virtual_joint name="virtual_mount_joint" type="fixed" parent_frame="base_link" child_link="arm_link_end"/> -->
     <!--DISABLE COLLISIONS: By default it is assumed that any link of the robot could potentially come into collision with any other link in the robot. This tag disables collision checking between a specified pair of links. -->
-    <disable_collisions link1="arm_link" link2="gripper_fixed" reason="User"/>
+    <!-- <disable_collisions link1="arm_link" link2="gripper_fixed" reason="User"/>
     <disable_collisions link1="arm_link" link2="gripper_moving" reason="User"/>
     <disable_collisions link1="arm_link" link2="arm_link_1" reason="Adjacent"/>
     <disable_collisions link1="arm_link" link2="arm_link_2" reason="User"/>
@@ -70,5 +70,5 @@
     <disable_collisions link1="arm_link_4" link2="arm_link_6" reason="Never"/>
     <disable_collisions link1="arm_link_5" link2="link5_ext" reason="Adjacent"/>
     <disable_collisions link1="arm_link_5" link2="arm_link_6" reason="Default"/>
-    <disable_collisions link1="link5_ext" link2="arm_link_6" reason="Adjacent"/>
+    <disable_collisions link1="link5_ext" link2="arm_link_6" reason="Adjacent"/> -->
 </robot>

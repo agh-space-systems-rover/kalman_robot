@@ -2,29 +2,18 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="arm">
     <xacro:arg name="initial_positions_file"
         default="$(find kalman_arm_moveit_config)/config/initial_positions.yaml" />
-    <link name="world" />
-    <link name="flange" />
-    <joint name="fix_flange" type="fixed">
-        <parent link="world" />
-        <child link="flange" />
-    </joint>
+    <link name="base_link" />
 
     <xacro:include filename="$(find kalman_description)/urdf/arm.urdf.xacro" />
 
-    <xacro:arm />
+    <xacro:arm base_link="base_link"/>
 
     <material name="red">
         <color rgba="1 0.2 0.2 1" />
     </material>
 
-    <link name="base_link" />
-    <joint name="fix_base" type="fixed">
-        <parent link="arm_link" />
-        <child link="base_link" />
-        <origin rpy="0 0 0" xyz="-0.18 0 0" />
-    </joint>
 
-    <xacro:include filename="$(find kalman_description)/urdf/sim_model.urdf.xacro" />
+    <xacro:include filename="$(find kalman_description)/urdf/visual_model.urdf.xacro" />
 
     <xacro:include filename="$(find kalman_arm_moveit_config)/ros2_control/arm.ros2_control.xacro" />
     <xacro:arm_ros2_control name="kalman_arm" />

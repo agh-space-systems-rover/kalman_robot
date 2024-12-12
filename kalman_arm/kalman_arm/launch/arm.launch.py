@@ -38,7 +38,7 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(
             [
                 os.path.join(get_package_share_directory("kalman_arm"), "launch"),
-                "/hardware.launch.py",
+                "/drivers.launch.py",
             ]
         )
     )
