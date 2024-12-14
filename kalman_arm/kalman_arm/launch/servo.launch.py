@@ -26,7 +26,7 @@ def load_yaml(package_name, file_path):
 
 
 def generate_launch_description():
-    moveit_config = MoveItConfigsBuilder("kalman_arm").to_moveit_configs()
+    moveit_config = MoveItConfigsBuilder("arm", package_name="kalman_arm_moveit_config").to_moveit_configs()
 
     # Get parameters for the Servo node
     servo_yaml = load_yaml("kalman_arm", "config/servo_config.yaml")

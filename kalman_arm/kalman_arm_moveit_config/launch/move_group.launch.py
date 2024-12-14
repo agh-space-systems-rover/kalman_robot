@@ -78,6 +78,7 @@ def generate_move_group_launch(moveit_config):
         output="screen",
         parameters=move_group_params,
         extra_debug_args=["--debug"],
+        namespace="/arm_controllers"
         # Set the display variable, in case OpenGL code is used internally
         # additional_env={"DISPLAY": os.environ["DISPLAY"]},
         # arguments=['--ros-args', '--log-level', 'DEBUG'],

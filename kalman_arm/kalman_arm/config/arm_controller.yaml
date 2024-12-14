@@ -1,9 +1,11 @@
-controller_manager:
+arm_controllers/controller_manager:
     ros__parameters:
         update_rate: 50 # Hz
 
         joint_state_broadcaster:
             type: joint_state_broadcaster/JointStateBroadcaster
+            ros__parameters:
+                use_local_topics: true
 
         joint_trajectory_controller:
             type: joint_trajectory_controller/JointTrajectoryController
@@ -11,7 +13,7 @@ controller_manager:
         velocity_controller:
             type: velocity_controllers/JointGroupVelocityController
 
-joint_trajectory_controller:
+arm_controllers/joint_trajectory_controller:
     ros__parameters:
         joints:
             - arm_joint_1
@@ -34,7 +36,7 @@ joint_trajectory_controller:
 
         allow_nonzero_velocity_at_trajectory_end: true
 
-velocity_controller:
+arm_controllers/velocity_controller:
     ros__parameters:
         joints:
             - arm_joint_1

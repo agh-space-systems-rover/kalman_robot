@@ -66,9 +66,9 @@ leaving_singularity_threshold_multiplier: 3.0 # Multiply the hard stop limit by 
 cartesian_command_in_topic: ~/delta_twist_cmds  # Topic for incoming Cartesian twist commands
 # cartesian_command_in_topic: /spacenav/twist  # Topic for incoming Cartesian twist commands
 joint_command_in_topic: ~/delta_joint_cmds # Topic for incoming joint angle commands
-joint_topic: /joint_states
+joint_topic: /arm_controllers/joint_states
 status_topic: ~/status # Publish status to this topic
-command_out_topic: /velocity_controller/commands # Publish outgoing commands here
+command_out_topic: /arm_controllers/velocity_controller/commands # Publish outgoing commands here
 # command_out_topic: /joint_trajectory_controller/joint_trajectory # Publish outgoing commands here
 
 ## Collision checking for the entire robot body
