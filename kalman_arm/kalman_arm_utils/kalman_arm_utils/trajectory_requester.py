@@ -43,7 +43,7 @@ class TrajectoryClient(Node):
         self._action_client = ActionClient(
             self,
             FollowJointTrajectory,
-            "joint_trajectory_controller/follow_joint_trajectory",
+            "/arm_controllers/joint_trajectory_controller/follow_joint_trajectory",
         )
 
         self.joints: dict[str, float] = {}
@@ -85,12 +85,12 @@ class TrajectoryClient(Node):
 
     def update_state(self, msg: ArmState):
         self.joints = {
-            "joint_1": msg.joint_1,
-            "joint_2": msg.joint_2,
-            "joint_3": msg.joint_3,
-            "joint_4": msg.joint_4,
-            "joint_5": msg.joint_5,
-            "joint_6": msg.joint_6,
+            "arm_joint_1": msg.joint_1,
+            "arm_joint_2": msg.joint_2,
+            "arm_joint_3": msg.joint_3,
+            "arm_joint_4": msg.joint_4,
+            "arm_joint_5": msg.joint_5,
+            "arm_joint_6": msg.joint_6,
         }
 
     def keep_alive(self, msg: Empty):

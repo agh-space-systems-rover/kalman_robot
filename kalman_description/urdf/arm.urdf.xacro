@@ -141,7 +141,7 @@
         <joint name="arm_joint_end" type="fixed">
             <parent link="arm_link_jaw" />
             <child link="arm_link_end" />
-            <origin xyz="0.016 0 0.101" />
+            <origin xyz="0.016 0 0.101" rpy="0 -1.57 0" />
         </joint>
     </xacro:macro>
 </robot>

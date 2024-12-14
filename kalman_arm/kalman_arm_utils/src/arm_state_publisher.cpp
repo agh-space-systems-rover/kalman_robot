@@ -19,7 +19,7 @@ public:
     arm_state_pub_ = this->create_publisher<kalman_interfaces::msg::ArmState>("arm_state", 10);
 
     joint_state_sub_ = this->create_subscription<sensor_msgs::msg::JointState>(
-        "joint_states", 10, [this](sensor_msgs::msg::JointState::SharedPtr msg) { sub_callback(msg); });
+        "/arm_controllers/joint_states", 10, [this](sensor_msgs::msg::JointState::SharedPtr msg) { sub_callback(msg); });
   }
 
 private:
