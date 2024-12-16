@@ -139,7 +139,7 @@
 
         <link name="arm_link_end" />
         <joint name="arm_joint_end" type="fixed">
-            <parent link="arm_link_jaw" />
+            <parent link="arm_link_6" />
             <child link="arm_link_end" />
             <origin xyz="0.016 0 0.101" rpy="0 -1.57 0" />
         </joint>
