@@ -3,7 +3,7 @@
 <package format="3">
   <name>kalman_bringup</name>
   <version>0.0.0</version>
-  <description>Launch files for the rover and the ground station.</description>
+  <description>launch files for the rover and the ground station</description>
   <maintainer email="63957587+rayferric@users.noreply.github.com">rayferric</maintainer>
   <license>MIT</license>
 

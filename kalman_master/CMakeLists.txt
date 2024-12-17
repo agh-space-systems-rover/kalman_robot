@@ -13,16 +13,16 @@ find_package(rclcpp_components REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(kalman_interfaces REQUIRED)
 
-add_library(spacenav_driver_node SHARED src/spacenav_driver_node.cpp)
-ament_target_dependencies(spacenav_driver_node rclcpp rclcpp_components geometry_msgs kalman_interfaces)
+add_library(arm_twist_driver_node SHARED src/arm_twist_driver_node.cpp)
+ament_target_dependencies(arm_twist_driver_node rclcpp rclcpp_components geometry_msgs kalman_interfaces)
 rclcpp_components_register_node(
-  spacenav_driver_node
-  PLUGIN "kalman_master::SpacenavDriver"
-  EXECUTABLE spacenav_driver
+  arm_twist_driver_node
+  PLUGIN "kalman_master::ArmTwistDriver"
+  EXECUTABLE arm_twist_driver
 )
 
 ament_export_targets(kalman_master-targets)
-install(TARGETS spacenav_driver_node
+install(TARGETS arm_twist_driver_node
   EXPORT kalman_master-targets
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib

@@ -38,32 +38,11 @@ class MasterCom(Node):
         super().__init__("master_com")
 
         # Declare params
-        port = self.declare_parameter("port", "").value
-        baud_rate = self.declare_parameter("baud_rate", 115200).value
+        self.port = self.declare_parameter("port", "").value
+        self.baud_rate = self.declare_parameter("baud_rate", 115200).value
 
-        if not port:
-            # Attempt to find the Master UART port indefinitely.
-            while True:
-                port = find_tty_by_model(
-                    "Master_Autonomy_UART", "USB-RS422_Converter", "Kalman_GS_Converter"
-                )
-                if port is None:
-                    self.get_logger().error(
-                        "Master UART port not found. Will retry in 5 seconds."
-                    )
-                    time.sleep(5)
-                else:
-                    self.get_logger().info(f"Master is connected to {port}.")
-                    break
-
-        self.driver = SerialDriver(
-            self,
-            port_name=port,
-            start_byte="<",
-            stop_byte=">",
-            baud_rate=baud_rate,
-            ascii_mode=False,
-        )
+        self.driver = None
+        self.reconnect()
 
         self.sub = self.create_subscription(
             MasterMessage, "master_com/ros_to_master", self.ros_to_master, 10
@@ -77,13 +56,57 @@ class MasterCom(Node):
         for pub in self.pubs.values():
             pub.destroy()
         self.sub.destroy()
-        self.driver.destroy()
+        if self.driver:
+            self.driver.destroy()
 
         super().destroy_node()
 
+    def reconnect(self) -> None:
+        if self.driver:
+            self.driver.destroy()
+
+        while not self.driver:
+            if not self.port:
+                # Attempt to find the Master UART port indefinitely.
+                while True:
+                    self.port = find_tty_by_model(
+                        "Master_Autonomy_UART", "USB-RS422_Converter", "Kalman_GS_Converter"
+                    )
+                    if self.port is None:
+                        self.get_logger().error(
+                            "Master was not found. Will retry in 5 seconds."
+                        )
+                        time.sleep(5)
+                    else:
+                        break
+
+            try:
+                self.driver = SerialDriver(
+                    self,
+                    port_name=self.port,
+                    start_byte="<",
+                    stop_byte=">",
+                    baud_rate=self.baud_rate,
+                    ascii_mode=False,
+                )
+                self.get_logger().info(f"Master is connected via {self.port}.")
+            except (SerialException, OSError):
+                self.get_logger().error(
+                    f"Master is not available via {self.port}. Will retry in 5 seconds."
+                )
+                time.sleep(5)
+
     def master_to_ros(self) -> None:
-        self.driver.tick()
-        msgs: List[SerialMsg] = self.driver.read_all_msgs()
+        try:
+            self.driver.tick()
+            msgs: List[SerialMsg] = self.driver.read_all_msgs()
+        except (SerialException, OSError):
+            self.get_logger().error(
+                "Serial port has lost connection. Attempting to reconnect."
+            )
+            self.reconnect()
+            return
+
         for msg in msgs:
             if not msg.cmd in self.pubs:
                 topic_name = "master_com/master_to_ros/" + hex(msg.cmd)[1:]
@@ -102,24 +125,23 @@ class MasterCom(Node):
     def ros_to_master(self, ros_msg: MasterMessage) -> None:
         serial_msg = SerialMsg(ros_msg.cmd, len(ros_msg.data), ros_msg.data)
 
-        self.driver.write_msg(serial_msg)
-        self.driver.tick()
+        try:
+            self.driver.write_msg(serial_msg)
+            self.driver.tick()
+        except (SerialException, OSError):
+            self.get_logger().error(
+                "Serial port has lost connection. Attempting to reconnect."
+            )
+            self.reconnect()
+            return
 
 
 def main():
-    while True:
-        try:
-            rclpy.init()
-            node = MasterCom()
-            rclpy.spin(node)
-            node.destroy_node()
-            rclpy.shutdown()
-        except KeyboardInterrupt:
-            exit()
-        except (SerialException, OSError):
-            node.get_logger().error(
-                "Serial port has lost connection. Restarting the node..."
-            )
-            node.destroy_node()
-            rclpy.shutdown()
-            time.sleep(1)
+    try:
+        rclpy.init()
+        node = MasterCom()
+        rclpy.spin(node)
+        node.destroy_node()
+        rclpy.shutdown()
+    except KeyboardInterrupt:
+        pass

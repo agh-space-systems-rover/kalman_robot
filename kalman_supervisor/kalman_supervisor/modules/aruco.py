@@ -13,7 +13,7 @@ class ArUco(Module):
         super().__init__("aruco")
 
     def configure(self) -> None:
-        self.supervisor.declare_parameter("aruco.enabled", True)
+        self.supervisor.declare_parameter("aruco.enabled", False)
         self.supervisor.declare_parameter("aruco.deactivate_unused", False)
         self.supervisor.declare_parameter("aruco.num_cameras", 0)
         self.supervisor.declare_parameter("aruco.max_detection_distance", 5.0)

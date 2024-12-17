@@ -24,11 +24,14 @@ def launch_setup(context):
         for x in LaunchConfiguration("aruco_rgbd_ids").perform(context).split(" ")
         if x != ""
     ]
-    deactivate_aruco = (
-        LaunchConfiguration("deactivate_aruco").perform(context).lower() == "true"
+    aruco_deactivate_unused = (
+        LaunchConfiguration("aruco_deactivate_unused").perform(context).lower() == "true"
     )
     yolo_enabled = (
         LaunchConfiguration("yolo_enabled").perform(context).lower() == "true"
+    )
+    yolo_deactivate_unused = (
+        LaunchConfiguration("yolo_deactivate_unused").perform(context).lower() == "true"
     )
 
     remappings = []
@@ -72,10 +75,13 @@ def launch_setup(context):
                 {
                     "aruco": {
                         "enabled": len(aruco_rgbd_ids) > 0,
-                        "deactivate_unused": deactivate_aruco,
+                        "deactivate_unused": aruco_deactivate_unused,
                         "num_cameras": len(aruco_rgbd_ids),
                     },
-                    "yolo": {"enabled": yolo_enabled},
+                    "yolo": {
+                        "enabled": yolo_enabled,
+                        "deactivate_unused": yolo_deactivate_unused,
+                    },
                 },
             ],
             remappings=remappings,
@@ -88,18 +94,26 @@ def generate_launch_description():
         [
             DeclareLaunchArgument(
                 "aruco_rgbd_ids",
+                default_value="",
                 description="Space-separated IDs of the depth cameras that were configured in kalman_aruco.",
-                default_value="d455_front d455_back d455_left d455_right",
             ),
             DeclareLaunchArgument(
-                "deactivate_aruco",
-                description="Deactivate ArUco detection nodes when supervisor is not activaly looking for tags.",
+                "aruco_deactivate_unused",
                 default_value="false",
+                choices=["true", "false"],
+                description="Deactivate ArUco detection nodes when supervisor is not actively looking for tags.",
             ),
             DeclareLaunchArgument(
                 "yolo_enabled",
+                default_value="false",
+                choices=["true", "false"],
                 description="Whether YOLO detection is enabled.",
-                default_value="true",
+            ),
+            DeclareLaunchArgument(
+                "yolo_deactivate_unused",
+                default_value="false",
+                choices=["true", "false"],
+                description="Deactivate YOLO detection when supervisor is not actively looking for objects.",
             ),
             OpaqueFunction(function=launch_setup),
         ]

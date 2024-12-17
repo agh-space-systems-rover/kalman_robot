@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="kalman">
+    <!-- base Kalman links -->
+    <xacro:include filename="$(find kalman_description)/urdf/kalman.urdf.xacro" />
+    <xacro:kalman />
+
+    <!-- arm links -->
+    <xacro:include filename="$(find kalman_description)/urdf/arm.urdf.xacro" />
+    <xacro:arm base_link="base_link" />
+</robot>
