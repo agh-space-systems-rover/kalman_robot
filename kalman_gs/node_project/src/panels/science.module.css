@@ -4,7 +4,6 @@
   justify-content: center;
   user-select: none;
   flex-direction: column;
-
 }
 
 .horizontal {
@@ -14,11 +13,8 @@
   align-items: center;
   justify-content: center;
   user-select: none;
-  flex-direction: row;
-  
+  flex-direction: row; 
 }
-
-
 
 .weights {
   display: flex;
@@ -101,18 +97,17 @@ text-align: center;
 }
 
 
-.icon
-{
+.icon {
   font-size: 80px;
   color: var(--weak-foreground);
   transition: 0.4s;
   cursor: pointer;
   margin-left: 4px;
   margin-right: 4px;
+  position:relative;
 }
 
-.icon:hover
-{
+.icon:hover {
   color: var(--weak-background);
 }
 
@@ -125,8 +120,6 @@ text-align: center;
   flex-direction: row;
 }
 
-
-
 .icon-digit {
   font-size: 30px;
   color: var(--background);
@@ -135,6 +128,6 @@ text-align: center;
   position: absolute;
   pointer-events: none;
 
-  margin-left: -58px;
+  margin-left: -58px; 
   margin-top:33px;
 }

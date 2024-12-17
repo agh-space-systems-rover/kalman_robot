@@ -85,7 +85,15 @@ def generate_launch_description():
             ),
             Node(
                 package="kalman_master",
-                executable="science_driver",
+                executable="universal_driver",
+                parameters=[
+                    {
+                        "config_directory_path": str(
+                            get_package_share_path("kalman_master")
+                            / "config/universal_driver"
+                        ),
+                    },
+                ],
             ),
             Node(
                 package="kalman_master",

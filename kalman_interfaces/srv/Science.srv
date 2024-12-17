@@ -14,7 +14,7 @@ uint8 SCIENCE_AUTONOMY_RESET = 0x0C
 uint8 SCIENCE_AUTONOMY_START = 0x0D
 uint8 SCIENCE_AUTONOMY_PAUSE = 0x0E
 
-
 uint8 cmd
+uint8[] data
 ---
 # no response

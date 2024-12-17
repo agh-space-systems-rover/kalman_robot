@@ -1,0 +1,62 @@
+services_commands:
+  - service: request_science
+    type: kalman_interfaces/srv/Science
+    target: universal
+    cmd_translations:
+    
+      Science.Request.SCIENCE_TARE_ROCKS:
+      - cmd: MasterMessage.SCIENCE_TARE
+        data: [0, 0]
+      - cmd: MasterMessage.SCIENCE_TARE
+        data: [0, 1]
+
+      Science.Request.SCIENCE_REQUEST_ROCKS:
+      - cmd: MasterMessage.SCIENCE_REQUEST_WEIGHT
+        data: [0, 0]
+      - cmd: MasterMessage.SCIENCE_REQUEST_WEIGHT
+        data: [0, 1]
+
+      Science.Request.SCIENCE_TARE_SAMPLE:
+      - cmd: MasterMessage.SCIENCE_TARE
+        data: [1, 0]
+
+      Science.Request.SCIENCE_REQUEST_SAMPLE:
+      - cmd: MasterMessage.SCIENCE_REQUEST_WEIGHT
+        data: [1, 0]
+
+      Science.Request.SCIENCE_TARE_DRILL:
+      - cmd: MasterMessage.SCIENCE_DRILL
+        data: [0]
+
+      Science.Request.SCIENCE_REQUEST_DRILL:
+      - cmd: MasterMessage.SCIENCE_DRILL
+        data: [1]
+
+      Science.Request.SCIENCE_AUTONOMY_RESET:
+      - cmd: MasterMessage.SCIENCE_DRILL_AUTONOMY
+        data: [0]
+
+      Science.Request.SCIENCE_AUTONOMY_START:
+      - cmd: MasterMessage.SCIENCE_DRILL_AUTONOMY
+        data: [1]
+
+      Science.Request.SCIENCE_AUTONOMY_PAUSE:
+      - cmd: MasterMessage.SCIENCE_DRILL_AUTONOMY
+        data: [2]
+
+      Science.Request.CONTAINER1_OPEN:
+      - cmd: MasterMessage.SCIENCE_CONTAINER
+        data: [0, 0, 125] # first container open, third byte is degrees of the servo
+
+      Science.Request.CONTAINER1_CLOSE:
+      - cmd: MasterMessage.SCIENCE_CONTAINER
+        data: [0, 0, 53] # first container close, third byte is degrees of the servo
+
+      Science.Request.CONTAINER2_OPEN:
+      - cmd: MasterMessage.SCIENCE_CONTAINER
+        data: [0, 1, 95] # second container open, third byte is degrees of the servo
+
+      Science.Request.CONTAINER2_CLOSE:
+      - cmd: MasterMessage.SCIENCE_CONTAINER
+        data: [0, 1, 155] # second container close, third byte is degrees of the servo
+       
