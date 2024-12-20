@@ -30,5 +30,5 @@
 	url = ../../agh-space-systems-rover/point_cloud_utils.git
 [submodule "vendor/bio_ik"]
 	path = vendor/bio_ik
-	url = git@github.com:PickNikRobotics/bio_ik.git
+	url = ../../PickNikRobotics/bio_ik.git
 	branch = ros2
