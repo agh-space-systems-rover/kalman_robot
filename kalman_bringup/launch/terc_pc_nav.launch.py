@@ -10,7 +10,7 @@ def generate_launch_description():
         "hardware": {
             "master": "pc",
             "rgbd_ids": RGBD_IDS,
-            "imu": "true",
+            "imu": "full",
         },
         "clouds": {
             "rgbd_ids": RGBD_IDS,

@@ -22,7 +22,7 @@ class Nav2(TypedDict):
     rgbd_ids: str
     "Space-separated IDs of the depth cameras to use."
     static_map: Literal["", "erc2023", "erc2024"]
-    "Name of the static map to use. Maps are stored in kalman_nav2/maps. Empty by default to disable static map. Valid choices are: ['', 'erc2023', 'erc2024']"
+    "Name of the static map to use. Maps are stored in kalman_nav2/maps. Empty by default to disable static map. Valid choices are: ['', 'erc2024', 'erc2023']"
 
 
 class Slam(TypedDict):
@@ -34,6 +34,8 @@ class Slam(TypedDict):
     "The 'latitude longitude' of the map frame. Only used if GPS is enabled. Empty to assume first recorded GPS fix."
     fiducials: Literal["", "erc2024", "terc2024"]
     "Name of the list of fiducials to use. Empty disables fiducial odometry. Valid choices are: ['', 'erc2024', 'terc2024']"
+    use_mag: Literal["false", "true"]
+    "Use IMU yaw readings for global EKF. If disabled, heading will drift over time. Valid choices are: ['true', 'false']"
 
 
 class Gs(TypedDict):
@@ -88,8 +90,8 @@ class Hardware(TypedDict):
     "Start the master driver in a given mode ('pc', 'gs' or 'arm'). Leave empty to disable. Valid choices are: ['pc', 'gs', 'arm']"
     rgbd_ids: str
     "Space-separated IDs of the depth cameras to use (d455_front, d455_back, ...). Leave empty to disable the cameras."
-    imu: Literal["false", "true"]
-    "Start the IMU driver. Valid choices are: ['true', 'false']"
+    imu: Literal["", "full", "no_mag"]
+    "Start IMU. 'no_mag' disables magnetometer. Valid choices are: ['', 'no_mag', 'full']"
     compass_calibration: str
     "Start IMU compass calibration node for a given number of seconds. IMU must be disabled in order to calibrate the compass. Zero to run in normal mode, without calibration."
     gps: Literal["false", "true"]

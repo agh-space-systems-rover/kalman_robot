@@ -71,7 +71,7 @@
     base_link_frame: base_link  # Defaults to "base_link" if unspecified
     world_frame: odom           # Defaults to the value of odom_frame if unspecified
 
-{% for camera_id in rgbd_ids %}
+{% for camera_id in camera_ids %}
     # The filter accepts an arbitrary number of inputs from each input message type (nav_msgs/Odometry,
     # geometry_msgs/PoseWithCovarianceStamped, geometry_msgs/TwistWithCovarianceStamped,
     # sensor_msgs/Imu). To add an input, simply append the next number in the sequence to its "base" name, e.g., odom0,
@@ -89,7 +89,7 @@
     odom{{ loop.index0 }}_config: [false, false, false,
                                    false, false, false,
                                    true,  true,  true,
-                                   true,  true,  true,
+                                   false, false, true,
                                    false, false, false]
 
     # If you have high-frequency data or are running with a low frequency parameter value, then you may want to increase
@@ -115,29 +115,19 @@
 
     imu0: imu/data
     imu0_config: [false, false, false,
-                  true,  true,  true,
+                  true,  true,  false,
                   false, false, false,
-                  false, false, false,
+                  false, false, true,
                   false, false, false]
     imu0_differential: false
-    # Because odom's rotation should be aligned with base_link:
     imu0_relative: false
-    # NOTE: The frame aligned with true north would be "map".
     imu0_queue_size: 10
 
-    # [ADVANCED] Some IMUs automatically remove acceleration due to gravity, and others don't. If yours doesn't, please set
-    # this to true, and *make sure* your data conforms to REP-103, specifically, that the data is in ENU frame.
-    imu0_remove_gravitational_acceleration: true
-
-    # pose0: altimeter/pose
-    # pose0_config: [false, false, true,
-    #                false, false, false,
-    #                false, false, false,
-    #                false, false, false,
-    #                false, false, false]
-    # pose0_relative: true
-    # pose0_queue_size: 10
-    # TODO: Altimeter is disabled for now because we do not yet have this hardware on board.
+    # # [ADVANCED] Some IMUs automatically remove acceleration due to gravity, and others don't. If yours doesn't, please set
+    # # this to true, and *make sure* your data conforms to REP-103, specifically, that the data is in ENU frame.
+    # imu0_remove_gravitational_acceleration: true
+    # IMU is disabled because integrating vis-odo angular is more stable.
+    # And we do not need world-referenced rotation in local odom.
 
     # [ADVANCED]  The EKF and UKF models follow a standard predict/correct cycle. During prediction, if there is no
     # acceleration reference, the velocity at time t+1 is simply predicted to be the same as the velocity at time t. During
@@ -152,32 +142,3 @@
     # inputs, the control term will be ignored.
     # Whether or not we use the control input during predicition. Defaults to false.
     use_control: false
-
-    # [ADVANCED] The process noise covariance matrix can be difficult to tune, and can vary for each application, so it is
-    # exposed as a configuration parameter. This matrix represents the noise we add to the total error after each
-    # prediction step. The better the omnidirectional motion model matches your system, the smaller these values can be.
-    # However, if users find that a given variable is slow to converge, one approach is to increase the
-    # process_noise_covariance diagonal value for the variable in question, which will cause the filter's predicted error
-    # to be larger, which will cause the filter to trust the incoming measurement more during correction. The values are
-    # ordered as x, y, z, roll, pitch, yaw, vx, vy, vz, vroll, vpitch, vyaw, ax, ay, az. Defaults to the matrix below if
-    # unspecified.
-    # Note: the specification of covariance matrices can be cumbersome, so all matrix parameters in this package support
-    # both full specification or specification of only the diagonal values.
-    process_noise_covariance: [
-      0.05, 0.0,  0.0,  0.0,  0.0,  0.0,  0.0,   0.0,   0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
-      0.0,  0.05, 0.0,  0.0,  0.0,  0.0,  0.0,   0.0,   0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
-      0.0,  0.0,  0.06, 0.0,  0.0,  0.0,  0.0,   0.0,   0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
-      0.0,  0.0,  0.0,  10.0, 0.0,  0.0,  0.0,   0.0,   0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
-      0.0,  0.0,  0.0,  0.0,  10.0, 0.0,  0.0,   0.0,   0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
-      0.0,  0.0,  0.0,  0.0,  0.0,  10.0, 0.0,   0.0,   0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
-      0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.025, 0.0,   0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
-      0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,   0.025, 0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
-      0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,   0.0,   0.04, 0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
-      0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,   0.0,   0.0,  0.01, 0.0,  0.0,  0.0,  0.0,  0.0,
-      0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,   0.0,   0.0,  0.0,  0.01, 0.0,  0.0,  0.0,  0.0,
-      0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,   0.0,   0.0,  0.0,  0.0,  0.02, 0.0,  0.0,  0.0,
-      0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,   0.0,   0.0,  0.0,  0.0,  0.0,  0.01, 0.0,  0.0,
-      0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,   0.0,   0.0,  0.0,  0.0,  0.0,  0.0,  0.01, 0.0,
-      0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,   0.0,   0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.015
-    ]
-    # NOTE: This is mostly the default value of this matrix. Only the variances of absolute angular were increased so that IMU feels more stable.

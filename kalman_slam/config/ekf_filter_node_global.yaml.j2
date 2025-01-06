@@ -1,0 +1,83 @@
+# docs in ukf_filter_node.yaml.j2
+
+/**:
+  ros__parameters:
+    frequency: 30.0
+    sensor_timeout: 0.1
+    two_d_mode: false
+    transform_time_offset: 0.0
+    transform_timeout: 0.0
+    print_diagnostics: false
+    debug: false
+    permit_corrected_publication: false
+    publish_acceleration: false
+    publish_tf: true
+
+    map_frame: map
+    odom_frame: odom
+    base_link_frame: base_link
+    world_frame: map
+
+    # Copy map->base_link from odom->base_link
+    odom0: odometry/local
+    odom0_config: [false, false, false,
+                   true,  true, false,
+                   true,  true,  true,
+                   false,  false,  true,
+                   false, false, false]
+    odom0_differential: false
+    odom0_relative: false
+    odom0_queue_size: 10
+
+    # Apply world-referenced pitch and roll correction from the IMU.
+    imu0: imu/data # From the IMU
+    imu0_config: [false, false, false,
+{% if use_mag %}
+                  true,  true,  true,
+{% else %}
+                  true,  true, false,
+{% endif %}
+                  false, false, false,
+                  false, false, false,
+                  false, false, false]
+    imu0_differential: false
+    imu0_relative: false
+    imu0_queue_size: 10
+    imu0_remove_gravitational_acceleration: true
+
+    # # Apply world-referenced XY positional correction from navsat_transform.
+    # odom1: odometry/gps
+    # odom1_config: [true,  true,  false,
+    #                false, false, false,
+    #                false, false, false,
+    #                false, false, false,
+    #                false, false, false]
+    # odom1_differential: false
+    # odom1_relative: false
+    # odom1_queue_size: 10
+
+    # # Apply XY correction from detected fiducials.
+    # odom2: odometry/fiducial
+    # odom2_config: [true,  true,  false,
+    #                false, false, false,
+    #                false, false, false,
+    #                false, false, false,
+    #                false, false, false]
+    # odom2_differential: false
+    # odom2_relative: false
+    # odom2_queue_size: 10
+
+    # TODO: Yaw+XYZ correction from SLAM.
+
+    # TODO: Altitude correction from atmospheric pressure sensor...
+    # pose0: altimeter/pose
+    # pose0_config: [false, false, true,
+    #                false, false, false,
+    #                false, false, false,
+    #                false, false, false,
+    #                false, false, false]
+    # pose0_relative: true
+    # pose0_queue_size: 10
+    # TODO: Altimeter is disabled for now because we do not yet have this hardware on board.
+    
+    use_control: false

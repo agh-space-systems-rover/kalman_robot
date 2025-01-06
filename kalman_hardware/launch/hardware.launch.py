@@ -38,7 +38,7 @@ def launch_setup(context):
         for x in LaunchConfiguration("rgbd_ids").perform(context).split(" ")
         if x != ""
     ]
-    imu = get_bool("imu")
+    imu = get_str("imu")
     compass_calibration = get_float("compass_calibration")
     gps = get_bool("gps")
 
@@ -144,6 +144,7 @@ def launch_setup(context):
                                     / "config"
                                     / "imu_filter_madgwick.yaml"
                                 ),
+                                {"use_mag": imu != "no_mag"},
                             ],
                             extra_arguments=[{"use_intra_process_comms": True}],
                         ),
@@ -243,9 +244,9 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument(
                 "imu",
-                default_value="false",
-                choices=["true", "false"],
-                description="Start the IMU driver.",
+                default_value="",
+                choices=["", "no_mag", "full"],
+                description="Start IMU. 'no_mag' disables magnetometer.",
             ),
             DeclareLaunchArgument(
                 "compass_calibration",

@@ -13,39 +13,35 @@ import yaml
 import os
 
 
-def load_local_ukf_config(rgbd_ids):
-    # Load UKF config template
+def load_ekf_config(name, **kwargs) -> str:
+    # Load EKF config template
     with open(
-        str(
-            get_package_share_path("kalman_slam")
-            / "config"
-            / "ukf_filter_node_local.yaml.j2"
-        ),
+        str(get_package_share_path("kalman_slam") / "config" / f"{name}.yaml.j2"),
         "r",
     ) as f:
-        ukf_config_template = jinja2.Template(f.read())
+        ekf_config_template = jinja2.Template(f.read())
 
-    # Render UKF config with camera IDs
-    ukf_config = ukf_config_template.render(
-        rgbd_ids=rgbd_ids,
-    )
+    # Render EKF config with camera IDs
+    ekf_config = ekf_config_template.render(**kwargs)
 
-    # Load UKF config
-    ukf_params = yaml.load(ukf_config, Loader=yaml.FullLoader)
+    # Load EKF config
+    ekf_params = yaml.load(ekf_config, Loader=yaml.FullLoader)
 
-    # Save UKF config to file
-    ukf_params_path = "/tmp/kalman/ukf_filter_node_local." + str(os.getpid()) + ".yaml"
-    os.makedirs(os.path.dirname(ukf_params_path), exist_ok=True)
-    with open(ukf_params_path, "w") as f:
-        yaml.dump(ukf_params, f)
+    # Save EKF config to file
+    ekf_params_path = f"/tmp/kalman/{name}." + str(os.getpid()) + ".yaml"
+    os.makedirs(os.path.dirname(ekf_params_path), exist_ok=True)
+    with open(ekf_params_path, "w") as f:
+        yaml.dump(ekf_params, f)
 
-    # Return path to UKF config
-    return ukf_params_path
+    # Return path to EKF config
+    return ekf_params_path
+
 
 def find_available_fiducial_configs() -> set[str]:
     fiducials_dir = get_package_share_path("kalman_slam") / "fiducials"
     configs = [f.stem for f in fiducials_dir.glob("*.yaml")]
     return set(configs)
+
 
 def launch_setup(context):
     component_container = LaunchConfiguration("component_container").perform(context)
@@ -60,6 +56,7 @@ def launch_setup(context):
         if x != ""
     ]
     fiducials = LaunchConfiguration("fiducials").perform(context)
+    use_mag = LaunchConfiguration("use_mag").perform(context).lower() == "true"
 
     description = []
 
@@ -115,22 +112,25 @@ def launch_setup(context):
             for camera_id in rgbd_ids
         ]
 
-    # Local Kalman filter
     description += [
+        # Local Kalman filter, publishes odom->base_link.
         Node(
             package="robot_localization",
-            executable="ukf_node",
-            name="ukf_filter_node",
-            parameters=[load_local_ukf_config(rgbd_ids)],
+            executable="ekf_node",
+            name="ekf_filter_node_local",
+            parameters=[load_ekf_config("ekf_filter_node_local", camera_ids=rgbd_ids)],
             remappings=[("odometry/filtered", "odometry/local")],
         ),
-    ]
-
-    # GPS related nodes
-    description += [
+        # Global Kalman filter, publishes map->base_link.
+        Node(
+            package="robot_localization",
+            executable="ekf_node",
+            name="ekf_filter_node_global",
+            parameters=[load_ekf_config("ekf_filter_node_global", use_mag=use_mag)],
+            remappings=[("odometry/filtered", "odometry/global")],
+        ),
         # navsat_transform_node will refuse to work on messages with NaN values, so a custom preprocessor is needed.
-        # This preprocessor will also set initial covariance to 0 to guarantee fast UKF convergence.
-        # It also repairs any malformed spoof messages sent by groundstation over the RF link.
+        # This preprocessor will also set initial covariance to 0 to guarantee fast EKF convergence.
         Node(
             package="kalman_slam",
             executable="gps_preprocessor",
@@ -140,7 +140,10 @@ def launch_setup(context):
             ],
         ),
         # This node creates a service that can be used to send a fake GPS fix.
-        # In practice, this service is forwarded over RF to be used on the ground station.
+        # This service is forwarded over RF to be used on the ground station.
+        # Why not send the GPS fix directly from the ground station?
+        # For now topics are not ACKed by ros_link (RF comms),
+        # so forwarding them instead of a service would be less reliable.
         Node(
             package="kalman_slam",
             executable="gps_spoofer",
@@ -149,6 +152,13 @@ def launch_setup(context):
                 ("fix", "gps/fix"),
             ],
         ),
+        # Navsat transform listens to global odometry (map->base_link) from the second Kalman filter, ekf_filter_node_gps.
+        # The node listens for GPS fixes from the sensor (or gps_spoofer) and will use them to correct the global odometry for drift.
+        # The corrected global odometry will then be republished on a different topic and used by ekf_filter_node_gps
+        # to apply the correction to global odometry.
+        # Additionally, the global odometry is converted to a GPS fix relative to a starting position (the datum).
+        # We use this fix to display the robot's position on the map when no GPS sensor is available.
+        # TODO: Might need to delay this node a bit so that global EKF converges before navsat_transform initialization.
         Node(
             package="robot_localization",
             executable="navsat_transform_node",
@@ -160,8 +170,10 @@ def launch_setup(context):
                 ),
                 (
                     {
-                        "wait_for_datum": True,
+                        # Datum is the starting position of the robot.
+                        # Those GPS coordinates correspond to the location of the "map" frame in the real world.
                         "datum": [gps_datum[0], gps_datum[1], 0.0],
+                        "wait_for_datum": True,  # Needs to be set to enable the datum.
                     }
                     if gps_datum
                     else {
@@ -170,30 +182,20 @@ def launch_setup(context):
                 ),
             ],
             remappings={
-                "imu": "imu/data",  # For some reason the node subscribes to imu, not imu/data.
-                # IMU is theoretically not used by navsat_transform_node because it has the heading from filtered global odometry.
+                # IMU is technically not needed here because navsat_transform_node has the heading from global odometry which is world-referenced because it uses absolute yaw readings from the IMU.
+                # Global odometry can be used instead of the IMU sensor by setting a "use_odometry_yaw" parameter,
+                # but this did not work reliably for some reason.
+                "imu": "imu/data",  # the node subscribes to imu, not imu/data.
+                # Those are the GPS sensor readings (filtered by gps_preprocessor).
                 "gps/fix": "gps/fix/filtered",
+                # This is the current global odometry state republished as a GPS fix.
                 # "gps/filtered": "gps/filtered",
-                # "odometry/gps": "odometry/gps", # Sends raw GPS odometry to ukf_filter_node_gps.
-                "odometry/filtered": "odometry/global",  # Receives filtered odometry from ukf_filter_node_gps.
-            }.items(),
-        ),
-        Node(
-            package="robot_localization",
-            executable="ukf_node",
-            name="ukf_filter_node_gps",
-            parameters=[
-                str(
-                    get_package_share_path("kalman_slam")
-                    / "config"
-                    / "ukf_filter_node_global.yaml"
-                )
-                # In config:
-                # - ukf_filter_node_gps receives raw GPS odometry from navsat_transform_node.
-                # - ukf_filter_node_gps receives filtered IMU from sensors.
-            ],
-            remappings={
-                "odometry/filtered": "odometry/global",  # Sends filtered odometry to navsat_transform_node.
+                # And this is the correctd global odometry as a nav_msgs/Odometry message.
+                # "odometry/gps": "odometry/gps",
+                # This is the current global odometry from ekf_filter_node_gps.
+                # It has approximately the same value as the corrected global odometry,
+                # but keep in mind that a separate topic is needed for the correction mechanism to work.
+                "odometry/filtered": "odometry/global",
             }.items(),
         ),
     ]
@@ -218,9 +220,7 @@ def launch_setup(context):
                         ),
                     },
                 ],
-                remappings=[
-                    ("odometry", "odometry/fiducial"),
-                ],
+                remappings=[("odometry", "odometry/fiducial")],
             ),
         ]
 
@@ -288,6 +288,12 @@ def generate_launch_description():
                 default_value="",
                 choices=["", *find_available_fiducial_configs()],
                 description="Name of the list of fiducials to use. Empty disables fiducial odometry.",
+            ),
+            DeclareLaunchArgument(
+                "use_mag",
+                default_value="true",
+                choices=["true", "false"],
+                description="Use IMU yaw readings for global EKF. If disabled, heading will drift over time.",
             ),
             OpaqueFunction(function=launch_setup),
         ]
