@@ -35,7 +35,7 @@
 {% if use_mag %}
                   true,  true,  true,
 {% else %}
-                  true,  true, false,
+                  true,  true,  false,
 {% endif %}
                   false, false, false,
                   false, false, false,
@@ -45,27 +45,27 @@
     imu0_queue_size: 10
     imu0_remove_gravitational_acceleration: true
 
-    # # Apply world-referenced XY positional correction from navsat_transform.
-    # odom1: odometry/gps
-    # odom1_config: [true,  true,  false,
-    #                false, false, false,
-    #                false, false, false,
-    #                false, false, false,
-    #                false, false, false]
-    # odom1_differential: false
-    # odom1_relative: false
-    # odom1_queue_size: 10
+    # Apply world-referenced XY positional correction from navsat_transform.
+    odom1: odometry/gps
+    odom1_config: [true,  true,  false,
+                   false, false, false,
+                   false, false, false,
+                   false, false, false,
+                   false, false, false]
+    odom1_differential: false
+    odom1_relative: false
+    odom1_queue_size: 10
 
-    # # Apply XY correction from detected fiducials.
-    # odom2: odometry/fiducial
-    # odom2_config: [true,  true,  false,
-    #                false, false, false,
-    #                false, false, false,
-    #                false, false, false,
-    #                false, false, false]
-    # odom2_differential: false
-    # odom2_relative: false
-    # odom2_queue_size: 10
+    # Apply XY correction from detected fiducials.
+    odom2: odometry/fiducial
+    odom2_config: [true,  true,  false,
+                   false, false, false,
+                   false, false, false,
+                   false, false, false,
+                   false, false, false]
+    odom2_differential: false
+    odom2_relative: false
+    odom2_queue_size: 10
 
     # TODO: Yaw+XYZ correction from SLAM.
 
