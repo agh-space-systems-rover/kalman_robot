@@ -85,6 +85,10 @@ def generate_launch_description():
             ),
             Node(
                 package="kalman_master",
+                executable="weight_driver",
+            ),
+            Node(
+                package="kalman_master",
                 executable="universal_driver",
                 parameters=[
                     {

@@ -16,6 +16,7 @@ install(PROGRAMS
   scripts/universal_driver
   scripts/tunnel_client
   scripts/ueuos_driver
+  scripts/weight_driver
   scripts/wheel_driver
   DESTINATION lib/${PROJECT_NAME}
 )

@@ -44,10 +44,7 @@ class UniversalDriver(Node):
             if self.configs[filename]['services_commands'] != None:
                 for service_obj in self.configs[filename]['services_commands']:
                     self.init_service(service_obj)
-            if self.configs[filename]['topics_commands'] != None:
-                for topic_obj in self.configs[filename]['topics_commands']:
-                    self.init_topic(topic_obj)
-
+            
 
 
         self.master_pub = self.create_publisher(
@@ -59,9 +56,7 @@ class UniversalDriver(Node):
         service_type = eval(service_obj['type'].replace('/', '.'))
         self.create_service(service_type, str(service_obj['service']), 
             self.generate_service_response(service_obj['cmd_translations']))
-    
-    def init_topic(self, topic_obj):
-        pass
+
 
 
 
