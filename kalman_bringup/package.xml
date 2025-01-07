@@ -3,23 +3,17 @@
 <package format="3">
   <name>kalman_bringup</name>
   <version>0.0.0</version>
-  <description>Launch files for the rover and the ground station.</description>
+  <description>launch files for the rover and the ground station</description>
   <maintainer email="63957587+rayferric@users.noreply.github.com">rayferric</maintainer>
   <license>MIT</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <exec_depend>ros2launch</exec_depend>
-  <exec_depend>rviz_imu_plugin</exec_depend>
 
-  <exec_depend>kalman_clouds</exec_depend>
-  <exec_depend>kalman_description</exec_depend>
-  <exec_depend>kalman_drivers</exec_depend>
-  <exec_depend>kalman_gs</exec_depend>
-  <exec_depend>kalman_nav2</exec_depend>
-  <exec_depend>kalman_slam</exec_depend>
-  <exec_depend>kalman_supervisor</exec_depend>
-  <exec_depend>unity_sim</exec_depend>
+  <!-- Do not add any kalman_ dependencies here. -->
+  <!-- kalman_bringup contains launch files for various
+  setups that do not necessarily need a full build. -->
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

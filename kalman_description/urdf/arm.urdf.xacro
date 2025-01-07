@@ -1,0 +1,147 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="arm">
+    <xacro:macro name="arm" params="base_link">
+        <material name="arm_mat">
+            <color rgba="0.8 0.8 0.8 1" />
+        </material>
+
+        <link name="arm_link">
+            <visual>
+                <geometry>
+                    <mesh filename="package://kalman_description/stl/arm0_base.stl" />
+                </geometry>
+                <material name="arm_mat" />
+            </visual>
+            <!-- <collision>
+                <geometry>
+                    <cylinder length="0.1" radius="0.1" />
+                </geometry>
+                <origin rpy="0 0 0" xyz="0 0 0" />
+            </collision> -->
+        </link>
+        <joint name="arm_joint" type="fixed">
+            <parent link="${base_link}" />
+            <child link="arm_link" />
+            <origin xyz="0.180 0 0" />
+        </joint>
+
+        <link name="arm_link_1">
+            <visual>
+                <geometry>
+                    <mesh filename="package://kalman_description/stl/arm1.stl" />
+                </geometry>
+                <material name="arm_mat" />
+            </visual>
+        </link>
+        <joint name="arm_joint_1" type="revolute">
+            <parent link="arm_link" />
+            <child link="arm_link_1" />
+            <origin xyz="0 0 0.045" />
+            <axis xyz="0 0 1" />
+            <limit effort="1000.0" lower="-6.28" upper="6.28" velocity="0.5" />
+        </joint>
+
+        <link name="arm_link_2">
+            <visual>
+                <geometry>
+                    <mesh filename="package://kalman_description/stl/arm2.stl" />
+                </geometry>
+                <material name="arm_mat" />
+            </visual>
+        </link>
+        <joint name="arm_joint_2" type="revolute">
+            <parent link="arm_link_1" />
+            <child link="arm_link_2" />
+            <origin xyz="0 0.110 0.109" />
+            <axis xyz="0 1 0" />
+            <limit effort="1000.0" lower="-3.14" upper="3.14" velocity="0.5" />
+        </joint>
+
+        <link name="arm_link_3">
+            <visual>
+                <geometry>
+                    <mesh filename="package://kalman_description/stl/arm3.stl" />
+                </geometry>
+                <material name="arm_mat" />
+            </visual>
+        </link>
+        <joint name="arm_joint_3" type="revolute">
+            <parent link="arm_link_2" />
+            <child link="arm_link_3" />
+            <origin xyz="0 0 0.397" />
+            <axis xyz="0 1 0" />
+            <limit effort="1000.0" lower="-2.88" upper="2.88" velocity="0.5" />
+        </joint>
+
+        <link name="arm_link_4">
+            <visual>
+                <geometry>
+                    <mesh filename="package://kalman_description/stl/arm4.stl" />
+                </geometry>
+                <material name="arm_mat" />
+            </visual>
+        </link>
+        <joint name="arm_joint_4" type="revolute">
+            <parent link="arm_link_3" />
+            <child link="arm_link_4" />
+            <origin xyz="0 -0.110 0.133" />
+            <axis xyz="0 0 1" />
+            <limit effort="1000.0" lower="-6.40" upper="6.40" velocity="0.5" />
+        </joint>
+
+        <link name="arm_link_5">
+            <visual>
+                <geometry>
+                    <mesh filename="package://kalman_description/stl/arm5.stl" />
+                </geometry>
+                <material name="arm_mat" />
+            </visual>
+        </link>
+        <joint name="arm_joint_5" type="revolute">
+            <parent link="arm_link_4" />
+            <child link="arm_link_5" />
+            <origin xyz="0 0 0.423" />
+            <axis xyz="0 1 0" />
+            <limit effort="1000.0" lower="-1.75" upper="1.75" velocity="0.5" />
+        </joint>
+
+        <link name="arm_link_6">
+            <visual>
+                <geometry>
+                    <mesh filename="package://kalman_description/stl/arm6.stl" />
+                </geometry>
+                <material name="arm_mat" />
+            </visual>
+        </link>
+        <joint name="arm_joint_6" type="revolute">
+            <parent link="arm_link_5" />
+            <child link="arm_link_6" />
+            <origin xyz="0 0 0.047" />
+            <axis xyz="0 0 1" />
+            <limit effort="1000.0" lower="-3.40" upper="3.40" velocity="0.5" />
+        </joint>
+
+        <link name="arm_link_jaw">
+            <visual>
+                <geometry>
+                    <mesh filename="package://kalman_description/stl/arm7_jaw.stl" />
+                </geometry>
+                <material name="arm_mat" />
+            </visual>
+        </link>
+        <joint name="arm_joint_jaw" type="revolute">
+            <parent link="arm_link_6" />
+            <child link="arm_link_jaw" />
+            <origin xyz="-0.016 0 0.086" />
+            <axis xyz="0 -1 0" />
+            <limit effort="1000.0" lower="-0.10" upper="1.57" velocity="0.5" />
+        </joint>
+
+        <link name="arm_link_end" />
+        <joint name="arm_joint_end" type="fixed">
+            <parent link="arm_link_6" />
+            <child link="arm_link_end" />
+            <origin xyz="0.016 0 0.101" rpy="0 -1.57 0" />
+        </joint>
+    </xacro:macro>
+</robot>

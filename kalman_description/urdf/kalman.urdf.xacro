@@ -1,59 +1,17 @@
 <?xml version="1.0"?>
-
-<!-- This Xacro file is used to generate an URDF description of the Kalman robot.
-The description defines all the TF nodes that are children of base_link. -->
-
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="kalman">
-    <xacro:include filename="$(find realsense2_description)/urdf/_d455.urdf.xacro" />
+    <xacro:macro name="kalman">
+        <!-- https://www.ros.org/reps/rep-0120.html -->
+        <link name="base_link" />
+        <link name="base_footprint" />
+        <joint name="base_footprint_joint" type="fixed">
+            <origin xyz="-0.11 0 -0.45" />
+            <parent link="base_link" />
+            <child link="base_footprint" />
+        </joint>
 
-    <!-- https://www.ros.org/reps/rep-0120.html -->
-    <link name="base_link" />
-    <link name="base_footprint" />
-    <joint name="base_footprint_joint" type="fixed">
-        <origin xyz="-0.11 0 -0.45" />
-        <parent link="base_link" />
-        <child link="base_footprint" />
-    </joint>
-
-    <!-- IMU -->
-    <link name="imu_link" />
-    <joint name="imu_joint" type="fixed">
-        <origin xyz="0.088 0.000 -0.015" rpy="0 0 -1.5708" />
-        <parent link="base_link"/>
-        <child link="imu_link"/>
-    </joint>
-
-    <!-- Altimeter -->
-    <link name="altimeter_link" />
-    <joint name="altimeter_joint" type="fixed">
-        <origin xyz="0.088 0.000 -0.015" />
-        <parent link="base_link" />
-        <child link="altimeter_link" />
-    </joint>
-
-    <!-- GPS -->
-    <link name="gps_link" />
-    <joint name="gps_joint" type="fixed">
-        <origin xyz="-0.560 -0.175 0.670" />
-        <parent link="base_link" />
-        <child link="gps_link" />
-    </joint>
-
-    <!-- RealSense -->
-    <!-- origin at bottom screw mount -->
-    <xacro:sensor_d455 name="d455_front" parent="base_link" use_nominal_extrinsics="true">
-        <origin xyz="0.125 0.105 0.350" rpy="0 0.349 0" />
-    </xacro:sensor_d455>
-    <xacro:sensor_d455 name="d455_back" parent="base_link" use_nominal_extrinsics="true">
-        <origin xyz="-0.605 -0.175 0.350" rpy="0 0.349 -3.1416" />
-    </xacro:sensor_d455>
-    <xacro:sensor_d455 name="d455_left" parent="base_link" use_nominal_extrinsics="true">
-        <origin xyz="0.080 0.150 0.300" rpy="0 0.349 1.5708" />
-    </xacro:sensor_d455>
-    <xacro:sensor_d455 name="d455_right" parent="base_link" use_nominal_extrinsics="true">
-        <origin xyz="-0.560 -0.22 0.300" rpy="0 0.349 -1.5708" />
-    </xacro:sensor_d455>
-
-    <!-- additional robot model -->
-    <xacro:include filename="$(find kalman_description)/urdf/sim_model.urdf.xacro" />
+        <!-- additional robot model -->
+        <xacro:include filename="$(find kalman_description)/urdf/visual_model.urdf.xacro" />
+        <xacro:visual_model base_link="base_link" />
+    </xacro:macro>
 </robot>

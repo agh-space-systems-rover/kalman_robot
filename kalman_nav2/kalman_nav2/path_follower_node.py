@@ -3,8 +3,6 @@ import rclpy
 import rclpy.node
 import rclpy.qos
 import tf2_ros
-import quaternion
-import time
 from service_based_nav2_controller_srvs.srv import ComputeVelocityCommands
 from geometry_msgs.msg import TwistStamped, PointStamped
 from rcl_interfaces.msg import ParameterType, ParameterDescriptor
@@ -79,6 +77,27 @@ def fast_inv_uniform_scale_transform(m):
     inv_basis = fast_inv_uniform_scale_ortho_mat3(basis)
     inv_origin = inv_basis @ -origin
     return np.append(np.append(inv_basis, inv_origin, axis=1), [[0, 0, 0, 1]], axis=0)
+
+
+# input is wxyz
+def quat_to_basis(q: np.ndarray) -> np.ndarray:
+    return (
+        np.array(
+            [
+                1 - 2 * (q[2] * q[2] + q[3] * q[3]),
+                2 * (q[1] * q[2] + q[3] * q[0]),
+                2 * (q[1] * q[3] - q[2] * q[0]),
+                2 * (q[1] * q[2] - q[3] * q[0]),
+                1 - 2 * (q[1] * q[1] + q[3] * q[3]),
+                2 * (q[2] * q[3] + q[1] * q[0]),
+                2 * (q[1] * q[3] + q[2] * q[0]),
+                2 * (q[2] * q[3] - q[1] * q[0]),
+                1 - 2 * (q[1] * q[1] + q[2] * q[2]),
+            ]
+        )
+        .reshape(3, 3)
+        .T
+    )
 
 
 # This node generates twist commands based on the current path and the robot's pose.
@@ -210,16 +229,20 @@ class PathFollower(rclpy.node.Node):
         pos = np.array(
             [transform.translation.x, transform.translation.y, transform.translation.z]
         )
-        rot = np.quaternion(
-            transform.rotation.w,
-            transform.rotation.x,
-            transform.rotation.y,
-            transform.rotation.z,
+
+        mat = np.eye(4)
+        mat[:3, :3] = quat_to_basis(
+            np.array(
+                [
+                    transform.rotation.w,
+                    transform.rotation.x,
+                    transform.rotation.y,
+                    transform.rotation.z,
+                ]
+            )
         )
-        transform = np.eye(4)
-        transform[:3, :3] = quaternion.as_rotation_matrix(rot)
-        transform[:3, 3] = pos
-        return transform
+        mat[:3, 3] = pos
+        return mat
 
     def compute_velocity_commands_callback(
         self,

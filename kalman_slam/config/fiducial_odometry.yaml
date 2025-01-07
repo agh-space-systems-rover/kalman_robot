@@ -7,3 +7,4 @@
     robot_frame: base_link
     variance: 10.0
     max_dist: 5.0
+    max_num: 1

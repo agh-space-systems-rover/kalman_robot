@@ -14,28 +14,31 @@ def launch_point_cloud_utils_nodes(
     parameters: list,
     remappings: list,
     component_container: str,
-    rgb_ids: list,
+    rgbd_ids: list,
 ) -> list:
     if component_container:
         plugin = "point_cloud_utils::" + "".join(
             [x.capitalize() for x in name.split("_")]
         )
-        return [
-            LoadComposableNodes(
-                target_container=component_container,
-                composable_node_descriptions=[
-                    ComposableNode(
-                        package="point_cloud_utils",
-                        plugin=plugin,
-                        namespace=camera_id,
-                        parameters=parameters,
-                        remappings=remappings,
-                        extra_arguments=[{"use_intra_process_comms": True}],
-                    )
-                    for camera_id in rgb_ids
-                ],
-            )
-        ]
+        if rgbd_ids:
+            return [
+                LoadComposableNodes(
+                    target_container=component_container,
+                    composable_node_descriptions=[
+                        ComposableNode(
+                            package="point_cloud_utils",
+                            plugin=plugin,
+                            namespace=camera_id,
+                            parameters=parameters,
+                            remappings=remappings,
+                            extra_arguments=[{"use_intra_process_comms": True}],
+                        )
+                        for camera_id in rgbd_ids
+                    ],
+                )
+            ]
+        else:
+            return []
     else:
         return [
             Node(
@@ -45,7 +48,7 @@ def launch_point_cloud_utils_nodes(
                 parameters=parameters,
                 remappings=remappings,
             )
-            for camera_id in rgb_ids
+            for camera_id in rgbd_ids
         ]
 
 
@@ -118,6 +121,7 @@ def generate_launch_description():
         [
             DeclareLaunchArgument(
                 "component_container",
+                default_value="",
                 description="Name of an existing component container to use. Empty to disable composition.",
             ),
             DeclareLaunchArgument(

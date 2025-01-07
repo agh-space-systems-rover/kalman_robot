@@ -42,6 +42,10 @@ def load_local_ukf_config(rgbd_ids):
     # Return path to UKF config
     return ukf_params_path
 
+def find_available_fiducial_configs() -> set[str]:
+    fiducials_dir = get_package_share_path("kalman_slam") / "fiducials"
+    configs = [f.stem for f in fiducials_dir.glob("*.yaml")]
+    return set(configs)
 
 def launch_setup(context):
     component_container = LaunchConfiguration("component_container").perform(context)
@@ -61,32 +65,33 @@ def launch_setup(context):
 
     # visual odometry
     if component_container:
-        description += [
-            LoadComposableNodes(
-                target_container=component_container,
-                composable_node_descriptions=[
-                    ComposableNode(
-                        package="rtabmap_odom",
-                        plugin="rtabmap_odom::RGBDOdometry",
-                        namespace=f"{camera_id}",
-                        parameters=[
-                            str(
-                                get_package_share_path("kalman_slam")
-                                / "config"
-                                / "rgbd_odometry.yaml"
-                            )
-                        ],
-                        remappings={
-                            "rgb/image": f"color/image_raw",
-                            "depth/image": f"aligned_depth_to_color/image_raw",
-                            "rgb/camera_info": f"color/camera_info",
-                        }.items(),
-                        extra_arguments=[{"use_intra_process_comms": True}],
-                    )
-                    for camera_id in rgbd_ids
-                ],
-            ),
-        ]
+        if rgbd_ids:
+            description += [
+                LoadComposableNodes(
+                    target_container=component_container,
+                    composable_node_descriptions=[
+                        ComposableNode(
+                            package="rtabmap_odom",
+                            plugin="rtabmap_odom::RGBDOdometry",
+                            namespace=f"{camera_id}",
+                            parameters=[
+                                str(
+                                    get_package_share_path("kalman_slam")
+                                    / "config"
+                                    / "rgbd_odometry.yaml"
+                                )
+                            ],
+                            remappings={
+                                "rgb/image": f"color/image_raw",
+                                "depth/image": f"aligned_depth_to_color/image_raw",
+                                "rgb/camera_info": f"color/camera_info",
+                            }.items(),
+                            extra_arguments=[{"use_intra_process_comms": True}],
+                        )
+                        for camera_id in rgbd_ids
+                    ],
+                ),
+            ]
     else:
         description += [
             Node(
@@ -191,32 +196,6 @@ def launch_setup(context):
                 "odometry/filtered": "odometry/global",  # Sends filtered odometry to navsat_transform_node.
             }.items(),
         ),
-        # Origin pose at /local_xy_origin is needed for MapViz.
-        # We use the UTM frame for navigation, but MapViz requires its own WGS84 origin.
-        Node(
-            package="swri_transform_util",
-            executable="initialize_origin.py",
-            parameters=[
-                (
-                    {
-                        "local_xy_origin": "manual",  # != "auto"
-                        "local_xy_origins": [
-                            gps_datum[0],
-                            gps_datum[1],
-                            0.0,
-                            0.0,
-                        ],
-                    }
-                    if gps_datum
-                    else {
-                        "local_xy_origin": "auto",
-                    }
-                )
-            ],
-            remappings=[
-                ("fix", "gps/fix/filtered"),
-            ],
-        ),
     ]
 
     if fiducials != "":
@@ -291,18 +270,23 @@ def generate_launch_description():
         [
             DeclareLaunchArgument(
                 "component_container",
+                default_value="",
                 description="Name of an existing component container to use. Empty to disable composition.",
             ),
             DeclareLaunchArgument(
                 "rgbd_ids",
+                default_value="",
                 description="Space-separated IDs of the depth cameras to use.",
             ),
             DeclareLaunchArgument(
                 "gps_datum",
+                default_value="",
                 description="The 'latitude longitude' of the map frame. Only used if GPS is enabled. Empty to assume first recorded GPS fix.",
             ),
             DeclareLaunchArgument(
                 "fiducials",
+                default_value="",
+                choices=["", *find_available_fiducial_configs()],
                 description="Name of the list of fiducials to use. Empty disables fiducial odometry.",
             ),
             OpaqueFunction(function=launch_setup),

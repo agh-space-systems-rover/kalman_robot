@@ -31,6 +31,9 @@ class FiducialOdometry(Node):
         self.max_dist = self.declare_parameter(
             "max_dist", 5.0
         )
+        self.max_num = self.declare_parameter(
+            "max_num", 1
+        )
 
         result = self.trigger_configure()
         if result != TransitionCallbackReturn.SUCCESS:
@@ -75,35 +78,40 @@ class FiducialOdometry(Node):
             return
         robot_pos = np.array([t.transform.translation.x, t.transform.translation.y])
 
-        # Get transforms from odom to fiducials.
-        avg_error = np.zeros(2)
-        num_fiducials = 0
+        # Calculate distances from robot to each fiducial and store in a list.
+        valid_fiducials = []
         for frame, pos in self.fiducials.items():
-            # Lookup TF from odom to fiducial.
             try:
+                # Lookup TF from odom to fiducial.
                 t = self.tf_buffer.lookup_transform(self.odom_frame.value, frame, lookup_time)
             except Exception as e:
-                # self.get_logger().error(f"Failed to lookup transform: {e}")
                 # If the TF lookup fails, it is likely because the fiducial is not visible.
                 continue
+
             # Extract the position from the transform.
             odom_pos = np.array([t.transform.translation.x, t.transform.translation.y])
+            distance = np.linalg.norm(odom_pos - robot_pos)
 
-            # Discard if the fiducial is too far away.
-            if np.linalg.norm(odom_pos - robot_pos) > self.max_dist.value:
-                continue
+            # Store only fiducials within the max distance.
+            if distance <= self.max_dist.value:
+                valid_fiducials.append((frame, pos, odom_pos, distance))
 
+        # If no valid fiducials are found, return early.
+        if not valid_fiducials:
+            return
+
+        # Sort fiducials by distance (ascending) and limit to max_num.
+        valid_fiducials.sort(key=lambda x: x[3])  # Sort by distance (4th item in tuple)
+        if self.max_num.value > 0:
+            valid_fiducials = valid_fiducials[:self.max_num.value]  # Take closest `max_num` fiducials
+
+        # Compute the error using only the closest fiducials.
+        avg_error = np.zeros(2)
+        for frame, pos, odom_pos, distance in valid_fiducials:
             # Find odom error.
             error = odom_pos - np.array(pos)
             avg_error += error
-            num_fiducials += 1
-
-        # If no fiducials are visible, do nothing.
-        if num_fiducials == 0:
-            return
-
-        # Compute the average error.
-        avg_error /= num_fiducials
+        avg_error /= len(valid_fiducials)
 
         # Create the odometry message.
         msg = Odometry()

@@ -4,38 +4,6 @@ from launch_ros.actions import Node, LoadComposableNodes
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
 from launch.substitutions import LaunchConfiguration
 from launch_ros.descriptions import ComposableNode
-import jinja2
-import yaml
-import os
-
-
-# TODO: remove this once we're sure that the tracker works
-# def gen_tracker_config(rgbd_id):
-#     # Load config template
-#     with open(
-#         str(
-#             get_package_share_path("kalman_aruco") / "config" / "aruco_tracker.yaml.j2"
-#         ),
-#         "r",
-#     ) as f:
-#         config_template = jinja2.Template(f.read())
-
-#     # Render config with camera IDs
-#     config_yaml = config_template.render(
-#         rgbd_id=rgbd_id,
-#     )
-
-#     # Load config
-#     params = yaml.load(config_yaml, Loader=yaml.FullLoader)
-
-#     # Save config to file
-#     params_path = f"/tmp/kalman/aruco_tracker.{rgbd_id}.{os.getpid()}.yaml"
-#     os.makedirs(os.path.dirname(params_path), exist_ok=True)
-#     with open(params_path, "w") as f:
-#         yaml.dump(params, f)
-
-#     # Return path to config
-#     return params_path
 
 
 def launch_setup(context):
@@ -100,12 +68,12 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument(
                 "rgbd_ids",
-                default_value="",
                 description="Space-separated IDs of the RGBD cameras to use. Regular cameras are not supported yet.",
             ),
             DeclareLaunchArgument(
                 "dict",
                 default_value="4X4_50",
+                choices=[f"{x}X{x}_{s}" for x in [4, 5, 6, 7, 8] for s in [50, 100, 250, 1000]] + ["ARUCO_ORIGINAL"],
                 description="Dictionary of markers to use.",
             ),
             DeclareLaunchArgument(
