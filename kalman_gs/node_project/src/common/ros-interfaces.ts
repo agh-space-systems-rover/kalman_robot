@@ -69,6 +69,27 @@ export type Twist = {
   angular?: Vector3;
 };
 
+export type Pose = {
+  position?: Point;
+  orientation?: Quaternion;
+};
+
+export type PoseWithCovariance = {
+  pose?: Pose;
+  covariance?: number[];
+};
+
+export type TwistWithCovariance = {
+  twist?: Twist;
+  covariance?: number[];
+};
+
+export type Odometry = {
+  header?: Header;
+  pose?: PoseWithCovariance;
+  twist?: TwistWithCovariance;
+};
+
 // kalman_interfaces
 
 export type SupervisorTfGoal = {
