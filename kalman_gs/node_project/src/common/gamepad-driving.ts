@@ -11,16 +11,17 @@ const TURN_RADIUS = 0.75;
 const ROTATE_IN_PLACE_SPEED = 1.57;
 const TRUMPET_LEFT = new Audio('bike_horn.mp3');
 const TRUMPET_RIGHT = new Audio('bells.mp3');
-const MAX_TURN_ANGLE = 1.0; // Max angle
-const MIN_TURN_ANGLE = -1.0; // Min angle
-const TURN_ANGLE_STEP = 0.05; // Angle step
 
 let trumpetLeft = 0;
 let trumpetRight = 0;
+//
+// range of maximum angle
+const MAX_TURN_ANGLE = 1.0; // max angle
+const MIN_TURN_ANGLE = -1.0; // min angle
+const TURN_ANGLE_STEP = 0.05; // angle step
 
 let lastDrive: Drive = null;
-let speedFactor = MIN_SPEED_FACTOR; 
-let turnFactor =  TURN_ANGLE_STEP;
+let speedFactor = 1; // test with MIN_SPEED_FACTOR
 let maxTurnAngle = 0; // angle at the start 
 let requestedTurnAngle = 0;
 
@@ -33,23 +34,24 @@ window.addEventListener('ros-connect', () => {
 
   setInterval(() => {
     let speed = 0; // RT - LT
-    let turn = 1; // LX
+    let turn = 0; // LX
     let angle = 0; // RX
     let shoulder = false; // RB/LB
     let changeSpeed = 0; // Y - X
-
+    //maxAngle = readGamepads('right-trigger', 'wheels') - readGamepads('left-trigger', 'wheels');
     speed = readGamepads('right-trigger', 'wheels') - readGamepads('left-trigger', 'wheels');
     turn = readGamepads('left-x', 'wheels');
     angle = readGamepads('right-x', 'wheels');
     shoulder = readGamepads('left-shoulder', 'wheels') > 0 || readGamepads('right-shoulder', 'wheels') > 0;
 
-    // Velocity change
+    // velocity
     if (readGamepads('dpad-up', 'wheels')) {
-      changeSpeed = 1;  // Velocity up
+      changeSpeed = 1;  // velocity up
     }
     if (readGamepads('dpad-down', 'wheels')) {
-      changeSpeed = -1; // Velocity down
+      changeSpeed = -1; // velocity down
     }
+
 
     // Update requested turn angle based on dpad-right and dpad-left
     if (readGamepads('dpad-right', 'wheels')) {
@@ -59,15 +61,13 @@ window.addEventListener('ros-connect', () => {
       requestedTurnAngle = Math.max(requestedTurnAngle - TURN_ANGLE_STEP, MIN_TURN_ANGLE);
     }
 
+    // Apply requested turn angle only when left stick (turn) is used
     if (turn !== 0) {
       maxTurnAngle = Math.abs(requestedTurnAngle);
     }
 
-    // Turn factor change
-    turnFactor += (requestedTurnAngle * TURN_ANGLE_STEP) / RATE;
-    turnFactor = Math.max(MIN_TURN_ANGLE, Math.min(MAX_TURN_ANGLE, turnFactor));
-    turn *= turnFactor;
-
+    // Ensure the turn value respects the max turn angle
+    turn = Math.max(-maxTurnAngle, Math.min(turn, maxTurnAngle));
 
     if (readGamepads('left-stick', 'wheels') == 1 && trumpetLeft == 0) {
       TRUMPET_LEFT.play();
