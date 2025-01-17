@@ -12,7 +12,11 @@ def generate_launch_description():
             "clouds": {
                 "rgbd_ids": RGBD_IDS,
             },
-            "slam": {"rgbd_ids": RGBD_IDS, "use_mag": "false"},
+            "slam": {
+                "rgbd_ids": RGBD_IDS,
+                "use_mag": "false",
+                "gps_datum": "-34.52825 138.6859",  # EXTERRES Analogue Facility, Roseworthy SA 5371
+            },
             # "nav2": {
             #     "rgbd_ids": RGBD_IDS,
             # },
