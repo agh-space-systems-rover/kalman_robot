@@ -86,8 +86,8 @@ class ArmGs(TypedDict):
 class Hardware(TypedDict):
     component_container: str
     "Name of an existing component container to use. Empty by default to disable composition."
-    master: Literal["arm", "gs", "pc"]
-    "Start the master driver in a given mode ('pc', 'gs' or 'arm'). Leave empty to disable. Valid choices are: ['pc', 'gs', 'arm']"
+    master: Literal["", "arm", "gs", "pc"]
+    "Start the master driver in a given mode ('pc', 'gs' or 'arm'). Leave empty to disable. Valid choices are: ['', 'pc', 'gs', 'arm']"
     rgbd_ids: str
     "Space-separated IDs of the depth cameras to use (d455_front, d455_back, ...). Leave empty to disable the cameras."
     imu: Literal["", "full", "no_mag"]

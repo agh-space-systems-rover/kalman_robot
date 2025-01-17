@@ -234,7 +234,8 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument(
                 "master",
-                choices=["pc", "gs", "arm"],
+                default_value="",
+                choices=["", "pc", "gs", "arm"],
                 description="Start the master driver in a given mode ('pc', 'gs' or 'arm'). Leave empty to disable.",
             ),
             DeclareLaunchArgument(
