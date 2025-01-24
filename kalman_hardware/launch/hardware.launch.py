@@ -113,7 +113,7 @@ def launch_setup(context):
         # Throw if the calibration parameters file does not exist.
         if not os.path.exists(phidgets_spatial_calibration_params_path):
             raise RuntimeError(
-                "Cannot launch without calibration parameters. Please start the compass_calibration node and invoke the calibration service to generate the required configuration file."
+                "Cannot launch without calibration parameters. Please launch kalman_hardware with compass_calibration set to desired calibration duration and drive the rover around. For autonomous calibration, use:\nros2 launch kalman_bringup util_compasscal.launch.py"
             )
 
         # Load IMU driver and filter.
