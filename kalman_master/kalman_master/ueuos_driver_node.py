@@ -7,6 +7,7 @@ from kalman_interfaces.srv import SetUeuosColor, SetUeuosEffect, SetUeuosState
 from kalman_interfaces.msg import MasterMessage
 
 NUMBER_OF_RETRIES_PER_CALL = 10
+RETRY_DT = 0.5
 
 
 class UeuosDriver(Node):
@@ -26,8 +27,8 @@ class UeuosDriver(Node):
         self.tick_msg = MasterMessage(
             cmd=MasterMessage.UEUOS_SET_STATE, data=[SetUeuosState.Request.OFF]
         )
-        self.frames_to_send = NUMBER_OF_RETRIES_PER_CALL
-        self.create_timer(1.0, self.tick)
+        self.frames_to_send = 0
+        self.create_timer(RETRY_DT, self.tick)
 
     def set_color(
         self, request: SetUeuosColor.Request, response: SetUeuosColor.Response
