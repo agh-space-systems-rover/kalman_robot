@@ -106,10 +106,11 @@ class SerialDriver:
         """
         if self.on_error_sleep_rate is not None:
             self.on_error_sleep_rate.destroy()
-        self.malformed_packets_pub.destroy()
-        self.baudrate_debug_pub.destroy()
-        self.timer_log_malformed_packets.destroy()
-        self.timer_log_data.destroy()
+            self.node.destroy_rate(self.on_error_sleep_rate)
+        self.node.destroy_publisher(self.malformed_packets_pub)
+        self.node.destroy_publisher(self.baudrate_debug_pub)
+        self.node.destroy_timer(self.timer_log_malformed_packets)
+        self.node.destroy_timer(self.timer_log_data)
         self.serial.close()
 
     def log_malformed_packets(self) -> None:
@@ -185,7 +186,7 @@ class SerialDriver:
         """
         Initialize the serial port.
         """
-        self.on_error_sleep_rate = self.create_rate(1)
+        self.on_error_sleep_rate = self.node.create_rate(1)
         while True:
             try:
                 self.serial.open()

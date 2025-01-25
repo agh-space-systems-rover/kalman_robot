@@ -38,11 +38,12 @@ class MasterCom(Node):
         super().__init__("master_com")
 
         # Declare params
-        self.port = self.declare_parameter("port", "").value
+        self.designated_port = self.declare_parameter("port", "").value
         self.baud_rate = self.declare_parameter("baud_rate", 115200).value
 
+        self.port = None
         self.driver = None
-        self.reconnect()
+        self.try_connect()
 
         self.sub = self.create_subscription(
             MasterMessage, "master_com/ros_to_master", self.ros_to_master, 10
@@ -61,42 +62,58 @@ class MasterCom(Node):
 
         super().destroy_node()
 
-    def reconnect(self) -> None:
+    # Selects port and creates driver
+    # Might fail, and in this case self.port and self.driver will remain None
+    def try_connect(self) -> None:
+        # Clean up port and driver
+        self.port = None
         if self.driver:
             self.driver.destroy()
+            self.driver = None
 
-        while not self.driver:
-            if not self.port:
-                # Attempt to find the Master UART port indefinitely.
-                while True:
-                    self.port = find_tty_by_model(
-                        "Master_Autonomy_UART", "USB-RS422_Converter", "Kalman_GS_Converter"
+        if not self.designated_port:
+            # Attempt to find the Master UART port indefinitely.
+            while True:
+                self.port = find_tty_by_model(
+                    "Master_Autonomy_UART",
+                    "USB-RS422_Converter",
+                    "Kalman_GS_Converter",
+                )
+                if self.port is None:
+                    self.get_logger().error(
+                        "Master was not found. Will retry in 3 seconds."
                     )
-                    if self.port is None:
-                        self.get_logger().error(
-                            "Master was not found. Will retry in 5 seconds."
-                        )
-                        time.sleep(5)
-                    else:
-                        break
+                    time.sleep(3)
+                else:
+                    break
+        else:
+            # If designated port is set, use it.
+            self.port = self.designated_port
 
-            try:
-                self.driver = SerialDriver(
-                    self,
-                    port_name=self.port,
-                    start_byte="<",
-                    stop_byte=">",
-                    baud_rate=self.baud_rate,
-                    ascii_mode=False,
-                )
-                self.get_logger().info(f"Master is connected via {self.port}.")
-            except (SerialException, OSError):
-                self.get_logger().error(
-                    f"Master is not available via {self.port}. Will retry in 5 seconds."
-                )
-                time.sleep(5)
+        try:
+            self.driver = SerialDriver(
+                self,
+                port_name=self.port,
+                start_byte="<",
+                stop_byte=">",
+                baud_rate=self.baud_rate,
+                ascii_mode=False,
+            )
+            self.get_logger().info(f"Master is connected via {self.port}.")
+        except (SerialException, OSError):
+            self.port = None  # Clear port if driver creation failed
+            self.get_logger().error(
+                f"Master is not available via {self.port}. Will retry in 3 seconds."
+            )
+            time.sleep(3)
 
     def master_to_ros(self) -> None:
+        # Continue to try to connect if driver is not initialized
+        if not self.driver:
+            self.try_connect()
+            return
+
+        # Tick the driver, and if it fails, try to reconnect
         try:
             self.driver.tick()
             msgs: List[SerialMsg] = self.driver.read_all_msgs()
@@ -104,7 +121,7 @@ class MasterCom(Node):
             self.get_logger().error(
                 "Serial port has lost connection. Attempting to reconnect."
             )
-            self.reconnect()
+            self.try_connect()
             return
 
         for msg in msgs:
@@ -123,6 +140,11 @@ class MasterCom(Node):
             self.pubs[msg.cmd].publish(ros_msg)
 
     def ros_to_master(self, ros_msg: MasterMessage) -> None:
+        # Continue to try to connect if driver is not initialized
+        if not self.driver:
+            self.try_connect()
+            return
+
         serial_msg = SerialMsg(ros_msg.cmd, len(ros_msg.data), ros_msg.data)
 
         try:
@@ -132,7 +154,7 @@ class MasterCom(Node):
             self.get_logger().error(
                 "Serial port has lost connection. Attempting to reconnect."
             )
-            self.reconnect()
+            self.try_connect()
             return
 
 
@@ -145,3 +167,6 @@ def main():
         rclpy.shutdown()
     except KeyboardInterrupt:
         pass
+
+
+main()

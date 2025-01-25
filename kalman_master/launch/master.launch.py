@@ -16,6 +16,12 @@ PORTS = {"pc": "/tmp/ttyV2"}
 
 def start_ros_link(side: str, rover_endpoint: str) -> Node:
     return Node(
+        name=f"ros_link_"
+        + (
+            "gs_to_" + rover_endpoint
+            if side == "station"
+            else rover_endpoint + "_to_gs"
+        ),
         package="kalman_master",
         executable="ros_link",
         parameters=[
