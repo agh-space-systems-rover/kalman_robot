@@ -1,6 +1,6 @@
 from kalman_bringup import gen_launch
 
-WIFI = False
+WIFI = False  # NOTE: Set this to use Wi-Fi and see RViz, but I think that RF-only is more stable.
 
 
 def generate_launch_description():

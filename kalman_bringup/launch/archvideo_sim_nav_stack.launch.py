@@ -9,18 +9,12 @@ def generate_launch_description():
             "description": {
                 "layout": "autonomy",
             },
-            "hardware": {
-                "master": "pc",
-                "rgbd_ids": RGBD_IDS,
-                "imu": "full",
-            },
             "clouds": {
                 "rgbd_ids": RGBD_IDS,
             },
             "slam": {
                 "rgbd_ids": RGBD_IDS,
                 "gps_datum": "50.06623534 19.9132241",  # ERC2024 Marsyard S1, Kraków
-                "fiducials": "erc2024",
                 "use_mag": "true",
             },
             "nav2": {
@@ -28,11 +22,6 @@ def generate_launch_description():
                 "static_map": "erc2024",
             },
             "wheels": {},
-            "aruco": {
-                "rgbd_ids": RGBD_IDS,
-                "dict": "5X5_100",
-                "size": "0.15",
-            },
             "supervisor": {},
         }
     )
