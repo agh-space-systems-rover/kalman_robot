@@ -19,7 +19,7 @@ def generate_launch_description():
             },
             "slam": {
                 "rgbd_ids": RGBD_IDS,
-                "gps_datum": "FIXME",  # FIXME
+                "gps_datum": "50.337956 19.52093",  # FIXME
             },
             "nav2": {
                 "rgbd_ids": RGBD_IDS,
