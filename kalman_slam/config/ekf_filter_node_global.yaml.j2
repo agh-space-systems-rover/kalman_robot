@@ -21,9 +21,9 @@
     # Copy map->base_link from odom->base_link
     odom0: odometry/local
     odom0_config: [false, false, false,
-                   true,  true, false,
+                   true,  true,  false,
                    true,  true,  true,
-                   false,  false,  true,
+                   false, false, true,
                    false, false, false]
     odom0_differential: false
     odom0_relative: false
@@ -38,7 +38,7 @@
                   true,  true,  false,
 {% endif %}
                   false, false, false,
-                  false, false, false,
+                  false, false, true,
                   false, false, false]
     imu0_differential: false
     imu0_relative: false
