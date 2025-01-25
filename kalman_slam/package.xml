@@ -17,6 +17,7 @@
   <exec_depend>rtabmap_ros</exec_depend>
   <exec_depend>rtabmap_odom</exec_depend>
   <exec_depend>python3-jinja2</exec_depend>
+  <exec_depend>python3-numpy</exec_depend>
   
   <exec_depend>point_cloud_utils</exec_depend>
 

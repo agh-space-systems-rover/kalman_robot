@@ -149,7 +149,10 @@ def launch_setup(context):
             executable="gps_spoofer",
             remappings=[
                 ("spoof_gps", "spoof_gps"),
-                ("fix", "gps/fix"),
+                ("spoof_gps/look_at", "spoof_gps/look_at"),
+                ("imu", "imu/spoofed"),
+                ("fix/in", "gps/filtered"),
+                ("fix/out", "gps/fix"),
             ],
         ),
         # Navsat transform listens to global odometry (map->base_link) from the second Kalman filter, ekf_filter_node_gps.
