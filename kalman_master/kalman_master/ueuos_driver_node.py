@@ -6,7 +6,7 @@ from rclpy.node import Node
 from kalman_interfaces.srv import SetUeuosColor, SetUeuosEffect, SetUeuosState
 from kalman_interfaces.msg import MasterMessage
 
-NUMBER_OF_RETRIES_PER_CALL = 3
+NUMBER_OF_RETRIES_PER_CALL = 10
 
 
 class UeuosDriver(Node):
