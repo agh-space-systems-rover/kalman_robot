@@ -28,7 +28,7 @@ import { ros } from '../common/ros';
 import { JointState } from '../common/ros-interfaces';
 import { faLock, faLockOpen } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import React, { useState, useEffect, useCallback, useContext, createContext } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Topic } from 'roslib';
 
 let lastJointState: JointState | null = null;
@@ -109,8 +109,6 @@ function ArmStatus() {
   const [rotationalScale, setRotationalScale] = useState<number | null>(
     lastServoRotationalScale
   );
-
-  
 
   const rerender = useCallback(() => {
     setRerenderCount((count) => count + 1);
@@ -228,8 +226,6 @@ function ArmStatus() {
     </div>
   );
 
-  const { setCurrentPoseId } = useContext(ArmContext);
-
   return (
     <div className={styles['arm-status']}>
       <h1 className={styles['status-header']}>Arm Status</h1>
@@ -314,24 +310,12 @@ function ArmStatus() {
           {getAxisLockIcon('yaw')}
         </div>
       </div>
-      <h3 className={styles['scales-header']}>Restart joints</h3>
-      <div
-        className={`${styles['pose-button']} ${styles['pose-abort']}`}
-        onClick = {() => {
-          // sendPoseRequest(5)
-          setCurrentPoseId(5)
-          console.log('Restarting joints')
-        } 
-        
-      }>Restart
-      </div>
     </div>
   );
 }
 
 function poseJoints(jointValues) {
   return (
-    
     <div className={styles['status']}>
       <div className={styles['joint-column'] + ' ' + styles['align-left']}>
         {getJointNames()}
@@ -384,10 +368,7 @@ function PoseRequester() {
     return false;
   };
 
-  // const [currentPoseId, setCurrentPoseId] = useState(0);
-  const armContext = useContext(ArmContext);
-  const currentPoseId = armContext.currentPoseId;
-  const setCurrentPoseId = armContext.setCurrentPoseId;
+  const [currentPoseId, setCurrentPoseId] = useState(0);
 
   const namesAndValues = getNamesAndValues();
 
@@ -402,7 +383,6 @@ function PoseRequester() {
         key={pose.id}
         className={`${styles['pose-button']} ${styles['pose-option']} ${pose.id === currentPoseId ? styles['pose-selected'] : ''}`}
         onClick={() => {
-          // DEBUG OLA: here 1
           setCurrentPoseId(pose.id);
         }}
       >
@@ -508,15 +488,6 @@ function PoseRequester() {
   );
 }
 
-function ResetPose() {
-  const predefinedJointValues =
-  predefinedPoses.POSES_JOINTS[
-    predefinedPoses.PREDEFINED_POSES.poses[5].name
-  ];
-  return (
-    <h1>HELLO</h1>
-  )
-  }
 function TrajectoryRequester() {
   const [rerenderCount, setRerenderCount] = useState(0);
   const rerender = useCallback(() => {
@@ -654,24 +625,14 @@ function TrajectoryRequester() {
   );
 }
 export default function Arms() {
-  const [currentPoseId, setCurrentPoseId] = useState(0);
-
   return (
-    <ArmContext.Provider value={{ currentPoseId, setCurrentPoseId }}>
-      <div className={styles['arm-panel']}>
-        <ArmStatus />
-        
-        <div className={styles['trajectory-and-pose']}>
-          <PoseRequester />
-          
-          <div className={styles['extra-space']} />
-          <TrajectoryRequester />
-        </div>
-        
+    <div className={styles['arm-panel']}>
+      <ArmStatus />
+      <div className={styles['trajectory-and-pose']}>
+        <PoseRequester />
+        <div className={styles['extra-space']} />
+        <TrajectoryRequester />
       </div>
-    </ArmContext.Provider>
+    </div>
   );
 }
-
-// TODO(ola): move all state in this page to this context
-const ArmContext = createContext(null)
