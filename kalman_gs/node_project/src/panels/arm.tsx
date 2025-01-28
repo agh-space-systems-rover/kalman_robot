@@ -1,25 +1,26 @@
 import styles from './arm.module.css';
 
+
 import {
-  setLinearScaleTo,
-  setRotationalScaleTo,
-  lastServoLinearScale,
-  lastServoRotationalScale,
-  abortPose,
-  sendPoseRequest,
-  keepAlivePose,
-  lastStatusPose,
-  keepAliveTrajectory,
-  sendTrajectoryRequest,
-  abortTrajectory,
-  lastStatusTrajectory,
-  toggleArmAxisLock,
-  armAxesLocks
+ setLinearScaleTo,
+ setRotationalScaleTo,
+ lastServoLinearScale,
+ lastServoRotationalScale,
+ abortPose,
+ sendPoseRequest,
+ keepAlivePose,
+ lastStatusPose,
+ keepAliveTrajectory,
+ sendTrajectoryRequest,
+ abortTrajectory,
+ lastStatusTrajectory,
+ toggleArmAxisLock,
+ armAxesLocks
 } from '../common/arm';
 import {
-  armJointsLocks,
-  currentAxisLockFocus,
-  toggleArmJointLock
+ armJointsLocks,
+ currentAxisLockFocus,
+ toggleArmJointLock
 } from '../common/gamepad-arming';
 import predefinedPoses from '../common/predefined-arm-poses';
 import '../common/predefined-arm-trajectories';
@@ -28,291 +29,349 @@ import { ros } from '../common/ros';
 import { JointState } from '../common/ros-interfaces';
 import { faLock, faLockOpen } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useContext, createContext } from 'react';
 import { Topic } from 'roslib';
+import * as ROSLIB from 'roslib';
+
 
 let lastJointState: JointState | null = null;
 
-window.addEventListener('ros-connect', () => {
-  const jointTopic = new Topic({
-    ros: ros,
-    name: '/arm_controllers/joint_states',
-    messageType: 'sensor_msgs/JointState'
-  });
 
-  jointTopic.subscribe((msg: JointState) => {
-    lastJointState = msg;
-    window.dispatchEvent(new Event('joint-state'));
-  });
+window.addEventListener('ros-connect', () => {
+ const jointTopic = new Topic({
+   ros: ros,
+   name: '/arm_controllers/joint_states',
+   messageType: 'sensor_msgs/JointState'
+ });
+
+
+ jointTopic.subscribe((msg: JointState) => {
+   lastJointState = msg;
+   window.dispatchEvent(new Event('joint-state'));
+ });
 });
 
+
 const jointLimitsRad = [
-  { min: -6.2815926, max: 6.2815926 },
-  { min: -3.1415926, max: 3.1415926 },
-  { min: -2.88, max: 2.88 },
-  { min: -6.4, max: 6.4 },
-  { min: -1.75, max: 1.75 },
-  { min: -3.4032, max: 3.4032 }
+ { min: -6.2815926, max: 6.2815926 },
+ { min: -3.1415926, max: 3.1415926 },
+ { min: -2.88, max: 2.88 },
+ { min: -6.4, max: 6.4 },
+ { min: -1.75, max: 1.75 },
+ { min: -3.4032, max: 3.4032 }
 ];
 
+
 function rad2deg(rad: number) {
-  return (rad * 180) / Math.PI;
+ return (rad * 180) / Math.PI;
 }
+
 
 function getJointNames() {
-  return Array.from({ length: 6 }, (_, i) => (
-    <div className={styles['joint-name']} key={i}>
-      Joint {i + 1}:
-    </div>
-  ));
+ return Array.from({ length: 6 }, (_, i) => (
+   <div className={styles['joint-name']} key={i}>
+     Joint {i + 1}:
+   </div>
+ ));
 }
+
 
 function getNamesAndValues() {
-  let namesAndValues = lastJointState
-    ? lastJointState.name.map((name, i) => {
-        return { name: name, value: lastJointState!.position[i] };
-      })
-    : [];
+ let namesAndValues = lastJointState
+   ? lastJointState.name.map((name, i) => {
+       return { name: name, value: lastJointState!.position[i] };
+     })
+   : [];
 
-  namesAndValues.sort((a, b) => {
-    return a.name.localeCompare(b.name);
-  });
 
-  return namesAndValues.slice(1);
+ namesAndValues.sort((a, b) => {
+   return a.name.localeCompare(b.name);
+ });
+
+
+ return namesAndValues.slice(1);
 }
+
 
 function isCloseEnough(
-  jointsA: number[],
-  jointsB: number[],
-  maxDistance: number,
-  checkedJoints: number[] = []
+ jointsA: number[],
+ jointsB: number[],
+ maxDistance: number,
+ checkedJoints: number[] = []
 ) {
-  if (jointsA.length !== jointsB.length) {
-    return false;
-  }
-  for (let i = 0; i < jointsA.length; i++) {
-    if (
-      i + 1 in checkedJoints &&
-      Math.abs(jointsA[i] - jointsB[i]) > maxDistance
-    ) {
-      return false;
-    }
-  }
-  return true;
+ if (jointsA.length !== jointsB.length) {
+   return false;
+ }
+ for (let i = 0; i < jointsA.length; i++) {
+   if (
+     i + 1 in checkedJoints &&
+     Math.abs(jointsA[i] - jointsB[i]) > maxDistance
+   ) {
+     return false;
+   }
+ }
+ return true;
 }
+
 
 function ArmStatus() {
-  const [rerenderCount, setRerenderCount] = useState(0);
-  const [linearScale, setLinearScale] = useState<number | null>(
-    lastServoLinearScale
-  );
-  const [rotationalScale, setRotationalScale] = useState<number | null>(
-    lastServoRotationalScale
-  );
+ const handleRestartJoints = () => {
+   interface TriggerResponse {
+     success: boolean;
+     message: string;
+   }
+    const restartJointsService = new ROSLIB.Service({
+     ros: ros, // Assuming `ros` is the ROS connection object
+     name: '/restart_joints',
+     serviceType: 'std_srvs/srv/Trigger',
+   });
+    restartJointsService.callService({}, (result: TriggerResponse) => {
+     if (result.success) {
+       alert('Joints restarted successfully!');
+     } else {
+       alert('Failed to restart joints: ' + result.message);
+     }
+   });
+ };
+ const [rerenderCount, setRerenderCount] = useState(0);
+ const [linearScale, setLinearScale] = useState<number | null>(
+   lastServoLinearScale
+ );
+ const [rotationalScale, setRotationalScale] = useState<number | null>(
+   lastServoRotationalScale
+ );
 
-  const rerender = useCallback(() => {
-    setRerenderCount((count) => count + 1);
-    setLinearScale(lastServoLinearScale);
-    setRotationalScale(lastServoRotationalScale);
-  }, []);
 
-  useEffect(() => {
-    window.addEventListener('joint-state', rerender);
-    window.addEventListener('servo-linear-scale', rerender);
-    window.addEventListener('servo-rotational-scale', rerender);
-    window.addEventListener('arm-axis-lock-update', rerender);
-    window.addEventListener('arm-joint-lock-update', rerender);
-    return () => {
-      window.removeEventListener('joint-state', rerender);
-      window.removeEventListener('servo-linear-scale', rerender);
-      window.removeEventListener('servo-rotational-scale', rerender);
-      window.removeEventListener('arm-axis-lock-update', rerender);
-      window.removeEventListener('arm-joint-lock-update', rerender);
-    };
-  }, []);
 
-  const handleLinearScaleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseFloat(e.target.value);
-    if (!isNaN(value) && value >= 0 && value <= 1) {
-      setLinearScale(value);
-      setLinearScaleTo(value); // Update the external value
-    }
-  };
 
-  const handleRotationalScaleChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const value = parseFloat(e.target.value);
-    if (!isNaN(value) && value >= 0 && value <= 1) {
-      setRotationalScale(value);
-      setRotationalScaleTo(value); // Update the external value
-    }
-  };
+ const rerender = useCallback(() => {
+   setRerenderCount((count) => count + 1);
+   setLinearScale(lastServoLinearScale);
+   setRotationalScale(lastServoRotationalScale);
+ }, []);
 
-  const namesAndValues = getNamesAndValues();
-  const jointNames = getJointNames();
 
-  const jointRangeLeft = jointLimitsRad.map((limit, i) => (
-    <div className={styles['joint-range']} key={i}>
-      {rad2deg(limit.min).toFixed(0)}..
-    </div>
-  ));
+ useEffect(() => {
+   window.addEventListener('joint-state', rerender);
+   window.addEventListener('servo-linear-scale', rerender);
+   window.addEventListener('servo-rotational-scale', rerender);
+   window.addEventListener('arm-axis-lock-update', rerender);
+   window.addEventListener('arm-joint-lock-update', rerender);
+   return () => {
+     window.removeEventListener('joint-state', rerender);
+     window.removeEventListener('servo-linear-scale', rerender);
+     window.removeEventListener('servo-rotational-scale', rerender);
+     window.removeEventListener('arm-axis-lock-update', rerender);
+     window.removeEventListener('arm-joint-lock-update', rerender);
+   };
+ }, []);
 
-  const WARN_THRESHOLD = (20 * Math.PI) / 180;
-  const ERROR_THRESHOLD = (5 * Math.PI) / 180;
 
-  const distancesFromLimits = namesAndValues.map((joint, i) => {
-    if (i > 5) return 0;
-    return Math.min(
-      joint.value - jointLimitsRad[i].min,
-      jointLimitsRad[i].max - joint.value
-    );
-  });
+ const handleLinearScaleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+   const value = parseFloat(e.target.value);
+   if (!isNaN(value) && value >= 0 && value <= 1) {
+     setLinearScale(value);
+     setLinearScaleTo(value); // Update the external value
+   }
+ };
 
-  const stylesFromLimits = distancesFromLimits.map((distance) => {
-    if (distance < ERROR_THRESHOLD) {
-      return styles['error'] + ' ';
-    }
-    if (distance < WARN_THRESHOLD) {
-      return styles['warn'] + ' ';
-    }
-    return '';
-  });
 
-  const jointValues = Array.from({ length: 6 }, (_, i) => (
-    <div
-      className={
-        (stylesFromLimits[i] ? stylesFromLimits[i] : '') + styles['joint-value']
-      }
-      key={i}
-    >
-      {lastJointState ? rad2deg(namesAndValues[i].value).toFixed(0) : 'N/A'}
-    </div>
-  ));
+ const handleRotationalScaleChange = (
+   e: React.ChangeEvent<HTMLInputElement>
+ ) => {
+   const value = parseFloat(e.target.value);
+   if (!isNaN(value) && value >= 0 && value <= 1) {
+     setRotationalScale(value);
+     setRotationalScaleTo(value); // Update the external value
+   }
+ };
 
-  const jointRangeRight = jointLimitsRad.map((limit, i) => (
-    <div className={styles['joint-range']} key={i}>
-      ..{rad2deg(limit.max).toFixed(0)}
-    </div>
-  ));
 
-  const jointLocks = Array.from({ length: 6 }, (_, i) => (
-    <div
-      className={`${styles['joint-lock']} ${currentAxisLockFocus == i + 1 ? styles['lock-selected'] : ''}`}
-      key={i + armJointsLocks[`joint_${i + 1}`] * 10}
-      onClick={() => {
-        toggleArmJointLock(`joint_${i + 1}`);
-      }}
-    >
-      {armJointsLocks[`joint_${i + 1}`] ? (
-        <FontAwesomeIcon icon={faLock} />
-      ) : (
-        <FontAwesomeIcon icon={faLockOpen} />
-      )}
-    </div>
-  ));
+ const namesAndValues = getNamesAndValues();
+ const jointNames = getJointNames();
 
-  const getAxisLockIcon = (axis: string) => (
-    <div
-      className={`${styles['joint-lock']}`}
-      key={axis + armAxesLocks[axis]}
-      onClick={() => toggleArmAxisLock(axis)}
-    >
-      {armAxesLocks[axis] ? (
-        <FontAwesomeIcon icon={faLock} />
-      ) : (
-        <FontAwesomeIcon icon={faLockOpen} />
-      )}
-    </div>
-  );
 
-  return (
-    <div className={styles['arm-status']}>
-      <h1 className={styles['status-header']}>Arm Status</h1>
-      <div className={styles['status']}>
-        <div className={styles['joint-column'] + ' ' + styles['align-left']}>
-          {jointLocks}
-        </div>
-        <div className={styles['joint-column'] + ' ' + styles['align-left']}>
-          {jointNames}
-        </div>
-        <div className={styles['joint-column'] + ' ' + styles['align-left']}>
-          {jointRangeLeft}
-        </div>
-        <div className={styles['joint-column']}>{jointValues}</div>
-        <div className={styles['joint-column'] + ' ' + styles['align-right']}>
-          {jointRangeRight}
-        </div>
-      </div>
-      <h3 className={styles['scales-header']}>Scales</h3>
-      <div className={styles['scales']}>
-        <div className={styles['scale-column'] + ' ' + styles['align-left']}>
-          <div className={styles['scale-name']}>Linear scale:</div>
-          <div className={styles['scale-name']}>Rotational scale:</div>
-        </div>
-        <div className={styles['scale-column']}>
-          <div
-            className={styles['scale-value-holder']}
-            key={lastServoLinearScale}
-          >
-            <input
-              type='range'
-              min='0'
-              max='1'
-              step='0.01'
-              value={linearScale || 0}
-              onChange={handleLinearScaleChange}
-            />
-            <div className={styles['scale-value'] + ' ' + styles['blink']}>
-              {linearScale?.toFixed(2)}
-            </div>
-          </div>
+ const jointRangeLeft = jointLimitsRad.map((limit, i) => (
+   <div className={styles['joint-range']} key={i}>
+     {rad2deg(limit.min).toFixed(0)}..
+   </div>
+ ));
 
-          <div
-            className={styles['scale-value-holder']}
-            key={lastServoRotationalScale + 10}
-          >
-            <input
-              type='range'
-              min='0'
-              max='1'
-              step='0.01'
-              value={rotationalScale || 0}
-              onChange={handleRotationalScaleChange}
-            />
-            <div className={styles['scale-value'] + ' ' + styles['blink']}>
-              {rotationalScale?.toFixed(2)}
-            </div>
-          </div>
-        </div>
-      </div>
 
-      <h3 className={styles['scales-header']}>Axis locks</h3>
-      <div className={styles['locks']}>
-        <div className={styles['scale-column']}>
-          <div className={styles['lock-name']}>X: </div>
-          <div className={styles['lock-name']}>Y: </div>
-          <div className={styles['lock-name']}>Z: </div>
-        </div>
-        <div className={styles['scale-column']}>
-          {getAxisLockIcon('x')}
-          {getAxisLockIcon('y')}
-          {getAxisLockIcon('z')}
-        </div>
-        <div className={styles['scale-column']}>
-          <div className={styles['lock-name']}>Roll: </div>
-          <div className={styles['lock-name']}>Pitch: </div>
-          <div className={styles['lock-name']}>Yaw: </div>
-        </div>
-        <div className={styles['scale-column']}>
-          {getAxisLockIcon('roll')}
-          {getAxisLockIcon('pitch')}
-          {getAxisLockIcon('yaw')}
-        </div>
-      </div>
-    </div>
-  );
+ const WARN_THRESHOLD = (20 * Math.PI) / 180;
+ const ERROR_THRESHOLD = (5 * Math.PI) / 180;
+
+
+ const distancesFromLimits = namesAndValues.map((joint, i) => {
+   if (i > 5) return 0;
+   return Math.min(
+     joint.value - jointLimitsRad[i].min,
+     jointLimitsRad[i].max - joint.value
+   );
+ });
+
+
+ const stylesFromLimits = distancesFromLimits.map((distance) => {
+   if (distance < ERROR_THRESHOLD) {
+     return styles['error'] + ' ';
+   }
+   if (distance < WARN_THRESHOLD) {
+     return styles['warn'] + ' ';
+   }
+   return '';
+ });
+
+
+ const jointValues = Array.from({ length: 6 }, (_, i) => (
+   <div
+     className={
+       (stylesFromLimits[i] ? stylesFromLimits[i] : '') + styles['joint-value']
+     }
+     key={i}
+   >
+     {lastJointState ? rad2deg(namesAndValues[i].value).toFixed(0) : 'N/A'}
+   </div>
+ ));
+
+
+ const jointRangeRight = jointLimitsRad.map((limit, i) => (
+   <div className={styles['joint-range']} key={i}>
+     ..{rad2deg(limit.max).toFixed(0)}
+   </div>
+ ));
+
+
+ const jointLocks = Array.from({ length: 6 }, (_, i) => (
+   <div
+     className={`${styles['joint-lock']} ${currentAxisLockFocus == i + 1 ? styles['lock-selected'] : ''}`}
+     key={i + armJointsLocks[`joint_${i + 1}`] * 10}
+     onClick={() => {
+       toggleArmJointLock(`joint_${i + 1}`);
+     }}
+   >
+     {armJointsLocks[`joint_${i + 1}`] ? (
+       <FontAwesomeIcon icon={faLock} />
+     ) : (
+       <FontAwesomeIcon icon={faLockOpen} />
+     )}
+   </div>
+ ));
+
+
+ const getAxisLockIcon = (axis: string) => (
+   <div
+     className={`${styles['joint-lock']}`}
+     key={axis + armAxesLocks[axis]}
+     onClick={() => toggleArmAxisLock(axis)}
+   >
+     {armAxesLocks[axis] ? (
+       <FontAwesomeIcon icon={faLock} />
+     ) : (
+       <FontAwesomeIcon icon={faLockOpen} />
+     )}
+   </div>
+ );
+
+ return (
+   <div className={styles['arm-status']}>
+     <h1 className={styles['status-header']}>Arm Status</h1>
+     <div className={styles['status']}>
+       <div className={styles['joint-column'] + ' ' + styles['align-left']}>
+         {jointLocks}
+       </div>
+       <div className={styles['joint-column'] + ' ' + styles['align-left']}>
+         {jointNames}
+       </div>
+       <div className={styles['joint-column'] + ' ' + styles['align-left']}>
+         {jointRangeLeft}
+       </div>
+       <div className={styles['joint-column']}>{jointValues}</div>
+       <div className={styles['joint-column'] + ' ' + styles['align-right']}>
+         {jointRangeRight}
+       </div>
+     </div>
+     <h3 className={styles['scales-header']}>Scales</h3>
+     <div className={styles['scales']}>
+       <div className={styles['scale-column'] + ' ' + styles['align-left']}>
+         <div className={styles['scale-name']}>Linear scale:</div>
+         <div className={styles['scale-name']}>Rotational scale:</div>
+       </div>
+       <div className={styles['scale-column']}>
+         <div
+           className={styles['scale-value-holder']}
+           key={lastServoLinearScale}
+         >
+           <input
+             type='range'
+             min='0'
+             max='1'
+             step='0.01'
+             value={linearScale || 0}
+             onChange={handleLinearScaleChange}
+           />
+           <div className={styles['scale-value'] + ' ' + styles['blink']}>
+             {linearScale?.toFixed(2)}
+           </div>
+         </div>
+
+
+         <div
+           className={styles['scale-value-holder']}
+           key={lastServoRotationalScale + 10}
+         >
+           <input
+             type='range'
+             min='0'
+             max='1'
+             step='0.01'
+             value={rotationalScale || 0}
+             onChange={handleRotationalScaleChange}
+           />
+           <div className={styles['scale-value'] + ' ' + styles['blink']}>
+             {rotationalScale?.toFixed(2)}
+           </div>
+         </div>
+       </div>
+     </div>
+
+
+     <h3 className={styles['scales-header']}>Axis locks</h3>
+     <div className={styles['locks']}>
+       <div className={styles['scale-column']}>
+         <div className={styles['lock-name']}>X: </div>
+         <div className={styles['lock-name']}>Y: </div>
+         <div className={styles['lock-name']}>Z: </div>
+       </div>
+       <div className={styles['scale-column']}>
+         {getAxisLockIcon('x')}
+         {getAxisLockIcon('y')}
+         {getAxisLockIcon('z')}
+       </div>
+       <div className={styles['scale-column']}>
+         <div className={styles['lock-name']}>Roll: </div>
+         <div className={styles['lock-name']}>Pitch: </div>
+         <div className={styles['lock-name']}>Yaw: </div>
+       </div>
+       <div className={styles['scale-column']}>
+         {getAxisLockIcon('roll')}
+         {getAxisLockIcon('pitch')}
+         {getAxisLockIcon('yaw')}
+       </div>
+     </div>
+     <h3 className={styles['scales-header']}>Restart joints</h3>
+     <div
+       className={`${styles['pose-button']} ${styles['pose-abort']}`}
+       onClick = { () => {
+         console.log('Restarting joints');
+         handleRestartJoints();
+       }
+       }>Restart
+     </div>
+   </div>
+ );
 }
+
+
 
 function poseJoints(jointValues) {
   return (
