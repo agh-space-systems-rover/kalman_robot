@@ -175,7 +175,7 @@ window.addEventListener('ros-connect', () => {
       currentAxisLockFocus = ((currentAxisLockFocus + 4) % 6) + 1;
     }
     if (readGamepads('x-button', 'arm') > 0.5 && previousArmButtons['x-button'] <= 0.5) {
-      fastclickTopic.publish({ data: 100 });
+      fastclickTopic.publish({ data: 255 });
     }
     if (readGamepads('b-button', 'arm') > 0.5 && previousArmButtons['b-button'] <= 0.5) {
       fastclickTopic.publish({ data: 0 });
