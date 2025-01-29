@@ -133,4 +133,7 @@ station:
     - name: trajectory/keep_alive
       type: example_interfaces/msg/Empty
       max_rate: 10
+    - name: fastclick
+      type: std_msgs/msg/UInt8
+      max_rate: 5
 
