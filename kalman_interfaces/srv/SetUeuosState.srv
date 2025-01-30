@@ -6,3 +6,4 @@ uint8 FINISHED = 3
 uint8 state
 ---
 # no response
+# remember to add new states in ueuos.tsx

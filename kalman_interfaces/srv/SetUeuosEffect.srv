@@ -4,3 +4,4 @@ uint8 RAINBOW = 1
 uint8 effect
 ---
 # no response
+# remember to add new effects in ueuos.tsx

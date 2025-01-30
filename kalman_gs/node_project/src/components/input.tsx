@@ -6,6 +6,8 @@ type Props = {
   type?: string;
   placeholder?: string;
   defaultValue?: string;
+  minLength?: number;
+  maxLength?: number;
   onChange?: (text: string) => void;
   onSubmit?: (text: string) => void;
   onFocus?: () => void;
@@ -49,6 +51,8 @@ export default class Input extends Component<Props> {
       type,
       placeholder,
       defaultValue,
+      minLength,
+      maxLength,
       onChange,
       onSubmit,
       onFocus,
@@ -66,6 +70,8 @@ export default class Input extends Component<Props> {
           ref={this.ref}
           placeholder={placeholder}
           defaultValue={defaultValue}
+          minLength={minLength}
+          maxLength={maxLength}
           className={styles['input-field']}
           onChange={(e) => {
             if (type === 'float') {
