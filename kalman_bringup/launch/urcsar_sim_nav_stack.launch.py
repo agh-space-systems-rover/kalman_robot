@@ -14,12 +14,10 @@ def generate_launch_description():
             },
             "slam": {
                 "rgbd_ids": RGBD_IDS,
-                "gps_datum": "50.06623534 19.9132241",
                 "use_mag": "true",
             },
             "nav2": {
                 "rgbd_ids": RGBD_IDS,
-                "static_map": "erc2024",
             },
             "wheels": {},
             "aruco": {
