@@ -21,6 +21,7 @@
   <depend>kalman_supervisor</depend>
   <depend>kalman_wheels</depend>
   <depend>kalman_yolo</depend>
+  <depend>kalman_slam2</depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
