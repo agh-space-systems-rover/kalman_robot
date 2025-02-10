@@ -1,6 +1,8 @@
 import styles from './checkbox.module.css';
 
-import {Component, createRef, CSSProperties} from 'react';
+import { faCheck } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Component, createRef, CSSProperties } from 'react';
 
 type Props = {
   checked?: boolean;
@@ -39,48 +41,31 @@ export default class Checkbox extends Component<Props> {
   }
 
   render() {
-    const {
-      checked,
-      onChange,
-      className,
-      label,
-      style,
-      checkboxStyle,
-      labelStyle,
-      ...props
-    } = this.props;
+    const { checked, onChange, className, label, style, checkboxStyle, labelStyle, ...props } = this.props;
 
     return (
       <div
-        className={
-          styles['checkbox-container'] +
-          (className ? ` ${className}` : '')
-        }
+        className={`${styles['checkbox-container']} ${className || ''}`}
         style={style}
         onClick={() => this.toggle()}
         {...props}
       >
         <div
-          className={
-            styles['checkbox'] +
-            (this.isChecked() ? ` ${styles['checkbox-checked']}` : '')
-          }
+          className={`${styles['checkbox']} ${this.isChecked() ? styles['checkbox-checked'] : ''}`}
           style={checkboxStyle}
         >
           <input
             ref={this.ref}
-            type="checkbox"
+            type='checkbox'
             defaultChecked={checked}
             className={styles['checkbox-field']}
             onChange={(e) => onChange?.(e.target.checked)}
             autoFocus={this.props.autoFocus}
           />
+          {this.isChecked() && <FontAwesomeIcon icon={faCheck} className={styles['checkbox-icon']} />}
         </div>
         {label && (
-          <span
-            className={styles['checkbox-label']}
-            style={labelStyle}
-          >
+          <span className={styles['checkbox-label']} style={labelStyle}>
             {label}
           </span>
         )}

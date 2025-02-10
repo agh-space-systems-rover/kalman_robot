@@ -19,18 +19,13 @@
 }
 
 .checkbox-checked {
-  background-color: var(--blue-foreground);
+  background-color: var(--interactive);
 }
 
-.checkbox-checked::after {
-  content: '✓';
-  display: block;
-  position: absolute;
-  font-size: 1rem;
+.checkbox-icon {
+  font-size: 0.8rem;
   color: var(--strong-foreground);
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  pointer-events: none;
 }
 
 .checkbox-field {

@@ -1,24 +1,37 @@
 import styles from './ueuos.module.css';
 
-import {ros} from '../common/ros';
-import React, {useRef, useState} from 'react';
-import {HexColorPicker} from "react-colorful";
-import Dropdown from "../components/dropdown";
-import {
-  faFillDrip,
-  faMagic,
-  faCube,
-  faRainbow,
-  faPowerOff,
-} from "@fortawesome/free-solid-svg-icons";
-import Button from "../components/button";
-import {Service} from "roslib";
-import {SetColorRequest, SetStateRequest, SetEffectRequest, ColorRGB} from "../common/ros-interfaces";
-import {alertsRef} from "../common/refs";
-import {UeuosEffect, UeuosState} from "../common/enums";
-import Input from "../components/input";
-import Label from "../components/label";
-import Checkbox from "../components/checkbox";
+import { alertsRef } from '../common/refs';
+import { ros } from '../common/ros';
+import { SetColorRequest, SetStateRequest, SetEffectRequest, ColorRGB } from '../common/ros-interfaces';
+import { faFillDrip, faMagic, faCube, faRainbow, faPowerOff, faHashtag } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import React, { useRef, useState } from 'react';
+import { HexColorPicker } from 'react-colorful';
+import { Service } from 'roslib';
+
+import Button from '../components/button';
+import Checkbox from '../components/checkbox';
+import Dropdown from '../components/dropdown';
+import Input from '../components/input';
+import Label from '../components/label';
+
+enum PanelType {
+  COLOR = 0,
+  STATE = 1,
+  EFFECT = 2
+}
+
+enum UeuosState {
+  OFF = 0,
+  AUTONOMY = 1,
+  TELEOP = 2,
+  FINISHED = 3
+}
+
+enum UeuosEffect {
+  BOOT = 0,
+  RAINBOW = 1
+}
 
 type Props = {
   props: {
@@ -69,21 +82,43 @@ function hexToColorRGB(hexColor: string): ColorRGB {
     };
   }
 
-  alertsRef.current?.pushAlert('Failed to set UEUOS\'s color.', 'error');
+  throw new Error(`Hex color code ("${hexColor}") is invalid.`);
 }
 
-export default function Ueuos({props}: Props) {
+function hexToGrayscaleReversed(hexColor: string): string {
+  let raw = hexColor.trim().replace(/^#/, '').toUpperCase();
+
+  let r, g, b;
+  if (raw.length === 3) {
+    const [r3, g3, b3] = raw;
+    r = parseInt(r3 + r3, 16);
+    g = parseInt(g3 + g3, 16);
+    b = parseInt(b3 + b3, 16);
+  } else if (raw.length === 6) {
+    r = parseInt(raw.slice(0, 2), 16);
+    g = parseInt(raw.slice(2, 4), 16);
+    b = parseInt(raw.slice(4, 6), 16);
+  }
+
+  // Compute luminance (brightness)
+  let brightness = 0.299 * r + 0.587 * g + 0.114 * b;
+
+  // If bright, return gray; otherwise, return white
+  return brightness > 128 ? '#111111' : '#EEEEEE';
+}
+
+export default function Ueuos({ props }: Props) {
   if (props.panelType === undefined) {
-    props.panelType = parseInt(localStorage.getItem("ueuos-panel-type") ?? "0");
+    props.panelType = parseInt(localStorage.getItem('ueuos-panel-type') ?? '0');
   }
 
   const colorInputRef = useRef<Input>();
 
   const [panelType, setPanelType] = useState(props.panelType);
 
-  const [color, setColor] = useState(localStorage.getItem("ueuos-color") ?? "000080");
-  const [effect, setEffect] = useState(UeuosEffect[localStorage.getItem("ueuos-effect")] ?? UeuosEffect.BOOT);
-  const [state, setState] = useState(UeuosEffect[localStorage.getItem("ueuos-state")] ?? UeuosState.OFF);
+  const [color, setColor] = useState(localStorage.getItem('ueuos-color') ?? '000080');
+  const [effect, setEffect] = useState(UeuosEffect[localStorage.getItem('ueuos-effect')] ?? UeuosEffect.BOOT);
+  const [state, setState] = useState(UeuosEffect[localStorage.getItem('ueuos-state')] ?? UeuosState.OFF);
 
   const [colorInputValue, setColorInputValue] = useState(color.replace('#', ''));
 
@@ -91,34 +126,47 @@ export default function Ueuos({props}: Props) {
 
   const sendUeuosRequest = () => {
     if (!setColorService || !setStateService || !setEffectService) {
-      alertsRef.current?.pushAlert('Failed to update UEUOS.', 'error');
+      alertsRef.current?.pushAlert(
+        'Failed to update the UEUOS. Please make sure that ROS is connected and "/ueuos" services are available.',
+        'error'
+      );
       return;
     }
 
-    if (panelType === 0) {
-      const req: SetColorRequest = {color: hexToColorRGB(color)};
+    if (panelType === PanelType.COLOR) {
+      // Parse string from input to color object
+      let colorObject: ColorRGB;
+      try {
+        colorObject = hexToColorRGB(color);
+      } catch (e) {
+        alertsRef.current?.pushAlert(e.message ?? "Failed to set UEUOS's color.", 'error');
+        return;
+      }
+
+      // Send it to ROS
+      const req: SetColorRequest = { color: colorObject };
       setColorService.callService(
         req,
-        () => localStorage.setItem("ueuos-color", color),
-        () => alertsRef.current?.pushAlert('Failed to set UEUOS\'s color.', 'error')
+        () => localStorage.setItem('ueuos-color', color),
+        () => alertsRef.current?.pushAlert("Failed to set UEUOS's color.", 'error')
       );
     }
 
-    if (panelType === 1) {
-      const req: SetEffectRequest = {effect};
+    if (panelType === PanelType.EFFECT) {
+      const req: SetEffectRequest = { effect };
       setEffectService.callService(
         req,
-        () => localStorage.setItem("ueuos-effect", effect.toString()),
-        () => alertsRef.current?.pushAlert('Failed to set UEUOS\'s effect.', 'error')
+        () => localStorage.setItem('ueuos-effect', effect.toString()),
+        () => alertsRef.current?.pushAlert("Failed to set UEUOS's effect.", 'error')
       );
     }
 
-    if (panelType === 2) {
-      const req: SetStateRequest = {state};
+    if (panelType === PanelType.STATE) {
+      const req: SetStateRequest = { state };
       setStateService.callService(
         req,
-        () => localStorage.setItem("ueuos-state", state.toString()),
-        () => alertsRef.current?.pushAlert('Failed to set UEUOS\'s state.', 'error')
+        () => localStorage.setItem('ueuos-state', state.toString()),
+        () => alertsRef.current?.pushAlert("Failed to set UEUOS's state.", 'error')
       );
     }
   };
@@ -134,13 +182,13 @@ export default function Ueuos({props}: Props) {
     }
 
     if (hexColorRegex.test(value)) {
-      setColor("#" + value);
+      setColor('#' + value);
 
       if (automaticallySynchronized) {
         sendUeuosRequest();
       }
     }
-  }
+  };
 
   return (
     <div className={styles['ueuos']}>
@@ -152,23 +200,26 @@ export default function Ueuos({props}: Props) {
             items={[
               {
                 icon: faFillDrip,
-                text: 'Color'
+                text: 'Color',
+                value: PanelType.COLOR
               },
               {
                 icon: faMagic,
-                text: 'Effect'
+                text: 'Effect',
+                value: PanelType.EFFECT
               },
               {
                 icon: faCube,
-                text: 'State'
-              },
+                text: 'State',
+                value: PanelType.STATE
+              }
             ]}
             defaultItemIndex={panelType}
             onChange={(i) => {
               setPanelType(i);
               props.panelType = i;
 
-              localStorage.setItem("ueuos-panel-type", `${i}`);
+              localStorage.setItem('ueuos-panel-type', `${i}`);
 
               if (automaticallySynchronized) {
                 sendUeuosRequest();
@@ -176,17 +227,8 @@ export default function Ueuos({props}: Props) {
             }}
           />
         </div>
-        <div className={styles['ueuos-row']}>
-          <Checkbox
-            checked={automaticallySynchronized}
-            onChange={(newChecked) => setAutomaticallySynchronized(newChecked)}
-            label={'Automatically synchronize UEUOS'}
-          />
-        </div>
 
-        {/* Add UEUOS panels here: */}
-
-        {panelType === 0 && (
+        {panelType === PanelType.COLOR && (
           <>
             <div className={styles['ueuos-row']}>
               <HexColorPicker
@@ -203,8 +245,8 @@ export default function Ueuos({props}: Props) {
               />
             </div>
             <div className={styles['ueuos-row']}>
-              <Label style={{backgroundColor: color}}>
-                #
+              <Label style={{ backgroundColor: color, color: hexToGrayscaleReversed(color) }}>
+                <FontAwesomeIcon icon={faHashtag} />
               </Label>
               <Input
                 ref={colorInputRef}
@@ -218,7 +260,7 @@ export default function Ueuos({props}: Props) {
           </>
         )}
 
-        {panelType === 1 && (
+        {panelType === PanelType.EFFECT && (
           <div className={styles['ueuos-row']}>
             <Dropdown
               className={styles['ueuos-row-item']}
@@ -226,14 +268,14 @@ export default function Ueuos({props}: Props) {
               items={[
                 {
                   icon: faPowerOff,
-                  text: "Boot",
-                  value: UeuosEffect.BOOT,
+                  text: 'BOOT',
+                  value: UeuosEffect.BOOT
                 },
                 {
                   icon: faRainbow,
-                  text: "Rainbow",
-                  value: UeuosEffect.RAINBOW,
-                },
+                  text: 'RAINBOW',
+                  value: UeuosEffect.RAINBOW
+                }
               ]}
               onChange={(i, value) => {
                 setEffect(value);
@@ -246,7 +288,7 @@ export default function Ueuos({props}: Props) {
           </div>
         )}
 
-        {panelType === 2 && (
+        {panelType === PanelType.STATE && (
           <div className={styles['ueuos-row']}>
             <Dropdown
               className={styles['ueuos-row-item']}
@@ -254,24 +296,24 @@ export default function Ueuos({props}: Props) {
               items={[
                 {
                   icon: faPowerOff,
-                  text: "Off",
-                  value: UeuosState.OFF,
+                  text: 'OFF',
+                  value: UeuosState.OFF
                 },
                 {
                   icon: faPowerOff,
-                  text: "Autonomy",
-                  value: UeuosState.AUTONOMY,
+                  text: 'AUTONOMY',
+                  value: UeuosState.AUTONOMY
                 },
                 {
                   icon: faPowerOff,
-                  text: "Teleop",
-                  value: UeuosState.TELEOP,
+                  text: 'TELEOP',
+                  value: UeuosState.TELEOP
                 },
                 {
                   icon: faPowerOff,
-                  text: "Finished",
-                  value: UeuosState.FINISHED,
-                },
+                  text: 'FINISHED',
+                  value: UeuosState.FINISHED
+                }
               ]}
               onChange={(i, value) => {
                 setState(value);
@@ -288,10 +330,7 @@ export default function Ueuos({props}: Props) {
           <Button
             tooltip='Send data to change the UEUOS color'
             className={
-              styles['ueuos-row-item'] +
-              (automaticallySynchronized
-                ? ` ${styles['ueuos-button-disabled']}`
-                : '')
+              styles['ueuos-row-item'] + (automaticallySynchronized ? ` ${styles['ueuos-button-disabled']}` : '')
             }
             disabled={automaticallySynchronized}
             onClick={() => {
@@ -300,6 +339,14 @@ export default function Ueuos({props}: Props) {
           >
             Send
           </Button>
+        </div>
+
+        <div className={styles['ueuos-row']}>
+          <Checkbox
+            checked={automaticallySynchronized}
+            onChange={(newChecked) => setAutomaticallySynchronized(newChecked)}
+            label={'Auto-Update UEUOS'}
+          />
         </div>
       </div>
     </div>

@@ -4,9 +4,9 @@ import Imu from './imu';
 import Map from './map';
 import MapHeader from './map.header';
 import Supervisor from './supervisor';
+import Ueuos from './ueuos';
 import Waypoints from './waypoints';
 import Wheels from './wheels';
-import Ueuos from './ueuos';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import {
   faBullseye,
@@ -15,19 +15,12 @@ import {
   faVideo,
   faDiagramProject,
   faFlag,
-  faGear, faPalette
+  faGear,
+  faPalette
 } from '@fortawesome/free-solid-svg-icons';
 
 // Add new panels here:
-export type PanelID =
-  | 'imu'
-  | 'wheels'
-  | 'supervisor'
-  | 'map'
-  | 'feeds'
-  | 'arm'
-  | 'waypoints'
-  | 'ueuos';
+export type PanelID = 'imu' | 'wheels' | 'supervisor' | 'map' | 'feeds' | 'arm' | 'waypoints' | 'ueuos';
 export const defaultPanel: PanelID = 'map';
 export const panelInfos: Panels = {
   imu: {
