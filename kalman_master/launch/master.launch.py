@@ -121,7 +121,6 @@ def launch_setup(context):
             "feed_driver",
             "arm_twist_driver",
             "drill_driver",
-            "autonomy_status",
         ],
         "arm": [
             "master_com",
