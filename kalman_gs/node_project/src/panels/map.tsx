@@ -14,14 +14,7 @@ import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 import 'leaflet/dist/leaflet.css';
 import { Component, createRef } from 'react';
-import {
-  ImageOverlay,
-  MapContainer,
-  Marker,
-  ScaleControl,
-  TileLayer,
-  Tooltip
-} from 'react-leaflet';
+import { ImageOverlay, MapContainer, Marker, ScaleControl, TileLayer, Tooltip } from 'react-leaflet';
 
 const GO_TO_LOCATION_ZOOM = 19;
 const DEFAULT_LAT = 51.477928;
@@ -54,6 +47,19 @@ function rosYawFromQuat(q: Quaternion): number {
   return Math.atan2(rotatedHeading.y, rotatedHeading.x);
 }
 
+const TEMP_POINTS = [
+  { lat: 50.061405, lon: 19.930067 },
+  { lat: 50.068225, lon: 19.939762 },
+  { lat: 50.069588, lon: 19.933861 },
+  { lat: 50.052832, lon: 19.937166 },
+  { lat: 50.065096, lon: 19.941311 },
+  { lat: 50.05236, lon: 19.940694 },
+  { lat: 50.059168, lon: 19.93122 },
+  { lat: 50.060242, lon: 19.947563 },
+  { lat: 50.064876, lon: 19.946149 },
+  { lat: 50.056217, lon: 19.92966 }
+];
+
 export default class Map extends Component<Props> {
   private mapRef = createRef<Leaflet.Map>();
   private mapMarkerRef = createRef<Leaflet.Marker>();
@@ -75,10 +81,7 @@ export default class Map extends Component<Props> {
   };
 
   private onMapMarkerMoved = () => {
-    this.mapMarkerRef.current?.setLatLng([
-      mapMarker.latitude,
-      mapMarker.longitude
-    ]);
+    this.mapMarkerRef.current?.setLatLng([mapMarker.latitude, mapMarker.longitude]);
   };
 
   private onImuUpdated = () => {
@@ -90,10 +93,7 @@ export default class Map extends Component<Props> {
   };
 
   private onGpsUpdated = () => {
-    this.kalmanMarkerRef.current?.setLatLng([
-      gpsCoords.latitude,
-      gpsCoords.longitude
-    ]);
+    this.kalmanMarkerRef.current?.setLatLng([gpsCoords.latitude, gpsCoords.longitude]);
   };
 
   private onWaypointsUpdated = () => {
@@ -195,10 +195,7 @@ export default class Map extends Component<Props> {
           />
           <Marker
             ref={this.kalmanMarkerRef}
-            position={[
-              gpsCoords.latitude || 1000000,
-              gpsCoords.longitude || 1000000
-            ]}
+            position={[gpsCoords.latitude || 1000000, gpsCoords.longitude || 1000000]}
             interactive={false}
             icon={Leaflet.icon({
               className: styles['kalman-marker'],
