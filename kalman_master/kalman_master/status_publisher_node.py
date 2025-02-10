@@ -3,6 +3,7 @@ import time
 from rclpy.node import Node
 from kalman_interfaces.msg import AutonomyStatus
 import yaml
+from ament_index_python import get_package_share_path
 
 Device_Status = [0, 0, 0, 0, 0, 0, 0, 0]
 
@@ -15,7 +16,8 @@ class StatusClass(Node):
         self.status_pub = self.create_publisher(
             AutonomyStatus, '/autonomy_status', 10)
         filename = self.declare_parameter(
-            "config_path", "config/autonomy_status.yaml").value
+            "config_path", str(get_package_share_path("kalman_master")
+                               / f"config/autonomy_status.yaml")).value
 
         with open(filename, "r") as f:
             self.Device_List = yaml.safe_load(f)
