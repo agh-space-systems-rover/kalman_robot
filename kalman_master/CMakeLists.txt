@@ -41,6 +41,7 @@ install(PROGRAMS
   scripts/tunnel_client
   scripts/ueuos_driver
   scripts/wheel_driver
+  scripts/status_publisher
   DESTINATION lib/${PROJECT_NAME}
 )
 

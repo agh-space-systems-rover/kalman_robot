@@ -1,0 +1,13 @@
+frequency: 1
+devices:
+  imu:
+    id: 0
+    msg_type: sensor_msgs/msg/Imu
+    topic: "/imu/data"
+    timeout: 5
+  gps:
+    id: 1
+    msg_type: sensor_msgs/msg/NavSatFix
+    topic: "/gps/fix"
+    timeout: 5
+  
