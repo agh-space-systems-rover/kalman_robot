@@ -242,6 +242,31 @@ export default class Map extends Component<Props> {
             riseOnHover
           />
           <ScaleControl imperial={false} maxWidth={200} />
+
+          {/* TEMP_POINTS */}
+          {TEMP_POINTS.map((point, index) => (
+            <Marker
+              key={index}
+              position={[point.lat, point.lon]}
+              interactive={false}
+              icon={Leaflet.icon({
+                className: styles['temp-point-marker'],
+                iconUrl: waypointMarker,
+                iconAnchor: [10.2, 45],
+                iconSize: [45, 45]
+              })}
+            >
+              <Tooltip
+                direction='top'
+                offset={[0, -10]}
+                opacity={1}
+                permanent
+                className={styles['waypoint-marker-tooltip']}
+              >
+                {`Punkt ${index + 1}`}
+              </Tooltip>
+            </Marker>
+          ))}
         </MapContainer>
       </div>
     );
