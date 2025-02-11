@@ -220,10 +220,6 @@ export default function Ueuos({ props }: Props) {
               props.panelType = i;
 
               localStorage.setItem('ueuos-panel-type', `${i}`);
-
-              if (automaticallySynchronized) {
-                sendUeuosRequest();
-              }
             }}
           />
         </div>
