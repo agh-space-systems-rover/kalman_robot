@@ -14,7 +14,9 @@
   width: calc(1em + 4px);
   height: calc(1em + 4px);
   border-radius: 5px;
-  transition: background-color 0.1s, transform 0.1s;
+  transition:
+    background-color 0.1s,
+    transform 0.1s;
   position: relative;
 }
 
