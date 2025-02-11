@@ -48,3 +48,7 @@
   cursor: auto;
   pointer-events: none;
 }
+
+.ueuos-hex-label {
+  transition: color 0.4s;
+}

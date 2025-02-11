@@ -241,7 +241,7 @@ export default function Ueuos({ props }: Props) {
               />
             </div>
             <div className={styles['ueuos-row']}>
-              <Label style={{ backgroundColor: color, color: hexToGrayscaleReversed(color) }}>
+              <Label className={styles['ueuos-hex-label']} style={{ backgroundColor: color, color: hexToGrayscaleReversed(color) }}>
                 <FontAwesomeIcon icon={faHashtag} />
               </Label>
               <Input
