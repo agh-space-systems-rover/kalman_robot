@@ -327,6 +327,14 @@ export default function Ueuos({ props }: Props) {
         )}
 
         <div className={styles['ueuos-row']}>
+          <Checkbox
+            checked={automaticallySynchronized}
+            onChange={(newChecked) => setAutomaticallySynchronized(newChecked)}
+            label={'Auto-Update UEUOS'}
+          />
+        </div>
+
+        <div className={styles['ueuos-row']}>
           <Button
             tooltip='Send data to change the UEUOS color'
             className={
@@ -339,14 +347,6 @@ export default function Ueuos({ props }: Props) {
           >
             Send
           </Button>
-        </div>
-
-        <div className={styles['ueuos-row']}>
-          <Checkbox
-            checked={automaticallySynchronized}
-            onChange={(newChecked) => setAutomaticallySynchronized(newChecked)}
-            label={'Auto-Update UEUOS'}
-          />
         </div>
       </div>
     </div>
