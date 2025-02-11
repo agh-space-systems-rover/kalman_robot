@@ -23,9 +23,11 @@
 }
 
 .checkbox-icon {
-  font-size: 0.8rem;
   color: var(--strong-foreground);
   pointer-events: none;
+  width: 70%;
+  height: 70%;
+  margin: 0 0 -1px 0;
 }
 
 .checkbox-field {
@@ -35,7 +37,6 @@
 }
 
 .checkbox-label {
-  margin-left: 10px;
   color: var(--strong-foreground);
   font-family: inherit;
   line-height: calc(1em + 4px);
