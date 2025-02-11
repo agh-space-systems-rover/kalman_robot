@@ -1,0 +1,54 @@
+.ueuos {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 120px;
+}
+
+.ueuos-rows {
+  display: flex;
+  flex-direction: column;
+  justify-content: stretch;
+  align-items: stretch;
+  width: 245px;
+  height: auto !important;
+}
+
+@media (max-width: 250px) {
+  .ueuos-rows {
+    width: 90%;
+    scale: 0.8;
+  }
+}
+
+.ueuos-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: stretch;
+  align-items: stretch;
+  margin-top: -5px;
+}
+
+.ueuos-row-item {
+  flex: 1;
+}
+
+.ueuos-color-picker {
+  margin: 10px 5px;
+}
+
+.ueuos-color-input {
+  margin: 10px 5px;
+}
+
+.ueuos-button-disabled {
+  opacity: 0.5;
+  cursor: auto;
+  pointer-events: none;
+}
+
+.ueuos-hex-label {
+  transition: color 0.4s;
+}
