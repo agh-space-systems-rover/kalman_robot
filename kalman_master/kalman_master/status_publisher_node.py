@@ -10,7 +10,6 @@ Device_Status = [0, 0, 0, 0, 0, 0, 0, 0]
 class StatusClass(Node):
     def __init__(self):
         super().__init__("status_publisher")
-        self.publish_data_timer = self.create_timer(1, self.publish_data)
         self.timer_list = {}
         self.status_pub = self.create_publisher(
             AutonomyStatus, '/autonomy_status', 10)
@@ -19,6 +18,8 @@ class StatusClass(Node):
         with open(filename, "r") as f:
             self.Device_List = yaml.safe_load(f)
 
+        self.publish_data_timer = self.create_timer(
+            self.Device_List["frequency"], self.publish_data)
         self.import_interfaces()
 
     def import_interfaces(self) -> None:
