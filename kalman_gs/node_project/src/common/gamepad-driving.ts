@@ -11,18 +11,17 @@ const TURN_RADIUS = 0.75;
 const ROTATE_IN_PLACE_SPEED = 1.57;
 const TRUMPET_LEFT = new Audio('bike_horn.mp3');
 const TRUMPET_RIGHT = new Audio('bells.mp3');
-const MAX_TURN_ANGLE = 1.0; // max angle
-const MIN_TURN_ANGLE = -1.0; // min angle
-const TURN_ANGLE_STEP = 0.05; // angle step
+const MAX_TURN_ANGLE = 1.0; // Max angle
+const MIN_TURN_ANGLE = -1.0; // Min angle
+const TURN_ANGLE_STEP = 0.05; // Angle step
 
 
 let trumpetLeft = 0;
 let trumpetRight = 0;
-
 let lastDrive: Drive = null;
 let speedFactor = MIN_SPEED_FACTOR;
 let turnFactor = TURN_ANGLE_STEP;
-let maxTurnAngle = 0; // angle at the start 
+let maxTurnAngle = 0; // Angle at the start 
 let requestedTurnAngle = 0;
 
 window.addEventListener('ros-connect', () => {
@@ -38,7 +37,7 @@ window.addEventListener('ros-connect', () => {
     let angle = 0; // RX
     let shoulder = false; // RB/LB
     let changeSpeed = 0; // Y - X
-    //maxAngle = readGamepads('right-trigger', 'wheels') - readGamepads('left-trigger', 'wheels');
+    
     speed = readGamepads('right-trigger', 'wheels') - readGamepads('left-trigger', 'wheels');
     turn = readGamepads('left-x', 'wheels');
     angle = readGamepads('right-x', 'wheels');
@@ -58,10 +57,6 @@ window.addEventListener('ros-connect', () => {
     }
     if (readGamepads('dpad-left', 'wheels')) {
       requestedTurnAngle = Math.max(requestedTurnAngle - TURN_ANGLE_STEP, MIN_TURN_ANGLE);
-    }
-
-    if (turn !== 0) {
-      maxTurnAngle = Math.abs(requestedTurnAngle);
     }
 
     turnFactor += (requestedTurnAngle * TURN_ANGLE_STEP) / RATE;
