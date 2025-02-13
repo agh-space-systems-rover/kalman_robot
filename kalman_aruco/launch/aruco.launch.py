@@ -73,6 +73,7 @@ def generate_launch_description():
             DeclareLaunchArgument(
                 "dict",
                 default_value="4X4_50",
+                choices=[f"{x}X{x}_{s}" for x in [4, 5, 6, 7, 8] for s in [50, 100, 250, 1000]] + ["ARUCO_ORIGINAL"],
                 description="Dictionary of markers to use.",
             ),
             DeclareLaunchArgument(

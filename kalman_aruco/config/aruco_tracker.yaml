@@ -7,8 +7,8 @@
 
     image_sub_compressed: true
     image_sub_qos:
-      reliability: 0 # 0 - system default, 1 - reliable, 2 - best effort
-      durability: 0 # 0 - system default, 1 - transient local, 2 - volatile
+      reliability: 2 # 0 - system default, 1 - reliable, 2 - best effort
+      durability: 2 # 0 - system default, 1 - transient local, 2 - volatile
       depth: 1
 
     publish_tf: true

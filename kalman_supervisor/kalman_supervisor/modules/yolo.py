@@ -13,7 +13,8 @@ class Yolo(Module):
         super().__init__("yolo")
 
     def configure(self) -> None:
-        self.supervisor.declare_parameter("yolo.enabled", True)
+        self.supervisor.declare_parameter("yolo.enabled", False)
+        self.supervisor.declare_parameter("yolo.deactivate_unused", False)
         self.supervisor.declare_parameter("yolo.max_detection_distance", 5.0)
 
     def activate(self) -> None:
@@ -39,6 +40,10 @@ class Yolo(Module):
 
     def tick(self) -> None:
         if not self.module_enabled:
+            return
+        
+        # Abort tick if deactivation is disabled.
+        if not self.supervisor.get_parameter("yolo.deactivate_unused").value:
             return
 
         # If state change is needed and state requests are not pending, send the get state request.

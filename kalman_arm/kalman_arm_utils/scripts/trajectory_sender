@@ -1,0 +1,5 @@
+#!/usr/bin/python3
+from kalman_arm_utils.trajectory_requester import main
+
+if __name__ == '__main__':
+    main()

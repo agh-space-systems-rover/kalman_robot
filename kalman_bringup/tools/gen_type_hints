@@ -1,0 +1,67 @@
+#!/usr/bin/env python3
+
+import os
+from ament_index_python import (
+    get_package_share_path,
+    PackageNotFoundError,
+    get_search_paths,
+)
+
+from kalman_bringup.utils import get_arg_decls
+
+
+def capitalize_module_name(name: str) -> str:
+    words = name.split("_")
+    word = [w.capitalize() for w in words]
+    return "".join(word)
+
+
+if __name__ == "__main__":
+    paths = [
+        p
+        for p in get_search_paths()
+        if ("/opt/ros/" not in p and "kalman_bringup" not in p)
+    ]
+    module_pkgs = [(x.split("/")[-1]) for x in paths]
+
+    launch_args = (
+        {}
+    )  # module_name -> [(arg1_name, arg1_choices), (arg2_name, arg2_choices), ...]
+
+    for pkg in module_pkgs:
+        module_name = pkg if not pkg.startswith("kalman_") else pkg[7:]
+        try:
+            launch_path = str(
+                get_package_share_path(f"{pkg}") / "launch" / f"{module_name}.launch.py"
+            )
+        except PackageNotFoundError:
+            print(f'"{pkg}" is not a kalman_ module.')
+            continue
+
+        if os.path.exists(launch_path):
+            launch_args[module_name] = [
+                (name, choices) for name, _, choices in get_arg_decls(launch_path)
+            ]
+            if len(launch_args[module_name]) == 0:
+                launch_args[module_name] = []
+
+    print("# AUTO-GENERATED FILE. DO NOT EDIT.")
+    print("# SEE: kalman_bringup/tools/gen_type_hints")
+    print()
+    print("from typing import Literal, TypedDict\n\n")
+
+    for module_name, args in launch_args.items():
+        print(f"class {capitalize_module_name(module_name)}(TypedDict):")
+        if args:
+            for arg_name, choices in args:
+                if choices:
+                    print(f"    {arg_name}: Literal{list(choices)}".replace("'", '"'))
+                else:
+                    print(f"    {arg_name}: str")
+        else:
+            print("    pass")
+        print("\n")
+
+    print("class BringupConfig(TypedDict):")
+    for module_name in launch_args.keys():
+        print(f"    {module_name}: {capitalize_module_name(module_name)}")

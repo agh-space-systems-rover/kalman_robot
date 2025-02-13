@@ -42,6 +42,10 @@ def load_local_ukf_config(rgbd_ids):
     # Return path to UKF config
     return ukf_params_path
 
+def find_available_fiducial_configs() -> set[str]:
+    fiducials_dir = get_package_share_path("kalman_slam") / "fiducials"
+    configs = [f.stem for f in fiducials_dir.glob("*.yaml")]
+    return set(configs)
 
 def launch_setup(context):
     component_container = LaunchConfiguration("component_container").perform(context)
@@ -61,32 +65,33 @@ def launch_setup(context):
 
     # visual odometry
     if component_container:
-        description += [
-            LoadComposableNodes(
-                target_container=component_container,
-                composable_node_descriptions=[
-                    ComposableNode(
-                        package="rtabmap_odom",
-                        plugin="rtabmap_odom::RGBDOdometry",
-                        namespace=f"{camera_id}",
-                        parameters=[
-                            str(
-                                get_package_share_path("kalman_slam")
-                                / "config"
-                                / "rgbd_odometry.yaml"
-                            )
-                        ],
-                        remappings={
-                            "rgb/image": f"color/image_raw",
-                            "depth/image": f"aligned_depth_to_color/image_raw",
-                            "rgb/camera_info": f"color/camera_info",
-                        }.items(),
-                        extra_arguments=[{"use_intra_process_comms": True}],
-                    )
-                    for camera_id in rgbd_ids
-                ],
-            ),
-        ]
+        if rgbd_ids:
+            description += [
+                LoadComposableNodes(
+                    target_container=component_container,
+                    composable_node_descriptions=[
+                        ComposableNode(
+                            package="rtabmap_odom",
+                            plugin="rtabmap_odom::RGBDOdometry",
+                            namespace=f"{camera_id}",
+                            parameters=[
+                                str(
+                                    get_package_share_path("kalman_slam")
+                                    / "config"
+                                    / "rgbd_odometry.yaml"
+                                )
+                            ],
+                            remappings={
+                                "rgb/image": f"color/image_raw",
+                                "depth/image": f"aligned_depth_to_color/image_raw",
+                                "rgb/camera_info": f"color/camera_info",
+                            }.items(),
+                            extra_arguments=[{"use_intra_process_comms": True}],
+                        )
+                        for camera_id in rgbd_ids
+                    ],
+                ),
+            ]
     else:
         description += [
             Node(
@@ -270,6 +275,7 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument(
                 "rgbd_ids",
+                default_value="",
                 description="Space-separated IDs of the depth cameras to use.",
             ),
             DeclareLaunchArgument(
@@ -280,6 +286,7 @@ def generate_launch_description():
             DeclareLaunchArgument(
                 "fiducials",
                 default_value="",
+                choices=["", *find_available_fiducial_configs()],
                 description="Name of the list of fiducials to use. Empty disables fiducial odometry.",
             ),
             OpaqueFunction(function=launch_setup),
