@@ -69,6 +69,19 @@ export type Twist = {
   angular?: Vector3;
 };
 
+export type Bool = {
+  data: boolean;
+};
+
+export type SetBool = {
+  data: boolean;
+};
+
+export type SetBoolFeedback = {
+  success: boolean;
+  message: string;
+};
+
 // kalman_interfaces
 
 export type SupervisorTfGoal = {
@@ -184,4 +197,4 @@ export type ColorRGB = {
   r: number;
   g: number;
   b: number;
-}
+};

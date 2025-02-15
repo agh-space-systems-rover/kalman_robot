@@ -10,19 +10,23 @@
   align-items: center;
 }
 
-.e-stop-button:hover {
+.e-stop-button:global(.disabled) {
+  opacity: 0.75;
+}
+
+.e-stop-button:global(:not(.disabled)):hover {
   background-color: var(--background);
 }
 
-.e-stop-button:active {
+.e-stop-button:global(:not(.disabled)):active {
   background-color: var(--interactive);
   transition: background-color 0s;
 }
 
-.e-stop-button-image {
-  fill: var(--foreground);
+.e-stop-button:global(.red) svg {
+  color: var(--red-foreground);
 }
 
-.e-stop-button.warning {
-  color: var(--red-foreground)
+.e-stop-button:global(.green) svg {
+  color: var(--green-foreground);
 }

@@ -2,6 +2,7 @@ import styles from './e-stop-button.module.css';
 
 import { alertsRef } from '../common/refs';
 import { ros } from '../common/ros';
+import { Bool, SetBool, SetBoolFeedback } from '../common/ros-interfaces';
 import { faStopCircle, faCirclePlay } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useCallback, useEffect, useState } from 'react';
@@ -9,98 +10,95 @@ import { Service, Topic } from 'roslib';
 
 import Tooltip from '../components/tooltip';
 
-enum RoverState {
+const ICON_DISABLED_TIMEOUT = 500;
+
+enum EStopStatus {
   ON = 0,
   OFF = 1
 }
 
-let eStopStopService: Service<{}, {}> = null;
-let eStopStartService: Service<{}, {}> = null;
-let warningNotify: any /* TODO: create type */ = null;
+// Services:
+let eStopService: Service<SetBool, SetBoolFeedback> = null;
+
+// Topic variables:
+let eStopTopicResponse: Bool | null = null;
+
 window.addEventListener('ros-connect', () => {
-  eStopStopService = new Service<{}, {}>({
+  eStopService = new Service<SetBool, SetBoolFeedback>({
     ros: ros,
-    name: '/e_stop/stop', // TODO: change name
-    serviceType: 'std_srvs/Empty'
+    name: '/set_estop',
+    serviceType: 'std_srvs/SetBool'
   });
 
-  eStopStartService = new Service<{}, {}>({
+  const eStopTopic = new Topic({
     ros: ros,
-    name: '/e_stop/start', // TODO: change name
-    serviceType: 'std_srvs/Empty'
+    name: '/estop_state',
+    messageType: 'std_msgs/Bool'
   });
 
-  // Handle notification about potential threats
-  const topic = new Topic({
-    ros: ros,
-    name: '/e_stop/warning', // TODO: change name
-    messageType: '' // TODO: create/change messageType
-  });
-
-  topic.subscribe((msg: any /* TODO: create type */) => {
-    warningNotify = msg;
-    window.dispatchEvent(new Event('warning-notify'));
+  eStopTopic.subscribe((msg: Bool) => {
+    eStopTopicResponse = msg;
+    window.dispatchEvent(new Event('e-stop-status'));
   });
 });
 
 export default function EStopButton() {
-  // expectedRoverState is initially set to ON because we want the first request sent from the panel to be OFF
-  // The opposite request can only be sent after receiving a confirmation
-  const [expectedRoverState, setExpectedRoverState] = useState(RoverState.ON);
-  const [warningExist, setWarningExist] = useState(false);
+  const [eStopStatus, setEStopStatus] = useState(EStopStatus.OFF);
+  const [iconDisabled, setIconDisabled] = useState(true);
 
-  const notifyWarning = useCallback(() => {
-    // TODO: validate via warningNotify info
-    console.log('xxx');
-    if (expectedRoverState === RoverState.ON) {
-      setWarningExist(true);
-    }
-  }, [setWarningExist]);
+  const changeEStopStatus = useCallback(() => {
+    setEStopStatus(eStopTopicResponse.data ? EStopStatus.ON : EStopStatus.OFF);
+    setIconDisabled(true);
+    setTimeout(() => {
+      setIconDisabled(false);
+    }, ICON_DISABLED_TIMEOUT);
+  }, [setEStopStatus, setIconDisabled]);
 
   useEffect(() => {
-    window.addEventListener('warning-notify', notifyWarning);
+    window.addEventListener('e-stop-status', changeEStopStatus);
     return () => {
-      window.removeEventListener('warning-notify', notifyWarning);
+      window.removeEventListener('e-stop-status', changeEStopStatus);
     };
-  }, [notifyWarning]);
+  }, [changeEStopStatus]);
 
   return (
     <Tooltip
-      text='Show advanced settings.'
-      className={styles['e-stop-button'] + (warningExist && expectedRoverState === RoverState.ON ? ' warning' : '')}
+      text={`${eStopStatus === EStopStatus.ON ? 'Enable' : 'Disable'} rover's power.`}
+      className={
+        styles['e-stop-button'] +
+        (eStopStatus === EStopStatus.ON ? ' green' : ' red') +
+        (iconDisabled ? ' disabled' : '')
+      }
       onClick={() => {
-        if (eStopStopService === null || eStopStartService === null) {
+        if (iconDisabled) {
+          return;
+        }
+
+        if (eStopService === null) {
           alertsRef.current?.pushAlert('Not connected to local ROS instance. Unable to send e-stop request.', 'error');
           return;
         }
 
-        if (expectedRoverState === RoverState.ON) {
-          eStopStopService.callService(
-            {},
-            () => {
-              alertsRef.current?.pushAlert(`Successfully disabled the rover's emergency power.`, 'success');
-              setWarningExist(false);
-              setExpectedRoverState(RoverState.OFF);
-            },
-            (e) => {
-              alertsRef.current?.pushAlert(`Unable to send a reboot request. ${e}.`, 'error');
+        const setBoolRequest: SetBool = { data: eStopStatus === EStopStatus.OFF };
+        eStopService.callService(
+          setBoolRequest,
+          (response: SetBoolFeedback) => {
+            if (response.success) {
+              alertsRef.current?.pushAlert(
+                `Successfully updated E-STOP status. Currently: ${eStopStatus === EStopStatus.ON ? 'ON' : 'OFF'}.`,
+                'success'
+              );
+            } else {
+              alertsRef.current?.pushAlert(`Failed to update E-STOP status. ${response.message}.`, 'error');
             }
-          );
-        } else {
-          eStopStartService.callService(
-            {},
-            () => {
-              alertsRef.current?.pushAlert(`Successfully enabled the rover's emergency power.`, 'success');
-              setExpectedRoverState(RoverState.ON);
-            },
-            (e) => {
-              alertsRef.current?.pushAlert(`Unable to send a reboot request. ${e}.`, 'error');
-            }
-          );
-        }
+          },
+          (e) => {
+            alertsRef.current?.pushAlert(`Failed to update E-STOP status. ${e}.`, 'error');
+          }
+        );
       }}
     >
-      <FontAwesomeIcon icon={expectedRoverState === RoverState.ON ? faStopCircle : faCirclePlay} />
+      <FontAwesomeIcon icon={eStopStatus === EStopStatus.ON ? faCirclePlay : faStopCircle} />
     </Tooltip>
   );
 }
