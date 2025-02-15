@@ -21,6 +21,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/ArmTrajectorySelect.msg"
   "msg/Drill.msg"
   "msg/Drive.msg"
+  "msg/GeoPoints.msg"
   "msg/MasterMessage.msg"
   "msg/WheelState.msg"
   "msg/WheelStates.msg"

@@ -1,0 +1,1 @@
+geographic_msgs/GeoPoint[] points # List of geo points generated for map.tsx component

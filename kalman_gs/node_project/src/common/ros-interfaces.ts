@@ -109,6 +109,10 @@ export type SupervisorGpsYoloSearchFeedback = {
 };
 // Result is empty.
 
+export type GeoPoints = {
+  points: GeoPoint[];
+};
+
 export type WheelState = {
   velocity?: number;
   angle?: number;
@@ -184,4 +188,4 @@ export type ColorRGB = {
   r: number;
   g: number;
   b: number;
-}
+};

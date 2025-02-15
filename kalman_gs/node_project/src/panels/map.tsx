@@ -7,14 +7,17 @@ import { imuRotation } from '../common/imu';
 import '../common/leaflet-rotated-marker-plugin';
 import { mapMarker, setMapMarkerLatLon } from '../common/map-marker';
 import { Quaternion, Vector3, quatTimesVec } from '../common/mini-math-lib';
+import { ros } from '../common/ros';
+import { GeoPoint, GeoPoints, WheelStates } from '../common/ros-interfaces';
 import { waypoints } from '../common/waypoints';
 import erc2024Overlay from '../media/erc2024-overlay.png';
 import Leaflet from 'leaflet';
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 import 'leaflet/dist/leaflet.css';
-import { Component, createRef } from 'react';
-import { ImageOverlay, MapContainer, Marker, ScaleControl, TileLayer, Tooltip } from 'react-leaflet';
+import { Component, createRef, useState } from 'react';
+import { ImageOverlay, MapContainer, Marker, ScaleControl, TileLayer, Tooltip, Polyline } from 'react-leaflet';
+import { Topic } from 'roslib';
 
 const GO_TO_LOCATION_ZOOM = 19;
 const DEFAULT_LAT = 51.477928;
@@ -27,6 +30,20 @@ Leaflet.Marker.prototype.options.icon = Leaflet.icon({
   iconUrl: icon,
   shadowUrl: iconShadow,
   iconAnchor: [12, 41]
+});
+
+let geoPointsArray: GeoPoint[] = [];
+window.addEventListener('ros-connect', () => {
+  const geoPointsTopic = new Topic({
+    ros: ros,
+    name: '/map/points', // TODO: change topic name
+    messageType: 'kalman_interfaces/GeoPoints'
+  });
+
+  geoPointsTopic.subscribe((msg: GeoPoints) => {
+    geoPointsArray = msg.points;
+    window.dispatchEvent(new Event('map-geo-points-update'));
+  });
 });
 
 type Props = {
@@ -47,23 +64,11 @@ function rosYawFromQuat(q: Quaternion): number {
   return Math.atan2(rotatedHeading.y, rotatedHeading.x);
 }
 
-const TEMP_POINTS = [
-  { lat: 50.061405, lon: 19.930067 },
-  { lat: 50.068225, lon: 19.939762 },
-  { lat: 50.069588, lon: 19.933861 },
-  { lat: 50.052832, lon: 19.937166 },
-  { lat: 50.065096, lon: 19.941311 },
-  { lat: 50.05236, lon: 19.940694 },
-  { lat: 50.059168, lon: 19.93122 },
-  { lat: 50.060242, lon: 19.947563 },
-  { lat: 50.064876, lon: 19.946149 },
-  { lat: 50.056217, lon: 19.92966 }
-];
-
 export default class Map extends Component<Props> {
   private mapRef = createRef<Leaflet.Map>();
   private mapMarkerRef = createRef<Leaflet.Marker>();
   private kalmanMarkerRef = createRef<Leaflet.Marker>();
+  private polylineRef = createRef<Leaflet.Polyline>();
   private propsUpdateTimer: NodeJS.Timeout | null = null;
 
   private updateProps = () => {
@@ -100,6 +105,10 @@ export default class Map extends Component<Props> {
     this.forceUpdate();
   };
 
+  private onMapGeoPointsUpdated = () => {
+    this.polylineRef.current?.setLatLngs(geoPointsArray.map((point) => [point.latitude, point.longitude]));
+  };
+
   componentDidMount() {
     if (window) {
       window.addEventListener('resize', this.onResized);
@@ -108,6 +117,7 @@ export default class Map extends Component<Props> {
       window.addEventListener('imu-update', this.onImuUpdated);
       window.addEventListener('gps-update', this.onGpsUpdated);
       window.addEventListener('waypoints-update', this.onWaypointsUpdated);
+      window.addEventListener('map-geo-points-update', this.onMapGeoPointsUpdated);
     }
 
     this.propsUpdateTimer = setInterval(() => {
@@ -127,6 +137,7 @@ export default class Map extends Component<Props> {
       window.removeEventListener('resize', this.onResized);
       window.removeEventListener('any-panel-resize', this.onResized);
       window.removeEventListener('waypoints-update', this.onWaypointsUpdated);
+      window.removeEventListener('map-geo-points-update', this.onMapGeoPointsUpdated);
     }
   }
 
@@ -243,30 +254,13 @@ export default class Map extends Component<Props> {
           />
           <ScaleControl imperial={false} maxWidth={200} />
 
-          {/* TEMP_POINTS */}
-          {TEMP_POINTS.map((point, index) => (
-            <Marker
-              key={index}
-              position={[point.lat, point.lon]}
-              interactive={false}
-              icon={Leaflet.icon({
-                className: styles['temp-point-marker'],
-                iconUrl: waypointMarker,
-                iconAnchor: [10.2, 45],
-                iconSize: [45, 45]
-              })}
-            >
-              <Tooltip
-                direction='top'
-                offset={[0, -10]}
-                opacity={1}
-                permanent
-                className={styles['waypoint-marker-tooltip']}
-              >
-                {`Punkt ${index + 1}`}
-              </Tooltip>
-            </Marker>
-          ))}
+          <Polyline
+            ref={this.polylineRef}
+            positions={geoPointsArray.map((point) => [point.latitude, point.longitude])}
+            color={'darkblue'}
+            weight={5}
+            opacity={0.8}
+          />
         </MapContainer>
       </div>
     );
