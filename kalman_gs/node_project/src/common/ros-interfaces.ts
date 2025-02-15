@@ -109,7 +109,7 @@ export type SupervisorGpsYoloSearchFeedback = {
 };
 // Result is empty.
 
-export type GeoPoints = {
+export type GeoPath = {
   points: GeoPoint[];
 };
 
