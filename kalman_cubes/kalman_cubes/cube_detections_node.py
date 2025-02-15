@@ -79,8 +79,7 @@ class CubeNode(Node):
 
     def create_directory(self):
         image_dir = "arch-images"
-        # home_dir = os.path.expanduser("~")
-        home_dir = "/home/rafal"
+        home_dir = os.path.expanduser("~")
         self.path = os.path.join(home_dir, image_dir)
         try:
             os.makedirs(self.path, exist_ok=False)
