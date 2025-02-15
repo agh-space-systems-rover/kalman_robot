@@ -65,7 +65,7 @@ export default function EStopButton() {
     <Tooltip
       text={
         iconDisabled
-          ? 'Unable to connect ROS and send E-STOP request'
+          ? 'Unable to request.\\nE-STOP state is unknown.'
           : `${eStopStatus === EStopStatus.ON ? 'Enable' : 'Disable'} rover's power.`
       }
       className={
