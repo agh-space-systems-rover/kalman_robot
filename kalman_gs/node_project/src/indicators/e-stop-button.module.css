@@ -11,7 +11,8 @@
 }
 
 .e-stop-button:global(.disabled) {
-  opacity: 0.75;
+  color: var(--weak-foreground);
+  cursor: default;
 }
 
 .e-stop-button:global(:not(.disabled)):hover {
@@ -23,10 +24,10 @@
   transition: background-color 0s;
 }
 
-.e-stop-button:global(.red) svg {
+.e-stop-button:global(.red:not(.disabled)) svg {
   color: var(--red-foreground);
 }
 
-.e-stop-button:global(.green) svg {
+.e-stop-button:global(.green:not(.disabled)) svg {
   color: var(--green-foreground);
 }

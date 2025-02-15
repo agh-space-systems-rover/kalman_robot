@@ -63,7 +63,11 @@ export default function EStopButton() {
 
   return (
     <Tooltip
-      text={`${eStopStatus === EStopStatus.ON ? 'Enable' : 'Disable'} rover's power.`}
+      text={
+        iconDisabled
+          ? 'Unable to connect ROS and send E-STOP request'
+          : `${eStopStatus === EStopStatus.ON ? 'Enable' : 'Disable'} rover's power.`
+      }
       className={
         styles['e-stop-button'] +
         (eStopStatus === EStopStatus.ON ? ' green' : ' red') +
@@ -75,7 +79,7 @@ export default function EStopButton() {
         }
 
         if (eStopService === null) {
-          alertsRef.current?.pushAlert('Not connected to local ROS instance. Unable to send e-stop request.', 'error');
+          alertsRef.current?.pushAlert('Not connected to local ROS instance. Unable to send E-STOP request.', 'error');
           return;
         }
 
