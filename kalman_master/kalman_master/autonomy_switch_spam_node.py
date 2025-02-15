@@ -3,7 +3,7 @@ from rclpy.node import Node
 
 from kalman_interfaces.msg import MasterMessage
 
-RATE = 1
+RATE = 0.2
 
 
 class AutonomySwitchSpam(Node):
