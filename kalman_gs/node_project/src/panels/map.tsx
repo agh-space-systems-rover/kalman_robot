@@ -36,7 +36,7 @@ let geoPathArray: GeoPoint[] = [];
 window.addEventListener('ros-connect', () => {
   const geoPathTopic = new Topic({
     ros: ros,
-    name: '/map/points', // TODO: change topic name
+    name: '/plan/gps',
     messageType: 'kalman_interfaces/GeoPath'
   });
 
