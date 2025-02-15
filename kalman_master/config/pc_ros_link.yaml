@@ -58,6 +58,20 @@ rover: # or 'station'
     #       - stop_to_teleop
     #       - stop_to_finished
     #       - finished
+    - name: plan/gps
+      type: kalman_interfaces/msg/GeoPath
+      max_rate: 0.25
+      fields:
+        - path: points.*.latitude
+          float_range:
+            min: -90.0
+            max: 90.0
+            bytes: 4 # precision = 0.00000005 degrees = 0.5 cm
+        - path: points.*.longitude
+          float_range:
+            min: -180.0
+            max: 180.0
+            bytes: 4 # precision = 0.0000001 degrees = 1 cm
   services:
     - name: spoof_gps
       type: kalman_interfaces/srv/SpoofGps
