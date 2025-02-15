@@ -9,18 +9,16 @@
 
 namespace kalman_master {
 
-class KalmanRfidNode : public rclcpp::Node {
+class RfidDriver : public rclcpp::Node {
 	using MasterMessage = kalman_interfaces::msg::MasterMessage;
 
   public:
-	KalmanRfidNode(const rclcpp::NodeOptions &options)
-	    : Node("rfid_node", options) {
+	RfidDriver(const rclcpp::NodeOptions &options)
+	    : Node("rfid_driver", options) {
 		master_sub_ = this->create_subscription<MasterMessage>(
 		    "master_com/master_to_ros/x85",
 		    10,
-		    std::bind(
-		        &KalmanRfidNode::master_callback, this, std::placeholders::_1
-		    )
+		    std::bind(&RfidDriver::master_callback, this, std::placeholders::_1)
 		);
 
 		pub_ = this->create_publisher<std_msgs::msg::String>("rfid_text", 10);
@@ -61,4 +59,4 @@ class KalmanRfidNode : public rclcpp::Node {
 
 } // namespace kalman_master
 
-RCLCPP_COMPONENTS_REGISTER_NODE(kalman_master::KalmanRfidNode)
+RCLCPP_COMPONENTS_REGISTER_NODE(kalman_master::RfidDriver)

@@ -25,7 +25,7 @@ add_library(rfid_driver_node SHARED src/rfid_driver_node.cpp)
 ament_target_dependencies(rfid_driver_node rclcpp rclcpp_components std_msgs kalman_interfaces)
 rclcpp_components_register_node(
   rfid_driver_node
-  PLUGIN "kalman_master::KalmanRfidNode"
+  PLUGIN "kalman_master::RfidDriver"
   EXECUTABLE rfid_driver
 )
 
