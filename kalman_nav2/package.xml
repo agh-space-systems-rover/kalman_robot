@@ -22,6 +22,7 @@
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>tf2_ros</exec_depend>
   <exec_depend>service_based_nav2_controller_srvs</exec_depend>
+  <exec_depend>python3-numpy</exec_depend>
 
   <!-- geo_path_converter dependencies -->
   <exec_depend>python-utm-pip</exec_depend>
