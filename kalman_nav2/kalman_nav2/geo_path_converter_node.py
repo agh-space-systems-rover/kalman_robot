@@ -34,7 +34,7 @@ class GeoPathConverter(rclpy.node.Node):
         super().__init__("geo_path_converter")
 
         self.utm_frame_id = self.declare_parameter("utm_frame_id", "utm")
-        self.min_deviation = self.declare_parameter("min_deviation", 0.5)
+        self.min_deviation = self.declare_parameter("min_deviation", 1.0)
         self.max_points = self.declare_parameter("max_points", 10)
 
         # Initialize TF2 buffer and listener.
