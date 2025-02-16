@@ -24,7 +24,7 @@ class RecordVideo: public rclcpp::Node {
       frame_rate        = this->declare_parameter("frame_rate", 5);
         cv::Size sizeFrame(640,320);
         get_parameter("frame_rate", frame_rate);
-        writer.open(filename, codec, frame_rate, sizeFrame, 1);
+        writer.open(filename, cv::CAP_FFMPEG, codec, frame_rate, sizeFrame, 1);
       auto image_qos = rclcpp::QoS(rclcpp::KeepLast(1))
                            .best_effort()
                            .durability_volatile();
@@ -49,6 +49,8 @@ class RecordVideo: public rclcpp::Node {
         cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
         cv::Mat resized;
         cv::resize(cv_ptr->image, resized, {640, 320});
+        cv::imshow("jajar", resized);
+        cv::waitKey(1);
         writer.write(resized);
     }
 }; 

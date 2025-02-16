@@ -29,7 +29,7 @@ class CubeNode(Node):
             CompressedImage, f"/d455_front/yolo_annotated/compressed", self.save_image, img_qos)
         self.tf_buffer = Buffer()
         self.bridge = CvBridge()
-        self.tf_listener = TransformListener(self.tf_buffer)
+        self.tf_listener = TransformListener(self.tf_buffer, self)
         self.image = None
         self.create_directory()
 
