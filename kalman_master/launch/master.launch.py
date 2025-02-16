@@ -69,6 +69,18 @@ def launch_setup(context):
             package="kalman_master",
             executable="autonomy_switch_spam",
         ),
+        "autonomy_status": Node(
+            package="kalman_master",
+            executable="status_publisher",
+            parameters=[
+                {
+                    "config_path": str(
+                        get_package_share_path("kalman_master")
+                        / f"config/autonomy_status.yaml"
+                    ),
+                }
+            ]
+        ),
         "link_pc_to_gs": start_ros_link(side="rover", rover_endpoint="pc"),
         "link_arm_to_gs": start_ros_link(side="rover", rover_endpoint="arm"),
         "link_gs_to_pc": start_ros_link(side="station", rover_endpoint="pc"),
@@ -102,6 +114,7 @@ def launch_setup(context):
             "ueuos_driver",
             "autonomy_spammer",
             "tunnel_client",
+            "autonomy_status",
         ],
         "gs": [
             "master_com",

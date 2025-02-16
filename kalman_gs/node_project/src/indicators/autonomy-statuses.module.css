@@ -1,0 +1,85 @@
+.autonomy-statuses {
+  width: calc(1em + 4px);
+  height: calc(1em + 4px);
+  padding: 3px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: transform 0.1s, 0.2s;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.autonomy-statuses:global(.no-display) {
+  display: none;
+}
+
+.autonomy-statuses:global(.error) svg {
+  color: var(--red-foreground);
+  animation: blinker 1s linear infinite;
+}
+
+.autonomy-statuses:hover {
+  background-color: var(--background);
+}
+
+.autonomy-statuses:active {
+  background-color: var(--interactive);
+  transition: background-color 0s;
+}
+
+.autonomy-statuses-modal {
+  min-width: 175px;
+  position: absolute;
+  top: 75px;
+  right: 10px;
+  background-color: var(--background);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  cursor: auto;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.autonomy-statuses-modal:global(.shown) {
+  opacity: 1;
+}
+
+.autonomy-statuses-modal-content {
+  padding: 10px;
+  height: calc(100% - 20px);
+  color: var(--foreground);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.autonomy-statuses-modal-header {
+  margin: 10px 5px;
+  width: 100%;
+  text-align: center;
+}
+
+.autonomy-statuses-modal-device {
+  margin: 4px 0;
+}
+
+.autonomy-statuses-modal-device-icon {
+  margin-right: 10px;
+}
+
+.autonomy-statuses-modal-device-icon:global(.connected) {
+  color: var(--green-foreground);
+}
+
+.autonomy-statuses-modal-device-icon:global(.disconnected) {
+  color: var(--red-foreground);
+}
+
+@keyframes blinker {
+  50% {
+    opacity: 0;
+  }
+}

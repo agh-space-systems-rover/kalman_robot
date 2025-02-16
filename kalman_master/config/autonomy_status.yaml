@@ -1,0 +1,47 @@
+frequency: 3 # status publisher frequency 
+devices:  
+  imu:
+    id: 0
+    device_name: IMU
+    msg_type: sensor_msgs/msg/Imu
+    topic: "/imu/data"
+    timeout: 1
+  gps:
+    id: 1
+    device_name: GPS 
+    msg_type: sensor_msgs/msg/NavSatFix
+    topic: "/gps/fix"
+    timeout: 10
+  wheels:
+    id: 2
+    device_name: Wheels
+    msg_type: kalman_interfaces/msg/MasterMessage
+    topic: "/master_com/master_to_ros/x4f"
+    timeout: 5
+  d455_front:
+    id: 3
+    device_name: d455_front
+    msg_type: sensor_msgs/msg/Image 
+    topic: "/d455_front/color/image_raw"
+    timeout: 1
+  d455_left:
+    id: 4
+    device_name: d455_left
+    msg_type: sensor_msgs/msg/Image 
+    topic: "/d455_left/color/image_raw"
+    timeout: 1
+  d455_back:
+    id: 5
+    device_name: d455_back
+    msg_type: sensor_msgs/msg/Image 
+    topic: "/d455_back/color/image_raw"
+    timeout: 1
+  d455_right:
+    id: 6
+    device_name: d455_right
+    msg_type: sensor_msgs/msg/Image 
+    topic: "/d455_right/color/image_raw"
+    timeout: 1
+
+  
+  
