@@ -167,6 +167,10 @@ export type ArmAxesLocks = {
   yaw?: boolean;
 };
 
+export type AutonomyStatus = {
+  status: number;
+};
+
 // UEUOS interfaces
 export type SetColorRequest = {
   color: ColorRGB;
@@ -184,4 +188,4 @@ export type ColorRGB = {
   r: number;
   g: number;
   b: number;
-}
+};
