@@ -29,7 +29,7 @@ class CubeNode(Node):
             CompressedImage, f"/d455_front/yolo_annotated/compressed", self.save_image, img_qos)
         self.tf_buffer = Buffer()
         self.bridge = CvBridge()
-        self.tf_listener = TransformListener(self.tf_buffer, self)
+        self.tf_listener = TransformListener(self.tf_buffer)
         self.image = None
         self.create_directory()
 
@@ -83,7 +83,7 @@ class CubeNode(Node):
         self.path = os.path.join(home_dir, image_dir)
         try:
             os.makedirs(self.path, exist_ok=False)
-            print(f"Directory {self.path} created successfully ")
+            print(f"Directory {self.path} created successfully")
         except OSError as err:
             print(f"Could not create a directory: {err}")
 
