@@ -21,8 +21,16 @@ rclcpp_components_register_node(
   EXECUTABLE arm_twist_driver
 )
 
+add_library(rfid_driver_node SHARED src/rfid_driver_node.cpp)
+ament_target_dependencies(rfid_driver_node rclcpp rclcpp_components std_msgs kalman_interfaces)
+rclcpp_components_register_node(
+  rfid_driver_node
+  PLUGIN "kalman_master::RfidDriver"
+  EXECUTABLE rfid_driver
+)
+
 ament_export_targets(kalman_master-targets)
-install(TARGETS arm_twist_driver_node
+install(TARGETS arm_twist_driver_node rfid_driver_node 
   EXPORT kalman_master-targets
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
