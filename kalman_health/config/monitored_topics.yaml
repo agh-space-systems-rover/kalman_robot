@@ -14,7 +14,7 @@ devices:
     timeout: 10
   wheels:
     id: 2
-    device_name: Wheels
+    device_name: Master
     msg_type: kalman_interfaces/msg/MasterMessage
     topic: "/master_com/master_to_ros/x4f"
     timeout: 5

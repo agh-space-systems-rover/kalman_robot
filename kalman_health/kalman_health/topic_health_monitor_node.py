@@ -1,7 +1,6 @@
 import rclpy
-import time
 from rclpy.node import Node
-from kalman_interfaces.msg import AutonomyStatus
+from std_msgs.msg import UInt8
 import yaml
 
 Device_Status = [0, 0, 0, 0, 0, 0, 0, 0]
@@ -9,10 +8,10 @@ Device_Status = [0, 0, 0, 0, 0, 0, 0, 0]
 
 class StatusClass(Node):
     def __init__(self):
-        super().__init__("status_publisher")
+        super().__init__("topic_health_monitor")
         self.timer_list = {}
         self.status_pub = self.create_publisher(
-            AutonomyStatus, '/autonomy_status', 10)
+            UInt8, '/topic_health_status', 10)
         filename = self.declare_parameter("config_path").value
 
         with open(filename, "r") as f:
@@ -54,9 +53,9 @@ class StatusClass(Node):
         Device_Status[id] = 0
 
     def publish_data(self):
-        msg = AutonomyStatus()
+        msg = UInt8()
         list_to_byte = int(''.join(map(str, Device_Status)), 2)
-        msg.status = list_to_byte
+        msg.data = list_to_byte
         self.status_pub.publish(msg)
 
 
