@@ -26,7 +26,7 @@ class CubeNode(Node):
         self.create_subscription(
             Detection2DArray, "/yolo_detections", self.transform_detection, img_qos)
         self.create_subscription(
-            CompressedImage, f"/d455_front/yolo_annotated/compressed", self.save_image, img_qos)
+            CompressedImage, f"/{self.camera_no}/yolo_annotated/compressed", self.save_image, img_qos)
         self.tf_buffer = Buffer()
         self.bridge = CvBridge()
         self.tf_listener = TransformListener(self.tf_buffer, self)
@@ -41,7 +41,8 @@ class CubeNode(Node):
         cv_image = self.bridge.compressed_imgmsg_to_cv2(
             msg, desired_encoding="bgr8")
         cv2.imwrite(
-            f"{self.path}/{name}.jpg", cv_image)
+            # reduce size to 50%
+            f"{self.path}/{name}.jpg", cv_image, [cv2.IMWRITE_JPEG_QUALITY, 50])
 
     def save_position(self, msg: PoseStamped):
         camera_id = msg.header.frame_id[:-len("_color_optical_frame")]
