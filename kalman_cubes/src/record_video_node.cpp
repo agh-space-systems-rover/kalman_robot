@@ -1,4 +1,5 @@
 #include "rclcpp/rclcpp.hpp"
+#include <rclcpp_components/register_node_macro.hpp>
 #include "std_msgs/msg/string.hpp"
 #include "sensor_msgs/msg/compressed_image.hpp"
 #include <image_transport/image_transport.hpp>
@@ -9,6 +10,7 @@
 #include <opencv2/highgui.hpp>
 #include <filesystem>
 
+namespace kalman_cubes {
 
 class RecordVideo: public rclcpp::Node {
     public:
@@ -56,12 +58,6 @@ class RecordVideo: public rclcpp::Node {
     }
 }; 
 
-int main(int argc, char** argv)
-{
-    rclcpp::init(argc, argv);
-    auto node = std::make_shared<RecordVideo>();
-    rclcpp::spin(node);
-    rclcpp::shutdown();
-    
-  return 0;
 }
+
+RCLCPP_COMPONENTS_REGISTER_NODE(kalman_cubes::RecordVideo)
