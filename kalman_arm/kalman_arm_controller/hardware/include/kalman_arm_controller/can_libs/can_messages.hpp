@@ -172,4 +172,11 @@ typedef struct __attribute__((__packed__))
 #define CMD_SET_GRIPPER 0xE3
 #define LEN_CMD_SET_GRIPPER 2
 
+typedef struct __attribute__((__packed__))
+{
+  uint8_t position;
+} cmdSetFastclick_t;
+#define CMD_SET_FASTCLICK 0xEA
+#define LEN_CMD_SET_FASTCLICK 1
+
 #endif  // KALMAN_ARM_CONTROLLER__HARDWARE__CAN_MESSAGES_HPP

@@ -34,6 +34,7 @@ def start_ros_link(side: str, rover_endpoint: str) -> Node:
                 "rover_endpoint": rover_endpoint,  # arm or pc
             },
         ],
+        name=f"ros_link_{rover_endpoint}"
     )
 
 

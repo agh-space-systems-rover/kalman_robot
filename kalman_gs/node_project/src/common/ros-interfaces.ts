@@ -187,3 +187,22 @@ export type ArmAxesLocks = {
   pitch?: boolean;
   yaw?: boolean;
 };
+
+// UEUOS interfaces
+export type SetColorRequest = {
+  color: ColorRGB;
+};
+
+export type SetStateRequest = {
+  state: number;
+};
+
+export type SetEffectRequest = {
+  effect: number;
+};
+
+export type ColorRGB = {
+  r: number;
+  g: number;
+  b: number;
+}

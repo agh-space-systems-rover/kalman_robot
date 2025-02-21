@@ -11,13 +11,14 @@ import { ReactNode, useCallback, useEffect, useState } from 'react';
 type Item = {
   icon?: IconDefinition;
   text: string;
+  value?: any;
 };
 
 type Props = {
   tooltip?: string;
   items: Item[];
   defaultItemIndex?: number;
-  onChange?: (index: number) => void;
+  onChange?: (index: number, value?: any) => void;
   className?: string;
   popupClassName?: string;
   [key: string]: any;
@@ -91,7 +92,7 @@ export default function Dropdown({
                 key={index}
                 className={styles['dropdown-item']}
                 onClick={() => {
-                  onChange?.(index);
+                  onChange?.(index, item.value);
                   closeDropdown();
                   setSelectedItemIndex(index);
                 }}

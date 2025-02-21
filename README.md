@@ -14,9 +14,9 @@ The software for AGH Space System's planetary rover
 To make development quicker, the launch process of the development setup has been split into two separate launch files. One of them, suffixed `_sim_base`, launches the simulation environment and RViz. The other one, suffixed `_sim_stack`, launches the rest of the software stack, including localization, mapping, and navigation capabilities:
 
 ```bash
-ros2 launch kalman_bringup urc_autonomy_sim_base.launch.py
+ros2 launch kalman_bringup urc_sim_nav_base.launch.py
 # Before running the next command, make sure that the simulation is started and sensor messages are being published.
-ros2 launch kalman_bringup urc_autonomy_sim_stack.launch.py
+ros2 launch kalman_bringup urc_sim_nav_stack.launch.py
 ```
 
 > [!NOTE]
@@ -26,13 +26,13 @@ ros2 launch kalman_bringup urc_autonomy_sim_stack.launch.py
 In order to run on a physical rover, just one launch file is needed:
 
 ```bash
-ros2 launch kalman_bringup urc_autonomy_rover.launch.py
+ros2 launch kalman_bringup urc_pc_nav.launch.py
 ```
 
 To launch the ground station, use the following command on a separate machine:
 
 ```bash
-ros2 launch kalman_bringup urc_autonomy_gs.launch.py
+ros2 launch kalman_bringup urc_gs_nav.launch.py
 ```
 
 For certain features to work, the ground station should be connected to the same network as the rover and/or have our custom radio communication hardware connected to it.
