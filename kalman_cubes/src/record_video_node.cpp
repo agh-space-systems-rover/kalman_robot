@@ -7,6 +7,7 @@
 #include <opencv2/core.hpp>
 #include <opencv2/videoio.hpp>
 #include <opencv2/highgui.hpp>
+#include <filesystem>
 
 
 class RecordVideo: public rclcpp::Node {
@@ -14,10 +15,12 @@ class RecordVideo: public rclcpp::Node {
     // Subscribers
     image_transport::ImageTransport   it;
     image_transport::Subscriber image_sub;
-    int codec = cv::VideoWriter::fourcc('H', '2', '6', '4'); 
-    std::string filename = "/home/rafal/arch-video001.mkv";
+    int codec = cv::VideoWriter::fourcc('H', '2', '6', '4');
+    std::string user_home = std::filesystem::path(getenv("HOME")).string();
+    std::string filename = user_home + "arch-video001.mkv";
     int frame_rate;
     cv::VideoWriter writer;
+    
     RecordVideo(const rclcpp::NodeOptions &options = {})
         : Node("record_video", options),
           it(std::shared_ptr<RecordVideo>(this, [](auto *) {})) {
@@ -49,8 +52,6 @@ class RecordVideo: public rclcpp::Node {
         cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
         cv::Mat resized;
         cv::resize(cv_ptr->image, resized, {640, 320});
-        cv::imshow("jajar", resized);
-        cv::waitKey(1);
         writer.write(resized);
     }
 }; 
