@@ -1,8 +1,8 @@
-import styles from './autonomy-statuses.module.css';
+import styles from './topic-health-monitor.module.css';
 
 import { alertsRef } from '../common/refs';
 import { ros } from '../common/ros';
-import { AutonomyStatus } from '../common/ros-interfaces';
+import { UInt8 } from '../common/ros-interfaces';
 import { faCamera, faCar, faCompass, faInfo, faSatellite } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useCallback, useEffect, useState } from 'react';
@@ -22,7 +22,7 @@ type Device = {
 const deviceIcon: Record<number, any> = {
   0: faCompass, // IMU
   1: faSatellite, // GPS
-  2: faCar, // Wheels
+  2: faCar, // Master
   3: faCamera, // d455_front
   4: faCamera, // d455_left
   5: faCamera, // d455_back
@@ -33,36 +33,36 @@ const deviceIcon: Record<number, any> = {
 let autonomyDevicesService: Service<{}, Devices> = null;
 
 // Topic variables:
-let autonomyStatusValue: AutonomyStatus | null = null;
+let autonomyStatusValue: UInt8 | null = null;
 
 window.addEventListener('ros-connect', () => {
   autonomyDevicesService = new Service({
     ros: ros,
-    name: '/autonomy/get_devices',
+    name: '/topic_health_status/get_devices',
     serviceType: 'kalman_interfaces/GetDevices'
   });
 
   const autonomyTopic = new Topic({
     ros: ros,
-    name: '/autonomy_status',
-    messageType: 'kalman_interfaces/AutonomyStatus'
+    name: '/topic_health_status',
+    messageType: 'std_msgs/UInt8'
   });
 
-  autonomyTopic.subscribe((msg: AutonomyStatus) => {
+  autonomyTopic.subscribe((msg: UInt8) => {
     autonomyStatusValue = msg;
-    window.dispatchEvent(new Event('autonomy-status-update'));
+    window.dispatchEvent(new Event('topic-health-monitor-update'));
   });
 });
 
-export default function AutonomyStatuses() {
+export default function TopicHealthMonitors() {
   const [autonomyDevices, setAutonomyDevices] = useState(null);
   const [autonomyStatuses, setAutonomyStatuses] = useState(null);
   const [showDevices, setShowDevices] = useState(false);
   const [autonomyDeviceError, setAutonomyDeviceError] = useState(false);
 
-  const updateAutonomyStatuses = useCallback(() => {
+  const updateTopicHealthMonitors = useCallback(() => {
     if (autonomyStatusValue !== null) {
-      const binaryString = autonomyStatusValue.status.toString(2).padStart(8, '0');
+      const binaryString = autonomyStatusValue.data.toString(2).padStart(8, '0');
       const statusesArray = Array.from(binaryString).map((bit) => Number(bit));
 
       // Check for any inactive device, then set error
@@ -83,18 +83,18 @@ export default function AutonomyStatuses() {
   }, [autonomyDevices, autonomyStatuses, autonomyDeviceError]);
 
   useEffect(() => {
-    window.addEventListener('autonomy-status-update', updateAutonomyStatuses);
+    window.addEventListener('topic-health-monitor-update', updateTopicHealthMonitors);
     return () => {
-      window.removeEventListener('autonomy-status-update', updateAutonomyStatuses);
+      window.removeEventListener('topic-health-monitor-update', updateTopicHealthMonitors);
     };
-  }, [updateAutonomyStatuses]);
+  }, [updateTopicHealthMonitors]);
 
   const handleClickOutside = (event: MouseEvent) => {
     const targetElement = event.target as HTMLElement;
 
-    if (targetElement.closest(`.${styles['autonomy-statuses']}`)) return;
+    if (targetElement.closest(`.${styles['topic-health-monitors']}`)) return;
 
-    if (!targetElement.className.includes('autonomy-statuses-modal')) {
+    if (!targetElement.className.includes('topic-health-monitors-modal')) {
       setShowDevices(false);
     }
   };
@@ -123,15 +123,15 @@ export default function AutonomyStatuses() {
   return (
     <>
       <Tooltip
-        text='Show autonomy devices statuses.'
+        text='Show devices healthchecks.'
         className={
-          styles['autonomy-statuses'] +
+          styles['topic-health-monitors'] +
           (autonomyStatuses === null ? ' no-display' : '') +
           (autonomyDeviceError ? ' error' : '')
         }
         onClick={() => {
           if (autonomyStatuses === null) {
-            alertsRef.current?.pushAlert(`Cannot get list of autonomy devices statuses.`, 'error');
+            alertsRef.current?.pushAlert(`Cannot get list of devices statuses.`, 'error');
             return;
           }
 
@@ -142,15 +142,15 @@ export default function AutonomyStatuses() {
       </Tooltip>
 
       {autonomyDevices !== null && (
-        <div className={styles['autonomy-statuses-modal'] + (showDevices ? ' shown' : '')}>
-          <div className={styles['autonomy-statuses-modal-content']}>
-            <h3 className={styles['autonomy-statuses-modal-header']}>Autonomy statuses</h3>
+        <div className={styles['topic-health-monitors-modal'] + (showDevices ? ' shown' : '')}>
+          <div className={styles['topic-health-monitors-modal-content']}>
+            <h3 className={styles['topic-health-monitors-modal-header']}>Autonomy statuses</h3>
             {autonomyDevices.map((device: Device) => (
-              <p className={styles['autonomy-statuses-modal-device']} key={device.id}>
+              <p className={styles['topic-health-monitors-modal-device']} key={device.id}>
                 <FontAwesomeIcon
                   icon={deviceIcon[device.id]}
                   className={
-                    styles['autonomy-statuses-modal-device-icon'] +
+                    styles['topic-health-monitors-modal-device-icon'] +
                     (autonomyStatuses[device.id] ? ' connected' : ' disconnected')
                   }
                 />

@@ -1,5 +1,9 @@
 // Standard ROS types
 
+export type UInt8 = {
+  data: number;
+};
+
 export type Time = {
   sec?: number;
   nanosec?: number;
@@ -165,10 +169,6 @@ export type ArmAxesLocks = {
   roll?: boolean;
   pitch?: boolean;
   yaw?: boolean;
-};
-
-export type AutonomyStatus = {
-  status: number;
 };
 
 // UEUOS interfaces

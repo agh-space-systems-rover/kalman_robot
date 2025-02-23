@@ -1,4 +1,4 @@
-.autonomy-statuses {
+.topic-health-monitors {
   width: calc(1em + 4px);
   height: calc(1em + 4px);
   padding: 3px;
@@ -10,25 +10,25 @@
   align-items: center;
 }
 
-.autonomy-statuses:global(.no-display) {
+.topic-health-monitors:global(.no-display) {
   display: none;
 }
 
-.autonomy-statuses:global(.error) svg {
+.topic-health-monitors:global(.error) svg {
   color: var(--red-foreground);
   animation: blinker 1s linear infinite;
 }
 
-.autonomy-statuses:hover {
+.topic-health-monitors:hover {
   background-color: var(--background);
 }
 
-.autonomy-statuses:active {
+.topic-health-monitors:active {
   background-color: var(--interactive);
   transition: background-color 0s;
 }
 
-.autonomy-statuses-modal {
+.topic-health-monitors-modal {
   min-width: 175px;
   position: absolute;
   top: 75px;
@@ -43,11 +43,11 @@
   transition: opacity 0.3s;
 }
 
-.autonomy-statuses-modal:global(.shown) {
+.topic-health-monitors-modal:global(.shown) {
   opacity: 1;
 }
 
-.autonomy-statuses-modal-content {
+.topic-health-monitors-modal-content {
   padding: 10px;
   height: calc(100% - 20px);
   color: var(--foreground);
@@ -56,25 +56,25 @@
   flex-direction: column;
 }
 
-.autonomy-statuses-modal-header {
+.topic-health-monitors-modal-header {
   margin: 10px 5px;
   width: 100%;
   text-align: center;
 }
 
-.autonomy-statuses-modal-device {
+.topic-health-monitors-modal-device {
   margin: 4px 0;
 }
 
-.autonomy-statuses-modal-device-icon {
+.topic-health-monitors-modal-device-icon {
   margin-right: 10px;
 }
 
-.autonomy-statuses-modal-device-icon:global(.connected) {
+.topic-health-monitors-modal-device-icon:global(.connected) {
   color: var(--green-foreground);
 }
 
-.autonomy-statuses-modal-device-icon:global(.disconnected) {
+.topic-health-monitors-modal-device-icon:global(.disconnected) {
   color: var(--red-foreground);
 }
 

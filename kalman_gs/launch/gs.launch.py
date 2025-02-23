@@ -63,12 +63,12 @@ def generate_launch_description():
             ),
             Node(
                 package="kalman_gs",
-                executable="autonomy_config",
+                executable="topic_health_config",
                 parameters=[
                     {
                         "config_path": str(
-                            get_package_share_path("kalman_master")
-                            / f"config/autonomy_status.yaml"
+                            get_package_share_path("kalman_health")
+                            / f"config/monitored_topics.yaml"
                         ),
                     }
                 ]
