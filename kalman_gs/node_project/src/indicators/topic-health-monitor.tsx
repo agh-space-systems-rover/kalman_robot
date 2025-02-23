@@ -5,10 +5,12 @@ import { ros } from '../common/ros';
 import { UInt8 } from '../common/ros-interfaces';
 import { faCamera, faCar, faCompass, faInfo, faSatellite } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Service, Topic } from 'roslib';
 
 import Tooltip from '../components/tooltip';
+
+const TOPIC_INACTIVITY_SECONDS = 15;
 
 type Devices = {
   devices: Device[];
@@ -30,57 +32,69 @@ const deviceIcon: Record<number, any> = {
 };
 
 // Services:
-let autonomyDevicesService: Service<{}, Devices> = null;
+let healthDevicesService: Service<{}, Devices> = null;
 
 // Topic variables:
-let autonomyStatusValue: UInt8 | null = null;
+let healthStatusValue: UInt8 | null = null;
 
 window.addEventListener('ros-connect', () => {
-  autonomyDevicesService = new Service({
+  healthDevicesService = new Service({
     ros: ros,
     name: '/topic_health_status/get_devices',
     serviceType: 'kalman_interfaces/GetDevices'
   });
 
-  const autonomyTopic = new Topic({
+  const healthTopic = new Topic({
     ros: ros,
     name: '/topic_health_status',
     messageType: 'std_msgs/UInt8'
   });
 
-  autonomyTopic.subscribe((msg: UInt8) => {
-    autonomyStatusValue = msg;
+  healthTopic.subscribe((msg: UInt8) => {
+    healthStatusValue = msg;
     window.dispatchEvent(new Event('topic-health-monitor-update'));
   });
 });
 
 export default function TopicHealthMonitors() {
-  const [autonomyDevices, setAutonomyDevices] = useState(null);
-  const [autonomyStatuses, setAutonomyStatuses] = useState(null);
+  const [healthDevices, setHealthDevices] = useState(null);
+  const [healthStatuses, setHealthStatuses] = useState(null);
+  const [showIcon, setShowIcon] = useState(false);
   const [showDevices, setShowDevices] = useState(false);
-  const [autonomyDeviceError, setAutonomyDeviceError] = useState(false);
+  const [healthDeviceError, setHealthDeviceError] = useState(false);
+
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const updateTopicHealthMonitors = useCallback(() => {
-    if (autonomyStatusValue !== null) {
-      const binaryString = autonomyStatusValue.data.toString(2).padStart(8, '0');
+    if (healthStatusValue !== null) {
+      const binaryString = healthStatusValue.data.toString(2).padStart(8, '0');
       const statusesArray = Array.from(binaryString).map((bit) => Number(bit));
 
+      // Set timeout to hide the info panel after 20 seconds of inactivity
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+      timerRef.current = setTimeout(() => {
+        setShowIcon(false);
+      }, TOPIC_INACTIVITY_SECONDS * 1000);
+
       // Check for any inactive device, then set error
-      if (autonomyDevices === null) {
-        autonomyDevicesService.callService({}, (data: Devices) => setAutonomyDevices(data.devices), undefined);
+      if (healthDevices === null) {
+        healthDevicesService.callService({}, (data: Devices) => setHealthDevices(data.devices), undefined);
       } else {
         let errorStatement = false;
-        autonomyDevices.forEach((device: Device) => {
-          if (autonomyStatuses[device.id] === 0) {
+        healthDevices.forEach((device: Device) => {
+          if (healthStatuses[device.id] === 0) {
             errorStatement = true;
           }
         });
-        setAutonomyDeviceError(errorStatement);
+        setHealthDeviceError(errorStatement);
       }
 
-      setAutonomyStatuses(statusesArray);
+      setShowIcon(true);
+      setHealthStatuses(statusesArray);
     }
-  }, [autonomyDevices, autonomyStatuses, autonomyDeviceError]);
+  }, [healthDevices, healthStatuses, healthDeviceError]);
 
   useEffect(() => {
     window.addEventListener('topic-health-monitor-update', updateTopicHealthMonitors);
@@ -125,12 +139,10 @@ export default function TopicHealthMonitors() {
       <Tooltip
         text='Show devices healthchecks.'
         className={
-          styles['topic-health-monitors'] +
-          (autonomyStatuses === null ? ' no-display' : '') +
-          (autonomyDeviceError ? ' error' : '')
+          styles['topic-health-monitors'] + (showIcon ? '' : ' no-display') + (healthDeviceError ? ' error' : '')
         }
         onClick={() => {
-          if (autonomyStatuses === null) {
+          if (healthStatuses === null) {
             alertsRef.current?.pushAlert(`Cannot get list of devices statuses.`, 'error');
             return;
           }
@@ -141,17 +153,17 @@ export default function TopicHealthMonitors() {
         <FontAwesomeIcon icon={faInfo} />
       </Tooltip>
 
-      {autonomyDevices !== null && (
+      {healthDevices !== null && (
         <div className={styles['topic-health-monitors-modal'] + (showDevices ? ' shown' : '')}>
           <div className={styles['topic-health-monitors-modal-content']}>
-            <h3 className={styles['topic-health-monitors-modal-header']}>Autonomy statuses</h3>
-            {autonomyDevices.map((device: Device) => (
+            <h3 className={styles['topic-health-monitors-modal-header']}>Health statuses</h3>
+            {healthDevices.map((device: Device) => (
               <p className={styles['topic-health-monitors-modal-device']} key={device.id}>
                 <FontAwesomeIcon
                   icon={deviceIcon[device.id]}
                   className={
                     styles['topic-health-monitors-modal-device-icon'] +
-                    (autonomyStatuses[device.id] ? ' connected' : ' disconnected')
+                    (healthStatuses[device.id] ? ' connected' : ' disconnected')
                   }
                 />
                 {device.device_name}
