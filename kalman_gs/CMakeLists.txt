@@ -8,7 +8,6 @@ ament_python_install_package(${PROJECT_NAME})
 
 install(PROGRAMS
   scripts/gs
-  scripts/topic_health_config
   DESTINATION lib/${PROJECT_NAME}
 )
 

@@ -1,6 +1,8 @@
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import UInt8
+from kalman_interfaces.msg import Device
+from kalman_interfaces.srv import GetDevices
 import yaml
 
 Device_Status = [0, 0, 0, 0, 0, 0, 0, 0]
@@ -16,6 +18,8 @@ class StatusClass(Node):
 
         with open(filename, "r") as f:
             self.Device_List = yaml.safe_load(f)
+
+        self.create_service(GetDevices, "topic_health_status/get_devices", self.get_devices)
 
         self.publish_data_timer = self.create_timer(
             self.Device_List["frequency"], self.publish_data)
@@ -57,6 +61,14 @@ class StatusClass(Node):
         list_to_byte = int(''.join(map(str, Device_Status)), 2)
         msg.data = list_to_byte
         self.status_pub.publish(msg)
+
+    def get_devices(self, req: GetDevices.Request, res: GetDevices.Response):
+        res.devices = [
+            Device(id=device["id"], device_name=device["device_name"])
+            for key, device in self.Device_List["devices"].items()
+        ]
+
+        return res
 
 
 def main():

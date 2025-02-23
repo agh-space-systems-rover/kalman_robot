@@ -60,18 +60,6 @@ def generate_launch_description():
             Node(
                 package="kalman_gs",
                 executable="gs",
-            ),
-            Node(
-                package="kalman_gs",
-                executable="topic_health_config",
-                parameters=[
-                    {
-                        "config_path": str(
-                            get_package_share_path("kalman_health")
-                            / f"config/monitored_topics.yaml"
-                        ),
-                    }
-                ]
-            ),
+            )
         ]
     )
