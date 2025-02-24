@@ -26,6 +26,8 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/WheelStates.msg"
   "msg/WheelTemperature.msg"
   "msg/WheelTemperatures.msg"
+  "msg/Device.msg"
+  "srv/GetDevices.srv"
   "srv/SetFeed.srv"
   "srv/SetUeuosColor.srv"
   "srv/SetUeuosEffect.srv"

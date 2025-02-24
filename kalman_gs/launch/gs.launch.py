@@ -6,6 +6,7 @@ import os
 import shutil
 import yaml
 
+
 def generate_launch_description():
     # Find maproxy-util if it is not in the PATH.
     mapproxy_util = "mapproxy-util"
@@ -18,7 +19,7 @@ def generate_launch_description():
 
     # Load config/mapproxy.yaml and insert cache dir.
     with open(
-        str(get_package_share_path("kalman_gs") / "config" / "mapproxy.yaml")
+            str(get_package_share_path("kalman_gs") / "config" / "mapproxy.yaml")
     ) as f:
         mapproxy_yaml = yaml.load(f, Loader=yaml.SafeLoader)
     mapproxy_yaml["globals"] = {}
@@ -59,6 +60,6 @@ def generate_launch_description():
             Node(
                 package="kalman_gs",
                 executable="gs",
-            ),
+            )
         ]
     )

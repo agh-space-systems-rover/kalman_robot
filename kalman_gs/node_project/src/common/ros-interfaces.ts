@@ -1,5 +1,9 @@
 // Standard ROS types
 
+export type UInt8 = {
+  data: number;
+};
+
 export type Time = {
   sec?: number;
   nanosec?: number;
@@ -184,4 +188,4 @@ export type ColorRGB = {
   r: number;
   g: number;
   b: number;
-}
+};
