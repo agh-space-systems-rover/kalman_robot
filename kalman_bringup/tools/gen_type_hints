@@ -17,6 +17,7 @@ def capitalize_module_name(name: str) -> str:
     word = [w.capitalize() for w in words]
     return "".join(word)
 
+
 def get_pkg_desc(pkg: str) -> str:
     try:
         pkg_path = get_package_share_path(pkg)
@@ -40,6 +41,7 @@ if __name__ == "__main__":
         if ("/opt/ros/" not in p and "kalman_bringup" not in p)
     ]
     module_pkgs = [(x.split("/")[-1]) for x in paths]
+    module_pkgs = sorted(module_pkgs)
 
     launch_args = (
         {}
@@ -65,7 +67,8 @@ if __name__ == "__main__":
     print()
     print("from typing import Literal, TypedDict\n\n")
 
-    for module_name, args in launch_args.items():
+    launch_args_items = sorted(launch_args.items(), key=lambda x: x[0])
+    for module_name, args in launch_args_items:
         print(f"class {capitalize_module_name(module_name)}(TypedDict):")
         if args:
             for arg_name, desc, choices in args:
@@ -79,7 +82,8 @@ if __name__ == "__main__":
         print("\n")
 
     print("class BringupConfig(TypedDict):")
-    for module_name in launch_args.keys():
+    launch_args_keys = sorted(launch_args.keys())
+    for module_name in launch_args_keys:
         print(f"    {module_name}: {capitalize_module_name(module_name)}")
         desc = get_pkg_desc(f"kalman_{module_name}")
         if desc:
