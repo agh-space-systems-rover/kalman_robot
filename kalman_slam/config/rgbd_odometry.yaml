@@ -4,8 +4,9 @@
     publish_tf: False
     approx_sync: False
     topic_queue_size: 1
-    rgb_transport: compressed
-    depth_transport: compressedDepth
+    # rgb_transport: compressed
+    # depth_transport: compressedDepth
+    # ^ Set in launch file
 
     Odom/ResetCountdown: "1"
     Odom/Strategy: "0"

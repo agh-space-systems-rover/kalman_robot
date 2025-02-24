@@ -100,7 +100,11 @@ def launch_setup(context):
                         get_package_share_path("kalman_slam")
                         / "config"
                         / "rgbd_odometry.yaml"
-                    )
+                    ),
+                    {
+                        "rgb_transport": "compressed",
+                        "depth_transport": "compressedDepth",
+                    },
                 ],
                 remappings=[
                     ("rgb/image", f"color/image_raw"),
