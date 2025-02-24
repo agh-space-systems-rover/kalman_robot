@@ -47,7 +47,10 @@ export default function EStopButton() {
   const [iconDisabled, setIconDisabled] = useState(true);
 
   const changeEStopStatus = useCallback(() => {
-    if (eStopTopicResponse !== null && (eStopTopicResponse.data ? EStopStatus.ON : EStopStatus.OFF) !== eStopStatus) {
+    if (
+      eStopTopicResponse !== null &&
+      ((eStopTopicResponse.data ? EStopStatus.ON : EStopStatus.OFF) !== eStopStatus || iconDisabled === true)
+    ) {
       setEStopStatus(eStopTopicResponse.data ? EStopStatus.ON : EStopStatus.OFF);
       setIconDisabled(true);
       setTimeout(() => {
