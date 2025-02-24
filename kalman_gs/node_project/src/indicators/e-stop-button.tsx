@@ -13,8 +13,8 @@ import Tooltip from '../components/tooltip';
 const ICON_DISABLED_TIMEOUT = 500;
 
 enum EStopStatus {
-  ON = 0,
-  OFF = 1
+  ON = 1,
+  OFF = 0
 }
 
 // Services:
@@ -47,12 +47,14 @@ export default function EStopButton() {
   const [iconDisabled, setIconDisabled] = useState(true);
 
   const changeEStopStatus = useCallback(() => {
-    setEStopStatus(eStopTopicResponse.data ? EStopStatus.ON : EStopStatus.OFF);
-    setIconDisabled(true);
-    setTimeout(() => {
-      setIconDisabled(false);
-    }, ICON_DISABLED_TIMEOUT);
-  }, [setEStopStatus, setIconDisabled]);
+    if (eStopTopicResponse !== null && (eStopTopicResponse.data ? EStopStatus.ON : EStopStatus.OFF) !== eStopStatus) {
+      setEStopStatus(eStopTopicResponse.data ? EStopStatus.ON : EStopStatus.OFF);
+      setIconDisabled(true);
+      setTimeout(() => {
+        setIconDisabled(false);
+      }, ICON_DISABLED_TIMEOUT);
+    }
+  }, [eStopStatus, iconDisabled]);
 
   useEffect(() => {
     window.addEventListener('e-stop-status', changeEStopStatus);
@@ -66,13 +68,9 @@ export default function EStopButton() {
       text={
         iconDisabled
           ? 'Unable to request.\\nE-STOP state is unknown.'
-          : `${eStopStatus === EStopStatus.ON ? 'Enable' : 'Disable'} rover's power.`
+          : `${eStopStatus ? 'Enable' : 'Disable'} rover's power.`
       }
-      className={
-        styles['e-stop-button'] +
-        (eStopStatus === EStopStatus.ON ? ' green' : ' red') +
-        (iconDisabled ? ' disabled' : '')
-      }
+      className={styles['e-stop-button'] + (eStopStatus ? ' green' : ' red') + (iconDisabled ? ' disabled' : '')}
       onClick={() => {
         if (iconDisabled) {
           return;
@@ -88,10 +86,7 @@ export default function EStopButton() {
           setBoolRequest,
           (response: SetBoolFeedback) => {
             if (response.success) {
-              alertsRef.current?.pushAlert(
-                `Successfully updated E-STOP status. Currently: ${eStopStatus === EStopStatus.ON ? 'ON' : 'OFF'}.`,
-                'success'
-              );
+              alertsRef.current?.pushAlert(`Successfully updated E-STOP status.`, 'success');
             } else {
               alertsRef.current?.pushAlert(`Failed to update E-STOP status. ${response.message}.`, 'error');
             }
