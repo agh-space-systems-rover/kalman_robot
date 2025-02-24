@@ -1,4 +1,4 @@
-import styles from './topic-health-monitor.module.css';
+import styles from './health-status.module.css';
 
 import { alertsRef } from '../common/refs';
 import { ros } from '../common/ros';
@@ -52,11 +52,11 @@ window.addEventListener('ros-connect', () => {
 
   healthTopic.subscribe((msg: UInt8) => {
     healthStatusValue = msg;
-    window.dispatchEvent(new Event('topic-health-monitor-update'));
+    window.dispatchEvent(new Event('health-status-update'));
   });
 });
 
-export default function TopicHealthMonitors() {
+export default function HealthStatus() {
   const [healthDevices, setHealthDevices] = useState(null);
   const [healthStatuses, setHealthStatuses] = useState(null);
   const [showIcon, setShowIcon] = useState(false);
@@ -97,18 +97,18 @@ export default function TopicHealthMonitors() {
   }, [healthDevices, healthStatuses, healthDeviceError]);
 
   useEffect(() => {
-    window.addEventListener('topic-health-monitor-update', updateTopicHealthMonitors);
+    window.addEventListener('health-status-update', updateTopicHealthMonitors);
     return () => {
-      window.removeEventListener('topic-health-monitor-update', updateTopicHealthMonitors);
+      window.removeEventListener('health-status-update', updateTopicHealthMonitors);
     };
   }, [updateTopicHealthMonitors]);
 
   const handleClickOutside = (event: MouseEvent) => {
     const targetElement = event.target as HTMLElement;
 
-    if (targetElement.closest(`.${styles['topic-health-monitors']}`)) return;
+    if (targetElement.closest(`.${styles['health-status']}`)) return;
 
-    if (!targetElement.className.includes('topic-health-monitors-modal')) {
+    if (!targetElement.className.includes('health-status-modal')) {
       setShowDevices(false);
     }
   };
@@ -139,7 +139,7 @@ export default function TopicHealthMonitors() {
       <Tooltip
         text='Show devices healthchecks.'
         className={
-          styles['topic-health-monitors'] + (showIcon ? '' : ' no-display') + (healthDeviceError ? ' error' : '')
+          styles['health-status'] + (showIcon ? '' : ' no-display') + (healthDeviceError ? ' error' : '')
         }
         onClick={() => {
           if (healthStatuses === null) {
@@ -154,15 +154,15 @@ export default function TopicHealthMonitors() {
       </Tooltip>
 
       {healthDevices !== null && (
-        <div className={styles['topic-health-monitors-modal'] + (showDevices ? ' shown' : '')}>
-          <div className={styles['topic-health-monitors-modal-content']}>
-            <h3 className={styles['topic-health-monitors-modal-header']}>Health statuses</h3>
+        <div className={styles['health-status-modal'] + (showDevices ? ' shown' : '')}>
+          <div className={styles['health-status-modal-content']}>
+            <h3 className={styles['health-status-modal-header']}>Health statuses</h3>
             {healthDevices.map((device: Device) => (
-              <p className={styles['topic-health-monitors-modal-device']} key={device.id}>
+              <p className={styles['health-status-modal-device']} key={device.id}>
                 <FontAwesomeIcon
                   icon={deviceIcon[device.id]}
                   className={
-                    styles['topic-health-monitors-modal-device-icon'] +
+                    styles['health-status-modal-device-icon'] +
                     (healthStatuses[device.id] ? ' connected' : ' disconnected')
                   }
                 />

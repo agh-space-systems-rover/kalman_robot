@@ -1,4 +1,4 @@
-.topic-health-monitors {
+.health-status {
   width: calc(1em + 4px);
   height: calc(1em + 4px);
   padding: 3px;
@@ -10,25 +10,25 @@
   align-items: center;
 }
 
-.topic-health-monitors:global(.no-display) {
+.health-status:global(.no-display) {
   display: none;
 }
 
-.topic-health-monitors:global(.error) svg {
+.health-status:global(.error) svg {
   color: var(--red-foreground);
   animation: blinker 1s linear infinite;
 }
 
-.topic-health-monitors:hover {
+.health-status:hover {
   background-color: var(--background);
 }
 
-.topic-health-monitors:active {
+.health-status:active {
   background-color: var(--interactive);
   transition: background-color 0s;
 }
 
-.topic-health-monitors-modal {
+.health-status-modal {
   min-width: 175px;
   position: absolute;
   top: 75px;
@@ -43,11 +43,11 @@
   transition: opacity 0.3s;
 }
 
-.topic-health-monitors-modal:global(.shown) {
+.health-status-modal:global(.shown) {
   opacity: 1;
 }
 
-.topic-health-monitors-modal-content {
+.health-status-modal-content {
   padding: 10px;
   height: calc(100% - 20px);
   color: var(--foreground);
@@ -56,25 +56,25 @@
   flex-direction: column;
 }
 
-.topic-health-monitors-modal-header {
+.health-status-modal-header {
   margin: 10px 5px;
   width: 100%;
   text-align: center;
 }
 
-.topic-health-monitors-modal-device {
+.health-status-modal-device {
   margin: 4px 0;
 }
 
-.topic-health-monitors-modal-device-icon {
+.health-status-modal-device-icon {
   margin-right: 10px;
 }
 
-.topic-health-monitors-modal-device-icon:global(.connected) {
+.health-status-modal-device-icon:global(.connected) {
   color: var(--green-foreground);
 }
 
-.topic-health-monitors-modal-device-icon:global(.disconnected) {
+.health-status-modal-device-icon:global(.disconnected) {
   color: var(--red-foreground);
 }
 

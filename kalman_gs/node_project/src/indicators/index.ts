@@ -1,4 +1,4 @@
-import TopicHealthMonitors from './topic-health-monitor';
+import HealthStatus from './health-status';
 import GamepadSelector from './gamepad-selector';
 import OpenSettings from './open-settings';
 import RebootPC from './reboot-pc';
@@ -7,7 +7,7 @@ import ThemeSelector from './theme-selector';
 
 // Add new indicators here:
 export const IndicatorComponents = [
-  TopicHealthMonitors,
+  HealthStatus,
   GamepadSelector,
   RebootPC,
   RosHealth,

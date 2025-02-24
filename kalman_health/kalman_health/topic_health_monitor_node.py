@@ -43,13 +43,13 @@ class StatusClass(Node):
 
             self.create_subscription(
                 interface, topic,
-                lambda msg, id=_id: self.is_data_recieved(id),
+                lambda msg, id=_id: self.is_data_received(id),
                 10,
             )
             self.timer_list[_id] = self.create_timer(
                 timeout, lambda id=_id: self.timeout_callback(id))
 
-    def is_data_recieved(self, id: int):
+    def is_data_received(self, id: int):
         Device_Status[id] = 1
         self.timer_list[id].reset()
 
