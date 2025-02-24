@@ -66,7 +66,15 @@ def launch_setup(context):
 
     # cloud generation
     parameters = [
-        str(get_package_share_path("kalman_clouds") / "config" / "rgbd_cloud.yaml")
+        str(get_package_share_path("kalman_clouds") / "config" / "rgbd_cloud.yaml"),
+        (
+            {
+                "color_transport": "compressed",
+                "depth_transport": "compressedDepth",
+            }
+            if not component_container
+            else {}
+        ),
     ]
     remappings = [
         ("color/image_raw", "color/image_raw"),
