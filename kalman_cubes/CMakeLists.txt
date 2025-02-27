@@ -12,13 +12,14 @@ find_package(sensor_msgs REQUIRED)
 find_package(image_transport REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package( OpenCV REQUIRED )
+find_package(std_srvs REQUIRED)
 
 include_directories( ${OpenCV_INCLUDE_DIRS} )
 
 add_library(record_video_node SHARED src/record_video_node.cpp)
 target_link_libraries(record_video_node ${OpenCV_LIBS})
 
-ament_target_dependencies(record_video_node rclcpp rclcpp_components std_msgs sensor_msgs image_transport cv_bridge)
+ament_target_dependencies(record_video_node rclcpp rclcpp_components std_msgs sensor_msgs image_transport cv_bridge std_srvs)
 rclcpp_components_register_node(
   record_video_node
   PLUGIN "kalman_cubes::RecordVideo"
