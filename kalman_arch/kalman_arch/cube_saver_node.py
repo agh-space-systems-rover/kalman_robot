@@ -33,7 +33,7 @@ class DetectionData:
 
 class CubeNode(Node):
     def __init__(self):
-        super().__init__("kalman_cubes")
+        super().__init__("cube_saver")
         REALSENSE_CAMERAS = ["d455_front",
                              "d455_left", "d455_right", "d455_back"]
 

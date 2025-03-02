@@ -18,7 +18,7 @@
 #include <cv_bridge/cv_bridge.hpp>
 #endif
 
-namespace kalman_cubes {
+namespace kalman_arch {
 
 class RecordVideo : public rclcpp::Node {
   public:
@@ -55,8 +55,8 @@ class RecordVideo : public rclcpp::Node {
 		get_parameter("frame_rate", frame_rate);
 		
 
-		std::filesystem::create_directory(video_dir);
-		std::filesystem::create_directory(screenshots_dir);
+		std::filesystem::create_directories(video_dir);
+		std::filesystem::create_directories(screenshots_dir);
 		screenshots_save_path = (screenshots_dir).string();
 		// Resolve topics.
 		std::string camera_topic = "/" + camera_name + "/color/image_raw";
@@ -123,6 +123,6 @@ class RecordVideo : public rclcpp::Node {
 	}
 };
 
-} // namespace kalman_cubes
+} // namespace kalman_arch
 
-RCLCPP_COMPONENTS_REGISTER_NODE(kalman_cubes::RecordVideo)
+RCLCPP_COMPONENTS_REGISTER_NODE(kalman_arch::RecordVideo)

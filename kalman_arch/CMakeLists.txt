@@ -23,7 +23,6 @@ find_package(message_filters REQUIRED)
 find_package(vision_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
 find_package(tf2_ros REQUIRED)
-# find_package(tf2_geometry_msgs REQUIRED)
 
 include_directories( ${OpenCV_INCLUDE_DIRS} )
 
@@ -36,13 +35,6 @@ rclcpp_components_register_node(
   EXECUTABLE record_video
 )
 
-# add_library(cube_saver_node SHARED src/cube_saver_node.cpp)
-# ament_target_dependencies(cube_saver_node rclcpp rclcpp_components std_msgs sensor_msgs image_transport cv_bridge vision_msgs tf2_ros tf2_geometry_msg)
-# rclcpp_components_register_node(
-#   cube_saver_node
-#   PLUGIN "kalman_arch::DetectionSaver"
-#   EXECUTABLE detection_saver
-# )
 
 ament_export_targets(kalman_arch-targets)
 
@@ -53,12 +45,6 @@ install(TARGETS record_video_node
   ARCHIVE DESTINATION lib
 )
 
-# install(TARGETS cube_saver_node
-#   EXPORT kalman_arch-targets
-#   RUNTIME DESTINATION bin
-#   LIBRARY DESTINATION lib
-#   ARCHIVE DESTINATION lib
-# )
 
 install(PROGRAMS
   scripts/cube_saver

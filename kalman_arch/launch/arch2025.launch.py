@@ -11,8 +11,8 @@ def launch_setup(context):
     description = []
     description += [
         Node(
-            package="kalman_cubes",
-            executable="detections",
+            package="kalman_arch",
+            executable="cube_saver",
             parameters=[
                 {
                     "buffer_size": 100,
@@ -26,7 +26,7 @@ def launch_setup(context):
     for camera in REALSENSE_CAMERAS:
         description += [
             Node(
-                package="kalman_cubes",
+                package="kalman_arch",
                 executable="record_video",
                 parameters=[
                     {
