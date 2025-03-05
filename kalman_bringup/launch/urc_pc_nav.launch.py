@@ -5,12 +5,12 @@ RGBD_IDS = "d455_front d455_back d455_left d455_right"
 def generate_launch_description():
     return gen_launch({
         "description": {
-            "layout": "pc",
+            "layout": "autonomy",
         },
         "hardware": {
             "master": "pc",
             "rgbd_ids": RGBD_IDS,
-            "imu": "true",
+            "imu": "full",
             "gps": "true",
         },
         "clouds": {

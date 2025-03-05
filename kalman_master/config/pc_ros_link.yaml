@@ -47,6 +47,14 @@ rover: # or 'station'
             min: -180.0
             max: 180.0
             bytes: 4 # precision = 0.0000001 degrees = 1 cm
+    - name: odometry/global
+      type: nav_msgs/msg/Odometry
+      max_rate: 2
+      fields:
+        - path: pose.pose.orientation
+          min: -1.0
+          max: 1.0
+          bytes: 1
     # - name: test_string
     #   type: example_interfaces/msg/String
     #   string_enum:
@@ -60,6 +68,19 @@ rover: # or 'station'
     #       - finished
   services:
     - name: spoof_gps
+      type: kalman_interfaces/srv/SpoofGps
+      request_fields:
+        - path: location.latitude
+          float_range:
+            min: -90.0
+            max: 90.0
+            bytes: 4 # precision = 0.00000005 degrees = 0.5 cm
+        - path: location.longitude
+          float_range:
+            min: -180.0
+            max: 180.0
+            bytes: 4 # precision = 0.0000001 degrees = 1 cm
+    - name: spoof_gps/look_at
       type: kalman_interfaces/srv/SpoofGps
       request_fields:
         - path: location.latitude

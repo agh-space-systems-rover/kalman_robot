@@ -19,6 +19,7 @@ REALSENSE_SERIAL_NUMBERS = {
     "d435_arm": "_936322070029",
 }
 PHIDGETS_CONTAINER_NAME = "phidgets_container"
+REALSENSE_CONTAINER_NAME = "realsense_container"
 
 
 def launch_setup(context):
@@ -38,7 +39,7 @@ def launch_setup(context):
         for x in LaunchConfiguration("rgbd_ids").perform(context).split(" ")
         if x != ""
     ]
-    imu = get_bool("imu")
+    imu = get_str("imu")
     compass_calibration = get_float("compass_calibration")
     gps = get_bool("gps")
 
@@ -76,29 +77,74 @@ def launch_setup(context):
     if rgbd_ids:
         # Those nodes facilitate the communication with the RealSense devices
         # and publish data to ROS topics.
-        description += [
-            IncludeLaunchDescription(
-                PythonLaunchDescriptionSource(
-                    str(
-                        get_package_share_path("realsense2_camera")
-                        / "launch"
-                        / "rs_launch.py"
-                    )
-                ),
-                launch_arguments={
-                    "camera_name": camera_name,
-                    "camera_namespace": "",
-                    "serial_no": serial_no,
-                    "config_file": str(  # Must use external config file for non-configurable options.
-                        get_package_share_path("kalman_hardware")
-                        / "config"
-                        / "realsense2_camera.yaml"
+        composable_node_descriptions = sum(
+            [
+                [
+                    ComposableNode(
+                        namespace=camera_name,
+                        name="raw",
+                        package="realsense2_camera",
+                        plugin="realsense2_camera::RealSenseNodeFactory",
+                        parameters=[
+                            {
+                                "serial_no": serial_no,
+                                "camera_name": camera_name,
+                            },
+                            str(
+                                get_package_share_path("kalman_hardware")
+                                / "config"
+                                / "realsense2_camera.yaml"
+                            ),
+                        ],
+                        extra_arguments=[{"use_intra_process_comms": True}],
                     ),
-                }.items(),
-            )
-            for camera_name, serial_no in rgbd_ids_sns
-        ]
-    # TODO: Composition
+                    ComposableNode(
+                        namespace=camera_name,
+                        name=f"filter",
+                        package="kalman_hardware",
+                        plugin="kalman_hardware::RgbdFilter",
+                        parameters=[
+                            str(
+                                get_package_share_path("kalman_hardware")
+                                / "config"
+                                / "rgbd_filter.yaml"
+                            )
+                        ],
+                        remappings=[
+                            ("in/color/image_raw", "raw/color/image_raw"),
+                            (
+                                "in/depth/image_raw",
+                                "raw/aligned_depth_to_color/image_raw",
+                            ),
+                            ("in/color/camera_info", "raw/color/camera_info"),
+                            ("out/color/image_raw", "color/image_raw"),
+                            ("out/depth/image_raw", "depth/image_raw"),
+                            ("out/color/camera_info", "color/camera_info"),
+                        ],
+                        extra_arguments=[{"use_intra_process_comms": True}],
+                    ),
+                ]
+                for camera_name, serial_no in rgbd_ids_sns
+            ],
+            [],
+        )
+        if component_container:
+            description += [
+                LoadComposableNodes(
+                    target_container=component_container,
+                    composable_node_descriptions=composable_node_descriptions,
+                )
+            ]
+        else:
+            description += [
+                ComposableNodeContainer(
+                    package="rclcpp_components",
+                    executable="component_container",
+                    namespace="",
+                    name=REALSENSE_CONTAINER_NAME,
+                    composable_node_descriptions=composable_node_descriptions,
+                ),
+            ]
 
     # The IMU may also be disabled to allow for compass calibration.
     if imu:
@@ -113,7 +159,7 @@ def launch_setup(context):
         # Throw if the calibration parameters file does not exist.
         if not os.path.exists(phidgets_spatial_calibration_params_path):
             raise RuntimeError(
-                "Cannot launch without calibration parameters. Please start the compass_calibration node and invoke the calibration service to generate the required configuration file."
+                "Cannot launch without calibration parameters. Please launch kalman_hardware with compass_calibration set to desired calibration duration and drive the rover around. For autonomous calibration, use:\nros2 launch kalman_bringup util_compasscal.launch.py"
             )
 
         # Load IMU driver and filter.
@@ -144,6 +190,7 @@ def launch_setup(context):
                                     / "config"
                                     / "imu_filter_madgwick.yaml"
                                 ),
+                                {"use_mag": imu != "no_mag"},
                             ],
                             extra_arguments=[{"use_intra_process_comms": True}],
                         ),
@@ -233,7 +280,8 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument(
                 "master",
-                choices=["pc", "gs", "arm"],
+                default_value="",
+                choices=["", "pc", "gs", "arm"],
                 description="Start the master driver in a given mode ('pc', 'gs' or 'arm'). Leave empty to disable.",
             ),
             DeclareLaunchArgument(
@@ -243,9 +291,9 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument(
                 "imu",
-                default_value="false",
-                choices=["true", "false"],
-                description="Start the IMU driver.",
+                default_value="",
+                choices=["", "no_mag", "full"],
+                description="Start IMU. 'no_mag' disables magnetometer.",
             ),
             DeclareLaunchArgument(
                 "compass_calibration",

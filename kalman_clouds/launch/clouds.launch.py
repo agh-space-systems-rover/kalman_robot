@@ -66,11 +66,19 @@ def launch_setup(context):
 
     # cloud generation
     parameters = [
-        str(get_package_share_path("kalman_clouds") / "config" / "rgbd_cloud.yaml")
+        str(get_package_share_path("kalman_clouds") / "config" / "rgbd_cloud.yaml"),
+        (
+            {
+                "color_transport": "compressed",
+                "depth_transport": "compressedDepth",
+            }
+            if not component_container
+            else {}
+        ),
     ]
     remappings = [
         ("color/image_raw", "color/image_raw"),
-        ("depth/image_raw", "aligned_depth_to_color/image_raw"),
+        ("depth/image_raw", "depth/image_raw"),
         ("cloud", "point_cloud/raw"),
     ]
     description += launch_point_cloud_utils_nodes(
@@ -112,6 +120,43 @@ def launch_setup(context):
     #     ("output", "point_cloud"),
     # ]
     # description += launch_point_cloud_utils_nodes("statistical_outlier_removal", parameters, remappings, component_container, rgbd_ids)
+
+    # # cloud synchronization - makes a single 3D point cloud
+    # parameters = [
+    #     {
+    #         "number_of_inputs": len(rgbd_ids),
+    #     }
+    # ]
+    # remappings = [
+    #     ("output", "point_cloud"),
+    # ] + [
+    #     (f"input{n}", f"{camera_id}/point_cloud")
+    #     for n, camera_id in enumerate(rgbd_ids)
+    # ]
+    # if component_container:
+    #     description += [
+    #         LoadComposableNodes(
+    #             target_container=component_container,
+    #             composable_node_descriptions=[
+    #                 ComposableNode(
+    #                     package="point_cloud_utils",
+    #                     plugin="point_cloud_utils::CloudSync",
+    #                     parameters=parameters,
+    #                     remappings=remappings,
+    #                     extra_arguments=[{"use_intra_process_comms": True}],
+    #                 )
+    #             ],
+    #         )
+    #     ]
+    # else:
+    #     description += [
+    #         Node(
+    #             package="point_cloud_utils",
+    #             executable="cloud_sync",
+    #             parameters=parameters,
+    #             remappings=remappings,
+    #         )
+    #     ]
 
     return description
 

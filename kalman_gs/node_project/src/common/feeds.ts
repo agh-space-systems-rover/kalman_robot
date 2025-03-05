@@ -44,7 +44,7 @@ window.addEventListener('ros-connect', () => {
   let prevPowers = [0, 0];
   let lastActionableReq = null;
 
-  const sendCall = () => {
+  const sendCall = (showAlerts = true) => {
     let errorShownOnce = false; // Prevents from showing two errors, one for each feed.
     // For each of the two feeds, send a call if any of the values have changed.
     for (let feed = 0; feed < 2; feed++) {
@@ -53,8 +53,7 @@ window.addEventListener('ros-connect', () => {
       const req: SetFeedRequest = {
         feed: feed + 1, // Feeds in SetFeed are 1-indexed.
         camera: feedCameras[feed] === prevCameras[feed] ? 0 : feedCameras[feed],
-        channel:
-          feedChannels[feed] === prevChannels[feed] ? 0 : feedChannels[feed],
+        channel: feedChannels[feed] === prevChannels[feed] ? 0 : feedChannels[feed],
         power: feedPowers[feed] === prevPowers[feed] ? 0 : feedPowers[feed]
       };
 
@@ -66,7 +65,9 @@ window.addEventListener('ros-connect', () => {
       // If any of the values have changed, send the call.
       const errorCb = (error: string) => {
         if (!errorShownOnce) {
-          alertsRef.current?.pushAlert('Failed to update feeds: ' + error);
+          if (showAlerts) {
+            alertsRef.current?.pushAlert('Failed to update feeds: ' + error);
+          }
           errorShownOnce = true;
         }
       };
@@ -81,7 +82,7 @@ window.addEventListener('ros-connect', () => {
   };
 
   window.addEventListener('feeds-updated', () => sendCall());
-  sendCall();
+  sendCall(false);
 });
 
 // Keybinds

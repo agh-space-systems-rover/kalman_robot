@@ -71,7 +71,7 @@
     base_link_frame: base_link  # Defaults to "base_link" if unspecified
     world_frame: odom           # Defaults to the value of odom_frame if unspecified
 
-{% for camera_id in rgbd_ids %}
+{% for camera_id in camera_ids %}
     # The filter accepts an arbitrary number of inputs from each input message type (nav_msgs/Odometry,
     # geometry_msgs/PoseWithCovarianceStamped, geometry_msgs/TwistWithCovarianceStamped,
     # sensor_msgs/Imu). To add an input, simply append the next number in the sequence to its "base" name, e.g., odom0,
@@ -115,29 +115,19 @@
 
     imu0: imu/data
     imu0_config: [false, false, false,
+                  false, false, false,
+                  false, false, false,
                   true,  true,  true,
-                  false, false, false,
-                  false, false, false,
                   false, false, false]
     imu0_differential: false
-    # Because odom's rotation should be aligned with base_link:
     imu0_relative: false
-    # NOTE: The frame aligned with true north would be "map".
     imu0_queue_size: 10
 
-    # [ADVANCED] Some IMUs automatically remove acceleration due to gravity, and others don't. If yours doesn't, please set
-    # this to true, and *make sure* your data conforms to REP-103, specifically, that the data is in ENU frame.
-    imu0_remove_gravitational_acceleration: true
-
-    # pose0: altimeter/pose
-    # pose0_config: [false, false, true,
-    #                false, false, false,
-    #                false, false, false,
-    #                false, false, false,
-    #                false, false, false]
-    # pose0_relative: true
-    # pose0_queue_size: 10
-    # TODO: Altimeter is disabled for now because we do not yet have this hardware on board.
+    # # [ADVANCED] Some IMUs automatically remove acceleration due to gravity, and others don't. If yours doesn't, please set
+    # # this to true, and *make sure* your data conforms to REP-103, specifically, that the data is in ENU frame.
+    # imu0_remove_gravitational_acceleration: true
+    # IMU is disabled because integrating vis-odo angular is more stable.
+    # And we do not need world-referenced rotation in local odom.
 
     # [ADVANCED]  The EKF and UKF models follow a standard predict/correct cycle. During prediction, if there is no
     # acceleration reference, the velocity at time t+1 is simply predicted to be the same as the velocity at time t. During
@@ -181,3 +171,4 @@
       0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,   0.0,   0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.015
     ]
     # NOTE: This is mostly the default value of this matrix. Only the variances of absolute angular were increased so that IMU feels more stable.
+    

@@ -1,10 +1,7 @@
 import styles from './dropdown.module.css';
 
 import Tooltip from './tooltip';
-import {
-  IconDefinition,
-  faChevronDown
-} from '@fortawesome/free-solid-svg-icons';
+import { IconDefinition, faChevronDown } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ReactNode, useCallback, useEffect, useState } from 'react';
 
@@ -71,22 +68,18 @@ export default function Dropdown({
       }}
       {...props}
     >
-      {items[selectedItemIndex].icon && (
-        <FontAwesomeIcon
-          className={styles['item-icon']}
-          icon={items[selectedItemIndex].icon}
-        />
+      {items[selectedItemIndex] && (
+        <>
+          {items[selectedItemIndex].icon && (
+            <FontAwesomeIcon className={styles['item-icon']} icon={items[selectedItemIndex].icon} />
+          )}
+          <div className={styles['item-text']}>{items[selectedItemIndex].text}</div>
+        </>
       )}
-      <div className={styles['item-text']}>{items[selectedItemIndex].text}</div>
       <FontAwesomeIcon icon={faChevronDown} className={styles['item-icon']} />
       {open && (
         <>
-          <div
-            className={
-              styles['dropdown-popup'] +
-              (popupClassName ? ` ${popupClassName}` : '')
-            }
-          >
+          <div className={styles['dropdown-popup'] + (popupClassName ? ` ${popupClassName}` : '')}>
             {items.map((item, index) => (
               <div
                 key={index}
@@ -97,20 +90,12 @@ export default function Dropdown({
                   setSelectedItemIndex(index);
                 }}
               >
-                {item.icon && (
-                  <FontAwesomeIcon
-                    className={styles['item-icon']}
-                    icon={item.icon}
-                  />
-                )}
+                {item.icon && <FontAwesomeIcon className={styles['item-icon']} icon={item.icon} />}
                 <div className={styles['item-text']}>{item.text}</div>
               </div>
             ))}
           </div>
-          <div
-            className={styles['dropdown-popup-background']}
-            onClick={closeDropdown}
-          />
+          <div className={styles['dropdown-popup-background']} onClick={closeDropdown} />
         </>
       )}
     </Tooltip>
