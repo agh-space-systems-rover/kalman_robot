@@ -78,7 +78,7 @@ def launch_setup(context):
     ]
     remappings = [
         ("color/image_raw", "color/image_raw"),
-        ("depth/image_raw", "aligned_depth_to_color/image_raw"),
+        ("depth/image_raw", "depth/image_raw"),
         ("cloud", "point_cloud/raw"),
     ]
     description += launch_point_cloud_utils_nodes(

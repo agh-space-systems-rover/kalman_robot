@@ -80,7 +80,7 @@ def launch_setup(context):
                             ],
                             remappings={
                                 "rgb/image": f"color/image_raw",
-                                "depth/image": f"aligned_depth_to_color/image_raw",
+                                "depth/image": f"depth/image_raw",
                                 "rgb/camera_info": f"color/camera_info",
                             }.items(),
                             extra_arguments=[{"use_intra_process_comms": True}],
@@ -108,7 +108,7 @@ def launch_setup(context):
                 ],
                 remappings=[
                     ("rgb/image", f"color/image_raw"),
-                    ("depth/image", f"aligned_depth_to_color/image_raw"),
+                    ("depth/image", f"depth/image_raw"),
                     ("rgb/camera_info", f"color/camera_info"),
                 ],
                 arguments=["--ros-args", "--log-level", "error"],
