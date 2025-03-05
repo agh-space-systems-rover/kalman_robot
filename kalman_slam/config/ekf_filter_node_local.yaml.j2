@@ -9,7 +9,7 @@
     # The period, in seconds, after which we consider a sensor to have timed out. In this event, we carry out a predict
     # cycle on the EKF without correcting it. This parameter can be thought of as the minimum frequency with which the
     # filter will generate new output. Defaults to 1 / frequency if not specified.
-    sensor_timeout: 0.1
+    sensor_timeout: 0.5
 
     # ekf_localization_node and ukf_localization_node both use a 3D omnidirectional motion model. If this parameter is
     # set to true, no 3D information will be used in your state estimate. Use this if you are operating in a planar
@@ -122,6 +122,8 @@
     imu0_differential: false
     imu0_relative: false
     imu0_queue_size: 10
+    # ^ Reduces yaw lag from visodo integration.
+    # (But the lag is here because of the way that EKF integrates.)
 
     # # [ADVANCED] Some IMUs automatically remove acceleration due to gravity, and others don't. If yours doesn't, please set
     # # this to true, and *make sure* your data conforms to REP-103, specifically, that the data is in ENU frame.

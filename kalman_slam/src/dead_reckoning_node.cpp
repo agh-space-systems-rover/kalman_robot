@@ -187,6 +187,7 @@ public:
 		declare_parameter("odom_frame_id", "odom");
 		declare_parameter("base_link_frame_id", "base_link");
 		declare_parameter("publish_tf", true);
+		declare_parameter("output_covariance", 0.1);
 
 		// Subscribe to visodo
 		int num_odoms = declare_parameter("num_odoms", 1);
@@ -392,26 +393,6 @@ public:
 		}
 	}
 
-	cv::Affine3d velocity_from_msg(const geometry_msgs::msg::Twist &twist) {
-		// Get velocities from the message
-		cv::Vec3d linear_velocity(
-		    twist.linear.x, twist.linear.y, twist.linear.z
-		);
-
-		// Convert angular velocities to rotation vector
-		cv::Vec3d euler_angles(
-		    twist.angular.x, twist.angular.y, twist.angular.z
-		);
-		cv::Vec3d angular_velocity =
-		    cv::Quatd::createFromEulerAngles(
-		        euler_angles, cv::QuatEnum::EulerAnglesType::EXT_XYZ
-		    )
-		        .toRotVec();
-
-		// Create delta transform
-		return cv::Affine3d(angular_velocity, linear_velocity);
-	}
-
 	geometry_msgs::msg::TransformStamped transform_from_affine(
 	    const cv::Affine3d &affine, const rclcpp::Time &time
 	) {
@@ -461,6 +442,15 @@ public:
 		msg.pose.pose.orientation.x = rotation.x;
 		msg.pose.pose.orientation.y = rotation.y;
 		msg.pose.pose.orientation.z = rotation.z;
+
+		// Set covariance
+		double cov             = get_parameter("output_covariance").as_double();
+		msg.pose.covariance[0] = cov;
+		msg.pose.covariance[7] = cov;
+		msg.pose.covariance[14] = cov;
+		msg.pose.covariance[21] = cov;
+		msg.pose.covariance[28] = cov;
+		msg.pose.covariance[35] = cov;
 
 		return msg;
 	}
