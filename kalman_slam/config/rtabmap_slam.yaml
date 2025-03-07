@@ -20,10 +20,9 @@
         # # RTAB-Map library parameters
 
         Rtabmap/DetectionRate: "5"  # update Hz
-        Rtabmap/LoopThr: "0.04" # loop closure threshold (default 0.11)
+        Rtabmap/LoopThr: "0.02" # loop closure threshold (default 0.11)
 
         Optimizer/Strategy: "2"  # GTSAM; default is ?
-        Optimizer/Robust: "true"  # optimize paths using Vertigo; default is false
 
         # Mem/NotLinkedNodesKept: "false"
         # Mem/STMSize: "30"  # short-term memory size; default is 10

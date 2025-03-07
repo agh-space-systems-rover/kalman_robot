@@ -4,7 +4,6 @@ from launch_ros.actions import Node, LoadComposableNodes
 from launch.actions import (
     DeclareLaunchArgument,
     OpaqueFunction,
-    TimerAction,
 )
 from launch.substitutions import LaunchConfiguration
 from launch_ros.descriptions import ComposableNode
@@ -57,15 +56,11 @@ def launch_setup(context):
     ]
     fiducials = LaunchConfiguration("fiducials").perform(context)
     use_mag = LaunchConfiguration("use_mag").perform(context).lower() == "true"
-    slam = LaunchConfiguration("slam").perform(context).lower() == "true"
+    slam = LaunchConfiguration("slam").perform(context)
 
     if len(rgbd_ids) == 0:
         raise ValueError(
             "At least one RGBD camera is required. Please specify rgbd_ids:='d455_front'."
-        )
-    if slam and len(rgbd_ids) > 1:
-        raise ValueError(
-            f"SLAM is enabled, but multiple RGBD cameras were specified: {rgbd_ids}. Please specify only one camera."
         )
 
     description = []
@@ -96,12 +91,7 @@ def launch_setup(context):
                                 ("rgb/image", "color/image_raw"),
                                 ("depth/image", "depth/image_raw"),
                                 ("rgb/camera_info", "color/camera_info"),
-                            ]
-                            + (
-                                [("odom", "/odometry/local")]
-                                if len(rgbd_ids) == 1
-                                else []
-                            ),
+                            ],
                             extra_arguments=[{"use_intra_process_comms": True}],
                         )
                         for camera_id in rgbd_ids
@@ -130,21 +120,14 @@ def launch_setup(context):
                         ("rgb/image", "color/image_raw"),
                         ("depth/image", "depth/image_raw"),
                         ("rgb/camera_info", "color/camera_info"),
-                    ]
-                    + (
-                        [
-                            ("odom", "/odometry/local"),
-                        ]
-                        if len(rgbd_ids) == 1
-                        else []
-                    )
+                    ],
                 ),
                 arguments=["--ros-args", "--log-level", "error"],
             )
             for camera_id in rgbd_ids
         ]
 
-    if len(rgbd_ids) > 1:
+    if not slam:
         # Fuse odometry from multiple cameras.
         description += [
             # Local Kalman filter, publishes odom->base_link.
@@ -157,10 +140,6 @@ def launch_setup(context):
                 ],
                 remappings=[("odometry/filtered", "odometry/local")],
             ),
-        ]
-
-    if not slam:
-        description += [
             # Global Kalman filter, publishes map->base_link.
             Node(
                 package="robot_localization",
@@ -271,6 +250,22 @@ def launch_setup(context):
     if slam:
         description += [
             Node(
+                package="kalman_slam",
+                executable="dead_reckoning",
+                parameters=[
+                    {
+                        "num_odoms": len(rgbd_ids),
+                        "sync_with_odom": rgbd_ids.index(slam),
+                    }
+                ],
+                remappings=[("odom", "odometry/local")]
+                + [
+                    (f"odom{i}", f"/{rgbd_id}/odom")
+                    for i, rgbd_id in enumerate(rgbd_ids)
+                ],
+                # arguments=["--ros-args", "--log-level", "debug"],
+            ),
+            Node(
                 namespace="rtabmap",
                 name="slam",
                 executable="rtabmap",
@@ -283,10 +278,10 @@ def launch_setup(context):
                     )
                 ],
                 remappings={
-                    "rgb/image": f"/{rgbd_ids[0]}/color/image_raw",
-                    "depth/image": f"/{rgbd_ids[0]}/depth/image_raw",
-                    "rgb/camera_info": f"/{rgbd_ids[0]}/color/camera_info",
-                    # "rgbd_image": "/rtabmap/{rgbd_ids[0]}/rgbd_image",
+                    "rgb/image": f"/{slam}/color/image_raw",
+                    "depth/image": f"/{slam}/depth/image_raw",
+                    "rgb/camera_info": f"/{slam}/color/camera_info",
+                    # "rgbd_image": "/rtabmap/{slam}/rgbd_image",
                     "odom": "/odometry/local",
                     "imu": "/imu/data",
                 }.items(),
@@ -338,9 +333,8 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument(
                 "slam",
-                default_value="false",
-                choices=["true", "false"],
-                description="Use SLAM. Only a single rgbd_id should be specified.",
+                default_value="",
+                description="Use SLAM with the specified RGBD camera. Empty to disable SLAM.",
             ),
             OpaqueFunction(function=launch_setup),
         ]

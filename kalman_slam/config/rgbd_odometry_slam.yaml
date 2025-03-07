@@ -2,9 +2,11 @@
   ros__parameters:
     odom_frame_id: odom
     frame_id: base_link
-    publish_tf: True
+    publish_tf: False
     approx_sync: False
     topic_queue_size: 1
     publish_null_when_lost: False
 
     Odom/ResetCountdown: "1"
+    Odom/Deskewing: "false"
+    Odom/ImageBufferSize: "3"

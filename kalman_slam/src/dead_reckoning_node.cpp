@@ -187,6 +187,7 @@ public:
 		declare_parameter("odom_frame_id", "odom");
 		declare_parameter("base_link_frame_id", "base_link");
 		declare_parameter("publish_tf", true);
+		declare_parameter("sync_with_odom", -1);
 		declare_parameter("output_covariance", 0.1);
 
 		// Subscribe to visodo
@@ -217,6 +218,7 @@ public:
 
 	void delta_cb(Delta delta, size_t i) {
 		RCLCPP_DEBUG(get_logger(), "Received delta from odom%d", (int)i);
+		int sync_with_odom = get_parameter("sync_with_odom").as_int();
 
 		// Find start time of the buffer.
 		rclcpp::Time start_time;
@@ -268,21 +270,32 @@ public:
 		// more readings.
 		bool         integrated_anything = false;
 		rclcpp::Time end_time_of_integration;
+		int          last_integrated_odom_i = -1;
 		while (true) {
 			// Find the next integration time.
 			// This will be the first start/end time in the buffer.
-			// Only times > buffer's start_time are considered so that we get
-			// duration > 0.
-			rclcpp::Time next_start_time = end_time;
-			for (const auto &d : deltas) {
+			// Only times > buffer's start_time are considered so that we
+			// get duration > 0.
+			rclcpp::Time next_start_time        = end_time;
+			int          next_start_time_odom_i = -1;
+			for (int j = 0; j < deltas.size(); j++) {
+				auto &d = deltas[j];
 				if (!d.empty()) {
 					if (d.front().start_time > start_time) {
-						next_start_time =
-						    std::min(next_start_time, d.front().start_time);
+						// next_start_time =
+						//     std::min(next_start_time, d.front().start_time);
+						if (d.front().start_time <= next_start_time) {
+							next_start_time        = d.front().start_time;
+							next_start_time_odom_i = j;
+						}
 					}
 					if (d.front().end_time > start_time) {
-						next_start_time =
-						    std::min(next_start_time, d.front().end_time);
+						// next_start_time =
+						//     std::min(next_start_time, d.front().end_time);
+						if (d.front().end_time <= next_start_time) {
+							next_start_time        = d.front().end_time;
+							next_start_time_odom_i = j;
+						}
 					}
 				}
 			}
@@ -325,6 +338,7 @@ public:
 			}
 			integrated_anything     = true;
 			end_time_of_integration = next_start_time;
+			last_integrated_odom_i  = next_start_time_odom_i;
 
 			RCLCPP_DEBUG(
 			    get_logger(),
@@ -373,23 +387,32 @@ public:
 
 			// Update start time.
 			start_time = next_start_time;
+
+			// Publish if sync_with_odom is set and the corresponding odom has
+			// just been integrated.
+			if (sync_with_odom != -1 &&
+			    sync_with_odom == last_integrated_odom_i) {
+				publish_transform(end_time_of_integration);
+			}
 		}
 
-		// Publish transforms.
-		if (integrated_anything) {
-			// Publish odom.
-			nav_msgs::msg::Odometry odom_msg =
-			    odom_from_affine(integrated_transform, end_time_of_integration);
-			odom_pub->publish(odom_msg);
+		// Publish transform. (Only if sync_with_odom is not set.)
+		if (integrated_anything && sync_with_odom == -1) {
+			publish_transform(end_time_of_integration);
+		}
+	}
 
-			// Publish TF.
-			if (get_parameter("publish_tf").as_bool()) {
-				geometry_msgs::msg::TransformStamped tf_msg =
-				    transform_from_affine(
-				        integrated_transform, end_time_of_integration
-				    );
-				tf_broadcaster.sendTransform(tf_msg);
-			}
+	void publish_transform(rclcpp::Time time) {
+		// Publish odom.
+		nav_msgs::msg::Odometry odom_msg =
+		    odom_from_affine(integrated_transform, time);
+		odom_pub->publish(odom_msg);
+
+		// Publish TF.
+		if (get_parameter("publish_tf").as_bool()) {
+			geometry_msgs::msg::TransformStamped tf_msg =
+			    transform_from_affine(integrated_transform, time);
+			tf_broadcaster.sendTransform(tf_msg);
 		}
 	}
 
