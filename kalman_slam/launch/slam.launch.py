@@ -115,13 +115,11 @@ def launch_setup(context):
                         "depth_transport": "compressedDepth",
                     },
                 ],
-                remappings=(
-                    [
-                        ("rgb/image", "color/image_raw"),
-                        ("depth/image", "depth/image_raw"),
-                        ("rgb/camera_info", "color/camera_info"),
-                    ],
-                ),
+                remappings=[
+                    ("rgb/image", "color/image_raw"),
+                    ("depth/image", "depth/image_raw"),
+                    ("rgb/camera_info", "color/camera_info"),
+                ],
                 arguments=["--ros-args", "--log-level", "error"],
             )
             for camera_id in rgbd_ids

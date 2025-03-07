@@ -7,10 +7,12 @@ def generate_launch_description():
     return gen_launch(
         {
             "description": {
-                "layout": "dev_pole",
+                "layout": "autonomy",
             },
             "hardware": {
                 "rgbd_ids": RGBD_IDS,
+                "imu": "no_mag",
+                "master": "pc",
             },
             "clouds": {
                 "rgbd_ids": RGBD_IDS,
@@ -19,9 +21,9 @@ def generate_launch_description():
                 "rgbd_ids": RGBD_IDS,
                 "slam": "d455_front",
             },
-            "rviz": {
-                "configs": "rtabmap",
-            },
+            "wheels": {
+                "joy": "gamepad",
+            }
         },
         composition="start_container",
     )
