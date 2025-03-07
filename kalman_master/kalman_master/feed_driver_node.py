@@ -65,7 +65,7 @@ class FeedDriver(Node):
             msgs.append(
                 MasterMessage(
                     cmd=MasterMessage.FEED_SET_POWER,
-                    data=[req.feed, req.power],  # Firmware indexes power from 1.
+                    data=[req.feed, req.power - 1],  # Firmware indexes power from 0.
                 )
             )
 
