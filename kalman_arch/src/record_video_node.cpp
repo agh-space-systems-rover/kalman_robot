@@ -26,6 +26,7 @@ class RecordVideo : public rclcpp::Node {
 	image_transport::ImageTransport it;
 	image_transport::Subscriber     image_sub;
 	cv::Mat                         latest_image;
+	cv::Mat                         original_latest_image;
 	int                             frame_rate;
 	int                             video_time_stamp;
 	int codec = cv::VideoWriter::fourcc('H', '2', '6', '4');
@@ -103,6 +104,7 @@ class RecordVideo : public rclcpp::Node {
 		}
 		writer->write(resized);
 
+		original_latest_image = cv_ptr->image;
 		latest_image = resized;
 	}
 	void take_pic(
