@@ -450,7 +450,9 @@ class PathFollower(rclpy.node.Node):
         elif isinstance(self.state, RotateInPlaceState):
             # Rotate in place to face the target direction.
             angular_velocity = self.get_parameter("angular_velocity").value
-            res.cmd_vel.twist.angular.z = np.sign(rot_angle) * angular_velocity
+            res.cmd_vel.twist.angular.z = angular_velocity_curve(
+                rot_angle, angular_velocity
+            )
 
             # Transition to RotateInPlace when the robot is almost parallel to the target direction.
             if (

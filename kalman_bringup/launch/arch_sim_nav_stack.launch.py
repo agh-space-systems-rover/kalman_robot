@@ -16,10 +16,11 @@ def generate_launch_description():
                 "rgbd_ids": RGBD_IDS,
                 "slam": "d455_front",
             },
-            # "nav2": {
-            #     "rgbd_ids": RGBD_IDS,
-            # },
-            # "supervisor": {},
+            "nav2": {
+                "rgbd_ids": RGBD_IDS,
+                "driving_mode": "forward",
+            },
+            "supervisor": {},
         },
         composition="start_container",
     )
