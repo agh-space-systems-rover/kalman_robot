@@ -36,7 +36,7 @@ scale_affine(const cv::Affine3d &transform, double time_scale) {
 // Stored as velocity to allow time bounds to be altered while effectively
 // trimming the time window - not stretching nor squishing it.
 class Delta {
-public:
+  public:
 	rclcpp::Time start_time;
 	rclcpp::Time end_time;
 	cv::Affine3d velocity;
@@ -66,7 +66,7 @@ class DeltaSubscriber {
 	rclcpp::Time last_time;
 	cv::Affine3d last_pose;
 
-public:
+  public:
 	DeltaSubscriber(
 	    rclcpp::Node                     *node,
 	    const std::string                &topic,
@@ -170,7 +170,7 @@ public:
 // this case we want to wait for readings from other sensors to arrive in order
 // to use their average velocity for more precise integration.
 class DeadReckoning : public rclcpp::Node {
-public:
+  public:
 	std::vector<DeltaSubscriber>                          odom_subs;
 	rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_pub;
 	tf2_ros::TransformBroadcaster                         tf_broadcaster;
@@ -178,6 +178,7 @@ public:
 	double timeout;
 
 	cv::Affine3d integrated_transform;
+	rclcpp::Time last_integration_time;
 
 	std::vector<std::deque<Delta>> deltas;
 	std::vector<rclcpp::Time>      last_reading_times;
@@ -187,6 +188,8 @@ public:
 		declare_parameter("odom_frame_id", "odom");
 		declare_parameter("base_link_frame_id", "base_link");
 		declare_parameter("publish_tf", true);
+		declare_parameter("sync_with_odom", -1);
+		declare_parameter("output_covariance", 0.1);
 
 		// Subscribe to visodo
 		int num_odoms = declare_parameter("num_odoms", 1);
@@ -216,6 +219,7 @@ public:
 
 	void delta_cb(Delta delta, size_t i) {
 		RCLCPP_DEBUG(get_logger(), "Received delta from odom%d", (int)i);
+		int sync_with_odom = get_parameter("sync_with_odom").as_int();
 
 		// Find start time of the buffer.
 		rclcpp::Time start_time;
@@ -239,10 +243,38 @@ public:
 				return;
 			}
 		}
+		// Also trim to start after last_integration_time.
+		if (!is_rclcpp_time_zero(last_integration_time) &&
+		    delta.start_time < last_integration_time) {
+			delta.start_time = last_integration_time;
+			if (delta.start_time >= delta.end_time) {
+				// This delta is too old and was made invalid.
+				return;
+			}
+		}
 
 		// Push to buffer and save last reading time.
 		deltas[i].push_back(delta);
 		last_reading_times[i] = delta.end_time;
+
+		// // DEBUG: Log the contents of the buffer. Just timestamps.
+		// RCLCPP_DEBUG(
+		//     get_logger(), "Buffer contents after pushing odom%d:", (int)i
+		// );
+		// for (int j = 0; j < deltas.size(); j++) {
+		// 	auto &ds = deltas[j];
+		// 	if (ds.empty()) {
+		// 		RCLCPP_DEBUG(get_logger(), "  %d: empty", j);
+		// 	} else {
+		// 		RCLCPP_DEBUG(
+		// 		    get_logger(),
+		// 		    "  %d: %f -> %f",
+		// 		    j,
+		// 		    ds.front().start_time.seconds(),
+		// 		    ds.back().end_time.seconds()
+		// 		);
+		// 	}
+		// }
 
 		// Init start_time if it was not set before pushing.
 		if (is_rclcpp_time_zero(start_time)) {
@@ -265,23 +297,38 @@ public:
 		// Integration loop.
 		// We go through as many deltas as we can until we have to wait for
 		// more readings.
-		bool         integrated_anything = false;
-		rclcpp::Time end_time_of_integration;
+		bool integrated_anything = false;
 		while (true) {
 			// Find the next integration time.
 			// This will be the first start/end time in the buffer.
-			// Only times > buffer's start_time are considered so that we get
-			// duration > 0.
-			rclcpp::Time next_start_time = end_time;
-			for (const auto &d : deltas) {
+			// Only times > buffer's start_time are considered so that we
+			// get duration > 0.
+			rclcpp::Time  next_start_time = end_time;
+			std::set<int> next_start_time_odom_is;
+			for (int j = 0; j < deltas.size(); j++) {
+				auto &d = deltas[j];
 				if (!d.empty()) {
 					if (d.front().start_time > start_time) {
-						next_start_time =
-						    std::min(next_start_time, d.front().start_time);
+						if (d.front().start_time <= next_start_time) {
+							if (d.front().start_time == next_start_time) {
+								next_start_time_odom_is.insert(j);
+							} else {
+								next_start_time_odom_is.clear();
+								next_start_time_odom_is.insert(j);
+							}
+							next_start_time = d.front().start_time;
+						}
 					}
 					if (d.front().end_time > start_time) {
-						next_start_time =
-						    std::min(next_start_time, d.front().end_time);
+						if (d.front().end_time <= next_start_time) {
+							if (d.front().end_time == next_start_time) {
+								next_start_time_odom_is.insert(j);
+							} else {
+								next_start_time_odom_is.clear();
+								next_start_time_odom_is.insert(j);
+							}
+							next_start_time = d.front().end_time;
+						}
 					}
 				}
 			}
@@ -308,7 +355,9 @@ public:
 			// Average the velocities of deltas active during the integration
 			// window.
 			std::vector<cv::Affine3d> delta_transforms;
-			for (const auto &d : deltas) {
+			std::vector<int>          delta_transforms_i;
+			for (int j = 0; j < deltas.size(); j++) {
+				auto &d = deltas[j];
 				if (d.empty() || d.front().end_time <= start_time ||
 				    d.front().start_time >= next_start_time) {
 					continue;
@@ -317,13 +366,14 @@ public:
 				    d.front().velocity, (next_start_time - start_time).seconds()
 				);
 				delta_transforms.push_back(delta_transform);
+				delta_transforms_i.push_back(j);
 			}
 			if (delta_transforms.size() > 0) {
 				cv::Affine3d mean_transform = mean_affine(delta_transforms);
 				integrated_transform = integrated_transform * mean_transform;
 			}
-			integrated_anything     = true;
-			end_time_of_integration = next_start_time;
+			integrated_anything   = true;
+			last_integration_time = next_start_time;
 
 			RCLCPP_DEBUG(
 			    get_logger(),
@@ -343,7 +393,7 @@ public:
 				RCLCPP_DEBUG(
 				    get_logger(),
 				    "  odom%d: X=%f, Y=%f, Z=%f ; R=%f, P=%f, Y=%f",
-				    (int)j,
+				    delta_transforms_i[j],
 				    t[0],
 				    t[1],
 				    t[2],
@@ -372,44 +422,34 @@ public:
 
 			// Update start time.
 			start_time = next_start_time;
+
+			// Publish if sync_with_odom is set and the corresponding odom has
+			// just been integrated.
+			if (sync_with_odom != -1 &&
+			    next_start_time_odom_is.find(sync_with_odom) !=
+			        next_start_time_odom_is.end()) {
+				publish_transform(last_integration_time);
+			}
 		}
 
-		// Publish transforms.
-		if (integrated_anything) {
-			// Publish odom.
-			nav_msgs::msg::Odometry odom_msg =
-			    odom_from_affine(integrated_transform, end_time_of_integration);
-			odom_pub->publish(odom_msg);
-
-			// Publish TF.
-			if (get_parameter("publish_tf").as_bool()) {
-				geometry_msgs::msg::TransformStamped tf_msg =
-				    transform_from_affine(
-				        integrated_transform, end_time_of_integration
-				    );
-				tf_broadcaster.sendTransform(tf_msg);
-			}
+		// Publish transform. (Only if sync_with_odom is not set.)
+		if (integrated_anything && sync_with_odom == -1) {
+			publish_transform(last_integration_time);
 		}
 	}
 
-	cv::Affine3d velocity_from_msg(const geometry_msgs::msg::Twist &twist) {
-		// Get velocities from the message
-		cv::Vec3d linear_velocity(
-		    twist.linear.x, twist.linear.y, twist.linear.z
-		);
+	void publish_transform(rclcpp::Time time) {
+		// Publish odom.
+		nav_msgs::msg::Odometry odom_msg =
+		    odom_from_affine(integrated_transform, time);
+		odom_pub->publish(odom_msg);
 
-		// Convert angular velocities to rotation vector
-		cv::Vec3d euler_angles(
-		    twist.angular.x, twist.angular.y, twist.angular.z
-		);
-		cv::Vec3d angular_velocity =
-		    cv::Quatd::createFromEulerAngles(
-		        euler_angles, cv::QuatEnum::EulerAnglesType::EXT_XYZ
-		    )
-		        .toRotVec();
-
-		// Create delta transform
-		return cv::Affine3d(angular_velocity, linear_velocity);
+		// Publish TF.
+		if (get_parameter("publish_tf").as_bool()) {
+			geometry_msgs::msg::TransformStamped tf_msg =
+			    transform_from_affine(integrated_transform, time);
+			tf_broadcaster.sendTransform(tf_msg);
+		}
 	}
 
 	geometry_msgs::msg::TransformStamped transform_from_affine(
@@ -461,6 +501,15 @@ public:
 		msg.pose.pose.orientation.x = rotation.x;
 		msg.pose.pose.orientation.y = rotation.y;
 		msg.pose.pose.orientation.z = rotation.z;
+
+		// Set covariance
+		double cov             = get_parameter("output_covariance").as_double();
+		msg.pose.covariance[0] = cov;
+		msg.pose.covariance[7] = cov;
+		msg.pose.covariance[14] = cov;
+		msg.pose.covariance[21] = cov;
+		msg.pose.covariance[28] = cov;
+		msg.pose.covariance[35] = cov;
 
 		return msg;
 	}
