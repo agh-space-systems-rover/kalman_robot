@@ -159,7 +159,7 @@ class CubeNode(Node):
         cv2.imwrite(
             f"{self.path}/{name}.jpg",
             img_data.image,
-            [cv2.IMWRITE_JPEG_QUALITY, 50]
+            [cv2.IMWRITE_JPEG_QUALITY, 30]
         )
 
         # Save position

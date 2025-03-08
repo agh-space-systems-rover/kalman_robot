@@ -30,6 +30,7 @@ def launch_setup(context):
                 executable="record_video",
                 parameters=[
                     {
+                        "frame_rate": 15,
                         "camera_no": camera,
 
                     }
