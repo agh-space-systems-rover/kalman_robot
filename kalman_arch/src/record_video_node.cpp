@@ -106,13 +106,15 @@ class RecordVideo : public rclcpp::Node {
 		latest_image = resized;
 	}
 	void take_pic(
-	    const std::shared_ptr<std_srvs::srv::Empty::Request>  req,
+	    const std::shared_ptr<std_srvs::srv::uint8_t::Request>  req,
 	    const std::shared_ptr<std_srvs::srv::Empty::Response> res
 	) {
 		if (!latest_image.empty()) {
+			latest_image = cv::putText(latest_image, std::to_string(req), cv::Point(10, img.rows / 2), cv::FONT_HERSHEY_DUPLEX, 
+				1.0, CV_RGB(0, 0, 0))
 			std::string filename = screenshots_save_path + "/" +
 			                       (std::to_string(video_time_stamp) + "-" +
-			                        camera_name + "-screenshot.jpg");
+			                        camera_name + std::to_string(req) + "-screenshot.jpg");
 			cv::imwrite(filename, this->latest_image);
 		} else {
 			RCLCPP_INFO(get_logger(), "Image is empty");
