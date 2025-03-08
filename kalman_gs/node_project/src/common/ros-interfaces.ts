@@ -69,6 +69,27 @@ export type Twist = {
   angular?: Vector3;
 };
 
+export type Pose = {
+  position?: Point;
+  orientation?: Quaternion;
+};
+
+export type PoseWithCovariance = {
+  pose?: Pose;
+  covariance?: number[];
+};
+
+export type TwistWithCovariance = {
+  twist?: Twist;
+  covariance?: number[];
+};
+
+export type Odometry = {
+  header?: Header;
+  pose?: PoseWithCovariance;
+  twist?: TwistWithCovariance;
+};
+
 // kalman_interfaces
 
 export type SupervisorTfGoal = {
@@ -166,3 +187,22 @@ export type ArmAxesLocks = {
   pitch?: boolean;
   yaw?: boolean;
 };
+
+// UEUOS interfaces
+export type SetColorRequest = {
+  color: ColorRGB;
+};
+
+export type SetStateRequest = {
+  state: number;
+};
+
+export type SetEffectRequest = {
+  effect: number;
+};
+
+export type ColorRGB = {
+  r: number;
+  g: number;
+  b: number;
+}
