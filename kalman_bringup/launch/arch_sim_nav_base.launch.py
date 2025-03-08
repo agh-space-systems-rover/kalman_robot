@@ -6,11 +6,17 @@ def generate_launch_description():
         {
             "unity_sim": {
                 "scene": "ARCh2024",
+                "selective_launch": "only_sim",
             },
             "rviz": {
-                "configs": "autonomy",
+                "configs": "rtabmap",
             },
             "gs": {},
-            "wheels": {},
-        }
+            "wheels": {
+                "joy": "gamepad",
+            },
+            "description": {
+                "layout": "autonomy",
+            },
+        },
     )

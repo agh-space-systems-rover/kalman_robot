@@ -217,7 +217,7 @@ smoother_server:
       # Weight for smoother to apply to retain original data information
       w_data: 0.2
       # Parameter tolerance change amount to terminate smoothing session
-      tolerance: 1e-10
+      tolerance: 0.0000000001
 
 # The Controller Server implements the server for handling the controller requests for the stack and host a map of plugin implementations. It will take in path and plugin names for controller, progress checker and goal checker to use and call the appropriate plugins. It also hosts the local costmap.
 controller_server:

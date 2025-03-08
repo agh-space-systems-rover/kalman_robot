@@ -39,10 +39,12 @@ def render_jinja_config(template_path, **kwargs):
     config = yaml.load(config_str, Loader=yaml.FullLoader)
     return config
 
+
 def find_available_maps() -> set[str]:
     maps_dir = get_package_share_path("kalman_nav2") / "maps"
     maps = [f.stem for f in maps_dir.glob("*.yaml")]
     return set(maps)
+
 
 def render_nav2_config(rgbd_ids, static_map):
     # Render core Nav2 params.
@@ -95,6 +97,7 @@ def launch_setup(context):
         if x != ""
     ]
     static_map = LaunchConfiguration("static_map").perform(context)
+    driving_mode = LaunchConfiguration("driving_mode").perform(context)
 
     description = []
 
@@ -213,6 +216,9 @@ def launch_setup(context):
                     / "config"
                     / "path_follower.yaml"
                 ),
+                {
+                    "driving_mode": driving_mode,
+                }
             ],
         ),
     ]
@@ -238,6 +244,12 @@ def generate_launch_description():
                 default_value="",
                 choices=["", *find_available_maps()],
                 description="Name of the static map to use. Maps are stored in kalman_nav2/maps. Empty by default to disable static map.",
+            ),
+            DeclareLaunchArgument(
+                "driving_mode",
+                default_value="hybrid",
+                choices=["hybrid", "forward", "backward"],
+                description="Direction to drive in. The default 'hybrid' mode allows driving in both directions.",
             ),
             OpaqueFunction(function=launch_setup),
         ]
