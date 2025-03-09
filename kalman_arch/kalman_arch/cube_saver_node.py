@@ -1,4 +1,5 @@
 import cv2
+from typing import Any
 import os
 import rclpy
 from rclpy.node import Node
@@ -21,7 +22,7 @@ import time
 class ImageData:
     camera_id: str
     timestamp: int
-    image: cv2.Mat
+    image: Any
 
 
 @dataclass
@@ -34,10 +35,10 @@ class DetectionData:
 class CubeNode(Node):
     def __init__(self):
         super().__init__("cube_saver")
-        REALSENSE_CAMERAS = ["d455_front", "d455_left", "d455_right", "d455_back"]
 
         self.declare_parameter("buffer_size", 100)
         self.declare_parameter("buffer_cleanup_time", 5000)
+        self.declare_parameter("num_cameras", 1)
 
         self.BUFFER_SIZE = self.get_parameter("buffer_size").value
         self.BUFFER_CLEANUP_TIME = self.get_parameter("buffer_cleanup_time").value
@@ -54,10 +55,10 @@ class CubeNode(Node):
         self.create_subscription(
             Detection2DArray, "/yolo_detections", self.detection_cb, img_qos
         )
-        for rgbd_ids in REALSENSE_CAMERAS:
+        for i in range(self.get_parameter("num_cameras").value):
             self.create_subscription(
                 CompressedImage,
-                f"/{rgbd_ids}/yolo_annotated/compressed",
+                f"annotated{i}/image_raw/compressed",
                 self.image_cb,
                 img_qos,
             )
@@ -209,7 +210,3 @@ def main():
         rclpy.shutdown()
     except KeyboardInterrupt:
         pass
-
-
-if __name__ == "__main__":
-    main()
