@@ -23,6 +23,7 @@ class Supervisor(Node):
 
         # Set per-module type hints for autocomplete.
         self.aruco: ArUco
+        self.cmd_vel: CmdVel
         self.map: Map
         self.missions: Missions
         self.nav: Nav

@@ -23,4 +23,8 @@ class Prepare(State):
 
         # Start moving after WAIT_DURATION seconds.
         if time.time() - self.entry_time > WAIT_DURATION:
-            return "travel"
+            mission = self.supervisor.missions.get_mission()
+            if isinstance(mission, Missions.MappingGoals):
+                return "next_goal"
+            else:
+                return "travel"

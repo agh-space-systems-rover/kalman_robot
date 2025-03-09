@@ -1,0 +1,7 @@
+uint8 NAVIGATE_TO_PRECISE_LOCATION = 0
+uint8 NAVIGATE_TO_ROUGH_LOCATION = 1
+uint8 ATTEMPT_LOOP_CLOSURE = 2
+uint8 TAKE_PHOTOS = 3
+
+uint8 type
+geometry_msgs/Point location

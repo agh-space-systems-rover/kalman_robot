@@ -1,4 +1,5 @@
 from kalman_supervisor.modules.aruco import ArUco
+from kalman_supervisor.modules.cmd_vel import CmdVel
 from kalman_supervisor.modules.map import Map
 from kalman_supervisor.modules.missions import Missions
 from kalman_supervisor.modules.nav import Nav
