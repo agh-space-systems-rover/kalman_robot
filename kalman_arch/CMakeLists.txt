@@ -21,14 +21,14 @@ find_package(cv_bridge REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(message_filters REQUIRED)
 find_package(vision_msgs REQUIRED)
-find_package(std_srvs REQUIRED)
+find_package(cob_srvs REQUIRED)
 find_package(tf2_ros REQUIRED)
 
 include_directories( ${OpenCV_INCLUDE_DIRS} )
 
 add_library(record_video_node SHARED src/record_video_node.cpp)
 target_link_libraries(record_video_node ${OpenCV_LIBS})
-ament_target_dependencies(record_video_node rclcpp rclcpp_components std_msgs sensor_msgs image_transport cv_bridge std_srvs)
+ament_target_dependencies(record_video_node rclcpp rclcpp_components std_msgs sensor_msgs image_transport cv_bridge cob_srvs)
 rclcpp_components_register_node(
   record_video_node
   PLUGIN "kalman_arch::RecordVideo"

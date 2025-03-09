@@ -11,7 +11,7 @@
   <buildtool_depend>ament_cmake_python</buildtool_depend>
   <depend>rclcpp</depend>
   <depend>rclcpp_components</depend>
-  <depend>std_srvs</depend>
+  <depend>cob_srvs</depend>
 
 
   <exec_depend>ros2launch</exec_depend>
