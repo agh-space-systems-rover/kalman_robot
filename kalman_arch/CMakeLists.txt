@@ -16,6 +16,10 @@ find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
+find_package(message_filters REQUIRED)
+find_package(pcl_conversions REQUIRED)
+find_package(pcl_ros REQUIRED)
 find_package(image_transport REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(OpenCV REQUIRED)
@@ -23,6 +27,7 @@ find_package(message_filters REQUIRED)
 find_package(vision_msgs REQUIRED)
 find_package(cob_srvs REQUIRED)
 find_package(tf2_ros REQUIRED)
+find_package(PCL REQUIRED)
 
 include_directories( ${OpenCV_INCLUDE_DIRS} )
 
@@ -35,10 +40,25 @@ rclcpp_components_register_node(
   EXECUTABLE record_video
 )
 
+add_library(slam_serialization_node SHARED src/slam_serialization_node.cpp)
+ament_target_dependencies(slam_serialization_node rclcpp rclcpp_components std_msgs sensor_msgs nav_msgs PCL pcl_ros pcl_conversions)
+rclcpp_components_register_node(
+  slam_serialization_node
+  PLUGIN "kalman_arch::SlamSerialization"
+  EXECUTABLE slam_serialization
+)
+
 
 ament_export_targets(kalman_arch-targets)
 
 install(TARGETS record_video_node
+  EXPORT kalman_arch-targets
+  RUNTIME DESTINATION bin
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+)
+
+install(TARGETS slam_serialization_node
   EXPORT kalman_arch-targets
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
