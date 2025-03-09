@@ -23,7 +23,14 @@ def generate_launch_description():
             },
             "wheels": {
                 "joy": "gamepad",
-            }
+            },
+            "arch": {
+                "rgbd_ids": RGBD_IDS,                
+            },
+            "yolo": {
+                "rgbd_ids": RGBD_IDS,
+                "config": "arch2025",
+            },
         },
         composition="start_container",
     )
