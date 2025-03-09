@@ -25,7 +25,8 @@ def launch_setup(context):
         if x != ""
     ]
     aruco_deactivate_unused = (
-        LaunchConfiguration("aruco_deactivate_unused").perform(context).lower() == "true"
+        LaunchConfiguration("aruco_deactivate_unused").perform(context).lower()
+        == "true"
     )
     yolo_enabled = (
         LaunchConfiguration("yolo_enabled").perform(context).lower() == "true"
@@ -53,6 +54,7 @@ def launch_setup(context):
         *remap_action("missions/gps_goal", "supervisor/gps_goal"),
         *remap_action("missions/gps_aruco_search", "supervisor/gps_aruco_search"),
         *remap_action("missions/gps_yolo_search", "supervisor/gps_yolo_search"),
+        *remap_action("missions/mapping_goals", "supervisor/mapping_goals"),
         *remap_action("nav/navigate_to_pose", "navigate_to_pose"),
         ("ueuos/set_state", "ueuos/set_state"),
         ("yolo/get_state", "yolo_detect/get_state"),

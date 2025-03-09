@@ -1,10 +1,12 @@
+from threading import Condition, Lock
+from typing import Literal
+
 import numpy as np
 
 from geometry_msgs.msg import PoseStamped
 from rclpy.action import ActionServer, CancelResponse
 from rclpy.action.server import ServerGoalHandle
 from rclpy.callback_groups import ReentrantCallbackGroup
-from threading import Condition, Lock
 
 from kalman_supervisor.module import Module
 from kalman_interfaces.action import (
@@ -12,6 +14,7 @@ from kalman_interfaces.action import (
     SupervisorGpsGoal,
     SupervisorGpsArUcoSearch,
     SupervisorGpsYoloSearch,
+    SupervisorMappingGoals,
 )
 
 
@@ -66,6 +69,36 @@ class Missions(Module):
 
             self.obj_world_frame_pos = np.array([0.0, 0.0, 0.0])
 
+    class MappingGoals(Mission):
+        class Goal:
+            GoalType = Literal[
+                "NAVIGATE_TO_PRECISE_LOCATION",
+                "NAVIGATE_TO_ROUGH_LOCATION",
+                "ATTEMPT_LOOP_CLOSURE",
+                "TAKE_PHOTOS",
+            ]
+            NAVIGATE_TO_PRECISE_LOCATION = "NAVIGATE_TO_PRECISE_LOCATION"
+            NAVIGATE_TO_ROUGH_LOCATION = "NAVIGATE_TO_ROUGH_LOCATION"
+            ATTEMPT_LOOP_CLOSURE = "ATTEMPT_LOOP_CLOSURE"
+            TAKE_PHOTOS = "TAKE_PHOTOS"
+            types = (
+                NAVIGATE_TO_PRECISE_LOCATION,
+                NAVIGATE_TO_ROUGH_LOCATION,
+                ATTEMPT_LOOP_CLOSURE,
+                TAKE_PHOTOS,
+            )
+
+            def __init__(self, type: GoalType, location_x: float, location_y: float):
+                self.type = type
+                self.location_x = location_x
+                self.location_y = location_y
+
+        def __init__(self, goals: list[Goal]):
+            super().__init__()
+            self.goals = goals
+
+            self.current_goal = -1
+
     def __init__(self):
         super().__init__("missions")
 
@@ -116,6 +149,14 @@ class Missions(Module):
             SupervisorGpsYoloSearch,
             "missions/gps_yolo_search",
             self.__gps_yolo_search_cb,
+            callback_group=self.__callback_group,
+            cancel_callback=self.__action_cancel_cb,
+        )
+        self.mapping_server = ActionServer(
+            self.supervisor,
+            SupervisorMappingGoals,
+            "missions/mapping_goals",
+            self.__mapping_goals_cb,
             callback_group=self.__callback_group,
             cancel_callback=self.__action_cancel_cb,
         )
@@ -283,6 +324,20 @@ class Missions(Module):
         with self.__mission_condition:
             self.__queue_up_mission(mission, goal_handle)
         return SupervisorGpsYoloSearch.Result()
+
+    def __mapping_goals_cb(
+        self, goal_handle: ServerGoalHandle
+    ) -> SupervisorMappingGoals.Result:
+        goals = []
+        for goal in goal_handle.request.goals:
+            type = Missions.MappingGoals.Goal.types[goal.type]
+            goals.append(
+                Missions.MappingGoals.Goal(type, goal.location.x, goal.location.y)
+            )
+        mission = Missions.MappingGoals(goals)
+        with self.__mission_condition:
+            self.__queue_up_mission(mission, goal_handle)
+        return SupervisorMappingGoals.Result()
 
     def __action_cancel_cb(self, _) -> CancelResponse:
         return CancelResponse.ACCEPT
