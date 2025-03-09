@@ -81,6 +81,7 @@
   right: 0;
   height: 100%;
   aspect-ratio: 0.935;
+  filter: invert(48%) sepia(13%) saturate(3207%) hue-rotate(130deg) brightness(95%) contrast(80%);
 }
 
 .body {

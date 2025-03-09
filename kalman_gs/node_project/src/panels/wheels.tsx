@@ -8,6 +8,14 @@ import { WheelStates, WheelTemperatures } from '../common/ros-interfaces';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Topic } from 'roslib';
 
+const KELVIN_OFFSET = 273.15;
+
+// Temperature thresholds:
+const MOTOR_TEMPERATURE_WARNING_THRESHOLD = KELVIN_OFFSET + 70; // 70 °C
+const MOTOR_TEMPERATURE_DANGER_THRESHOLD = KELVIN_OFFSET + 90; // 90 °C
+const SWIVEL_TEMPERATURE_WARNING_THRESHOLD = KELVIN_OFFSET + 70; // 70 °C
+const SWIVEL_TEMPERATURE_DANGER_THRESHOLD = KELVIN_OFFSET + 90; // 90 °C
+
 let lastWheelStates: WheelStates | null = null;
 let lastWheelStatesReturn: WheelStates | null = null;
 let lastWheelTemperatures: WheelTemperatures | null = null;
@@ -41,7 +49,6 @@ window.addEventListener('ros-connect', () => {
   });
 
   temperatureTopic.subscribe((msg: WheelTemperatures) => {
-    console.log('Received temperatures:' + msg);
     lastWheelTemperatures = msg;
     window.dispatchEvent(new Event('wheel-temps'));
   });
@@ -88,10 +95,12 @@ type WheelProps = {
   type: 'fl' | 'fr' | 'bl' | 'br';
   angle: number;
   velocity: number;
+  motorTemperature: number;
+  swivelTemperature: number;
   showTarget: boolean;
 };
 
-function Wheel({ type, angle, velocity, showTarget }: WheelProps) {
+function Wheel({ type, angle, velocity, motorTemperature, swivelTemperature, showTarget }: WheelProps) {
   const ref = useRef<HTMLDivElement>();
   const thickness = ref.current ? ref.current.clientWidth * 0.3 : 5;
 
@@ -107,6 +116,7 @@ function Wheel({ type, angle, velocity, showTarget }: WheelProps) {
         src={showTarget ? kalmanLeftWheelOutline : kalmanLeftWheel}
         className={styles['wheel-image']}
         draggable='false'
+        alt={''}
       />
       <Arrow velocity={velocity} angle={type === 'fr' || type === 'br' ? 180 : 0} thickness={thickness} />
     </div>
@@ -136,33 +146,42 @@ function Rover({ showTarget = false }: RoverProps) {
   }, [rerender]);
 
   const wheelStates = showTarget ? lastWheelStates : lastWheelStatesReturn;
+  const wheelTemperatures = lastWheelTemperatures;
   return (
     <div className={styles['rover'] + (showTarget ? ' show-target' : '')}>
       <div className={styles['rover-h']}>
         <div className={styles['rover-v']}>
-          {!showTarget && <img src={kalmanBody} className={styles['body']} draggable='false' />}
+          {!showTarget && <img src={kalmanBody} className={styles['body']} draggable='false' alt={''} />}
           <Wheel
             type='fl'
             angle={wheelStates?.front_left.angle || 0}
             velocity={wheelStates?.front_left.velocity || 0}
+            motorTemperature={wheelTemperatures?.front_left.motor || KELVIN_OFFSET}
+            swivelTemperature={wheelTemperatures?.front_left.swivel || KELVIN_OFFSET}
             showTarget={showTarget}
           />
           <Wheel
             type='fr'
             angle={wheelStates?.front_right.angle || 0}
             velocity={wheelStates?.front_right.velocity || 0}
+            motorTemperature={wheelTemperatures?.front_right.motor || KELVIN_OFFSET}
+            swivelTemperature={wheelTemperatures?.front_right.swivel || KELVIN_OFFSET}
             showTarget={showTarget}
           />
           <Wheel
             type='bl'
             angle={wheelStates?.back_left.angle || 0}
             velocity={wheelStates?.back_left.velocity || 0}
+            motorTemperature={wheelTemperatures?.back_left.motor || KELVIN_OFFSET}
+            swivelTemperature={wheelTemperatures?.back_left.swivel || KELVIN_OFFSET}
             showTarget={showTarget}
           />
           <Wheel
             type='br'
             angle={wheelStates?.back_right.angle || 0}
             velocity={wheelStates?.back_right.velocity || 0}
+            motorTemperature={wheelTemperatures?.back_right.motor || KELVIN_OFFSET}
+            swivelTemperature={wheelTemperatures?.back_right.swivel || KELVIN_OFFSET}
             showTarget={showTarget}
           />
         </div>
