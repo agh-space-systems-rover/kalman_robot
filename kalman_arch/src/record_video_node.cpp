@@ -113,11 +113,11 @@ class RecordVideo : public rclcpp::Node {
 	    const std::shared_ptr<cob_srvs::srv::SetInt::Request>  req,
 	    const std::shared_ptr<cob_srvs::srv::SetInt::Response> res
 	) {
-		if (!latest_image.empty()) {
+		if (!original_latest_image.empty()) {
 			cv::putText(
-			    latest_image,
+			    original_latest_image,
 			    std::to_string(req->data),
-			    cv::Point(10, latest_image.rows / 2),
+			    cv::Point(10, original_latest_image.rows / 2),
 			    cv::FONT_HERSHEY_DUPLEX,
 			    1.0,
 			    CV_RGB(0, 0, 0)
