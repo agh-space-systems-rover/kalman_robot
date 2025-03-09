@@ -3,35 +3,47 @@ import styles from './wheels.module.css';
 import kalmanBody from '!!url-loader!../media/kalman-body.svg';
 import kalmanLeftWheelOutline from '!!url-loader!../media/kalman-wheel-outline.svg';
 import kalmanLeftWheel from '!!url-loader!../media/kalman-wheel.svg';
-import { vecFromCssColor, vecLength } from '../common/mini-math-lib';
 import { ros } from '../common/ros';
-import { WheelStates } from '../common/ros-interfaces';
+import { WheelStates, WheelTemperatures } from '../common/ros-interfaces';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Topic } from 'roslib';
 
 let lastWheelStates: WheelStates | null = null;
 let lastWheelStatesReturn: WheelStates | null = null;
+let lastWheelTemperatures: WheelTemperatures | null = null;
 window.addEventListener('ros-connect', () => {
-  const topic = new Topic({
+  const stateTopic = new Topic({
     ros: ros,
     name: '/wheel_states',
     messageType: 'kalman_interfaces/WheelStates'
   });
 
-  topic.subscribe((msg: WheelStates) => {
+  stateTopic.subscribe((msg: WheelStates) => {
     lastWheelStates = msg;
     window.dispatchEvent(new Event('wheel-states'));
   });
 
-  const returnTopic = new Topic({
+  const stateReturnTopic = new Topic({
     ros: ros,
     name: '/wheel_states/return',
     messageType: 'kalman_interfaces/WheelStates'
   });
 
-  returnTopic.subscribe((msg: WheelStates) => {
+  stateReturnTopic.subscribe((msg: WheelStates) => {
     lastWheelStatesReturn = msg;
     window.dispatchEvent(new Event('wheel-states-return'));
+  });
+
+  const temperatureTopic = new Topic({
+    ros: ros,
+    name: '/wheel_temps',
+    messageType: 'kalman_interfaces/WheelTemperatures'
+  });
+
+  temperatureTopic.subscribe((msg: WheelTemperatures) => {
+    console.log('Received temperatures:' + msg);
+    lastWheelTemperatures = msg;
+    window.dispatchEvent(new Event('wheel-temps'));
   });
 });
 
@@ -43,9 +55,7 @@ type ArrowProps = {
 
 function Arrow({ velocity, angle, thickness }: ArrowProps) {
   const opacity = Math.pow(Math.min(1, Math.abs(velocity)), 0.25);
-  const scale =
-    Math.sign(velocity) *
-    Math.pow(Math.min(1, Math.max(0, Math.abs(velocity))), 0.5);
+  const scale = Math.sign(velocity) * Math.pow(Math.min(1, Math.max(0, Math.abs(velocity))), 0.5);
 
   return (
     <div
@@ -98,11 +108,7 @@ function Wheel({ type, angle, velocity, showTarget }: WheelProps) {
         className={styles['wheel-image']}
         draggable='false'
       />
-      <Arrow
-        velocity={velocity}
-        angle={type === 'fr' || type === 'br' ? 180 : 0}
-        thickness={thickness}
-      />
+      <Arrow velocity={velocity} angle={type === 'fr' || type === 'br' ? 180 : 0} thickness={thickness} />
     </div>
   );
 }
@@ -110,6 +116,7 @@ function Wheel({ type, angle, velocity, showTarget }: WheelProps) {
 type RoverProps = {
   showTarget?: boolean;
 };
+
 function Rover({ showTarget = false }: RoverProps) {
   const [_, setRerenderCount] = useState(0);
 
@@ -120,9 +127,11 @@ function Rover({ showTarget = false }: RoverProps) {
   useEffect(() => {
     window.addEventListener('wheel-states', rerender);
     window.addEventListener('wheel-states-return', rerender);
+    window.addEventListener('wheel-temps', rerender);
     return () => {
       window.removeEventListener('wheel-states', rerender);
       window.removeEventListener('wheel-states-return', rerender);
+      window.removeEventListener('wheel-temps', rerender);
     };
   }, [rerender]);
 
@@ -131,13 +140,7 @@ function Rover({ showTarget = false }: RoverProps) {
     <div className={styles['rover'] + (showTarget ? ' show-target' : '')}>
       <div className={styles['rover-h']}>
         <div className={styles['rover-v']}>
-          {!showTarget && (
-            <img
-              src={kalmanBody}
-              className={styles['body']}
-              draggable='false'
-            />
-          )}
+          {!showTarget && <img src={kalmanBody} className={styles['body']} draggable='false' />}
           <Wheel
             type='fl'
             angle={wheelStates?.front_left.angle || 0}
