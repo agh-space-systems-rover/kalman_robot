@@ -1,7 +1,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "sensor_msgs/msg/compressed_image.hpp"
 #include "std_msgs/msg/string.hpp"
-#include "std_srvs/srv/empty.hpp"
+#include "cob_srvs/srv/set_int.hpp"
 #include <filesystem>
 #include <image_transport/image_transport.hpp>
 #include <memory>
@@ -71,7 +71,7 @@ class RecordVideo : public rclcpp::Node {
 		    input_image_topic, 1, &RecordVideo::image_cb, this, &hints
 		);
 		// Create service
-		service = create_service<std_srvs::srv::Empty>(
+		service = create_service<cob_srvs::srv::SetInt>(
 		    "take_picture",
 		    std::bind(
 		        &RecordVideo::take_pic,
@@ -82,7 +82,7 @@ class RecordVideo : public rclcpp::Node {
 		);
 	}
 
-	rclcpp::Service<std_srvs::srv::Empty>::SharedPtr service;
+	rclcpp::Service<cob_srvs::srv::SetInt>::SharedPtr service;
 
 	void image_cb(const sensor_msgs::msg::Image::ConstSharedPtr &msg) {
 		video_time_stamp = msg->header.stamp.sec;
@@ -108,8 +108,8 @@ class RecordVideo : public rclcpp::Node {
 		latest_image = resized;
 	}
 	void take_pic(
-	    const std::shared_ptr<std_srvs::srv::uint8_t::Request>  req,
-	    const std::shared_ptr<std_srvs::srv::Empty::Response> res
+	    const std::shared_ptr<cob_srvs::srv::SetInt::Request>  req,
+	    const std::shared_ptr<cob_srvs::srv::SetInt::Response> res
 	) {
 		if (!latest_image.empty()) {
 			latest_image = cv::putText(latest_image, std::to_string(req), cv::Point(10, img.rows / 2), cv::FONT_HERSHEY_DUPLEX, 
@@ -117,7 +117,7 @@ class RecordVideo : public rclcpp::Node {
 			std::string filename = screenshots_save_path + "/" +
 			                       (std::to_string(video_time_stamp) + "-" +
 			                        camera_name + std::to_string(req) + "-screenshot.jpg");
-			cv::imwrite(filename, this->latest_image);
+			cv::imwrite(filename, this->original_latest_image);
 		} else {
 			RCLCPP_INFO(get_logger(), "Image is empty");
 		}

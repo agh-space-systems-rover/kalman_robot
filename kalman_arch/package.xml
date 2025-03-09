@@ -11,18 +11,18 @@
   <buildtool_depend>ament_cmake_python</buildtool_depend>
   <depend>rclcpp</depend>
   <depend>rclcpp_components</depend>
-  <depend>std_srvs</depend>
+  <depend>cob_srvs</depend>
 
 
   <exec_depend>ros2launch</exec_depend>
-  
+
   <exec_depend>rclpy</exec_depend>
   <exec_depend>sensor_msgs</exec_depend>
   <exec_depend>vision_msgs</exec_depend>
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>image_transport</exec_depend>
 
-    
+
   <exec_depend>point_cloud_utils</exec_depend>
 
   <test_depend>ament_lint_auto</test_depend>
