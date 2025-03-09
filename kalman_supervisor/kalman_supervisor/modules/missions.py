@@ -98,6 +98,7 @@ class Missions(Module):
             self.goals = goals
 
             self.current_goal = -1
+            self.next_photo_label = 1
 
     def __init__(self):
         super().__init__("missions")

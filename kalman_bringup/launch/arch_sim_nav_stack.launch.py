@@ -20,7 +20,12 @@ def generate_launch_description():
                 "rgbd_ids": RGBD_IDS,
                 "driving_mode": "forward",
             },
-            "supervisor": {},
+            "supervisor": {
+                "arch_camera_ids": RGBD_IDS,
+            },
+            "arch": {
+                "rgbd_ids": RGBD_IDS,
+            },
         },
         composition="start_container",
     )

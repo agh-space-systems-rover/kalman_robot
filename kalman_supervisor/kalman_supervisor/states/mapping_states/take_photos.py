@@ -28,10 +28,13 @@ class TakePhotos(State):
         if not self.supervisor.missions.has_mission():
             return "stop_to_teleop"
 
+        mission = self.supervisor.missions.get_mission()
+
         current_time = time.time()
 
         if self._step == 0 and current_time - self._last_action_time >= 1.0:
-            # self.supervisor.arch.take_photos()
+            self.supervisor.arch.take_photos(mission.next_photo_label)
+            mission.next_photo_label += 1
             self._step = 1
             self._last_action_time = current_time
         elif self._step == 1 and current_time - self._last_action_time >= 1.0:
@@ -42,7 +45,8 @@ class TakePhotos(State):
             self._step = 2
             self._last_action_time = current_time
         elif self._step == 2 and not self.supervisor.cmd_vel.is_rotating_in_place():
-            # self.supervisor.arch.take_photos()
+            self.supervisor.arch.take_photos(mission.next_photo_label)
+            mission.next_photo_label += 1
             self._step = 3
             self._last_action_time = current_time
         elif self._step == 3 and current_time - self._last_action_time >= 1.0:

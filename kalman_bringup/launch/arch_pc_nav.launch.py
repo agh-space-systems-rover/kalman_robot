@@ -21,15 +21,22 @@ def generate_launch_description():
                 "rgbd_ids": RGBD_IDS,
                 "slam": "d455_front",
             },
-            "wheels": {
-                "joy": "gamepad",
+            "nav2": {
+                "rgbd_ids": RGBD_IDS,
+                "driving_mode": "forward",
+            },
+            "supervisor": {
+                "arch_camera_ids": RGBD_IDS,
             },
             "arch": {
-                "rgbd_ids": RGBD_IDS,                
+                "rgbd_ids": RGBD_IDS,
             },
             "yolo": {
                 "rgbd_ids": RGBD_IDS,
                 "config": "arch2025",
+            },
+            "wheels": {
+                "joy": "gamepad",
             },
         },
         composition="start_container",

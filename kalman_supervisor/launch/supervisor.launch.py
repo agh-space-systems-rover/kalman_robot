@@ -34,6 +34,11 @@ def launch_setup(context):
     yolo_deactivate_unused = (
         LaunchConfiguration("yolo_deactivate_unused").perform(context).lower() == "true"
     )
+    arch_camera_ids = [
+        x
+        for x in LaunchConfiguration("arch_camera_ids").perform(context).split(" ")
+        if x != ""
+    ]
 
     remappings = []
 
@@ -64,6 +69,9 @@ def launch_setup(context):
         ("search/path_follower/get_parameters", "path_follower/get_parameters"),
     ]
 
+    for i, camera_id in enumerate(arch_camera_ids):
+        remappings += [(f"arch/take_photo{i}", f"{camera_id}/take_picture")]
+
     return [
         Node(
             package="kalman_supervisor",
@@ -83,6 +91,9 @@ def launch_setup(context):
                     "yolo": {
                         "enabled": yolo_enabled,
                         "deactivate_unused": yolo_deactivate_unused,
+                    },
+                    "arch": {
+                        "num_cameras": len(arch_camera_ids),
                     },
                 },
             ],
@@ -116,6 +127,11 @@ def generate_launch_description():
                 default_value="false",
                 choices=["true", "false"],
                 description="Deactivate YOLO detection when supervisor is not actively looking for objects.",
+            ),
+            DeclareLaunchArgument(
+                "arch_camera_ids",
+                default_value="",
+                description="Space-separated IDs of the cameras to take photos with during the ARCh 2025 mapping mission.",
             ),
             OpaqueFunction(function=launch_setup),
         ]
