@@ -69,6 +69,10 @@ export type Twist = {
   angular?: Vector3;
 };
 
+export type Bool = {
+  data: boolean;
+};
+
 export type Pose = {
   position?: Point;
   orientation?: Quaternion;
@@ -88,6 +92,15 @@ export type Odometry = {
   header?: Header;
   pose?: PoseWithCovariance;
   twist?: TwistWithCovariance;
+};
+
+// std_srvs/SetBool
+export type SetBoolRequest = {
+  data: boolean;
+};
+export type SetBoolResponse = {
+  success: boolean;
+  message: string;
 };
 
 // kalman_interfaces
@@ -205,4 +218,4 @@ export type ColorRGB = {
   r: number;
   g: number;
   b: number;
-}
+};

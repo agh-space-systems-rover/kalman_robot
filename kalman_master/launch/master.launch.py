@@ -93,10 +93,14 @@ def launch_setup(context):
             package="kalman_master",
             executable="drill_driver",
         ),
+        "estop_driver": Node(
+            package="kalman_master",
+            executable="estop_driver",
+        ),
         "rfid_driver": Node(
             package="kalman_master",
             executable="rfid_driver",
-        )
+        ),
     }
 
     mode_configs = {
@@ -117,6 +121,7 @@ def launch_setup(context):
             "feed_driver",
             "arm_twist_driver",
             "drill_driver",
+            "estop_driver",
             "rfid_driver",
         ],
         "arm": [

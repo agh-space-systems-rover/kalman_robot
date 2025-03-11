@@ -42,6 +42,7 @@ ament_python_install_package(${PROJECT_NAME})
 install(PROGRAMS
   scripts/autonomy_switch_spam
   scripts/drill_driver
+  scripts/estop_driver
   scripts/feed_driver
   scripts/master_com
   scripts/master_loopback
