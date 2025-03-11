@@ -12,6 +12,7 @@ uint8 UEUOS_SET_EFFECT = 0x72
 
 uint8 GS_TO_PC = 0x80
 uint8 PC_TO_GS = 0x81
+uint8 RFID = 0x85
 uint8 GS_TO_ARM = 0x86
 uint8 ARM_TO_GS = 0x87
 # No ARM_TO_PC and PC_TO_ARM because they are not needed.

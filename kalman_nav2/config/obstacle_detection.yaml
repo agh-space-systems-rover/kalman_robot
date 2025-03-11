@@ -2,9 +2,9 @@
   ros__parameters:
     queue_size: 10
 
-    world_frame: "odom" # The frame to which transform the point cloud before processing. (default: "odom")
+    world_frame: "map" # The frame to which transform the point cloud before processing. It must have a world-aligned pitch and roll, so that slope can be calculated. (default: "map")
     normal_estimation_radius: 0.2 # The radius for normal estimation. (default: 0.2)
-    max_ground_angle: 0.698 # The maximum angle between the ground and the normal for a point to be considered ground. (radians, default: 30 degrees)
+    max_ground_angle: 0.5 # The maximum angle between the up vector and the normal for a point to be considered ground. (radians, default: 30 degrees)
     
     outlier_removal_radius: 0.2 # The radius for the outlier removal filter. (default: 0.2)
     outlier_removal_min_neighbors: 10 # The minimum number of neighbors for the outlier removal filter. (default: 10)

@@ -1,9 +1,19 @@
 # Common configuration of realsense2_camera nodes.
-# This is NOT a well-formed ROS param file.
-
-align_depth:
-  enable: true
-rgb_camera:
-  color_profile: 1280x720x15
-depth_module:
-  depth_profile: 640x360x15
+/**:
+  ros__parameters:
+    align_depth:
+      enable: true
+    enable_infra: false
+    enable_infra1: false
+    enable_infra2: false
+    enable_gyro: false
+    enable_accel: false
+    publish_tf: true
+    initial_reset: true
+    rgb_camera:
+      color_profile: 640x360x15
+      enable_auto_exposure: False
+      exposure: 200 # FIXME: Change for indoor/outdoor mapping.; outdoor=3; indoor=200
+    depth_module:
+      depth_profile: 640x360x15
+    clip_distance: 5.0

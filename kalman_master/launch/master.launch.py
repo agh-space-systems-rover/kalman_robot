@@ -16,6 +16,12 @@ PORTS = {"pc": "/tmp/ttyV2"}
 
 def start_ros_link(side: str, rover_endpoint: str) -> Node:
     return Node(
+        name=f"ros_link_"
+        + (
+            "gs_to_" + rover_endpoint
+            if side == "station"
+            else rover_endpoint + "_to_gs"
+        ),
         package="kalman_master",
         executable="ros_link",
         parameters=[
@@ -28,7 +34,6 @@ def start_ros_link(side: str, rover_endpoint: str) -> Node:
                 "rover_endpoint": rover_endpoint,  # arm or pc
             },
         ],
-        name=f"ros_link_{rover_endpoint}"
     )
 
 
@@ -92,6 +97,10 @@ def launch_setup(context):
             package="kalman_master",
             executable="estop_driver",
         ),
+        "rfid_driver": Node(
+            package="kalman_master",
+            executable="rfid_driver",
+        ),
     }
 
     mode_configs = {
@@ -113,6 +122,7 @@ def launch_setup(context):
             "arm_twist_driver",
             "drill_driver",
             "estop_driver",
+            "rfid_driver",
         ],
         "arm": [
             "master_com",

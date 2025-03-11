@@ -73,6 +73,28 @@ export type Bool = {
   data: boolean;
 };
 
+export type Pose = {
+  position?: Point;
+  orientation?: Quaternion;
+};
+
+export type PoseWithCovariance = {
+  pose?: Pose;
+  covariance?: number[];
+};
+
+export type TwistWithCovariance = {
+  twist?: Twist;
+  covariance?: number[];
+};
+
+export type Odometry = {
+  header?: Header;
+  pose?: PoseWithCovariance;
+  twist?: TwistWithCovariance;
+};
+
+// std_srvs/SetBool
 export type SetBoolRequest = {
   data: boolean;
 };
