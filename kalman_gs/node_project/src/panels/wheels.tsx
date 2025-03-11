@@ -19,6 +19,7 @@ const SWIVEL_TEMPERATURE_DANGER_THRESHOLD = KELVIN_OFFSET + 90; // 90 °C
 let lastWheelStates: WheelStates | null = null;
 let lastWheelStatesReturn: WheelStates | null = null;
 let lastWheelTemperatures: WheelTemperatures | null = null;
+let lastWheelTemperaturesMeasurementTime: Date | null = null;
 window.addEventListener('ros-connect', () => {
   const stateTopic = new Topic({
     ros: ros,
@@ -50,6 +51,7 @@ window.addEventListener('ros-connect', () => {
 
   temperatureTopic.subscribe((msg: WheelTemperatures) => {
     lastWheelTemperatures = msg;
+    lastWheelTemperaturesMeasurementTime = new Date();
     window.dispatchEvent(new Event('wheel-temps'));
   });
 });
@@ -104,6 +106,20 @@ function Wheel({ type, angle, velocity, motorTemperature, swivelTemperature, sho
   const ref = useRef<HTMLDivElement>();
   const thickness = ref.current ? ref.current.clientWidth * 0.3 : 5;
 
+  let additionalInfoClass: string = '';
+
+  if (
+    motorTemperature >= MOTOR_TEMPERATURE_DANGER_THRESHOLD ||
+    swivelTemperature >= SWIVEL_TEMPERATURE_DANGER_THRESHOLD
+  ) {
+    additionalInfoClass = ' wheel-danger';
+  } else if (
+    motorTemperature >= MOTOR_TEMPERATURE_WARNING_THRESHOLD ||
+    swivelTemperature >= SWIVEL_TEMPERATURE_WARNING_THRESHOLD
+  ) {
+    additionalInfoClass = ' wheel-warn';
+  }
+
   return (
     <div
       ref={ref}
@@ -114,7 +130,7 @@ function Wheel({ type, angle, velocity, motorTemperature, swivelTemperature, sho
     >
       <img
         src={showTarget ? kalmanLeftWheelOutline : kalmanLeftWheel}
-        className={styles['wheel-image']}
+        className={styles['wheel-image'] + additionalInfoClass}
         draggable='false'
         alt={''}
       />
