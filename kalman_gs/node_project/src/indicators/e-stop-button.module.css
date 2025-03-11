@@ -1,33 +1,16 @@
-.e-stop-button {
+.estop-button {
   width: calc(1em + 4px);
   height: calc(1em + 4px);
   padding: 3px;
   border-radius: 5px;
   cursor: pointer;
-  transition: transform 0.1s, background-color 0.2s;
+  transition: transform 0.1s;
   display: flex;
   justify-content: center;
   align-items: center;
+  transition: background-color 0.2s;
 }
 
-.e-stop-button:global(.disabled) {
-  color: var(--weak-foreground);
-  cursor: default;
-}
-
-.e-stop-button:global(:not(.disabled)):hover {
+.estop-button:hover {
   background-color: var(--background);
-}
-
-.e-stop-button:global(:not(.disabled)):active {
-  background-color: var(--interactive);
-  transition: background-color 0s;
-}
-
-.e-stop-button:global(.red:not(.disabled)) svg {
-  color: var(--red-foreground);
-}
-
-.e-stop-button:global(.green:not(.disabled)) svg {
-  color: var(--green-foreground);
 }

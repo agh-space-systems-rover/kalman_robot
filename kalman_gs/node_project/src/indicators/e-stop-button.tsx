@@ -1,106 +1,89 @@
 import styles from './e-stop-button.module.css';
 
+import { getKeybind } from '../common/keybinds';
 import { alertsRef } from '../common/refs';
 import { ros } from '../common/ros';
-import { Bool, SetBool, SetBoolFeedback } from '../common/ros-interfaces';
-import { faStopCircle, faCirclePlay } from '@fortawesome/free-solid-svg-icons';
+import { SetBoolRequest, SetBoolResponse } from '../common/ros-interfaces';
+import { faStopCircle, faStop, faPlay } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { useCallback, useEffect, useState } from 'react';
-import { Service, Topic } from 'roslib';
+import { Service } from 'roslib';
 
-import Tooltip from '../components/tooltip';
+import ContextMenu from '../components/context-menu';
 
-const ICON_DISABLED_TIMEOUT = 500;
-
-enum EStopStatus {
-  ON = 1,
-  OFF = 0
-}
-
-// Services:
-let eStopService: Service<SetBool, SetBoolFeedback> = null;
-
-// Topic variables:
-let eStopTopicResponse: Bool | null = null;
-
+let srv: Service<SetBoolRequest, SetBoolResponse> = null;
 window.addEventListener('ros-connect', () => {
-  eStopService = new Service<SetBool, SetBoolFeedback>({
+  srv = new Service<SetBoolRequest, SetBoolResponse>({
     ros: ros,
     name: '/set_estop',
     serviceType: 'std_srvs/SetBool'
   });
 
-  const eStopTopic = new Topic({
-    ros: ros,
-    name: '/estop_state',
-    messageType: 'std_msgs/Bool'
-  });
+  // const eStopTopic = new Topic({
+  //   ros: ros,
+  //   name: '/estop_state',
+  //   messageType: 'std_msgs/Bool'
+  // });
+  // eStopTopic.subscribe((msg: Bool) => {
+  //
+  // });
+});
 
-  eStopTopic.subscribe((msg: Bool) => {
-    eStopTopicResponse = msg;
-    window.dispatchEvent(new Event('e-stop-status'));
-  });
+function sendEStopRequest(status: boolean) {
+  if (srv === null) {
+    alertsRef.current?.pushAlert('Not connected to local ROS instance. Unable to send E-STOP request.', 'error');
+    return;
+  }
+
+  const req: SetBoolRequest = { data: status };
+  srv.callService(
+    req,
+    (response: SetBoolResponse) => {
+      if (response.success) {
+        alertsRef.current?.pushAlert(
+          `Successfully updated E-STOP status. Currently: ${status ? 'ON' : 'OFF'}.`,
+          'success'
+        );
+      } else {
+        alertsRef.current?.pushAlert(`Failed to update E-STOP status. ${response.message}.`, 'error');
+      }
+    },
+    (e) => {
+      alertsRef.current?.pushAlert(`Failed to update E-STOP status. ${e}.`, 'error');
+    }
+  );
+}
+
+window.addEventListener('keydown', (event) => {
+  if (event.repeat) {
+    return;
+  }
+
+  if (event.code === getKeybind('Engage Remote E-STOP')) {
+    sendEStopRequest(true);
+  }
 });
 
 export default function EStopButton() {
-  const [eStopStatus, setEStopStatus] = useState(EStopStatus.OFF);
-  const [iconDisabled, setIconDisabled] = useState(true);
-
-  const changeEStopStatus = useCallback(() => {
-    if (
-      eStopTopicResponse !== null &&
-      ((eStopTopicResponse.data ? EStopStatus.ON : EStopStatus.OFF) !== eStopStatus || iconDisabled === true)
-    ) {
-      setEStopStatus(eStopTopicResponse.data ? EStopStatus.ON : EStopStatus.OFF);
-      setIconDisabled(true);
-      setTimeout(() => {
-        setIconDisabled(false);
-      }, ICON_DISABLED_TIMEOUT);
-    }
-  }, [eStopStatus, iconDisabled]);
-
-  useEffect(() => {
-    window.addEventListener('e-stop-status', changeEStopStatus);
-    return () => {
-      window.removeEventListener('e-stop-status', changeEStopStatus);
-    };
-  }, [changeEStopStatus]);
-
   return (
-    <Tooltip
-      text={
-        iconDisabled
-          ? 'Unable to request.\\nE-STOP state is unknown.'
-          : `${eStopStatus ? 'Enable' : 'Disable'} rover's power.`
-      }
-      className={styles['e-stop-button'] + (eStopStatus ? ' green' : ' red') + (iconDisabled ? ' disabled' : '')}
-      onClick={() => {
-        if (iconDisabled) {
-          return;
-        }
-
-        if (eStopService === null) {
-          alertsRef.current?.pushAlert('Not connected to local ROS instance. Unable to send E-STOP request.', 'error');
-          return;
-        }
-
-        const setBoolRequest: SetBool = { data: eStopStatus === EStopStatus.OFF };
-        eStopService.callService(
-          setBoolRequest,
-          (response: SetBoolFeedback) => {
-            if (response.success) {
-              alertsRef.current?.pushAlert(`Successfully updated E-STOP status.`, 'success');
-            } else {
-              alertsRef.current?.pushAlert(`Failed to update E-STOP status. ${response.message}.`, 'error');
-            }
+    <div onClick={() => sendEStopRequest(true)}>
+      <ContextMenu
+        items={[
+          {
+            icon: faStop,
+            text: 'Engage',
+            onClick: () => sendEStopRequest(true)
           },
-          (e) => {
-            alertsRef.current?.pushAlert(`Failed to update E-STOP status. ${e}.`, 'error');
+          {
+            icon: faPlay,
+            text: 'Release',
+            onClick: () => sendEStopRequest(false)
           }
-        );
-      }}
-    >
-      <FontAwesomeIcon icon={eStopStatus === EStopStatus.ON ? faCirclePlay : faStopCircle} />
-    </Tooltip>
+        ]}
+        className={styles['estop-button']}
+        tooltip='Remote E-STOP button.\nClick to engage,\nRMB for more options.'
+      >
+        <FontAwesomeIcon icon={faStopCircle} />
+      </ContextMenu>
+    </div>
   );
 }

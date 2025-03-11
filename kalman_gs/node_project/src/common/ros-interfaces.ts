@@ -73,11 +73,10 @@ export type Bool = {
   data: boolean;
 };
 
-export type SetBool = {
+export type SetBoolRequest = {
   data: boolean;
 };
-
-export type SetBoolFeedback = {
+export type SetBoolResponse = {
   success: boolean;
   message: string;
 };
