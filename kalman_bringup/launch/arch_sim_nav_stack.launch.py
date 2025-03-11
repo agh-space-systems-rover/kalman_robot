@@ -13,7 +13,7 @@ def generate_launch_description():
                 "rgbd_ids": RGBD_IDS,
             },
             "slam": {
-                "rgbd_ids": RGBD_IDS,
+                "rgbd_ids": "d455_front",
                 "slam": "d455_front",
             },
             "nav2": {

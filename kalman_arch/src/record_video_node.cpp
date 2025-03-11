@@ -31,7 +31,7 @@ class RecordVideo : public rclcpp::Node {
 	cv::Mat                         latest_image;
 	cv::Mat                         original_latest_image;
 	int                             frame_rate;
-	int                             video_time_stamp;
+	int64_t                         last_image_timestamp_ms;
 	int codec = cv::VideoWriter::fourcc('H', '2', '6', '4');
 	std::unique_ptr<cv::VideoWriter> writer;
 	std::filesystem::path user_home = std::filesystem::path(getenv("HOME"));
@@ -39,7 +39,6 @@ class RecordVideo : public rclcpp::Node {
 	std::filesystem::path screenshots_dir =
 	    user_home / "arch" / "arch-screenshots";
 	std::string camera_name           = "";
-	std::string video_save_path       = "";
 	std::string screenshots_save_path = "";
 	int         width, height; // parameter
 
@@ -53,8 +52,6 @@ class RecordVideo : public rclcpp::Node {
 		width  = declare_parameter("video_width", 640);
 		height = declare_parameter("video_height", 360);
 
-		std::filesystem::create_directories(video_dir);
-		std::filesystem::create_directories(screenshots_dir);
 		screenshots_save_path = (screenshots_dir).string();
 		// Resolve topics.
 		std::string input_image_topic =
@@ -86,18 +83,20 @@ class RecordVideo : public rclcpp::Node {
 
 	rclcpp::Service<cob_srvs::srv::SetInt>::SharedPtr service;
 
-	void image_cb(const sensor_msgs::msg::Image::ConstSharedPtr &msg) {
-		video_time_stamp = msg->header.stamp.sec;
+	void image_cb(const sensor_msgs::msg::Image::ConstSharedPtr &msg) {		
+		last_image_timestamp_ms = static_cast<int64_t>(msg->header.stamp.sec) * 1000
+		                        + static_cast<int64_t>(msg->header.stamp.nanosec / 1e6);
 		cv_bridge::CvImagePtr cv_ptr;
 		cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
 		cv::Mat resized;
 		cv::resize(cv_ptr->image, resized, {width, height});
-		video_save_path =
-		    (video_dir / (camera_name + "-" + std::to_string(video_time_stamp) +
-		                  "-video.mkv"))
-		        .string();
 
 		if (!writer) {
+			std::string video_save_path =
+		    (video_dir / (camera_name + "-" + std::to_string(last_image_timestamp_ms) +
+		                  "-video.mkv"))
+		        .string();
+			std::filesystem::create_directories(video_dir);
 			writer = std::make_unique<cv::VideoWriter>();
 			cv::Size sizeFrame(width, height);
 			writer->open(
@@ -124,8 +123,8 @@ class RecordVideo : public rclcpp::Node {
 			);
 			std::string filename =
 			    screenshots_save_path + "/" +
-			    (std::to_string(video_time_stamp) + "-" + camera_name +
-			     std::to_string(req->data) + "-screenshot.jpg");
+			    (std::to_string(req->data) + "-" + camera_name + "-" + std::to_string(last_image_timestamp_ms) + "-screenshot.jpg");
+			std::filesystem::create_directories(screenshots_dir);
 			cv::imwrite(filename, this->original_latest_image);
 		} else {
 			RCLCPP_INFO(get_logger(), "Image is empty");

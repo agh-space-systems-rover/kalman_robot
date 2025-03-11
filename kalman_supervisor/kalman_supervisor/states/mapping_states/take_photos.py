@@ -34,7 +34,8 @@ class TakePhotos(State):
 
         if self._step == 0 and current_time - self._last_action_time >= 1.0:
             self.supervisor.arch.take_photos(mission.next_photo_label)
-            mission.next_photo_label += 1
+            # mission.next_photo_label += 1
+            # ^ The second batch of photos after the 45 degrees rotation should have the same id.
             self._step = 1
             self._last_action_time = current_time
         elif self._step == 1 and current_time - self._last_action_time >= 1.0:
