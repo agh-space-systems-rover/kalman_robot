@@ -19,7 +19,6 @@ const SWIVEL_TEMPERATURE_DANGER_THRESHOLD = KELVIN_OFFSET + 90; // 90 °C
 let lastWheelStates: WheelStates | null = null;
 let lastWheelStatesReturn: WheelStates | null = null;
 let lastWheelTemperatures: WheelTemperatures | null = null;
-let lastWheelTemperaturesMeasurementTime: Date | null = null;
 window.addEventListener('ros-connect', () => {
   const stateTopic = new Topic({
     ros: ros,
@@ -51,7 +50,6 @@ window.addEventListener('ros-connect', () => {
 
   temperatureTopic.subscribe((msg: WheelTemperatures) => {
     lastWheelTemperatures = msg;
-    lastWheelTemperaturesMeasurementTime = new Date();
     window.dispatchEvent(new Event('wheel-temps'));
   });
 });
@@ -61,6 +59,11 @@ type ArrowProps = {
   angle: number;
   thickness: number;
 };
+
+function parseKelvinToCelsius(kelvin: number): string {
+  const celsius = kelvin - KELVIN_OFFSET;
+  return `${celsius.toFixed(2)}°C`;
+}
 
 function Arrow({ velocity, angle, thickness }: ArrowProps) {
   const opacity = Math.pow(Math.min(1, Math.abs(velocity)), 0.25);
@@ -97,8 +100,8 @@ type WheelProps = {
   type: 'fl' | 'fr' | 'bl' | 'br';
   angle: number;
   velocity: number;
-  motorTemperature: number;
-  swivelTemperature: number;
+  motorTemperature: number | null;
+  swivelTemperature: number | null;
   showTarget: boolean;
 };
 
@@ -106,36 +109,69 @@ function Wheel({ type, angle, velocity, motorTemperature, swivelTemperature, sho
   const ref = useRef<HTMLDivElement>();
   const thickness = ref.current ? ref.current.clientWidth * 0.3 : 5;
 
-  let additionalInfoClass: string = '';
+  let additionalWheelClass: string = '';
+  let additionalMotorTemperatureClass: string = '';
+  let additionalSwivelTemperatureClass: string = '';
 
   if (
     motorTemperature >= MOTOR_TEMPERATURE_DANGER_THRESHOLD ||
     swivelTemperature >= SWIVEL_TEMPERATURE_DANGER_THRESHOLD
   ) {
-    additionalInfoClass = ' wheel-danger';
+    additionalWheelClass = ' wheel-danger';
   } else if (
     motorTemperature >= MOTOR_TEMPERATURE_WARNING_THRESHOLD ||
     swivelTemperature >= SWIVEL_TEMPERATURE_WARNING_THRESHOLD
   ) {
-    additionalInfoClass = ' wheel-warn';
+    additionalWheelClass = ' wheel-warn';
   }
 
+  console.log(motorTemperature, additionalWheelClass);
+
+  if (motorTemperature >= MOTOR_TEMPERATURE_DANGER_THRESHOLD) additionalWheelClass = ' danger';
+  else if (motorTemperature >= MOTOR_TEMPERATURE_WARNING_THRESHOLD) additionalWheelClass = ' warn';
+
+  if (swivelTemperature >= SWIVEL_TEMPERATURE_DANGER_THRESHOLD) additionalWheelClass = ' danger';
+  else if (swivelTemperature >= SWIVEL_TEMPERATURE_WARNING_THRESHOLD) additionalWheelClass = ' warn';
+
   return (
-    <div
-      ref={ref}
-      className={styles['wheel'] + ' ' + styles[type]}
-      style={{
-        transform: `rotate(${(-angle * 180) / Math.PI + (type === 'fr' || type === 'br' ? 180 : 0)}deg)`
-      }}
-    >
-      <img
-        src={showTarget ? kalmanLeftWheelOutline : kalmanLeftWheel}
-        className={styles['wheel-image'] + additionalInfoClass}
-        draggable='false'
-        alt={''}
-      />
-      <Arrow velocity={velocity} angle={type === 'fr' || type === 'br' ? 180 : 0} thickness={thickness} />
-    </div>
+    <>
+      {!showTarget && lastWheelTemperatures !== null && (
+        <div
+          className={styles['wheel-temperatures'] + ' ' + styles[type]}
+          style={{
+            height: ref.current?.clientHeight
+          }}
+        >
+          <p>
+            Motor:{' '}
+            <span className={styles['wheel-temperatures-measurement'] + additionalMotorTemperatureClass}>
+              {parseKelvinToCelsius(motorTemperature)}
+            </span>
+          </p>
+          <p>
+            Swivel:{' '}
+            <span className={styles['wheel-temperatures-measurement'] + additionalSwivelTemperatureClass}>
+              {parseKelvinToCelsius(swivelTemperature)}
+            </span>
+          </p>
+        </div>
+      )}
+      <div
+        ref={ref}
+        className={styles['wheel'] + ' ' + styles[type]}
+        style={{
+          transform: `rotate(${(-angle * 180) / Math.PI + (type === 'fr' || type === 'br' ? 180 : 0)}deg)`
+        }}
+      >
+        <img
+          src={showTarget ? kalmanLeftWheelOutline : kalmanLeftWheel}
+          className={styles['wheel-image'] + additionalWheelClass}
+          draggable='false'
+          alt={''}
+        />
+        <Arrow velocity={velocity} angle={type === 'fr' || type === 'br' ? 180 : 0} thickness={thickness} />
+      </div>
+    </>
   );
 }
 
@@ -154,10 +190,12 @@ function Rover({ showTarget = false }: RoverProps) {
     window.addEventListener('wheel-states', rerender);
     window.addEventListener('wheel-states-return', rerender);
     window.addEventListener('wheel-temps', rerender);
+    window.addEventListener('resize', rerender);
     return () => {
       window.removeEventListener('wheel-states', rerender);
       window.removeEventListener('wheel-states-return', rerender);
       window.removeEventListener('wheel-temps', rerender);
+      window.removeEventListener('resize', rerender);
     };
   }, [rerender]);
 
@@ -172,32 +210,32 @@ function Rover({ showTarget = false }: RoverProps) {
             type='fl'
             angle={wheelStates?.front_left.angle || 0}
             velocity={wheelStates?.front_left.velocity || 0}
-            motorTemperature={wheelTemperatures?.front_left.motor || KELVIN_OFFSET}
-            swivelTemperature={wheelTemperatures?.front_left.swivel || KELVIN_OFFSET}
+            motorTemperature={wheelTemperatures?.front_left.motor}
+            swivelTemperature={wheelTemperatures?.front_left.swivel}
             showTarget={showTarget}
           />
           <Wheel
             type='fr'
             angle={wheelStates?.front_right.angle || 0}
             velocity={wheelStates?.front_right.velocity || 0}
-            motorTemperature={wheelTemperatures?.front_right.motor || KELVIN_OFFSET}
-            swivelTemperature={wheelTemperatures?.front_right.swivel || KELVIN_OFFSET}
+            motorTemperature={wheelTemperatures?.front_right.motor}
+            swivelTemperature={wheelTemperatures?.front_right.swivel}
             showTarget={showTarget}
           />
           <Wheel
             type='bl'
             angle={wheelStates?.back_left.angle || 0}
             velocity={wheelStates?.back_left.velocity || 0}
-            motorTemperature={wheelTemperatures?.back_left.motor || KELVIN_OFFSET}
-            swivelTemperature={wheelTemperatures?.back_left.swivel || KELVIN_OFFSET}
+            motorTemperature={wheelTemperatures?.back_left.motor}
+            swivelTemperature={wheelTemperatures?.back_left.swivel}
             showTarget={showTarget}
           />
           <Wheel
             type='br'
             angle={wheelStates?.back_right.angle || 0}
             velocity={wheelStates?.back_right.velocity || 0}
-            motorTemperature={wheelTemperatures?.back_right.motor || KELVIN_OFFSET}
-            swivelTemperature={wheelTemperatures?.back_right.swivel || KELVIN_OFFSET}
+            motorTemperature={wheelTemperatures?.back_right.motor}
+            swivelTemperature={wheelTemperatures?.back_right.swivel}
             showTarget={showTarget}
           />
         </div>

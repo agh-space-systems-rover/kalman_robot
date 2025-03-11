@@ -96,6 +96,50 @@
   transform: rotate(180deg);
 }
 
+.wheel-temperatures {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+
+.wheel-temperatures p {
+  margin: 0;
+  text-wrap: nowrap;
+}
+
+.wheel-temperatures.fl {
+  top: 0;
+  right: 110%;
+}
+
+.wheel-temperatures.fr {
+  top: 0;
+  left: 110%;
+}
+
+.wheel-temperatures.bl {
+  bottom: 0;
+  right: 110%;
+}
+
+.wheel-temperatures.br {
+  bottom: 0;
+  left: 110%;
+}
+
+.wheel-temperatures-measurement {
+  color: var(--foreground);
+}
+
+.wheel-temperatures-measurement:global(.danger) {
+  color: var(--foreground);
+}
+
+.wheel-temperatures-measurement:global(.warn) {
+  color: var(--foreground);
+}
+
 .wheel-image {
   position: absolute;
   right: 0;
