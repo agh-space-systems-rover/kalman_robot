@@ -3,12 +3,15 @@ import styles from './wheels.module.css';
 import kalmanBody from '!!url-loader!../media/kalman-body.svg';
 import kalmanLeftWheelOutline from '!!url-loader!../media/kalman-wheel-outline.svg';
 import kalmanLeftWheel from '!!url-loader!../media/kalman-wheel.svg';
+import { alertsRef } from '../common/refs';
 import { ros } from '../common/ros';
 import { WheelStates, WheelTemperatures } from '../common/ros-interfaces';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Topic } from 'roslib';
 
 const KELVIN_OFFSET = 273.15;
+
+const SHOW_TEMPERATURES_TIMEOUT = 20000;
 
 // Temperature thresholds:
 const MOTOR_TEMPERATURE_WARNING_THRESHOLD = KELVIN_OFFSET + 70; // 70 °C
@@ -62,7 +65,8 @@ type ArrowProps = {
 
 function parseKelvinToCelsius(kelvin: number): string {
   const celsius = kelvin - KELVIN_OFFSET;
-  return `${celsius.toFixed(2)}°C`;
+  const toFixedValue = (document.querySelector('.' + styles['wheels']) as HTMLElement).offsetWidth > 600 ? 1 : 0;
+  return `${celsius.toFixed(toFixedValue)}°C`;
 }
 
 function Arrow({ velocity, angle, thickness }: ArrowProps) {
@@ -103,9 +107,18 @@ type WheelProps = {
   motorTemperature: number | null;
   swivelTemperature: number | null;
   showTarget: boolean;
+  showTemperatures: boolean;
 };
 
-function Wheel({ type, angle, velocity, motorTemperature, swivelTemperature, showTarget }: WheelProps) {
+function Wheel({
+  type,
+  angle,
+  velocity,
+  motorTemperature,
+  swivelTemperature,
+  showTarget,
+  showTemperatures
+}: WheelProps) {
   const ref = useRef<HTMLDivElement>();
   const thickness = ref.current ? ref.current.clientWidth * 0.3 : 5;
 
@@ -125,31 +138,41 @@ function Wheel({ type, angle, velocity, motorTemperature, swivelTemperature, sho
     additionalWheelClass = ' wheel-warn';
   }
 
-  console.log(motorTemperature, additionalWheelClass);
+  if (motorTemperature >= MOTOR_TEMPERATURE_DANGER_THRESHOLD) additionalMotorTemperatureClass = ' danger';
+  else if (motorTemperature >= MOTOR_TEMPERATURE_WARNING_THRESHOLD) additionalMotorTemperatureClass = ' warn';
 
-  if (motorTemperature >= MOTOR_TEMPERATURE_DANGER_THRESHOLD) additionalWheelClass = ' danger';
-  else if (motorTemperature >= MOTOR_TEMPERATURE_WARNING_THRESHOLD) additionalWheelClass = ' warn';
-
-  if (swivelTemperature >= SWIVEL_TEMPERATURE_DANGER_THRESHOLD) additionalWheelClass = ' danger';
-  else if (swivelTemperature >= SWIVEL_TEMPERATURE_WARNING_THRESHOLD) additionalWheelClass = ' warn';
+  if (swivelTemperature >= SWIVEL_TEMPERATURE_DANGER_THRESHOLD) additionalSwivelTemperatureClass = ' danger';
+  else if (swivelTemperature >= SWIVEL_TEMPERATURE_WARNING_THRESHOLD) additionalSwivelTemperatureClass = ' warn';
 
   return (
     <>
-      {!showTarget && lastWheelTemperatures !== null && (
+      {!showTarget && lastWheelTemperatures !== null && showTemperatures && (
         <div
           className={styles['wheel-temperatures'] + ' ' + styles[type]}
           style={{
             height: ref.current?.clientHeight
           }}
         >
-          <p>
-            Motor:{' '}
+          <p
+            style={
+              (document.querySelector('.' + styles['wheels']) as HTMLElement)?.offsetWidth > 300
+                ? {}
+                : { fontSize: '9px' }
+            }
+          >
+            {(document.querySelector('.' + styles['wheels']) as HTMLElement)?.offsetWidth > 600 && <>Motor: </>}
             <span className={styles['wheel-temperatures-measurement'] + additionalMotorTemperatureClass}>
               {parseKelvinToCelsius(motorTemperature)}
             </span>
           </p>
-          <p>
-            Swivel:{' '}
+          <p
+            style={
+              (document.querySelector('.' + styles['wheels']) as HTMLElement)?.offsetWidth > 300
+                ? {}
+                : { fontSize: '9px' }
+            }
+          >
+            {(document.querySelector('.' + styles['wheels']) as HTMLElement)?.offsetWidth > 600 && <>Swivel: </>}
             <span className={styles['wheel-temperatures-measurement'] + additionalSwivelTemperatureClass}>
               {parseKelvinToCelsius(swivelTemperature)}
             </span>
@@ -181,20 +204,34 @@ type RoverProps = {
 
 function Rover({ showTarget = false }: RoverProps) {
   const [_, setRerenderCount] = useState(0);
+  const [showTemperatures, setShowTemperatures] = useState(false);
+
+  const timerRef = useRef(null);
 
   const rerender = useCallback(() => {
     setRerenderCount((count) => count + 1);
   }, [setRerenderCount]);
 
+  const handleWheelTemps = useCallback(() => {
+    rerender();
+    setShowTemperatures(true);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
+      setShowTemperatures(false);
+      timerRef.current = null;
+      alertsRef.current?.pushAlert('Cannot get wheels temperatures.', 'error');
+    }, SHOW_TEMPERATURES_TIMEOUT);
+  }, [rerender]);
+
   useEffect(() => {
     window.addEventListener('wheel-states', rerender);
     window.addEventListener('wheel-states-return', rerender);
-    window.addEventListener('wheel-temps', rerender);
+    window.addEventListener('wheel-temps', handleWheelTemps);
     window.addEventListener('resize', rerender);
     return () => {
       window.removeEventListener('wheel-states', rerender);
       window.removeEventListener('wheel-states-return', rerender);
-      window.removeEventListener('wheel-temps', rerender);
+      window.removeEventListener('wheel-temps', handleWheelTemps);
       window.removeEventListener('resize', rerender);
     };
   }, [rerender]);
@@ -213,6 +250,7 @@ function Rover({ showTarget = false }: RoverProps) {
             motorTemperature={wheelTemperatures?.front_left.motor}
             swivelTemperature={wheelTemperatures?.front_left.swivel}
             showTarget={showTarget}
+            showTemperatures={showTemperatures}
           />
           <Wheel
             type='fr'
@@ -221,6 +259,7 @@ function Rover({ showTarget = false }: RoverProps) {
             motorTemperature={wheelTemperatures?.front_right.motor}
             swivelTemperature={wheelTemperatures?.front_right.swivel}
             showTarget={showTarget}
+            showTemperatures={showTemperatures}
           />
           <Wheel
             type='bl'
@@ -229,6 +268,7 @@ function Rover({ showTarget = false }: RoverProps) {
             motorTemperature={wheelTemperatures?.back_left.motor}
             swivelTemperature={wheelTemperatures?.back_left.swivel}
             showTarget={showTarget}
+            showTemperatures={showTemperatures}
           />
           <Wheel
             type='br'
@@ -237,6 +277,7 @@ function Rover({ showTarget = false }: RoverProps) {
             motorTemperature={wheelTemperatures?.back_right.motor}
             swivelTemperature={wheelTemperatures?.back_right.swivel}
             showTarget={showTarget}
+            showTemperatures={showTemperatures}
           />
         </div>
       </div>
