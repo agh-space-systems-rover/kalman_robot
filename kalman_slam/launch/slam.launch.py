@@ -256,12 +256,17 @@ def launch_setup(context):
                         "sync_with_odom": rgbd_ids.index(slam),
                     }
                 ],
-                remappings=[("odom", "odometry/local")]
+                remappings=[
+                    ("odom", "odometry/local"),
+                    ("imu", "imu/data"),
+                ]
                 + [
                     (f"odom{i}", f"/{rgbd_id}/odom")
                     for i, rgbd_id in enumerate(rgbd_ids)
                 ],
                 # arguments=["--ros-args", "--log-level", "debug"],
+                # prefix=["gdbserver localhost:1234"],
+                # output="screen",
             ),
             Node(
                 namespace="rtabmap",
