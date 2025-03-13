@@ -214,6 +214,7 @@ class DeadReckoning : public rclcpp::Node {
 		declare_parameter("imu_correction_window_samples", 30);
 		declare_parameter("imu_correction_kp", 0.2);
 		declare_parameter("imu_correction_rate", 10.0);
+		declare_parameter("imu_correction_use_yaw", false);
 
 		// Subscribe to visodo
 		int num_odoms = declare_parameter("num_odoms", 1);
@@ -395,7 +396,7 @@ class DeadReckoning : public rclcpp::Node {
 				delta_transforms_i.push_back(j);
 			}
 			if (delta_transforms.size() > 0) {
-				cv::Affine3d mean_transform = fuse_affine(delta_transforms);
+				cv::Affine3d mean_transform = mean_affine(delta_transforms);
 				integrated_transform = integrated_transform * mean_transform;
 			}
 			integrated_anything   = true;
@@ -553,48 +554,14 @@ class DeadReckoning : public rclcpp::Node {
 			return;
 		}
 
-		// Go over both sequences and compute mean correction (odom <-> world
-		// rotation).
-		cv::Vec3d        mean_o2w_rvec(0, 0, 0);
-		constexpr size_t NUM_SEQ_SAMPLES = 10;
-		for (size_t i = 0; i < NUM_SEQ_SAMPLES; i++) {
-			// Select the sampling time.
-			rclcpp::Time sample_time =
-			    start_time + rclcpp::Duration::from_seconds(
-			                     i * (end_time - start_time).seconds() /
-			                     (NUM_SEQ_SAMPLES - 1)
-			                 );
-
-			// Take samples from both sequences.
-			cv::Quatd b2w = resample_quat_sequence(imu_b2w_buffer, sample_time);
-			cv::Quatd b2o =
-			    resample_quat_sequence(transform_b2o_buffer, sample_time);
-
-			// Check if there are NaNs
-			if (b2w.w != b2w.w) {
-				RCLCPP_ERROR(
-				    get_logger(),
-				    "IMU reading contains NaNs. Skipping correction."
-				);
-				return;
-			}
-			if (b2o.w != b2o.w) {
-				RCLCPP_ERROR(
-				    get_logger(),
-				    "Odom reading contains NaNs. Skipping correction."
-				);
-				return;
-			}
-
-			// Compute odom frame to world frame rotation.
-			cv::Quatd o2w = b2w * b2o.inv();
-
-			// Accumulate.
-			mean_o2w_rvec += norm_rvec(o2w.toRotVec());
+		// Compute correction.
+		bool      use_yaw = get_parameter("imu_correction_use_yaw").as_bool();
+		cv::Quatd mean_o2w;
+		if (use_yaw) {
+			mean_o2w = calc_imu_correction(start_time, end_time);
+		} else {
+			mean_o2w = calc_imu_correction_no_yaw(start_time, end_time);
 		}
-		mean_o2w_rvec      /= static_cast<double>(NUM_SEQ_SAMPLES);
-		mean_o2w_rvec      *= get_parameter("imu_correction_kp").as_double();
-		cv::Quatd mean_o2w  = cv::Quatd::createFromRvec(mean_o2w_rvec);
 
 		// Apply correction to integrated_transform.
 		// integrated_transform = base -> odom
@@ -619,6 +586,80 @@ class DeadReckoning : public rclcpp::Node {
 		    euler[1],
 		    euler[2]
 		);
+	}
+
+	cv::Quatd calc_imu_correction(
+	    const rclcpp::Time &start_time, const rclcpp::Time &end_time
+	) {
+		// Go over both sequences and compute mean correction (odom <-> world
+		// rotation).
+		cv::Vec3d mean_o2w_rvec(0, 0, 0);
+		size_t    num_seq_samples =
+		    get_parameter("imu_correction_window_samples").as_int();
+		for (size_t i = 0; i < num_seq_samples; i++) {
+			// Select the sampling time.
+			rclcpp::Time sample_time =
+			    start_time + rclcpp::Duration::from_seconds(
+			                     i * (end_time - start_time).seconds() /
+			                     (num_seq_samples - 1)
+			                 );
+
+			// Take samples from both sequences.
+			cv::Quatd b2w = resample_quat_sequence(imu_b2w_buffer, sample_time);
+			cv::Quatd b2o =
+			    resample_quat_sequence(transform_b2o_buffer, sample_time);
+
+			// Compute odom frame to world frame rotation.
+			cv::Quatd o2w = b2w * b2o.inv();
+
+			// Accumulate.
+			mean_o2w_rvec += norm_rvec(o2w.toRotVec());
+		}
+		mean_o2w_rvec      /= static_cast<double>(num_seq_samples);
+		mean_o2w_rvec      *= get_parameter("imu_correction_kp").as_double();
+		cv::Quatd mean_o2w  = cv::Quatd::createFromRvec(mean_o2w_rvec);
+
+		return mean_o2w;
+	}
+
+	cv::Quatd calc_imu_correction_no_yaw(
+	    const rclcpp::Time &start_time, const rclcpp::Time &end_time
+	) {
+		// Go over both sequences and compute mean gravity direction.
+		const cv::Vec3d g_w(0, 0, -1);
+		cv::Vec3d       mean_g_o(0, 0, 0);
+		// ^ mean gravity vector in odom frame
+		size_t num_seq_samples =
+		    get_parameter("imu_correction_window_samples").as_int();
+		for (size_t i = 0; i < num_seq_samples; i++) {
+			// Select the sampling time.
+			rclcpp::Time sample_time =
+			    start_time + rclcpp::Duration::from_seconds(
+			                     i * (end_time - start_time).seconds() /
+			                     (num_seq_samples - 1)
+			                 );
+
+			// Take samples from both sequences.
+			cv::Quatd b2w = resample_quat_sequence(imu_b2w_buffer, sample_time);
+			cv::Quatd b2o =
+			    resample_quat_sequence(transform_b2o_buffer, sample_time);
+
+			// Compute gravity vector delta.
+			cv::Quatd w2o = b2o * b2w.inv();
+			cv::Vec3d g_o = w2o.toRotMat3x3() * g_w;
+
+			// Accumulate.
+			mean_g_o += g_o;
+		}
+		mean_g_o /= static_cast<double>(num_seq_samples);
+
+		// Compute correction quaternion.
+		cv::Vec3d axis_o2w  = mean_g_o.cross(g_w);
+		double    angle_ow  = std::acos(mean_g_o.dot(g_w));
+		angle_ow           *= get_parameter("imu_correction_kp").as_double();
+		cv::Quatd mean_o2w = cv::Quatd::createFromAngleAxis(angle_ow, axis_o2w);
+
+		return mean_o2w;
 	}
 
 	void publish_transform(rclcpp::Time time) {
@@ -710,7 +751,7 @@ class DeadReckoning : public rclcpp::Node {
 		}
 	}
 
-	cv::Affine3d fuse_affine(const std::vector<cv::Affine3d> &transforms) {
+	cv::Affine3d mean_affine(const std::vector<cv::Affine3d> &transforms) {
 		// Compute mean translation
 		cv::Vec3d mean_translation(0, 0, 0);
 		for (const auto &t : transforms) {
@@ -721,7 +762,7 @@ class DeadReckoning : public rclcpp::Node {
 		// Compute mean rotation
 		cv::Vec3d mean_rotation(0, 0, 0);
 		for (const auto &t : transforms) {
-			mean_rotation += t.rvec();
+			mean_rotation += norm_rvec(t.rvec());
 		}
 		mean_rotation /= static_cast<double>(transforms.size());
 

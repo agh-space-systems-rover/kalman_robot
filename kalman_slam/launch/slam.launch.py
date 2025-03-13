@@ -254,6 +254,7 @@ def launch_setup(context):
                     {
                         "num_odoms": len(rgbd_ids),
                         "sync_with_odom": rgbd_ids.index(slam),
+                        "imu_correction_use_yaw": False,
                     }
                 ],
                 remappings=[
@@ -286,7 +287,8 @@ def launch_setup(context):
                     "rgb/camera_info": f"/{slam}/color/camera_info",
                     # "rgbd_image": "/rtabmap/{slam}/rgbd_image",
                     "odom": "/odometry/local",
-                    "imu": "/imu/data",
+                    # "imu": "/imu/data",
+                    # ^ Keep commented out - dead_reckoning fuses IMU data into odometry/local.
                 }.items(),
                 arguments=["-d", "--ros-args", "--log-level", "warn"],
             ),
