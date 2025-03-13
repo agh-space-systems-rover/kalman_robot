@@ -283,7 +283,7 @@ def launch_setup(context):
                     "odom": "/odometry/local",
                     "imu": "/imu/data",
                 }.items(),
-                arguments=["-d"],
+                arguments=["-d", "--ros-args", "--log-level", "warn"],
             ),
             # # For development:
             # Node(

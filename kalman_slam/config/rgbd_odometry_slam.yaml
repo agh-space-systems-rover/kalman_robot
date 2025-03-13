@@ -5,7 +5,7 @@
     publish_tf: False
     approx_sync: False
     topic_queue_size: 1
-    publish_null_when_lost: False
+    publish_null_when_lost: True
 
     Odom/ResetCountdown: "1"
     Odom/Deskewing: "false"

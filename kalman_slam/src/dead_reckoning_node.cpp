@@ -193,7 +193,7 @@ class DeadReckoning : public rclcpp::Node {
 
 		// Subscribe to visodo
 		int num_odoms = declare_parameter("num_odoms", 1);
-		timeout       = declare_parameter("timeout", 0.3);
+		timeout       = declare_parameter("timeout", 0.5);
 		odom_subs.reserve(num_odoms);
 		// ^ Required! DeltaSubscriber binds "this" to a callback, and it must
 		// not be invalidated by a reallocation.
@@ -303,30 +303,17 @@ class DeadReckoning : public rclcpp::Node {
 			// This will be the first start/end time in the buffer.
 			// Only times > buffer's start_time are considered so that we
 			// get duration > 0.
-			rclcpp::Time  next_start_time = end_time;
-			std::set<int> next_start_time_odom_is;
+			rclcpp::Time next_start_time = end_time;
 			for (int j = 0; j < deltas.size(); j++) {
 				auto &d = deltas[j];
 				if (!d.empty()) {
 					if (d.front().start_time > start_time) {
 						if (d.front().start_time <= next_start_time) {
-							if (d.front().start_time == next_start_time) {
-								next_start_time_odom_is.insert(j);
-							} else {
-								next_start_time_odom_is.clear();
-								next_start_time_odom_is.insert(j);
-							}
 							next_start_time = d.front().start_time;
 						}
 					}
 					if (d.front().end_time > start_time) {
 						if (d.front().end_time <= next_start_time) {
-							if (d.front().end_time == next_start_time) {
-								next_start_time_odom_is.insert(j);
-							} else {
-								next_start_time_odom_is.clear();
-								next_start_time_odom_is.insert(j);
-							}
 							next_start_time = d.front().end_time;
 						}
 					}
@@ -369,7 +356,7 @@ class DeadReckoning : public rclcpp::Node {
 				delta_transforms_i.push_back(j);
 			}
 			if (delta_transforms.size() > 0) {
-				cv::Affine3d mean_transform = mean_affine(delta_transforms);
+				cv::Affine3d mean_transform = fuse_affine(delta_transforms);
 				integrated_transform = integrated_transform * mean_transform;
 			}
 			integrated_anything   = true;
@@ -404,13 +391,21 @@ class DeadReckoning : public rclcpp::Node {
 			}
 
 			// Clip readings to begin at the new buffer start_time.
-			for (auto &d : deltas) {
+			for (int j = 0; j < deltas.size(); j++) {
+				auto &d = deltas[j];
 				while (!d.empty()) {
 					if (d.front().start_time <= next_start_time) {
 						d.front().start_time = next_start_time;
 						if (d.front().start_time >= d.front().end_time) {
 							// This delta is too old and was made invalid.
 							d.pop_front();
+
+							// Publish if sync_with_odom is set and the
+							// corresponding odom has just been fully
+							// integrated.
+							if (sync_with_odom == j) {
+								publish_transform(last_integration_time);
+							}
 						} else {
 							break;
 						}
@@ -422,14 +417,6 @@ class DeadReckoning : public rclcpp::Node {
 
 			// Update start time.
 			start_time = next_start_time;
-
-			// Publish if sync_with_odom is set and the corresponding odom has
-			// just been integrated.
-			if (sync_with_odom != -1 &&
-			    next_start_time_odom_is.find(sync_with_odom) !=
-			        next_start_time_odom_is.end()) {
-				publish_transform(last_integration_time);
-			}
 		}
 
 		// Publish transform. (Only if sync_with_odom is not set.)
@@ -450,6 +437,10 @@ class DeadReckoning : public rclcpp::Node {
 			    transform_from_affine(integrated_transform, time);
 			tf_broadcaster.sendTransform(tf_msg);
 		}
+
+		RCLCPP_DEBUG(
+		    get_logger(), "Published odom and TF at %f", time.seconds()
+		);
 	}
 
 	geometry_msgs::msg::TransformStamped transform_from_affine(
@@ -514,7 +505,7 @@ class DeadReckoning : public rclcpp::Node {
 		return msg;
 	}
 
-	cv::Affine3d mean_affine(const std::vector<cv::Affine3d> &transforms) {
+	cv::Affine3d fuse_affine(const std::vector<cv::Affine3d> &transforms) {
 		// Compute mean translation
 		cv::Vec3d mean_translation(0, 0, 0);
 		for (const auto &t : transforms) {
