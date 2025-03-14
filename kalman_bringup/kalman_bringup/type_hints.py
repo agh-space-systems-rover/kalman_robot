@@ -4,6 +4,13 @@
 from typing import Literal, TypedDict
 
 
+class Arch(TypedDict):
+    component_container: str
+    "Name of an existing component container to use. Empty to disable composition."
+    rgbd_ids: str
+    "Space-separated IDs of the depth cameras to use."
+
+
 class Arm(TypedDict):
     debug: Literal["False", "True", "false", "true"]
     "One of: ['true', 'false', 'True', 'False']"
@@ -38,8 +45,8 @@ class Clouds(TypedDict):
 
 
 class Description(TypedDict):
-    layout: Literal["arm", "autonomy"]
-    "layout of the robot: autonomy, arm. Valid choices are: ['autonomy', 'arm']"
+    layout: Literal["arm", "autonomy", "dev_pole"]
+    "layout of the robot: autonomy, arm. Valid choices are: ['autonomy', 'arm', 'dev_pole']"
     joint_state_publisher_gui: Literal["false", "true"]
     "Start the joint state publisher in GUI mode. Valid choices are: ['true', 'false']"
 
@@ -75,6 +82,8 @@ class Nav2(TypedDict):
     "Space-separated IDs of the depth cameras to use."
     static_map: Literal["", "erc2023", "erc2024"]
     "Name of the static map to use. Maps are stored in kalman_nav2/maps. Empty by default to disable static map. Valid choices are: ['', 'erc2023', 'erc2024']"
+    driving_mode: Literal["backward", "forward", "hybrid"]
+    "Direction to drive in. The default 'hybrid' mode allows driving in both directions. Valid choices are: ['hybrid', 'forward', 'backward']"
 
 
 class Rviz(TypedDict):
@@ -90,9 +99,11 @@ class Slam(TypedDict):
     gps_datum: str
     "The 'latitude longitude' of the map frame. Only used if GPS is enabled. Empty to assume first recorded GPS fix."
     fiducials: Literal["", "erc2024", "terc2024"]
-    "Name of the list of fiducials to use. Empty disables fiducial odometry. Valid choices are: ['', 'terc2024', 'erc2024']"
+    "Name of the list of fiducials to use. Empty disables fiducial odometry. Valid choices are: ['', 'erc2024', 'terc2024']"
     use_mag: Literal["false", "true"]
     "Use IMU yaw readings for global EKF. If disabled, heading will drift over time. Valid choices are: ['true', 'false']"
+    slam: str
+    "Use SLAM with the specified RGBD camera. Empty to disable SLAM."
 
 
 class Spacenav(TypedDict):
@@ -108,6 +119,8 @@ class Supervisor(TypedDict):
     "Whether YOLO detection is enabled. Valid choices are: ['true', 'false']"
     yolo_deactivate_unused: Literal["false", "true"]
     "Deactivate YOLO detection when supervisor is not actively looking for objects. Valid choices are: ['true', 'false']"
+    arch_camera_ids: str
+    "Space-separated IDs of the cameras to take photos with during the ARCh 2025 mapping mission."
 
 
 class UnitySim(TypedDict):
@@ -115,8 +128,8 @@ class UnitySim(TypedDict):
     "Name of an existing component container to use. Empty to disable composition."
     scene: str
     "The scene to load in Unity."
-    selective_launch: Literal["all", "only_ros", "only_sim"]
-    "Selectively launch just Unity or just the ROS nodes. Valid choices are: ['all', 'only_sim', 'only_ros']"
+    selective_launch: Literal["all", "no_rs_pub", "only_rs_pub"]
+    "Selectively launch Unity and/or camera publisher. Valid choices are: ['all', 'no_rs_pub', 'only_rs_pub']"
 
 
 class Wheels(TypedDict):
@@ -127,11 +140,13 @@ class Wheels(TypedDict):
 class Yolo(TypedDict):
     rgbd_ids: str
     "Space-separated IDs of the depth cameras to use."
-    config: Literal["urc2024"]
-    "name of the configuration to load. Valid choices are: {'urc2024'}"
+    config: Literal["arch2025", "urc2024"]
+    "name of the configuration to load. Valid choices are: {'urc2024', 'arch2025'}"
 
 
 class BringupConfig(TypedDict):
+    arch: Arch
+    "configuration + launch files for robot_localization and RTAB-Map"
     arm: Arm
     "configuration and launch files for the arm"
     arm_gs: ArmGs

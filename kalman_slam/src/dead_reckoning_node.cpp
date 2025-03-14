@@ -657,9 +657,12 @@ class DeadReckoning : public rclcpp::Node {
 		cv::Vec3d axis_o2w  = mean_g_o.cross(g_w);
 		double    angle_ow  = std::acos(mean_g_o.dot(g_w));
 		angle_ow           *= get_parameter("imu_correction_kp").as_double();
-		cv::Quatd mean_o2w = cv::Quatd::createFromAngleAxis(angle_ow, axis_o2w);
 
-		return mean_o2w;
+		if (cv::norm(axis_o2w) < 1e-4) {
+			return cv::Quatd(1, 0, 0, 0);
+		} else {
+			return cv::Quatd::createFromAngleAxis(angle_ow, axis_o2w);
+		}
 	}
 
 	void publish_transform(rclcpp::Time time) {
