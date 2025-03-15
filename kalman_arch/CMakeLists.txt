@@ -43,8 +43,8 @@ rclcpp_components_register_node(
 )
 
 add_library(slam_serialization_node SHARED src/slam_serialization_node.cpp)
-target_link_libraries(record_video_node yaml-cpp)
-ament_target_dependencies(slam_serialization_node rclcpp rclcpp_components std_msgs sensor_msgs nav_msgs PCL pcl_ros pcl_conversions geometry_msgs)
+target_link_libraries(slam_serialization_node yaml-cpp)
+ament_target_dependencies(slam_serialization_node rclcpp rclcpp_components std_msgs sensor_msgs nav_msgs PCL pcl_ros pcl_conversions geometry_msgs yaml-cpp)
 rclcpp_components_register_node(
   slam_serialization_node
   PLUGIN "kalman_arch::SlamSerialization"

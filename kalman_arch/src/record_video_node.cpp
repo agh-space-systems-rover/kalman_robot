@@ -84,8 +84,8 @@ class RecordVideo : public rclcpp::Node {
 	rclcpp::Service<cob_srvs::srv::SetInt>::SharedPtr service;
 
 	void image_cb(const sensor_msgs::msg::Image::ConstSharedPtr &msg) {		
-		last_image_timestamp_ms = static_cast<int64_t>(msg->header.stamp.sec) * 1000
-		                        + static_cast<int64_t>(msg->header.stamp.nanosec / 1e6);
+		last_image_timestamp_ms = static_cast<int64_t>(msg->header.stamp.sec) * 1e6
+		                        + static_cast<int64_t>(msg->header.stamp.nanosec / 1e3);
 		cv_bridge::CvImagePtr cv_ptr;
 		cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
 		cv::Mat resized;

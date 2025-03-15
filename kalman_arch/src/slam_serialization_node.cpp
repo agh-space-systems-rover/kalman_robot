@@ -33,6 +33,10 @@ class SlamSerialization : public rclcpp::Node {
 	    sensor_msgs::msg::PointCloud2,
 	    nav_msgs::msg::Path>>
 	    sync;
+    std::filesystem::path user_home = std::filesystem::path(getenv("HOME"));
+    std::filesystem::path trajectory_dir = user_home / "arch" / "trajectory";
+    std::filesystem::path cloud_dir = user_home / "arch" / "cloud";
+    std::vector<uint64_t> stamp_vector;
 
 	SlamSerialization(const rclcpp::NodeOptions &options)
 	    : Node("slam_serialization", options) {
@@ -49,6 +53,9 @@ class SlamSerialization : public rclcpp::Node {
 		    std::placeholders::_1,
 		    std::placeholders::_2
 		));
+
+        std::filesystem::create_directories(trajectory_dir);
+        std::filesystem::create_directories(cloud_dir);
 	}
 	void callback(
 	    const sensor_msgs::msg::PointCloud2::ConstSharedPtr &cloud_msg,
@@ -57,45 +64,60 @@ class SlamSerialization : public rclcpp::Node {
 		pcl::PointCloud<pcl::PointXYZRGB>::Ptr
 		    cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
 		pcl::fromROSMsg(*cloud_msg, *cloud);
-		// pcl::io::savePCDFileASCII("/home/rafal/test_cloud.pcd", *cloud);
-		pcl::io::savePLYFile("/home/rafal/cloud.ply", *cloud);
-		std::vector<geometry_msgs::msg::PoseStamped> positions;
-		std::vector<int> stamp_vector;
-		for (const auto &pose : path_msg->poses) {
-			positions.push_back(pose);
-		}
-		
-		YAML::Emitter out;
-		out << YAML::BeginMap;
-		out << YAML::Key << "header" << YAML::Value << YAML::BeginMap;
-		out << YAML::Key << "frame_id" << YAML::Value
-		    << path_msg->header.frame_id;
-		out << YAML::EndMap;
+        std::string cloud_save_path = (cloud_dir / "cloud.ply").string();
+		pcl::io::savePLYFile(cloud_save_path, *cloud);
 
-		out << YAML::Key << "poses" << YAML::Value << YAML::BeginSeq;
-		for (const auto stamp : stamp_vector ) {
-			out << YAML::BeginMap;
-			out << YAML::Key << "position" << YAML::Value << YAML::BeginMap;
-			out << YAML::Key << "stamp" << YAML::Value << stamp;
-			out << YAML::Key << "x" << YAML::Value << positions[stamp].pose.position.x;
-			out << YAML::Key << "y" << YAML::Value << positions[stamp].pose.position.y;
-			out << YAML::Key << "z" << YAML::Value << positions[stamp].pose.position.z;
-			out << YAML::EndMap;
-
-			out << YAML::Key << "orientation" << YAML::Value << YAML::BeginMap;
-			out << YAML::Key << "x" << YAML::Value << positions[stamp].pose.orientation.x;
-			out << YAML::Key << "y" << YAML::Value << positions[stamp].pose.orientation.y;
-			out << YAML::Key << "z" << YAML::Value << positions[stamp].pose.orientation.z;
-			out << YAML::Key << "w" << YAML::Value << positions[stamp].pose.orientation.w;
-			out << YAML::EndMap;
-			out << YAML::EndMap;
-		}
-
-		out << YAML::Key << YAML::EndSeq;
-		out << YAML::Key << YAML::EndMap;
-		std::ofstream fout("/home/rafal/positions.yaml");
-		fout << out.c_str();
+		save_yaml_from_msg(path_msg);
 	}
+
+    void save_yaml_from_msg(const nav_msgs::msg::Path::ConstSharedPtr &path_msg) {
+        std::vector<geometry_msgs::msg::PoseStamped> positions;
+        
+        for (const auto &pose : path_msg->poses) {
+            positions.push_back(pose);
+        }
+
+        uint64_t stamp = static_cast<int64_t>(path_msg->header.stamp.sec) * 1e6
+                        + static_cast<int64_t>(path_msg->header.stamp.nanosec / 1e3);
+
+        YAML::Emitter out;
+        out << YAML::BeginMap;
+        out << YAML::Key << "header" << YAML::Value << YAML::BeginMap;
+        out << YAML::Key << "frame_id" << YAML::Value
+            << path_msg->header.frame_id;
+        out << YAML::EndMap;
+
+        out << YAML::Key << "poses" << YAML::Value << YAML::BeginSeq;
+        for (int i = 0; i < positions.size(); i++) {
+            out << YAML::BeginMap;
+            if (i < stamp_vector.size()) {
+                out << YAML::Key << "stamp" << YAML::Value << stamp_vector[i];
+            } else {
+                out << YAML::Key << "stamp" << YAML::Value << stamp;
+                stamp_vector.push_back(stamp);
+            }
+            out << YAML::Key << "position" << YAML::Value << YAML::BeginMap;
+            out << YAML::Key << "x" << YAML::Value << positions[i].pose.position.x;
+            out << YAML::Key << "y" << YAML::Value << positions[i].pose.position.y;
+            out << YAML::Key << "z" << YAML::Value << positions[i].pose.position.z;
+            out << YAML::EndMap;
+
+            out << YAML::Key << "orientation" << YAML::Value << YAML::BeginMap;
+            out << YAML::Key << "x" << YAML::Value << positions[i].pose.orientation.x;
+            out << YAML::Key << "y" << YAML::Value << positions[i].pose.orientation.y;
+            out << YAML::Key << "z" << YAML::Value << positions[i].pose.orientation.z;
+            out << YAML::Key << "w" << YAML::Value << positions[i].pose.orientation.w;
+            out << YAML::EndMap;
+            out << YAML::EndMap;
+        }
+
+        out << YAML::Key << YAML::EndSeq;
+        out << YAML::Key << YAML::EndMap;
+
+        std::string trajectory_file_path = (trajectory_dir / "positions.yaml").string();
+        std::ofstream fout(trajectory_file_path);
+        fout << out.c_str();
+    }
 };
 } // namespace kalman_arch
 
