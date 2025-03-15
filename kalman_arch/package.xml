@@ -16,6 +16,7 @@
   <depend>sensor_msgs</depend>
   <depend>message_filters</depend>
   <depend>pcl_ros</depend>
+  <depend>yaml-cpp</depend>
 
 
   <exec_depend>ros2launch</exec_depend>

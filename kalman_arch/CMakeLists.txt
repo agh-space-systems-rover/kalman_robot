@@ -16,6 +16,7 @@ find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(message_filters REQUIRED)
 find_package(pcl_conversions REQUIRED)
@@ -28,6 +29,7 @@ find_package(vision_msgs REQUIRED)
 find_package(cob_srvs REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(PCL REQUIRED)
+find_package(yaml-cpp REQUIRED)
 
 include_directories( ${OpenCV_INCLUDE_DIRS} )
 
@@ -41,7 +43,8 @@ rclcpp_components_register_node(
 )
 
 add_library(slam_serialization_node SHARED src/slam_serialization_node.cpp)
-ament_target_dependencies(slam_serialization_node rclcpp rclcpp_components std_msgs sensor_msgs nav_msgs PCL pcl_ros pcl_conversions)
+target_link_libraries(record_video_node yaml-cpp)
+ament_target_dependencies(slam_serialization_node rclcpp rclcpp_components std_msgs sensor_msgs nav_msgs PCL pcl_ros pcl_conversions geometry_msgs)
 rclcpp_components_register_node(
   slam_serialization_node
   PLUGIN "kalman_arch::SlamSerialization"
