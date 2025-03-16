@@ -4,7 +4,6 @@ from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 from ament_index_python import get_package_share_path
 
-
 BAUD_RATES = {
     "pc": 115200,
     "gs": 38400,
@@ -17,11 +16,11 @@ PORTS = {"pc": "/tmp/ttyV2"}
 def start_ros_link(side: str, rover_endpoint: str) -> Node:
     return Node(
         name=f"ros_link_"
-        + (
-            "gs_to_" + rover_endpoint
-            if side == "station"
-            else rover_endpoint + "_to_gs"
-        ),
+             + (
+                 "gs_to_" + rover_endpoint
+                 if side == "station"
+                 else rover_endpoint + "_to_gs"
+             ),
         package="kalman_master",
         executable="ros_link",
         parameters=[
@@ -74,6 +73,18 @@ def launch_setup(context):
             package="kalman_master",
             executable="autonomy_switch_spam",
         ),
+        "science_panel_driver": Node(
+            package="kalman_master",
+            executable="science_panel_driver",
+            parameters=[
+                {
+                    "config_path": str(
+                        get_package_share_path("kalman_master")
+                        / f"config/science_panel_config.yaml"
+                    ),
+                }
+            ]
+        ),
         "link_pc_to_gs": start_ros_link(side="rover", rover_endpoint="pc"),
         "link_arm_to_gs": start_ros_link(side="rover", rover_endpoint="arm"),
         "link_gs_to_pc": start_ros_link(side="station", rover_endpoint="pc"),
@@ -123,6 +134,7 @@ def launch_setup(context):
             "drill_driver",
             "estop_driver",
             "rfid_driver",
+            "science_panel_driver"
         ],
         "arm": [
             "master_com",
