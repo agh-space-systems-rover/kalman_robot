@@ -1,0 +1,47 @@
+#!/usr/bin/env python3
+
+import yaml
+import sys
+
+def open_yaml(filename: str) -> dict:
+    with open(filename) as stream:
+        try:
+            yaml_file = yaml.safe_load(stream)
+        except yaml.YAMLError as exc:
+            print(exc)
+
+    return yaml_file
+
+def create_ros_msg_value(type: str, x_pos: float, y_pos: float) -> str:
+    type_dict = {"goal":"0", "explore":"1", "loop":"2", "panorama":"3"}
+
+    l_brace, r_brace = "{", "}"
+
+    msg_val = f"type: {type_dict[type]}, location: {l_brace}x: {x_pos}, y: {y_pos}{r_brace}"
+
+    return msg_val
+
+def parse_from_file(filename: str) -> str:
+    command = "ros2 action send_goal /supervisor/mapping_goals kalman_interfaces/action/SupervisorMappingGoals \"{ goals: ["
+
+    yaml_file = open_yaml(filename)
+    tasks = yaml_file["tasks"]
+
+    for task in tasks:
+        
+        temp = create_ros_msg_value(task["type"], task["coordinates"][0], task["coordinates"][1])
+        command += "{" + temp + "},"
+
+    command = command[:-1]
+    command += "]}\""
+
+    return command
+
+if __name__ == "__main__":
+    if (len(sys.argv) > 1):
+        for yaml_file in sys.argv[1:]:
+            print(parse_from_file(yaml_file))
+    else:
+        while True:
+            filename = input()
+            print(parse_from_file(filename))
