@@ -47,6 +47,7 @@ install(PROGRAMS
   scripts/master_com
   scripts/master_loopback
   scripts/ros_link
+  scripts/science_panel_driver
   scripts/tunnel_client
   scripts/ueuos_driver
   scripts/wheel_driver

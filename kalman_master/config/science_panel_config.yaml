@@ -1,0 +1,15 @@
+panels:
+  rocks:
+    type: WEIGHT
+    display_name: Rock
+    parser: xyz
+    buttons:
+      - name: Button 1
+        message: MasterMessage.TODO
+        data: [ 0, 1 ]
+      - name: Button 2
+        message: MasterMessage.TODO
+        data: [ 0, 1 ]
+      - name: Button 3
+        message: MasterMessage.TODO
+        data: [ 0, 1 ]
