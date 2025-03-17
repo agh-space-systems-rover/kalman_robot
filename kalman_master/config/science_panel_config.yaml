@@ -1,15 +1,37 @@
-panels:
-  rocks:
-    type: WEIGHT
+enable: true
+elements:
+  - id: rocks
+    type: ScienceElementType.DISPLAY
     display_name: Rock
-    parser: xyz
+    type_data:
+      topic: "master_com/master_to_ros/TODO"
+      parser: xyz
     buttons:
-      - name: Button 1
+      - id: rocks-tare
+        name: Tare
+        message: MasterMessage.TODO
+        data: [ 0, 0 ]
+      - id: rocks-tare
+        name: Request
         message: MasterMessage.TODO
         data: [ 0, 1 ]
-      - name: Button 2
-        message: MasterMessage.TODO
-        data: [ 0, 1 ]
-      - name: Button 3
-        message: MasterMessage.TODO
-        data: [ 0, 1 ]
+  - id: container
+    type: ScienceElementType.CONTAINER
+    display_name: Container
+    type_data:
+      color: yellow-foreground
+      open_message: MasterMessage.TODO
+      open_data: [ 0 ]
+      close_message: MasterMessage.TODO
+      close_data: [ 1 ]
+  - id: player
+    type: ScienceElementType.PLAYER
+    display_name: Player
+    type_data:
+      color: yellow-foreground
+      play_message: MasterMessage.TODO
+      play_data: [ 0, 0 ]
+      pause_message: MasterMessage.TODO
+      pause_data: [ 0, 1 ]
+      stop_message: MasterMessage.TODO
+      stop_data: [ 1, 1 ]
