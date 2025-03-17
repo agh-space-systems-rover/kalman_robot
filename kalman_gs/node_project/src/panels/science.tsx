@@ -1,11 +1,8 @@
 import styles from './science.module.css';
 
-
-
 import { ros } from '../common/ros';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Service } from 'roslib';
-
 
 enum ScienceElementType {
   DISPLAY = 0,
@@ -43,17 +40,14 @@ window.addEventListener('ros-connect', () => {
   });
 });
 
-export default function Ueuos() {
+export default function Science() {
   const [scienceElements, setScienceElements] = useState(null);
 
   useEffect(() => {
-    setInterval(() => {
-      if (scienceElementsService !== null) {
-        scienceElementsService.callService({}, (data: ScienceElements) => console.log(data), (err) => console.log(err));
-
-      }
-    }, 1000)
-  }, []);
+    if (scienceElementsService !== null) {
+      scienceElementsService.callService({}, (data: ScienceElements) => setScienceElements(data), null);
+    }
+  }, [scienceElementsService]);
 
   return <div className={styles['science']}></div>;
 }

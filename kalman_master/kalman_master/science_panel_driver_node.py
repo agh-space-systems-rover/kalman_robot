@@ -2,7 +2,8 @@ from enum import Enum
 import yaml
 import rclpy
 from rclpy.node import Node
-from kalman_interfaces.msg import MasterMessage, GetScienceElements, ScienceElement, ScienceButton
+from kalman_interfaces.msg import MasterMessage, ScienceElement, ScienceButton
+from kalman_interfaces.srv import GetScienceElements
 
 
 class ScienceElementType(Enum):
@@ -14,7 +15,7 @@ class ScienceElementType(Enum):
 class SciencePanelDriver(Node):
     def __init__(self):
         super().__init__("science_panel_driver")
-        filename = self.declare_parameter("config_path").value
+        filename = self.declare_parameter("config_path", "").value
 
         with open(filename, "r") as f:
             self.science_config = yaml.safe_load(f)
@@ -31,26 +32,27 @@ class SciencePanelDriver(Node):
         elements = []
 
         for element in self.science_config.get("elements", []):
+            self.get_logger().error(element.get("type"))
             science_element_buttons = []
             for button in self.science_config.get("buttons", []):
                 science_element_buttons.append(ScienceButton(
                     id=button.get("id"),
                     name=button.get("name"),
-                    color=button.get("color"),
+                    color=button.get("color", ""),
                 ))
 
             elements.append(ScienceElement(
                 id=element.get("id"),
-                type=eval(element.get("type")),
-                display_name=element.get("display_name"),
+                type=eval(element.get("type")).value,
+                display_name=element.get("display_name", ""),
                 buttons=science_element_buttons,
-                color=element.get("type_data").get("color"),
+                color=element.get("type_data").get("color", ""),
             ))
 
-        return {
-            "enable": self.science_config.get("enable", False),
-            "science_elements": elements,
-        }
+        response.enable = self.science_config.get("enable", False)
+        response.science_elements = elements
+
+        return response
 
 
 def main():
