@@ -1,6 +1,9 @@
 import styles from './science.module.css';
 
+import { alertsRef } from '../common/refs';
 import { ros } from '../common/ros';
+import { faCircleExclamation, faRefresh } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Service } from 'roslib';
 
@@ -38,16 +41,53 @@ window.addEventListener('ros-connect', () => {
     name: '/science_panel/get_config',
     serviceType: 'kalman_interfaces/GetScienceElements'
   });
+
+  window.dispatchEvent(new Event('able-to-request-science-elements'));
 });
 
 export default function Science() {
   const [scienceElements, setScienceElements] = useState(null);
 
-  useEffect(() => {
+  const requestScienceElements = useCallback(() => {
     if (scienceElementsService !== null) {
-      scienceElementsService.callService({}, (data: ScienceElements) => setScienceElements(data), null);
+      scienceElementsService.callService(
+        {},
+        (data: ScienceElements) => setScienceElements(data),
+        (err) => console.log(err)
+      );
     }
-  }, [scienceElementsService]);
+  }, [setScienceElements]);
+
+  useEffect(() => {
+    requestScienceElements();
+    window.addEventListener('able-to-request-science-elements', requestScienceElements);
+    return () => {
+      window.removeEventListener('able-to-request-science-elements', requestScienceElements);
+    };
+  }, [requestScienceElements]);
+
+  if (scienceElements === null) {
+    return (
+      <div className={styles['science']}>
+        <FontAwesomeIcon icon={faCircleExclamation} className={styles['science-danger-exclamation-icon']} />
+        <h1>Waiting for service...</h1>
+      </div>
+    );
+  }
+
+  if (!scienceElements.enable) {
+    return (
+      <div className={styles['science']}>
+        <FontAwesomeIcon icon={faCircleExclamation} className={styles['science-danger-exclamation-icon']} />
+        <h1>Science panel is disabled.</h1>
+        <FontAwesomeIcon
+          icon={faRefresh}
+          className={styles['science-danger-refresh-icon']}
+          onClick={requestScienceElements}
+        />
+      </div>
+    );
+  }
 
   return <div className={styles['science']}></div>;
 }
