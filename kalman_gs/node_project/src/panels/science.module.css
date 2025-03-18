@@ -1,11 +1,36 @@
 .science {
-
-}
-
-.science-disabled {
   width: 100%;
   height: 100%;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+}
+
+.science-danger-exclamation-icon {
+  width: 20%;
+  height: 20%;
+  color: var(--red-foreground);
+}
+
+.science-danger-text {
+  max-width: 80%;
+  color: var(--strong-foreground);
+  font-weight: 800;
+  justify-content: center;
+}
+
+.science-danger-refresh-icon {
+  width: 10%;
+  height: 10%;
+  color: var(--weak-foreground);
+  transition: 0.3s;
+}
+
+.science-danger-refresh-icon path {
+  cursor: pointer;
+}
+
+.science-danger-refresh-icon:hover {
+  color: var(--strong-foreground);
 }

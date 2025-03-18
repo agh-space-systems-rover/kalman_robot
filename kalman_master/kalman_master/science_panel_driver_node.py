@@ -28,11 +28,25 @@ class SciencePanelDriver(Node):
         # Create service to serve configuration
         self.create_service(GetScienceElements, "science_panel/get_config", self.get_science_elements)
 
+        # Create buttons array
+        button_list = []
+        for element in self.science_config.get("elements", []):
+            parent_id = element.get("id")
+            for button in element.get("buttons", []):
+                button_list.append({
+                    "topic": f"{parent_id}-{button.get('id')}",
+                    "message": str(button.get("message", "")),
+                    "data": button.get("data", None)
+                })
+
+        # Create containers array
+
+        # Create players array
+
     def get_science_elements(self, request: GetScienceElements.Request, response: GetScienceElements.Response):
         elements = []
 
         for element in self.science_config.get("elements", []):
-            self.get_logger().error(element.get("type"))
             science_element_buttons = []
             for button in self.science_config.get("buttons", []):
                 science_element_buttons.append(ScienceButton(
