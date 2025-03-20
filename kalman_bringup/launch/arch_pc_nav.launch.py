@@ -19,7 +19,8 @@ def generate_launch_description():
             },
             "slam": {
                 "rgbd_ids": RGBD_IDS,
-                "slam": "d455_front",
+                "slam_rgbd_ids": RGBD_IDS,
+                "use_mag": "false",
             },
             "nav2": {
                 "rgbd_ids": RGBD_IDS,

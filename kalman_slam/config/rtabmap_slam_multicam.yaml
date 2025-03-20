@@ -1,0 +1,29 @@
+/**:
+    ros__parameters:
+        subscribe_rgb: False
+        subscribe_depth: False
+        subscribe_rgbd: True
+        subscribe_stereo: False
+        subscribe_scan: False
+        subscribe_scan_cloud: False
+        subscribe_user_data: False
+        subscribe_odom_info: False
+
+        rgbd_cameras: 0
+        # ^ Subscribe to /rgbd_images
+
+        frame_id: base_link
+        map_frame_id: map
+        odom_frame_id: odom
+        publish_tf: True
+
+        Rtabmap/DetectionRate: "2"
+
+        # For multi-camera setups, PnP will not work without OpenGV, thus we use ICP:
+        Vis/EstimationType: "0" # 0: 3D->3D (PCL), 1: 3D->2D (PnP)
+        Vis/ForwardEstOnly: "false" # enable fw-bw refinement
+        Vis/RefineIterations: "10" # default=5
+        # ^ Not sure if tuning those parameters improved much, 3D->3D is just much less robust than PnP.
+
+        # Optimizer/Strategy: "2" # 0: TORO, 1: g2o, 2: GTSAM, 3: Ceres
+        # Grid/CellSize: "0.1"  # resolution of occupancy grid; default is 0.05
