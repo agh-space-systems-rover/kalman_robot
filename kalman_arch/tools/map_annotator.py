@@ -1,9 +1,13 @@
+import os
 import tkinter as tk
 from tkinter import filedialog, ttk
-from PIL import Image, ImageTk
-from PIL.Image import Resampling
 import yaml
-import os
+from PIL import Image, ImageTk
+import PIL.Image
+
+if not hasattr(PIL.Image, "Resampling"):  # Pillow<9.0
+    PIL.Image.Resampling = PIL.Image
+
 
 class MapAnnotator:
     def __init__(self, root):
@@ -15,20 +19,20 @@ class MapAnnotator:
         # -----------------------
         self.image_path = None
         self.original_image = None  # PIL Image
-        self.tk_image = None        # ImageTk for Canvas
+        self.tk_image = None  # ImageTk for Canvas
 
         self.img_width = 1
         self.img_height = 1
 
         # Scale factors
-        self.fit_scale_factor = 1.0   # fits image to canvas
-        self.user_zoom_factor = 1.0   # changed by mouse wheel
+        self.fit_scale_factor = 1.0  # fits image to canvas
+        self.user_zoom_factor = 1.0  # changed by mouse wheel
         self.pan_x = 0
         self.pan_y = 0
 
         # Annotation data
-        self.origin = None            # (pixel_x, pixel_y)
-        self.tasks = []               # list of dicts: {id, type, pixel_coords}
+        self.origin = None  # (pixel_x, pixel_y)
+        self.tasks = []  # list of dicts: {id, type, pixel_coords}
         self.goal_id_counter = 1
         self.goal_type = tk.StringVar(value="goal")
         self.area_size_var = tk.DoubleVar(value=10.0)
@@ -59,20 +63,29 @@ class MapAnnotator:
         self.sidebar.pack(side=tk.RIGHT, fill=tk.Y)
 
         # Buttons and controls in sidebar
-        load_button = tk.Button(self.sidebar, text="Load Image", command=self.load_image)
+        load_button = tk.Button(
+            self.sidebar, text="Load Image", command=self.load_image
+        )
         load_button.pack(pady=5, fill=tk.X)
 
         tk.Label(self.sidebar, text="Area Size (image width) [m]:").pack(pady=2)
         tk.Entry(self.sidebar, textvariable=self.area_size_var).pack(pady=2, fill=tk.X)
 
-        origin_button = tk.Button(self.sidebar, text="Set Origin",
-                                  command=lambda: self.goal_type.set("origin"))
+        origin_button = tk.Button(
+            self.sidebar,
+            text="Set Origin",
+            command=lambda: self.goal_type.set("origin"),
+        )
         origin_button.pack(pady=5, fill=tk.X)
 
         tk.Label(self.sidebar, text="Select Goal Type:").pack(pady=2)
         for gtype in ["goal", "panorama", "loop", "explore"]:
-            rb = tk.Radiobutton(self.sidebar, text=gtype.capitalize(),
-                                variable=self.goal_type, value=gtype)
+            rb = tk.Radiobutton(
+                self.sidebar,
+                text=gtype.capitalize(),
+                variable=self.goal_type,
+                value=gtype,
+            )
             rb.pack(anchor=tk.W)
 
         save_button = tk.Button(self.sidebar, text="Save YAML", command=self.save_yaml)
@@ -109,8 +122,10 @@ class MapAnnotator:
         """Set fit_scale_factor so the image fits fully into the canvas."""
         c_w = self.canvas.winfo_width()
         c_h = self.canvas.winfo_height()
-        if c_w < 1: c_w = 1
-        if c_h < 1: c_h = 1
+        if c_w < 1:
+            c_w = 1
+        if c_h < 1:
+            c_h = 1
 
         scale_w = c_w / self.img_width
         scale_h = c_h / self.img_height
@@ -131,16 +146,16 @@ class MapAnnotator:
         disp_h = max(disp_h, 1)
 
         # Resize with LANCZOS or your preferred filter
-        resized = self.original_image.resize((disp_w, disp_h), Resampling.LANCZOS)
+        resized = self.original_image.resize(
+            (disp_w, disp_h), PIL.Image.Resampling.LANCZOS
+        )
         self.tk_image = ImageTk.PhotoImage(resized)
 
     def _draw_image(self):
         self.canvas.delete("all")
         if self.tk_image is not None:
             self.canvas.create_image(
-                self.pan_x, self.pan_y,
-                image=self.tk_image,
-                anchor=tk.NW
+                self.pan_x, self.pan_y, image=self.tk_image, anchor=tk.NW
             )
         self._draw_origin()
         self._draw_goals()
@@ -155,8 +170,10 @@ class MapAnnotator:
         ox, oy = self.origin
         cx, cy = self.to_canvas_coords(ox, oy)
         r = 5
-        self.canvas.create_oval(cx-r, cy-r, cx+r, cy+r, fill="red", outline="black", width=2)
-        self.canvas.create_text(cx, cy-15, text="Origin", fill="red")
+        self.canvas.create_oval(
+            cx - r, cy - r, cx + r, cy + r, fill="red", outline="black", width=2
+        )
+        self.canvas.create_text(cx, cy - 15, text="Origin", fill="red")
 
     def _draw_goals(self):
         """Draw the annotated goals on the canvas."""
@@ -173,9 +190,11 @@ class MapAnnotator:
             elif task["type"] == "explore":
                 color = "purple"
 
-            self.canvas.create_oval(cx-r, cy-r, cx+r, cy+r, fill=color, outline="black", width=1)
+            self.canvas.create_oval(
+                cx - r, cy - r, cx + r, cy + r, fill=color, outline="black", width=1
+            )
             text_label = f"{task['id']} ({task['type']})"
-            self.canvas.create_text(cx, cy-15, text=text_label, fill=color)
+            self.canvas.create_text(cx, cy - 15, text=text_label, fill=color)
 
     # -------------------------
     # Mouse/Zoom Events
@@ -206,7 +225,7 @@ class MapAnnotator:
             new_task = {
                 "id": self.goal_id_counter,
                 "type": current_mode,
-                "pixel_coords": (x, y)
+                "pixel_coords": (x, y),
             }
             self.tasks.append(new_task)
             self.goal_id_counter += 1
@@ -222,7 +241,7 @@ class MapAnnotator:
 
         for task in self.tasks:
             tx, ty = task["pixel_coords"]
-            dist = ((tx - x)**2 + (ty - y)**2)**0.5
+            dist = ((tx - x) ** 2 + (ty - y) ** 2) ** 0.5
             if dist < closest_dist:
                 closest_dist = dist
                 closest_task = task
@@ -234,9 +253,9 @@ class MapAnnotator:
     def on_mouse_wheel(self, event):
         """Zoom in/out depending on scroll direction."""
         # Update the user_zoom_factor
-        if event.delta > 0:   # scroll up
+        if event.delta > 0:  # scroll up
             self.user_zoom_factor *= 1.1
-        else:                 # scroll down
+        else:  # scroll down
             self.user_zoom_factor *= 0.9
 
         # Bound it so it doesn't go nuts
@@ -251,9 +270,7 @@ class MapAnnotator:
         x_img, y_img = self.to_image_coords(event.x, event.y)
         if (0 <= x_img <= self.img_width) and (0 <= y_img <= self.img_height):
             x_map, y_map = self.image_to_map_coords(x_img, y_img)
-            self.cursor_label.config(
-                text=f"Cursor: (x={x_map:.2f}, y={y_map:.2f})"
-            )
+            self.cursor_label.config(text=f"Cursor: (x={x_map:.2f}, y={y_map:.2f})")
         else:
             self.cursor_label.config(text="Cursor: (x=---, y=---)")
 
@@ -318,22 +335,24 @@ class MapAnnotator:
             t_id = task["id"]
             t_type = task["type"]
             map_coords = self.image_to_map_coords(*task["pixel_coords"])
-            tasks_list.append({
-                "id": t_id,
-                "type": t_type,
-                "coordinates": [round(map_coords[0], 3), round(map_coords[1], 3)]
-            })
+            tasks_list.append(
+                {
+                    "id": t_id,
+                    "type": t_type,
+                    "coordinates": [round(map_coords[0], 3), round(map_coords[1], 3)],
+                }
+            )
 
         data = {
             "filename": filename,
             "area_size": area_size,
             "origin": [round(origin_map[0], 3), round(origin_map[1], 3)],
-            "tasks": tasks_list
+            "tasks": tasks_list,
         }
 
         save_path = filedialog.asksaveasfilename(
             defaultextension=".yaml",
-            filetypes=[("YAML Files", "*.yaml"), ("All Files", "*.*")]
+            filetypes=[("YAML Files", "*.yaml"), ("All Files", "*.*")],
         )
         if save_path:
             with open(save_path, "w") as f:
