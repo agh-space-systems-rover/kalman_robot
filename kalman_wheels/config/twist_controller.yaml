@@ -10,9 +10,11 @@
     max_wheel_vel: 1.0
     # wheel acceleration (m/s^2)
     wheel_accel: 0.5
+    # wheel deceleration (m/s^2)
+    wheel_decel: 2.0
     # angular speed of the swivel when changing wheel orientation; Predicates for how long the robot will wait when adjusting wheels (rad/s)
-    wheel_turn_vel: 1.57
+    wheel_turn_vel: 1.2
     # minimum difference between current and target wheel swivel angle to adjust wheels in place (rad)
-    max_wheel_turn_diff: 0.4
+    max_wheel_turn_diff: 0.6
     # maximum difference between current and target wheel swivel angle to stop adjusting wheels in place (rad)
-    min_wheel_turn_diff: 0.1
+    min_wheel_turn_diff: 0.2
