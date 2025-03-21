@@ -39,7 +39,7 @@ behavior_server:
     # TF transform tolerance.
     transform_tolerance: 0.1 # seconds
     # Global frame.
-    global_frame: map
+    global_frame: odom
     # Robot base frame.
     robot_base_frame: base_footprint
     # List of plugin names to use, also matches action server names.
@@ -61,7 +61,7 @@ behavior_server:
 bt_navigator:
   ros__parameters:
     # Reference frame.
-    global_frame: map
+    global_frame: odom
     # Robot base frame.
     robot_base_frame: base_footprint
     # Topic on which odometry is published
