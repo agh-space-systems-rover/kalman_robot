@@ -65,6 +65,7 @@ class SlamSerialization : public rclcpp::Node {
 		    cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
 		pcl::fromROSMsg(*cloud_msg, *cloud);
         std::string cloud_save_path = (cloud_dir / "cloud.ply").string();
+        std::filesystem::create_directories(cloud_dir);
 		pcl::io::savePLYFile(cloud_save_path, *cloud);
 
 		save_yaml_from_msg(path_msg);
@@ -114,6 +115,7 @@ class SlamSerialization : public rclcpp::Node {
         out << YAML::Key << YAML::EndSeq;
         out << YAML::Key << YAML::EndMap;
 
+        std::filesystem::create_directories(trajectory_dir);
         std::string trajectory_file_path = (trajectory_dir / "positions.yaml").string();
         std::ofstream fout(trajectory_file_path);
         fout << out.c_str();

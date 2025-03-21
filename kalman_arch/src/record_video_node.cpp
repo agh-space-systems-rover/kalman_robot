@@ -91,8 +91,7 @@ class RecordVideo : public rclcpp::Node {
 		    static_cast<int64_t>(msg->header.stamp.nanosec / 1e3);
 		cv_bridge::CvImagePtr cv_ptr;
 		cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
-		cv::Mat resized;
-		cv::resize(cv_ptr->image, resized, {width, height});
+        original_latest_image = cv_ptr->image;
 
 		if (!writer) {
 			std::string video_save_path =
@@ -109,12 +108,12 @@ class RecordVideo : public rclcpp::Node {
 		}
 		if ((last_image_timestamp_ms - old_frame_timestamp) >=
 		    single_frame_time) {
-			cv::resize(cv_ptr->image, resized, {width, height});
+            cv::Mat resized;
+            cv::resize(cv_ptr->image, resized, {width, height});
 			writer->write(resized);
 			old_frame_timestamp = last_image_timestamp_ms;
 		}
 
-		original_latest_image = cv_ptr->image;
 	}
 	void take_pic(
 	    const std::shared_ptr<cob_srvs::srv::SetInt::Request>  req,

@@ -65,7 +65,13 @@ def launch_setup(context):
                         extra_arguments=[{"use_intra_process_comms": True}],
                     )
                     for camera_id in rgbd_ids
-                ],
+                ] + [
+                    ComposableNode(
+                        package="kalman_arch",
+                        plugin="kalman_arch::SlamSerialization",
+                        extra_arguments=[{"use_intra_process_comms": True}],
+                    )
+                    ],
             )
         ]
     else:
