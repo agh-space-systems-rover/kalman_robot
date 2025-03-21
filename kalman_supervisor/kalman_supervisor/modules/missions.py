@@ -390,6 +390,9 @@ class Missions(Module):
 
     def succeed_mission(self) -> None:
         with self.__mission_condition:
+            if self.__mission is None:
+                return
+
             self.supervisor.get_logger().info(
                 f"[Missions] Mission #{self.__mission.id} completed successfully."
             )
