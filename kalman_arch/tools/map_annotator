@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import os
 import tkinter as tk
 from tkinter import filedialog, ttk
@@ -33,7 +35,6 @@ class MapAnnotator:
         # Annotation data
         self.origin = None  # (pixel_x, pixel_y)
         self.tasks = []  # list of dicts: {id, type, pixel_coords}
-        self.goal_id_counter = 1
         self.goal_type = tk.StringVar(value="goal")
         self.area_size_var = tk.DoubleVar(value=10.0)
 
@@ -222,13 +223,14 @@ class MapAnnotator:
         if current_mode == "origin":
             self.origin = (x, y)
         else:
+            # Find the max id and increment it
+            next_id = max([t["id"] for t in self.tasks] + [0]) + 1
             new_task = {
-                "id": self.goal_id_counter,
+                "id": next_id,
                 "type": current_mode,
                 "pixel_coords": (x, y),
             }
             self.tasks.append(new_task)
-            self.goal_id_counter += 1
 
         self._draw_image()
 
@@ -247,7 +249,14 @@ class MapAnnotator:
                 closest_task = task
 
         if closest_task and closest_dist <= threshold:
+            # Decrement indices of future tasks by one
+            for task in self.tasks:
+                if task["id"] > closest_task["id"]:
+                    task["id"] -= 1
+
+            # Remove the task
             self.tasks.remove(closest_task)
+
             self._draw_image()
 
     def on_mouse_wheel(self, event):

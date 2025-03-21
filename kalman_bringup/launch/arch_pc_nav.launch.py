@@ -24,7 +24,7 @@ def generate_launch_description():
             },
             "nav2": {
                 "rgbd_ids": RGBD_IDS,
-                "driving_mode": "forward",
+                # "driving_mode": "forward",
             },
             "supervisor": {
                 "arch_camera_ids": RGBD_IDS,
@@ -36,9 +36,9 @@ def generate_launch_description():
                 "rgbd_ids": RGBD_IDS,
                 "config": "arch2025",
             },
-            "wheels": {
-                "joy": "gamepad",
-            },
+            # "wheels": {
+            #     "joy": "gamepad",
+            # },
         },
         composition="start_container",
     )

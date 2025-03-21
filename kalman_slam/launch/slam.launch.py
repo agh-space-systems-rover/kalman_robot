@@ -340,15 +340,15 @@ def launch_setup(context):
                 }.items(),
                 arguments=["-d", "--ros-args", "--log-level", "warn"],
             ),
-            # For development:
-            Node(
-                namespace="rtabmap",
-                executable="rtabmap_viz",
-                package="rtabmap_viz",
-                remappings={
-                    "odom": "/odometry/local",
-                }.items(),
-            ),
+            # # For development:
+            # Node(
+            #     namespace="rtabmap",
+            #     executable="rtabmap_viz",
+            #     package="rtabmap_viz",
+            #     remappings={
+            #         "odom": "/odometry/local",
+            #     }.items(),
+            # ),
         ]
 
     return description

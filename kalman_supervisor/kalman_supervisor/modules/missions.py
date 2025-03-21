@@ -16,6 +16,7 @@ from kalman_interfaces.action import (
     SupervisorGpsYoloSearch,
     SupervisorMappingGoals,
 )
+from kalman_interfaces.msg import SupervisorMappingGoal
 
 
 class Missions(Module):
@@ -329,12 +330,48 @@ class Missions(Module):
     def __mapping_goals_cb(
         self, goal_handle: ServerGoalHandle
     ) -> SupervisorMappingGoals.Result:
-        goals = []
+        goals: list[Missions.MappingGoals.Goal] = []
+        # Map goals from msg to Supervisor's own goals
+        goal: SupervisorMappingGoal
         for goal in goal_handle.request.goals:
             type = Missions.MappingGoals.Goal.types[goal.type]
             goals.append(
                 Missions.MappingGoals.Goal(type, goal.location.x, goal.location.y)
             )
+        # Insert precise navigation before loop closure and photos if they have a location and it is far away from last goal
+        last_location = None
+        i = 0
+        while i < len(goals):
+            goal = goals[i]
+            if goal.type in (
+                Missions.MappingGoals.Goal.NAVIGATE_TO_PRECISE_LOCATION,
+                Missions.MappingGoals.Goal.NAVIGATE_TO_ROUGH_LOCATION,
+            ):
+                last_location = np.array([goal.location_x, goal.location_y])
+            elif goal.type in (
+                Missions.MappingGoals.Goal.ATTEMPT_LOOP_CLOSURE,
+                Missions.MappingGoals.Goal.TAKE_PHOTOS,
+            ):
+                # If the loop/photo goal has a location
+                if abs(goal.location_x) > 1e-3 or abs(goal.location_y) > 1e-3:
+                    # If there was no last precise location or the last one was too far away:
+                    if (
+                        last_location is None
+                        or np.linalg.norm(
+                            np.array([goal.location_x, goal.location_y]) - last_location
+                        )
+                        > 0.5
+                    ):
+                        last_location = np.array([goal.location_x, goal.location_y])
+                        goals.insert(
+                            i,
+                            Missions.MappingGoals.Goal(
+                                Missions.MappingGoals.Goal.NAVIGATE_TO_PRECISE_LOCATION,
+                                goal.location_x,
+                                goal.location_y,
+                            ),
+                        )
+            i += 1
         mission = Missions.MappingGoals(goals)
         with self.__mission_condition:
             self.__queue_up_mission(mission, goal_handle)
