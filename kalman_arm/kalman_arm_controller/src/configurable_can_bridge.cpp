@@ -15,6 +15,7 @@
 #include "std_msgs/msg/bool.hpp"
 #include "std_msgs/msg/u_int8_multi_array.hpp"
 #include "std_msgs/msg/u_int8.hpp"
+#include "std_msgs/msg/u_int16.hpp"
 
 using namespace std::chrono_literals;
 
@@ -255,6 +256,10 @@ rclcpp::GenericSubscription::SharedPtr CANBridge::createSubscriber(const CANMapp
       {
         handleROStoCAN<std_msgs::msg::UInt8>(msg, mapping);
       }
+      else if (mapping.ros_type == "std_msgs/msg/UInt16")
+      {
+        handleROStoCAN<std_msgs::msg::UInt16>(msg, mapping);
+      }
       else
       {
         RCLCPP_WARN(get_logger(), "Unsupported ROS type for CAN conversion: %s", mapping.ros_type.c_str());
@@ -415,6 +420,12 @@ void CANBridge::handleROStoCAN(const std::shared_ptr<rclcpp::SerializedMessage> 
     frame.len = 1;
     frame.data[0] = msg->data;
   }
+  else if constexpr (std::is_same_v<T, std_msgs::msg::UInt16>)
+  {
+    frame.len = 2;
+    frame.data[0] = msg->data & 0xFF;
+    frame.data[1] = (msg->data >> 8) & 0xFF;
+  }
   else
   {
     RCLCPP_WARN(get_logger(), "Unsupported type for ROS to CAN conversion");
@@ -533,6 +544,29 @@ void CANBridge::setupConverters()
           if (conversion_type == "direct")
           {
             msg->data = frame.data[0];
+          }
+          else
+          {
+            msg->data = 0;
+          }
+        }
+        else
+        {
+          msg->data = 0;
+        }
+
+        auto serialized_msg = serialize_message(*msg);
+        publisher->publish(*serialized_msg);
+      };
+
+  can_to_ros_converters_["std_msgs/msg/UInt16"] =
+      [](const canfd_frame& frame, rclcpp::GenericPublisher::SharedPtr publisher, std::string conversion_type) {
+        auto msg = std::make_shared<std_msgs::msg::UInt16>();
+        if (frame.len >= 2)
+        {
+          if (conversion_type == "direct")
+          {
+            msg->data = (static_cast<uint16_t>(frame.data[0]) << 0) | (static_cast<uint16_t>(frame.data[1]) << 8);
           }
           else
           {

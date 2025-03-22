@@ -8,7 +8,31 @@ rx_mappings:
     ros_type: "std_msgs/msg/Int32"
     conversion:
       type: "direct"
-  
+
+  - can_id: 0xE8
+    ros_topic: "/gripper/position"
+    ros_type: "std_msgs/msg/UInt16"
+    conversion:
+      type: "direct"
+
+  - can_id: 0xE9
+    ros_topic: "/gripper/temperature"
+    ros_type: "std_msgs/msg/UInt8" # Celcius
+    conversion:
+      type: "direct"
+
+  - can_id: 0xEA
+    ros_topic: "/kutong/return"
+    ros_type: "std_msgs/msg/UInt8MultiArray"
+    conversion:
+      type: "direct"
+
+  - can_id: 0xEB
+    ros_topic: "/magneto/data"
+    ros_type: "std_msgs/msg/UInt8MultiArray"
+    conversion:
+      type: "direct"
+
   # - can_id: 0x124
   #   ros_topic: "/can/temperature"
   #   ros_type: "std_msgs/msg/Float32"
@@ -53,8 +77,20 @@ tx_mappings:
   #   conversion:
   #     type: "direct"
 
-  - can_id: 0xEA
+  - can_id: 0xE3
     ros_topic: "/fastclick"
     ros_type: "std_msgs/msg/UInt8"
+    conversion:
+      type: "direct"
+
+  - can_id: 0xE4
+    ros_topic: "/magneto/tare"
+    ros_type: "std_msgs/msg/Bool"
+    conversion:
+      type: "direct"
+
+  - can_id: 0xE5
+    ros_topic: "/magneto/request"
+    ros_type: "std_msgs/msg/Bool"
     conversion:
       type: "direct"
