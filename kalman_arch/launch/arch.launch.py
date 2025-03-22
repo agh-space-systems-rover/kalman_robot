@@ -14,6 +14,7 @@ def launch_setup(context):
         for x in LaunchConfiguration("rgbd_ids").perform(context).split(" ")
         if x != ""
     ]
+    hd_cameras = LaunchConfiguration("hd_cameras").perform(context).lower() == "true"
 
     description = [
         Node(
@@ -59,7 +60,11 @@ def launch_setup(context):
                         remappings=[
                             (
                                 "image_raw",
-                                "color/image_raw",
+                                (
+                                    "raw/color/image_raw"
+                                    if hd_cameras
+                                    else "color/image_raw"
+                                ),
                             )
                         ],
                         extra_arguments=[{"use_intra_process_comms": True}],
@@ -92,7 +97,11 @@ def launch_setup(context):
                     remappings=[
                         (
                             "image_raw",
-                            "color/image_raw",
+                            (
+                                "raw/color/image_raw"
+                                if hd_cameras
+                                else "color/image_raw"
+                            ),
                         )
                     ],
                 )
@@ -118,6 +127,12 @@ def generate_launch_description():
             DeclareLaunchArgument(
                 "rgbd_ids",
                 description="Space-separated IDs of the depth cameras to use.",
+            ),
+            DeclareLaunchArgument(
+                "hd_cameras",
+                default_value="false",
+                choices=["true", "false"],
+                description="Use camera/raw/color/image_raw images for screenshots. Only works on hardware setup.",
             ),
             OpaqueFunction(function=launch_setup),
         ]

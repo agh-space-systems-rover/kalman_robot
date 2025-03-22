@@ -31,6 +31,7 @@ def generate_launch_description():
             },
             "arch": {
                 "rgbd_ids": RGBD_IDS,
+                "hd_cameras": "true",
             },
             "yolo": {
                 "rgbd_ids": RGBD_IDS,
