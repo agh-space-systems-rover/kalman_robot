@@ -22,10 +22,12 @@ using namespace std::chrono_literals;
 namespace configurable_can_bridge
 {
 
-CANMapping::CANMapping(uint32_t can_id, std::string ros_topic, std::string ros_type, std::string conversion_type)
+CANMapping::CANMapping(uint32_t can_id, std::string ros_topic, std::string ros_type, float max_rate,
+                       std::string conversion_type)
   : can_id(can_id)
   , ros_topic(ros_topic)
   , ros_type(ros_type)
+  , max_rate(max_rate)
   , conversion_type(conversion_type)
   , extended_id(can_id > 0x7FF)
 {
@@ -53,12 +55,12 @@ CANBridge::CANBridge(const rclcpp::NodeOptions& options) : Node("configurable_ca
   }
 
   // Process mappings to create publishers and subscribers
-  for (const auto& mapping : rx_mappings_)
+  for (auto& mapping : rx_mappings_)
   {
     processRxMapping(mapping);
   }
 
-  for (const auto& mapping : tx_mappings_)
+  for (auto& mapping : tx_mappings_)
   {
     processTxMapping(mapping);
   }
@@ -107,6 +109,7 @@ bool CANBridge::loadConfig()
         uint32_t can_id = mapping["can_id"].as<uint32_t>();
         std::string ros_topic = mapping["ros_topic"].as<std::string>();
         std::string ros_type = mapping["ros_type"].as<std::string>();
+        float max_rate = mapping["max_rate"].as<float>();
         std::string conversion_type = "direct";
 
         if (mapping["conversion"] && mapping["conversion"]["type"])
@@ -114,7 +117,7 @@ bool CANBridge::loadConfig()
           conversion_type = mapping["conversion"]["type"].as<std::string>();
         }
 
-        rx_mappings_.emplace_back(can_id, ros_topic, ros_type, conversion_type);
+        rx_mappings_.emplace_back(can_id, ros_topic, ros_type, max_rate, conversion_type);
       }
     }
 
@@ -126,6 +129,7 @@ bool CANBridge::loadConfig()
         uint32_t can_id = mapping["can_id"].as<uint32_t>();
         std::string ros_topic = mapping["ros_topic"].as<std::string>();
         std::string ros_type = mapping["ros_type"].as<std::string>();
+        float max_rate = mapping["max_rate"].as<float>();
         std::string conversion_type = "direct";
 
         if (mapping["conversion"] && mapping["conversion"]["type"])
@@ -133,7 +137,7 @@ bool CANBridge::loadConfig()
           conversion_type = mapping["conversion"]["type"].as<std::string>();
         }
 
-        tx_mappings_.emplace_back(can_id, ros_topic, ros_type, conversion_type);
+        tx_mappings_.emplace_back(can_id, ros_topic, ros_type, max_rate, conversion_type);
       }
     }
 
@@ -197,8 +201,9 @@ bool CANBridge::initializeCANSocket()
   return true;
 }
 
-void CANBridge::processRxMapping(const CANMapping& mapping)
+void CANBridge::processRxMapping(CANMapping& mapping)
 {
+  mapping.last_sent_stamp = now();
   auto publisher = createPublisher(mapping);
   if (publisher)
   {
@@ -207,9 +212,10 @@ void CANBridge::processRxMapping(const CANMapping& mapping)
   }
 }
 
-void CANBridge::processTxMapping(const CANMapping& mapping)
+void CANBridge::processTxMapping(CANMapping& mapping)
 {
-  auto subscriber = createSubscriber(mapping);
+  mapping.last_sent_stamp = now();
+  auto subscriber = createSubscriber(&mapping);
   if (subscriber)
   {
     subscribers_.push_back(subscriber);
@@ -231,47 +237,47 @@ rclcpp::GenericPublisher::SharedPtr CANBridge::createPublisher(const CANMapping&
   }
 }
 
-rclcpp::GenericSubscription::SharedPtr CANBridge::createSubscriber(const CANMapping& mapping)
+rclcpp::GenericSubscription::SharedPtr CANBridge::createSubscriber(CANMapping* mapping)
 {
   try
   {
     auto callback = [this, mapping](std::shared_ptr<rclcpp::SerializedMessage> msg) {
-      if (mapping.ros_type == "std_msgs/msg/Int32")
+      if (mapping->ros_type == "std_msgs/msg/Int32")
       {
         handleROStoCAN<std_msgs::msg::Int32>(msg, mapping);
       }
-      else if (mapping.ros_type == "std_msgs/msg/Float32")
+      else if (mapping->ros_type == "std_msgs/msg/Float32")
       {
         handleROStoCAN<std_msgs::msg::Float32>(msg, mapping);
       }
-      else if (mapping.ros_type == "std_msgs/msg/Bool")
+      else if (mapping->ros_type == "std_msgs/msg/Bool")
       {
         handleROStoCAN<std_msgs::msg::Bool>(msg, mapping);
       }
-      else if (mapping.ros_type == "std_msgs/msg/UInt8MultiArray")
+      else if (mapping->ros_type == "std_msgs/msg/UInt8MultiArray")
       {
         handleROStoCAN<std_msgs::msg::UInt8MultiArray>(msg, mapping);
       }
-      else if (mapping.ros_type == "std_msgs/msg/UInt8")
+      else if (mapping->ros_type == "std_msgs/msg/UInt8")
       {
         handleROStoCAN<std_msgs::msg::UInt8>(msg, mapping);
       }
-      else if (mapping.ros_type == "std_msgs/msg/UInt16")
+      else if (mapping->ros_type == "std_msgs/msg/UInt16")
       {
         handleROStoCAN<std_msgs::msg::UInt16>(msg, mapping);
       }
       else
       {
-        RCLCPP_WARN(get_logger(), "Unsupported ROS type for CAN conversion: %s", mapping.ros_type.c_str());
+        RCLCPP_WARN(get_logger(), "Unsupported ROS type for CAN conversion: %s", mapping->ros_type.c_str());
       }
     };
 
-    return this->create_generic_subscription(mapping.ros_topic, mapping.ros_type, rclcpp::QoS(10), callback);
+    return this->create_generic_subscription(mapping->ros_topic, mapping->ros_type, rclcpp::QoS(10), callback);
   }
   catch (const std::exception& e)
   {
-    RCLCPP_ERROR(get_logger(), "Failed to create subscriber for topic %s with type %s: %s", mapping.ros_topic.c_str(),
-                 mapping.ros_type.c_str(), e.what());
+    RCLCPP_ERROR(get_logger(), "Failed to create subscriber for topic %s with type %s: %s", mapping->ros_topic.c_str(),
+                 mapping->ros_type.c_str(), e.what());
     return nullptr;
   }
 }
@@ -337,8 +343,8 @@ void CANBridge::handleCANtoROS(const canfd_frame& frame)
   }
 
   // Find the corresponding mapping
-  const CANMapping* mapping = nullptr;
-  for (const auto& m : rx_mappings_)
+  CANMapping* mapping = nullptr;
+  for (auto& m : rx_mappings_)
   {
     if (m.can_id == frame.can_id)
     {
@@ -352,16 +358,21 @@ void CANBridge::handleCANtoROS(const canfd_frame& frame)
   //     RCLCPP_ERROR(get_logger(), "Inconsistent state: Publisher exists but
   //     mapping not found"); return;
   //   }
-  if (mapping)
-  {
-    RCLCPP_INFO(get_logger(), "Received CAN message for %s", mapping->ros_topic.c_str());
-  }
+  //   if (mapping)
+  //   {
+  //     RCLCPP_INFO(get_logger(), "Received CAN message for %s", mapping->ros_topic.c_str());
+  //   }
 
   // Find the appropriate converter for the message type
   auto converter_it = can_to_ros_converters_.find(mapping->ros_type);
   if (converter_it != can_to_ros_converters_.end())
   {
+    if (now() - mapping->last_sent_stamp < rclcpp::Duration::from_seconds(1.0 / mapping->max_rate))
+    {
+      return;
+    }
     converter_it->second(frame, it->second, mapping->conversion_type);
+    mapping->last_sent_stamp = now();
   }
   else
   {
@@ -370,18 +381,21 @@ void CANBridge::handleCANtoROS(const canfd_frame& frame)
 }
 
 template <typename T>
-void CANBridge::handleROStoCAN(const std::shared_ptr<rclcpp::SerializedMessage> serialized_msg,
-                               const CANMapping& mapping)
+void CANBridge::handleROStoCAN(const std::shared_ptr<rclcpp::SerializedMessage> serialized_msg, CANMapping* mapping)
 {
+  if (now() - mapping->last_sent_stamp < rclcpp::Duration::from_seconds(1.0 / mapping->max_rate))
+  {
+    return;
+  }
   auto msg = std::make_shared<T>();
   rclcpp::Serialization<T> serialization;
   serialization.deserialize_message(serialized_msg.get(), msg.get());
 
   struct canfd_frame frame;
   std::memset(&frame, 0, sizeof(frame));
-  frame.can_id = mapping.can_id;
+  frame.can_id = mapping->can_id;
 
-  if (mapping.extended_id)
+  if (mapping->extended_id)
   {
     frame.can_id |= CAN_EFF_FLAG;
   }
@@ -432,6 +446,7 @@ void CANBridge::handleROStoCAN(const std::shared_ptr<rclcpp::SerializedMessage> 
     return;
   }
 
+  mapping->last_sent_stamp = now();
   sendCANMessage(frame);
 }
 

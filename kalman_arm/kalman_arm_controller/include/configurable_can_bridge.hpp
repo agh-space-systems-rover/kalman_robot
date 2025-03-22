@@ -2,6 +2,7 @@
 #define CONFIGURABLE_CAN_BRIDGE__CAN_BRIDGE_HPP_
 
 #include <rclcpp/rclcpp.hpp>
+#include <rclcpp/time.hpp>
 #include <yaml-cpp/yaml.h>
 #include <net/if.h>
 #include <linux/can.h>
@@ -21,13 +22,16 @@ namespace configurable_can_bridge
 class CANMapping
 {
 public:
-  CANMapping(uint32_t can_id, std::string ros_topic, std::string ros_type, std::string conversion_type);
+  CANMapping(uint32_t can_id, std::string ros_topic, std::string ros_type, float max_rate, std::string conversion_type);
 
   uint32_t can_id;
   std::string ros_topic;
   std::string ros_type;
+  float max_rate;
   std::string conversion_type;
+
   bool extended_id;
+  rclcpp::Time last_sent_stamp;
 };
 
 class CANBridge : public rclcpp::Node
@@ -52,8 +56,8 @@ private:
   std::vector<rclcpp::GenericSubscription::SharedPtr> subscribers_;
 
   // Message processing functions
-  void processTxMapping(const CANMapping& mapping);
-  void processRxMapping(const CANMapping& mapping);
+  void processTxMapping(CANMapping& mapping);
+  void processRxMapping(CANMapping& mapping);
 
   // CAN socket operations
   bool initializeCANSocket();
@@ -70,11 +74,11 @@ private:
   void handleCANtoROS(const canfd_frame& frame);
 
   template <typename T>
-  void handleROStoCAN(const std::shared_ptr<rclcpp::SerializedMessage> msg, const CANMapping& mapping);
+  void handleROStoCAN(const std::shared_ptr<rclcpp::SerializedMessage> msg, CANMapping* mapping);
 
   // Helper methods for dynamic message type handling
   rclcpp::GenericPublisher::SharedPtr createPublisher(const CANMapping& mapping);
-  rclcpp::GenericSubscription::SharedPtr createSubscriber(const CANMapping& mapping);
+  rclcpp::GenericSubscription::SharedPtr createSubscriber(CANMapping* mapping);
 
   // Message conversion utilities
   std::unordered_map<std::string,
