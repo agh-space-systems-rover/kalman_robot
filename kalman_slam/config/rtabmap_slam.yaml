@@ -17,4 +17,5 @@
         # RTAB-Map params
 
         Rtabmap/DetectionRate: "3"  # update Hz
+        Rtabmap/LoopThr: "0.02"
         # Grid/CellSize: "0.1"  # resolution of occupancy grid; default is 0.05

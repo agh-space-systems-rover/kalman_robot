@@ -12,8 +12,8 @@
     initial_reset: true
     rgb_camera:
       color_profile: 1280x720x30
-      # enable_auto_exposure: False
-      # exposure: 3 # FIXME: Change for indoor/outdoor mapping.; outdoor=3; indoor=200
+      enable_auto_exposure: False
+      exposure: 2 # FIXME: Change for indoor/outdoor mapping.; outdoor=2; indoor=200
     depth_module:
       depth_profile: 640x360x30
     clip_distance: 5.0

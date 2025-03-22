@@ -18,6 +18,7 @@
         publish_tf: True
 
         Rtabmap/DetectionRate: "2"
+        Rtabmap/LoopThr: "0.02"
 
         # For multi-camera setups, PnP will not work without OpenGV, thus we use ICP:
         Vis/EstimationType: "0" # 0: 3D->3D (PCL), 1: 3D->2D (PnP)
