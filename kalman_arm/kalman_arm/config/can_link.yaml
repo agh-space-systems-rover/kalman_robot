@@ -1,0 +1,60 @@
+# CAN interface to use
+can_interface: "can0"
+
+# RX mappings (CAN to ROS)
+rx_mappings:
+  - can_id: 0x123
+    ros_topic: "/can/motor_feedback"
+    ros_type: "std_msgs/msg/Int32"
+    conversion:
+      type: "direct"
+  
+  # - can_id: 0x124
+  #   ros_topic: "/can/temperature"
+  #   ros_type: "std_msgs/msg/Float32"
+  #   conversion:
+  #     type: "direct"
+      
+  # - can_id: 0x125
+  #   ros_topic: "/can/status"
+  #   ros_type: "std_msgs/msg/Bool"
+  #   conversion:
+  #     type: "direct"
+      
+  # - can_id: 0x126
+  #   ros_topic: "/can/raw_data"
+  #   ros_type: "std_msgs/msg/UInt8MultiArray"
+  #   conversion:
+  #     type: "direct"
+
+# TX mappings (ROS to CAN)
+tx_mappings:
+  # - can_id: 0x321
+  #   ros_topic: "/cmd/motor_command"
+  #   ros_type: "std_msgs/msg/Int32"
+  #   conversion:
+  #     type: "direct"
+      
+  # - can_id: 0x322
+  #   ros_topic: "/cmd/setpoint"
+  #   ros_type: "std_msgs/msg/Float32"
+  #   conversion:
+  #     type: "direct"
+      
+  # - can_id: 0x323
+  #   ros_topic: "/cmd/enable"
+  #   ros_type: "std_msgs/msg/Bool"
+  #   conversion:
+  #     type: "direct"
+      
+  # - can_id: 0x324
+  #   ros_topic: "/cmd/raw_command"
+  #   ros_type: "std_msgs/msg/UInt8MultiArray"
+  #   conversion:
+  #     type: "direct"
+
+  - can_id: 0xEA
+    ros_topic: "/fastclick"
+    ros_type: "std_msgs/msg/UInt8"
+    conversion:
+      type: "direct"
