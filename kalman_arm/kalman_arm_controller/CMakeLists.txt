@@ -93,6 +93,7 @@ set(CAN_BRIDGE can_bridge)
 add_library(${CAN_BRIDGE} SHARED src/configurable_can_bridge.cpp)
 target_compile_features(${CAN_BRIDGE} PUBLIC cxx_std_20)
 ament_target_dependencies(${CAN_BRIDGE} ${THIS_PACKAGE_INCLUDE_DEPENDS})
+target_link_libraries(${CAN_BRIDGE} yaml-cpp)
 rclcpp_components_register_nodes(${CAN_BRIDGE} "configurable_can_bridge::CANBridge")
 
 # add_executable(monitor_planning_scene scripts/planning_scene_tutorial.cpp)

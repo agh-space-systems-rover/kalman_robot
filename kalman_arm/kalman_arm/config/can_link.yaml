@@ -85,12 +85,12 @@ tx_mappings:
 
   - can_id: 0xE4
     ros_topic: "/magneto/tare"
-    ros_type: "std_msgs/msg/Bool"
+    ros_type: "std_msgs/msg/UInt8MultiArray"
     conversion:
       type: "direct"
 
   - can_id: 0xE5
     ros_topic: "/magneto/request"
-    ros_type: "std_msgs/msg/Bool"
+    ros_type: "std_msgs/msg/UInt8MultiArray"
     conversion:
       type: "direct"
