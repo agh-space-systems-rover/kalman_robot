@@ -65,7 +65,6 @@ class CubeNode(Node):
 
         # Create timer for periodic matching
         self.create_timer(1, self.match_and_save_timer_cb)
-        # Convert to milliseconds
         self.tf_buffer = Buffer()
         self.bridge = CvBridge()
         self.tf_listener = TransformListener(self.tf_buffer, self)
@@ -73,10 +72,10 @@ class CubeNode(Node):
 
     def image_cb(self, msg: CompressedImage):
         camera_id = msg.header.frame_id[: -len("_color_optical_frame")]
-        millis = msg.header.stamp.sec * 1000 + round(msg.header.stamp.nanosec / 1e6)
+        us = msg.header.stamp.sec * 1e6 + round(msg.header.stamp.nanosec / 1e3)
         cv_image = self.bridge.compressed_imgmsg_to_cv2(msg, desired_encoding="bgr8")
 
-        image_data = ImageData(camera_id=camera_id, timestamp=millis, image=cv_image)
+        image_data = ImageData(camera_id=camera_id, timestamp=us, image=cv_image)
         self.image_buffer.append(image_data)
 
     def detection_cb(self, msg: Detection2DArray):
@@ -99,9 +98,7 @@ class CubeNode(Node):
                     pose_stamped, transform=transform
                 )
 
-                millis = det.header.stamp.sec * 1000 + round(
-                    det.header.stamp.nanosec / 1e6
-                )
+                us = det.header.stamp.sec * 1e6 + round(det.header.stamp.nanosec / 1e3)
                 camera_id = det.header.frame_id[: -len("_color_optical_frame")]
 
                 pos_list = " ".join(
@@ -115,7 +112,7 @@ class CubeNode(Node):
                 )
 
                 detection_data = DetectionData(
-                    camera_id=camera_id, timestamp=millis, position=pos_list
+                    camera_id=camera_id, timestamp=us, position=pos_list
                 )
                 self.detection_buffer.append(detection_data)
 
@@ -151,11 +148,7 @@ class CubeNode(Node):
                 maxlen=self.BUFFER_SIZE,
             )
             self.detection_buffer = deque(
-                [
-                    x
-                    for x in self.detection_buffer
-                    if (x.camera_id, x.timestamp) != key  # Convert to milliseconds
-                ],
+                [x for x in self.detection_buffer if (x.camera_id, x.timestamp) != key],
                 maxlen=self.BUFFER_SIZE,
             )
 

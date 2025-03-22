@@ -118,8 +118,9 @@ class ImageViewer:
         print(filename)
         print(coords)
         color = description.split()[1] if len(description.split()) > 1 else "unknown"
-        base_filename = os.path.basename(filename).replace(".jpg", ".txt")
-        new_filename = os.path.join(self.out_folder, base_filename)
+        new_filename = (
+            self.out_folder + "/" + filename.split("/")[-1].replace(".jpg", ".txt")
+        )
         with open(new_filename, "w") as file:
             file.write(f"{color}: {coords}\n")
         print(f"Saved to {new_filename}")
