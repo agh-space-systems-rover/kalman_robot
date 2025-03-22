@@ -22,7 +22,7 @@ rx_mappings:
       type: "direct"
 
   - can_id: 0xEA
-    ros_topic: "/kutong/return"
+    ros_topic: "/kutong/data"
     ros_type: "std_msgs/msg/UInt8MultiArray"
     conversion:
       type: "direct"
@@ -91,6 +91,12 @@ tx_mappings:
 
   - can_id: 0xE5
     ros_topic: "/magneto/request"
+    ros_type: "std_msgs/msg/UInt8MultiArray"
+    conversion:
+      type: "direct"
+
+  - can_id: 0xE6
+    ros_topic: "/kutong/request"
     ros_type: "std_msgs/msg/UInt8MultiArray"
     conversion:
       type: "direct"
