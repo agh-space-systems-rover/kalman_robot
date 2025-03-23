@@ -460,9 +460,7 @@ void CANBridge::setupConverters()
         {
           if (conversion_type == "direct")
           {
-            msg->data = static_cast<int32_t>(
-                (static_cast<uint32_t>(frame.data[0]) << 0) | (static_cast<uint32_t>(frame.data[1]) << 8) |
-                (static_cast<uint32_t>(frame.data[2]) << 16) | (static_cast<uint32_t>(frame.data[3]) << 24));
+            memcpy(&msg->data, frame.data, 4);
           }
           else
           {
@@ -485,9 +483,7 @@ void CANBridge::setupConverters()
         {
           if (conversion_type == "direct")
           {
-            uint32_t raw = (static_cast<uint32_t>(frame.data[0]) << 0) | (static_cast<uint32_t>(frame.data[1]) << 8) |
-                           (static_cast<uint32_t>(frame.data[2]) << 16) | (static_cast<uint32_t>(frame.data[3]) << 24);
-            std::memcpy(&msg->data, &raw, 4);
+            memcpy(&msg->data, frame.data, 4);
           }
           else
           {
@@ -581,7 +577,7 @@ void CANBridge::setupConverters()
         {
           if (conversion_type == "direct")
           {
-            msg->data = (static_cast<uint16_t>(frame.data[0]) << 0) | (static_cast<uint16_t>(frame.data[1]) << 8);
+            memcpy(&msg->data, frame.data, 2);
           }
           else
           {
