@@ -92,6 +92,9 @@ class MapAnnotator:
         save_button = tk.Button(self.sidebar, text="Save YAML", command=self.save_yaml)
         save_button.pack(pady=5, fill=tk.X)
 
+        load_button = tk.Button(self.sidebar, text="Load YAML", command=self.load_yaml)
+        load_button.pack(pady=5, fill=tk.X)
+
         self.cursor_label = tk.Label(self.sidebar, text="Cursor: (x=0.0, y=0.0)")
         self.cursor_label.pack(pady=10)
 
@@ -324,6 +327,23 @@ class MapAnnotator:
         else:
             return x_img * m_per_px, y_img * m_per_px
 
+    def map_to_image_coords(self, x_map, y_map):
+        area_size = self.area_size_var.get()
+        if self.img_width == 0:
+            return 0, 0
+
+        # Meters per pixel (assuming area_size is width in meters)
+        m_per_px = area_size / float(self.img_width)
+
+        # Shift relative to origin, invert y if desired
+        if self.origin:
+            ox, oy = self.origin
+            dx = -y_map / m_per_px + ox
+            dy = -x_map / m_per_px + oy
+            return dx, dy
+        else:
+            return y_map / m_per_px, y_map / m_per_px
+
     # -------------------------
     # Save YAML
     # -------------------------
@@ -367,6 +387,43 @@ class MapAnnotator:
             with open(save_path, "w") as f:
                 yaml.dump(data, f, sort_keys=False)
             print(f"Saved YAML to {save_path}")
+
+    def load_yaml(self):
+        if self.original_image is None:
+            # TODO: maybe add an error dialog?
+            tk.messagebox.showerror('No image file opened', 'Please open an image file first')
+            return
+
+        path = filedialog.askopenfilename(filetypes=[("YAML", "*.yaml *.yml")])
+        if not path:
+            return
+
+        with open(path, "r") as f:
+            yml = yaml.safe_load(f)
+        # print(f'YAML: {yml}')
+        self.area_size_var.set(yml["area_size"])
+        self.origin = yml["origin"]
+        self.tasks = []
+        max_id = 0
+        for task in yml["tasks"]:
+            t = {
+                'id': task["id"],
+                'type': task['type'],
+                'pixel_coords': self.map_to_image_coords(*task['coordinates'])
+            }
+            max_id = max(max_id, t['id'])
+            self.tasks.append(t)
+        self.goal_id_counter = max_id
+
+        # # Reset user zoom & pan
+        self.user_zoom_factor = 1.0
+        self.pan_x = 0
+        self.pan_y = 0
+
+        # # Calculate fit scale based on the current canvas size
+        self._calc_fit_scale_factor()
+        self._update_display_image()
+        self._draw_image()
 
 
 if __name__ == "__main__":
