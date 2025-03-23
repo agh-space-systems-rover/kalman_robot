@@ -159,7 +159,7 @@ class CubeNode(Node):
 
     def save_matched_data(self, img_data: ImageData, det_data: list[DetectionData]):
         """Save matched image and detection data."""
-        name = f"{img_data.camera_id}-{img_data.timestamp}"
+        name = f"cube-{img_data.timestamp}-{img_data.camera_id}"
 
         # Save image
         cv2.imwrite(
@@ -188,7 +188,7 @@ class CubeNode(Node):
         )
 
     def create_directory(self):
-        self.path = os.path.expanduser("~/arch/cube-saves")
+        self.path = os.path.expanduser("~/arch/cube")
         try:
             os.makedirs(self.path, exist_ok=True)
             self.get_logger().info(f"Directory {self.path} created successfully")

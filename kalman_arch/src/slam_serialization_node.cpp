@@ -37,7 +37,7 @@ class SlamSerialization : public rclcpp::Node {
 	std::filesystem::path trajectory_dir = user_home / "arch" / "trajectory";
 	std::filesystem::path cloud_dir      = user_home / "arch" / "cloud";
 	std::vector<uint64_t> stamp_vector;
-	int64_t               first_stamp = 0;
+	int64_t               first_stamp_us = 0;
 
 	SlamSerialization(const rclcpp::NodeOptions &options)
 	    : Node("slam_serialization", options) {
@@ -61,8 +61,8 @@ class SlamSerialization : public rclcpp::Node {
 	    const nav_msgs::msg::Path::ConstSharedPtr           &path_msg
 	) {
 		// Init stamp
-		if (first_stamp == 0) {
-			first_stamp =
+		if (first_stamp_us == 0) {
+			first_stamp_us =
 			    static_cast<int64_t>(cloud_msg->header.stamp.sec) * 1e6 +
 			    static_cast<int64_t>(cloud_msg->header.stamp.nanosec / 1e3);
 		}
@@ -137,7 +137,7 @@ class SlamSerialization : public rclcpp::Node {
 		std::filesystem::create_directories(trajectory_dir);
 		std::string trajectory_file_path =
 		    (trajectory_dir /
-		     ("positions-" + std::to_string(first_stamp) + ".yaml"))
+		     ("trajectory-" + std::to_string(first_stamp) + ".yaml"))
 		        .string();
 		safe_save(trajectory_file_path, [&](const std::string &path) {
 			std::ofstream fout(path);

@@ -36,8 +36,8 @@ class RecordVideo : public rclcpp::Node {
 	int codec = cv::VideoWriter::fourcc('H', '2', '6', '4');
 	std::unique_ptr<cv::VideoWriter> writer;
 	std::filesystem::path user_home = std::filesystem::path(getenv("HOME"));
-	std::filesystem::path video_dir = user_home / "arch" / "videos";
-	std::filesystem::path screenshots_dir = user_home / "arch" / "screenshots";
+	std::filesystem::path video_dir = user_home / "arch" / "video";
+	std::filesystem::path screenshots_dir = user_home / "arch" / "screenshot";
 	std::string           camera_name     = "";
 	std::string           screenshots_save_path = "";
 	int                   width, height; // parameter
@@ -99,8 +99,8 @@ class RecordVideo : public rclcpp::Node {
 		if (!writer) {
 			std::string video_save_path =
 			    (video_dir /
-			     (camera_name + "-" + std::to_string(last_image_timestamp_us) +
-			      "-video.mkv"))
+			     ("video-" + std::to_string(last_image_timestamp_us) + "-" +
+			      camera_name + ".mkv"))
 			        .string();
 			std::filesystem::create_directories(video_dir);
 			writer = std::make_unique<cv::VideoWriter>();
@@ -144,9 +144,9 @@ class RecordVideo : public rclcpp::Node {
 			    CV_RGB(0, 0, 0)
 			);
 			std::string filename =
-			    screenshots_save_path + "/" +
-			    (std::to_string(req->data) + "-" + camera_name + "-" +
-			     std::to_string(last_image_timestamp_us) + "-screenshot.jpg");
+			    screenshots_save_path + "/screenshot-" +
+			    std::to_string(last_image_timestamp_us) + "-" +
+			    (std::to_string(req->data) + "-" + camera_name + ".jpg");
 			std::filesystem::create_directories(screenshots_dir);
 			cv::imwrite(filename, this->last_image);
 		} else {
