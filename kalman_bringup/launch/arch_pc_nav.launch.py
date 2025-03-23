@@ -7,7 +7,7 @@ def generate_launch_description():
     return gen_launch(
         {
             "description": {
-                "layout": "autonomy",
+                "layout": "autonomy_90deg_cams",
             },
             "hardware": {
                 "rgbd_ids": RGBD_IDS,
