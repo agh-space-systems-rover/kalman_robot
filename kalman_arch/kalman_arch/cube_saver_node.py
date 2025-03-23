@@ -72,7 +72,7 @@ class CubeNode(Node):
 
     def image_cb(self, msg: CompressedImage):
         camera_id = msg.header.frame_id[: -len("_color_optical_frame")]
-        us = msg.header.stamp.sec * 1e6 + round(msg.header.stamp.nanosec / 1e3)
+        us = int(msg.header.stamp.sec * 1e6 + round(msg.header.stamp.nanosec / 1e3))
         cv_image = self.bridge.compressed_imgmsg_to_cv2(msg, desired_encoding="bgr8")
 
         image_data = ImageData(camera_id=camera_id, timestamp=us, image=cv_image)
@@ -98,7 +98,9 @@ class CubeNode(Node):
                     pose_stamped, transform=transform
                 )
 
-                us = det.header.stamp.sec * 1e6 + round(det.header.stamp.nanosec / 1e3)
+                us = int(
+                    det.header.stamp.sec * 1e6 + round(det.header.stamp.nanosec / 1e3)
+                )
                 camera_id = det.header.frame_id[: -len("_color_optical_frame")]
 
                 pos_list = " ".join(
