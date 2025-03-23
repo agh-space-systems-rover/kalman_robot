@@ -1,10 +1,11 @@
 import os
 import string
 import tkinter as tk
+from tkinter import ttk
 from PIL import Image, ImageTk
 import PIL
 
-from utils.file_colors import color_lens, get_color_emoji_cube
+from utils.file_colors import color_lens, get_color_emoji_cube, get_image_array
 from utils.position_calculate import calculate_position
 from utils.timestamp import extract_timestamp
 from utils.trajectory import TrajectoryReader
@@ -15,21 +16,26 @@ class ImageViewer:
         self.trajectory = trajectory
         self.folder_path = folder_path
         self.out_folder = out_folder
-        supported_extensions = (".jpg", ".jpeg", ".png", ".gif")
-        self.images = [
-            os.path.join(folder_path, f)
-            for f in os.listdir(folder_path)
-            if f.lower().endswith(supported_extensions)
-        ]
+        self.sort_ascending = True
+        self.sort_method = "none"
+
+        self.color_filter = {
+            "red": False,
+            "green": False,
+            "blue": False,
+            "white": False,
+        }
+        self.images = get_image_array(
+            self.folder_path, self.color_filter, self.sort_method, self.sort_ascending
+        )
 
         if not self.images:
             raise ValueError("Nie znaleziono żadnych obrazów w podanym folderze.")
         self.index = 0
 
         self.root = tk.Tk()
-        self.root.minsize(800, 600)
         self.root.title("Kalman Image Viewer ")
-
+        self.root.geometry("1000x600")
         # Create main layout frames
         self.main_frame = tk.Frame(self.root)
         self.main_frame.pack(expand=True, fill=tk.BOTH)
@@ -88,6 +94,60 @@ class ImageViewer:
         self.blue_cb.config(command=self.handle_checkboxes)
         self.white_cb.config(command=self.handle_checkboxes)
 
+        # Sorting options - Add this new section
+        self.sort_frame = tk.Frame(self.right_frame, bg="#f0f0f0")
+        self.sort_frame.pack(fill=tk.X, pady=(10, 0), padx=10)
+
+        self.sort_label = tk.Label(self.sort_frame, text="Sort by:", bg="#f0f0f0")
+        self.sort_label.pack(anchor=tk.W)
+
+        # Radio button variable
+        self.sort_var = tk.StringVar(value="none")  # Default sort by none
+
+        # Radio buttons for sorting options
+        sort_options_frame = tk.Frame(self.sort_frame, bg="#f0f0f0")
+        sort_options_frame.pack(fill=tk.X)
+
+        self.color_rb = tk.Radiobutton(
+            sort_options_frame,
+            text="None",
+            variable=self.sort_var,
+            value="none",
+            command=self.handle_radio_sorting,
+            bg="#f0f0f0",
+        )
+        self.color_rb.pack(side=tk.LEFT, padx=5)
+
+        self.accuracy_rb = tk.Radiobutton(
+            sort_options_frame,
+            text="Accuracy",
+            variable=self.sort_var,
+            value="accuracy",
+            command=self.handle_radio_sorting,
+            bg="#f0f0f0",
+        )
+        self.accuracy_rb.pack(side=tk.LEFT, padx=5)
+
+        self.distance_rb = tk.Radiobutton(
+            sort_options_frame,
+            text="Distance",
+            variable=self.sort_var,
+            value="distance",
+            command=self.handle_radio_sorting,
+            bg="#f0f0f0",
+        )
+        self.distance_rb.pack(side=tk.LEFT, padx=5)
+
+        # Direction toggle button
+        self.direction_button = tk.Button(
+            self.sort_frame,
+            text="↑ Ascending",
+            command=self.toggle_direction,
+            bg="#e0e0e0",
+            relief=tk.RAISED,
+        )
+        self.direction_button.pack(pady=(5, 5), anchor=tk.W)
+
         # Image list with scrollbar
         self.list_label = tk.Label(
             self.right_frame, text="Available Images", bg="#f0f0f0"
@@ -134,26 +194,15 @@ class ImageViewer:
         self.blue_var.get()
         self.white_var.get()
 
-        color_filter = {
+        self.color_filter = {
             "red": self.red_var.get(),
             "green": self.green_var.get(),
             "blue": self.blue_var.get(),
             "white": self.white_var.get(),
         }
-
-        supported_extensions = (".jpg", ".jpeg", ".png", ".gif")
-        self.images = [
-            os.path.join(self.folder_path, f)
-            for f in os.listdir(self.folder_path)
-            if f.lower().endswith(supported_extensions)
-            and (
-                color_lens(
-                    os.path.join(self.folder_path, f).replace(".jpg", ".txt"),
-                    color_filter,
-                )
-                or not any(color_filter.values())
-            )
-        ]
+        self.images = get_image_array(
+            self.folder_path, self.color_filter, self.sort_method, self.sort_ascending
+        )
 
         if not self.images:
             raise ValueError("Nie znaleziono żadnych obrazów w podanym folderze.")
@@ -169,6 +218,43 @@ class ImageViewer:
                 tk.END, get_color_emoji_cube(img_path_txt) + os.path.basename(img_path)
             )
         self.show_image()
+
+    # Handle radio button sorting
+    def handle_radio_sorting(self):
+        sort_method = self.sort_var.get()
+        print(
+            f"Sorting by: {sort_method}, direction: {'ascending' if self.sort_ascending else 'descending'}"
+        )
+
+        self.sort_method = sort_method
+
+        self.images = get_image_array(
+            self.folder_path, self.color_filter, self.sort_method, self.sort_ascending
+        )
+        self.root.title(f"Kalman Image Viewer - Sorting by {sort_method}")
+
+        # Clear the listbox
+        self.image_listbox.delete(0, tk.END)
+
+        # Repopulate the listbox with filtered image filenames
+        for img_path in self.images:
+            img_path_txt = img_path.replace(".jpg", ".txt")
+            self.image_listbox.insert(
+                tk.END, get_color_emoji_cube(img_path_txt) + os.path.basename(img_path)
+            )
+        self.index = 0
+
+        self.show_image()
+
+    # Toggle sort direction
+    def toggle_direction(self):
+        self.sort_ascending = not self.sort_ascending
+        if self.sort_ascending:
+            self.direction_button.config(text="↑ Ascending")
+        else:
+            self.direction_button.config(text="↓ Descending")
+        # Trigger re-sorting with new direction
+        self.handle_radio_sorting()
 
     def show_image(self):
         image_path = self.images[self.index]

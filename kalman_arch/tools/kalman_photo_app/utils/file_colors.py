@@ -1,3 +1,6 @@
+import os
+
+
 def find_colors_in_file(file_path):
     """
     Opens a file and looks for specific color names (red, green, blue, white),
@@ -72,3 +75,78 @@ def color_lens(file_path, color_filter):
             return True
 
     return False
+
+
+def get_image_array(folder_path, color_filter, sort_method, ascending):
+
+    supported_extensions = (".jpg", ".jpeg", ".png", ".gif")
+    images = [
+        os.path.join(folder_path, f)
+        for f in os.listdir(folder_path)
+        if f.lower().endswith(supported_extensions)
+        and (
+            color_lens(
+                os.path.join(folder_path, f).replace(".jpg", ".txt"),
+                color_filter,
+            )
+            or not (
+                color_filter["red"]
+                or color_filter["green"]
+                or color_filter["blue"]
+                or color_filter["white"]
+            )
+        )
+    ]
+    print(sort_method)
+    # Sort images based on selected color if only one color filter is active
+    active_colors = [color for color, is_active in color_filter.items() if is_active]
+
+    if sort_method == "accuracy":
+
+        def get_match_value(img_path):
+            txt_path = img_path.replace(".jpg", ".txt")
+            try:
+                with open(txt_path, "r") as file:
+                    for line in file:
+                        parts = line.strip().split()
+                        if len(parts) >= 2 and parts[0].lower() in [
+                            "red",
+                            "green",
+                            "blue",
+                            "white",
+                        ]:
+                            # Return the first numerical value after color name
+                            try:
+                                return float(parts[1])
+                            except (ValueError, IndexError):
+                                pass
+                return 0.0  # Default value if no valid match value found
+            except Exception:
+                return 0.0  # Default if file can't be read
+
+        if len(active_colors) == 1:
+            # Only one color filter is active, sort by this color's value
+            selected_color = active_colors[0]
+
+            def get_color_value(img_path):
+                txt_path = img_path.replace(".jpg", ".txt")
+                try:
+                    with open(txt_path, "r") as file:
+                        for line in file:
+                            parts = line.strip().split()
+                            if len(parts) >= 2 and parts[0].lower() == selected_color:
+                                try:
+                                    return float(parts[1])
+                                except (ValueError, IndexError):
+                                    pass
+                    return 0.0  # Default if color not found or value not readable
+                except Exception:
+                    return 0.0  # Default if file can't be read
+
+            images.sort(key=get_color_value, reverse=not ascending)
+        # Sort images based on the first value after color name in text file
+        else:
+            images.sort(key=get_match_value, reverse=not ascending)
+    print("sort ok")
+
+    return images
