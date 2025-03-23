@@ -1,5 +1,5 @@
 # CAN interface to use
-can_interface: "vcan0"
+can_interface: "can0"
 
 # RX mappings (CAN to ROS)
 rx_mappings:
