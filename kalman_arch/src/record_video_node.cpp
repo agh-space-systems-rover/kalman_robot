@@ -36,12 +36,11 @@ class RecordVideo : public rclcpp::Node {
 	int codec = cv::VideoWriter::fourcc('H', '2', '6', '4');
 	std::unique_ptr<cv::VideoWriter> writer;
 	std::filesystem::path user_home = std::filesystem::path(getenv("HOME"));
-	std::filesystem::path video_dir = user_home / "arch" / "arch-videos";
-	std::filesystem::path screenshots_dir =
-	    user_home / "arch" / "arch-screenshots";
-	std::string camera_name           = "";
-	std::string screenshots_save_path = "";
-	int         width, height; // parameter
+	std::filesystem::path video_dir = user_home / "arch" / "videos";
+	std::filesystem::path screenshots_dir = user_home / "arch" / "screenshots";
+	std::string           camera_name     = "";
+	std::string           screenshots_save_path = "";
+	int                   width, height; // parameter
 
 	RecordVideo(const rclcpp::NodeOptions &options)
 	    : Node("record_video", options),
