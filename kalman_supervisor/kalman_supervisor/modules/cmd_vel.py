@@ -24,7 +24,7 @@ class CmdVel(Module):
 
             if elapsed >= self.__rotation_duration:
                 self.__rotating = False
-                self.send_cmd_vel(0.0, 0.0, 0.0)
+                self.send_cmd_vel(0.0, 0.0, 0.0001)
                 return
 
             # Calculate ramped velocity using acceleration
