@@ -10,7 +10,8 @@ import { Service } from 'roslib';
 enum ScienceElementType {
   DISPLAY = 0,
   CONTAINER = 1,
-  PLAYER = 2
+  PLAYER = 2,
+  STATUS = 3
 }
 
 type ScienceElements = {

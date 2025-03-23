@@ -89,7 +89,7 @@ class RfidDriver : public rclcpp::Node {
 	std::chrono::time_point<std::chrono::high_resolution_clock> last_update;
 
 	constexpr static auto FRAME_ID =
-	    kalman_interfaces::msg::MasterMessage::RFID;
+	    kalman_interfaces::msg::MasterMessage::ESP_TO_GS;
 };
 
 } // namespace kalman_master

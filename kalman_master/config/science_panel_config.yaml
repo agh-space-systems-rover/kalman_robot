@@ -4,34 +4,34 @@ elements:
     type: ScienceElementType.DISPLAY
     display_name: Rock
     type_data:
-      topic: "master_com/master_to_ros/TODO"
+      topic: "master_com/master_to_ros/x85"
       parser: xyz
     buttons:
-      - id: rocks-tare
+      - id: rocks_tare
         name: Tare
-        message: MasterMessage.TODO
+        message: MasterMessage.GS_TO_ESP
         data: [ 0, 0 ]
-      - id: rocks-tare
+      - id: rocks_tare
         name: Request
-        message: MasterMessage.TODO
+        message: MasterMessage.GS_TO_ESP
         data: [ 0, 1 ]
   - id: container
     type: ScienceElementType.CONTAINER
     display_name: Container
     type_data:
       color: yellow-foreground
-      open_message: MasterMessage.TODO
+      open_message: MasterMessage.GS_TO_ESP
       open_data: [ 0 ]
-      close_message: MasterMessage.TODO
+      close_message: MasterMessage.GS_TO_ESP
       close_data: [ 1 ]
   - id: player
     type: ScienceElementType.PLAYER
     display_name: Player
     type_data:
       color: yellow-foreground
-      play_message: MasterMessage.TODO
+      play_message: MasterMessage.GS_TO_ESP
       play_data: [ 0, 0 ]
-      pause_message: MasterMessage.TODO
+      pause_message: MasterMessage.GS_TO_ESP
       pause_data: [ 0, 1 ]
-      stop_message: MasterMessage.TODO
+      stop_message: MasterMessage.GS_TO_ESP
       stop_data: [ 1, 1 ]
