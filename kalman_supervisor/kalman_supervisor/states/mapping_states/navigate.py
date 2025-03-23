@@ -3,7 +3,7 @@ import numpy as np
 from kalman_supervisor.state import State, disable_state
 from kalman_supervisor.modules import *
 
-NAVIGATE_ROUGH_DISTANCE = 2.0
+NAVIGATE_ROUGH_DISTANCE = 0.1  # 2.0
 
 
 @disable_state
