@@ -80,6 +80,28 @@ rover: # or 'station'
       int_range:
         min: 0
         max: 255
+    - name: magneto/data
+      type: std_msgs/msg/UInt8MultiArray
+      max_rate: 2
+      fields:
+        - path: data
+    - name: gripper/temperature
+      type: std_msgs/msg/UInt8
+      max_rate: 2
+      int_range:
+        min: 0
+        max: 255
+    - name: kutong/data
+      type: std_msgs/msg/UInt8MultiArray
+      max_rate: 2
+      fields:
+        - path: data
+    - name: gripper/position
+      type: std_msgs/msg/UInt16
+      max_rate: 2
+      int_range:
+        min: 0
+        max: 65535
 
 station:
   topics:
@@ -136,4 +158,19 @@ station:
     - name: fastclick
       type: std_msgs/msg/UInt8
       max_rate: 5
+    - name: magneto/tare
+      type: std_msgs/msg/UInt8MultiArray
+      max_rate: 2
+      fields:
+        - path: data
+    - name: magneto/request
+      type: std_msgs/msg/UInt8MultiArray
+      max_rate: 2
+      fields:
+        - path: data
+    - name: kutong/request
+      type: std_msgs/msg/UInt8MultiArray
+      max_rate: 2
+      fields:
+        - path: data
 

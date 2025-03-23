@@ -1,0 +1,62 @@
+# CAN interface to use
+can_interface: "can0"
+
+# RX mappings (CAN to ROS)
+rx_mappings:
+  - can_id: 0xE8
+    ros_topic: "/gripper/position"
+    ros_type: "std_msgs/msg/UInt16"
+    max_rate: 5
+    conversion:
+      type: "direct"
+
+  - can_id: 0xE9
+    ros_topic: "/gripper/temperature"
+    ros_type: "std_msgs/msg/UInt8" # Celcius
+    max_rate: 2
+    conversion:
+      type: "direct"
+
+  - can_id: 0xEA
+    ros_topic: "/kutong/data"
+    ros_type: "std_msgs/msg/UInt8MultiArray"
+    max_rate: 2
+    conversion:
+      type: "direct"
+
+  - can_id: 0xEB
+    ros_topic: "/magneto/data"
+    ros_type: "std_msgs/msg/UInt8MultiArray"
+    max_rate: 5
+    conversion:
+      type: "direct"
+
+# TX mappings (ROS to CAN)
+tx_mappings:
+  - can_id: 0xE3
+    ros_topic: "/fastclick"
+    ros_type: "std_msgs/msg/UInt8"
+    max_rate: 5
+    conversion:
+      type: "direct"
+
+  - can_id: 0xE4
+    ros_topic: "/magneto/tare"
+    ros_type: "std_msgs/msg/UInt8MultiArray"
+    max_rate: 2
+    conversion:
+      type: "direct"
+
+  - can_id: 0xE5
+    ros_topic: "/magneto/request"
+    ros_type: "std_msgs/msg/UInt8MultiArray"
+    max_rate: 2
+    conversion:
+      type: "direct"
+
+  - can_id: 0xE6
+    ros_topic: "/kutong/request"
+    ros_type: "std_msgs/msg/UInt8MultiArray"
+    max_rate: 2
+    conversion:
+      type: "direct"

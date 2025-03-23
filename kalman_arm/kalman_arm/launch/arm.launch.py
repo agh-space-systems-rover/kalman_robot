@@ -63,6 +63,15 @@ def generate_launch_description():
         )
     )
 
+    can_bridge = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            [
+                os.path.join(get_package_share_directory("kalman_arm"), "launch"),
+                "/can_bridge.launch.py",
+            ]
+        )
+    )
+
     return LaunchDescription(
         [
             arm_controller,
@@ -71,5 +80,6 @@ def generate_launch_description():
             hardware,
             move_group,
             trajectories,
+            can_bridge
         ]
     )

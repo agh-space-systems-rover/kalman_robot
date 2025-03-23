@@ -31,7 +31,8 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
     tf2_eigen
     kalman_interfaces
     example_interfaces
-    trajectory_msgs)
+    trajectory_msgs
+    yaml_cpp_vendor)
 
 set(TWIST_REPUB_DEPS
     control_msgs
@@ -88,11 +89,19 @@ add_executable(servo_keyboard_input scripts/servo_keyboard_input.cpp)
 target_include_directories(servo_keyboard_input PUBLIC include)
 ament_target_dependencies(servo_keyboard_input ${THIS_PACKAGE_INCLUDE_DEPENDS})
 
+set(CAN_BRIDGE can_bridge)
+add_library(${CAN_BRIDGE} SHARED src/configurable_can_bridge.cpp)
+target_compile_features(${CAN_BRIDGE} PUBLIC cxx_std_20)
+ament_target_dependencies(${CAN_BRIDGE} ${THIS_PACKAGE_INCLUDE_DEPENDS})
+target_link_libraries(${CAN_BRIDGE} yaml-cpp)
+rclcpp_components_register_nodes(${CAN_BRIDGE} "configurable_can_bridge::CANBridge")
+
 # add_executable(monitor_planning_scene scripts/planning_scene_tutorial.cpp)
 # target_include_directories(monitor_planning_scene PUBLIC include)
 # ament_target_dependencies(monitor_planning_scene ${THIS_PACKAGE_INCLUDE_DEPENDS})
 
 include_directories(hardware/include)
+include_directories(include)
 
 
 add_library(
@@ -126,7 +135,7 @@ pluginlib_export_plugin_description_file(hardware_interface kalman_arm_controlle
 
 # INSTALL
 install(
-  DIRECTORY hardware/include/
+  DIRECTORY hardware/include/ include/
   DESTINATION include/kalman_arm_controller
 )
 
@@ -139,6 +148,7 @@ install(TARGETS servo_keyboard_input
 install(TARGETS kalman_arm_controller
     ${SERVO_PUBLISHER}
     ${EXTRA_CAN}
+    ${CAN_BRIDGE}
   EXPORT export_kalman_arm_controller
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
