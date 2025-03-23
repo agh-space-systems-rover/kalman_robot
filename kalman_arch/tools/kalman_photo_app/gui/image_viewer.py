@@ -4,6 +4,7 @@ import tkinter as tk
 from PIL import Image, ImageTk
 import PIL
 
+from utils.file_colors import color_lens, get_color_emoji_cube
 from utils.position_calculate import calculate_position
 from utils.timestamp import extract_timestamp
 from utils.trajectory import TrajectoryReader
@@ -12,6 +13,7 @@ from utils.trajectory import TrajectoryReader
 class ImageViewer:
     def __init__(self, folder_path, trajectory: TrajectoryReader, out_folder):
         self.trajectory = trajectory
+        self.folder_path = folder_path
         self.out_folder = out_folder
         supported_extensions = (".jpg", ".jpeg", ".png", ".gif")
         self.images = [
@@ -19,6 +21,7 @@ class ImageViewer:
             for f in os.listdir(folder_path)
             if f.lower().endswith(supported_extensions)
         ]
+
         if not self.images:
             raise ValueError("Nie znaleziono żadnych obrazów w podanym folderze.")
         self.index = 0
@@ -26,21 +29,146 @@ class ImageViewer:
         self.root = tk.Tk()
         self.root.minsize(800, 600)
         self.root.title("Kalman Image Viewer ")
-        self.label = tk.Label(self.root)
-        self.label.pack(expand=True, fill=tk.BOTH)
-        self.cubes_descriptions = []
 
+        # Create main layout frames
+        self.main_frame = tk.Frame(self.root)
+        self.main_frame.pack(expand=True, fill=tk.BOTH)
+
+        # Left frame for image display
+        self.left_frame = tk.Frame(self.main_frame)
+        self.left_frame.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
+
+        # Right frame for image list
+        self.right_frame = tk.Frame(self.main_frame, width=400, bg="#f0f0f0")
+        self.right_frame.pack(side=tk.RIGHT, fill=tk.Y)
+        self.right_frame.pack_propagate(False)
+
+        # Image display label
+        self.label = tk.Label(self.left_frame)
+        self.label.pack(expand=True, fill=tk.BOTH)
+
+        # Color filter checkboxes
+        self.checkbox_frame = tk.Frame(self.right_frame, bg="#f0f0f0")
+        self.checkbox_frame.pack(fill=tk.X, pady=(10, 0), padx=10)
+
+        self.filter_label = tk.Label(
+            self.checkbox_frame, text="Filter by color:", bg="#f0f0f0"
+        )
+        self.filter_label.pack(anchor=tk.W)
+
+        # Checkbox variables
+        self.red_var = tk.BooleanVar()
+        self.green_var = tk.BooleanVar()
+        self.blue_var = tk.BooleanVar()
+        self.white_var = tk.BooleanVar()
+
+        # Create checkboxes
+        self.red_cb = tk.Checkbutton(
+            self.checkbox_frame, text="Red", variable=self.red_var, bg="#f0f0f0"
+        )
+        self.red_cb.pack(side=tk.LEFT, padx=5)
+
+        self.green_cb = tk.Checkbutton(
+            self.checkbox_frame, text="Green", variable=self.green_var, bg="#f0f0f0"
+        )
+        self.green_cb.pack(side=tk.LEFT, padx=5)
+
+        self.blue_cb = tk.Checkbutton(
+            self.checkbox_frame, text="Blue", variable=self.blue_var, bg="#f0f0f0"
+        )
+        self.blue_cb.pack(side=tk.LEFT, padx=5)
+
+        self.white_cb = tk.Checkbutton(
+            self.checkbox_frame, text="White", variable=self.white_var, bg="#f0f0f0"
+        )
+        self.white_cb.pack(side=tk.LEFT, padx=5)
+
+        self.red_cb.config(command=self.handle_checkboxes)
+        self.green_cb.config(command=self.handle_checkboxes)
+        self.blue_cb.config(command=self.handle_checkboxes)
+        self.white_cb.config(command=self.handle_checkboxes)
+
+        # Image list with scrollbar
+        self.list_label = tk.Label(
+            self.right_frame, text="Available Images", bg="#f0f0f0"
+        )
+        self.list_label.pack(pady=(10, 5))
+
+        self.list_frame = tk.Frame(self.right_frame)
+        self.list_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+
+        self.scrollbar = tk.Scrollbar(self.list_frame)
+        self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        self.image_listbox = tk.Listbox(
+            self.list_frame, yscrollcommand=self.scrollbar.set
+        )
+        self.image_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        self.scrollbar.config(command=self.image_listbox.yview)
+
+        # Populate the listbox with image filenames
+        for img_path in self.images:
+            img_path_txt = img_path.replace(".jpg", ".txt")
+            self.image_listbox.insert(
+                tk.END, get_color_emoji_cube(img_path_txt) + os.path.basename(img_path)
+            )
+
+        # Bind listbox selection to change image
+        self.image_listbox.bind("<<ListboxSelect>>", self.on_image_select)
+
+        # Description label
+        self.cubes_descriptions = []
         self.descr = tk.Label(
-            self.root, text="co za wspaniałe zdjęcie", font="Iosevka 24 bold"
+            self.left_frame, text="co za wspaniałe zdjęcie", font="Iosevka 24 bold"
         )
         self.descr.pack()
-        # Obsługa przycisków strzałek
+
+        # Key bindings
         self.root.bind("<Left>", self.show_previous)
         self.root.bind("<Right>", self.show_next)
 
-    def run(self):
+    # Handle checkbox changes
+    def handle_checkboxes(self):
+        self.red_var.get()
+        self.green_var.get()
+        self.blue_var.get()
+        self.white_var.get()
+
+        color_filter = {
+            "red": self.red_var.get(),
+            "green": self.green_var.get(),
+            "blue": self.blue_var.get(),
+            "white": self.white_var.get(),
+        }
+
+        supported_extensions = (".jpg", ".jpeg", ".png", ".gif")
+        self.images = [
+            os.path.join(self.folder_path, f)
+            for f in os.listdir(self.folder_path)
+            if f.lower().endswith(supported_extensions)
+            and (
+                color_lens(
+                    os.path.join(self.folder_path, f).replace(".jpg", ".txt"),
+                    color_filter,
+                )
+                or not any(color_filter.values())
+            )
+        ]
+
+        if not self.images:
+            raise ValueError("Nie znaleziono żadnych obrazów w podanym folderze.")
+        self.index = 0
+
+        # Clear the listbox
+        self.image_listbox.delete(0, tk.END)
+
+        # Repopulate the listbox with filtered image filenames
+        for img_path in self.images:
+            img_path_txt = img_path.replace(".jpg", ".txt")
+            self.image_listbox.insert(
+                tk.END, get_color_emoji_cube(img_path_txt) + os.path.basename(img_path)
+            )
         self.show_image()
-        self.root.mainloop()
 
     def show_image(self):
         image_path = self.images[self.index]
@@ -53,7 +181,27 @@ class ImageViewer:
         self.label.config(image=tk_image)
         self.label.image = tk_image
 
+        # Update listbox selection to match the current image
+        self.image_listbox.selection_clear(0, tk.END)
+        self.image_listbox.selection_set(self.index)
+        self.image_listbox.see(self.index)
+
         self.parse_imginfo(image_path)
+
+    def on_image_select(self, event):
+        # Get selected index from listbox and update the current image
+        selection = self.image_listbox.curselection()
+        if selection:
+            self.index = selection[0]
+            self.show_image()
+            # Ensure the selected item is visible in the listbox
+            self.image_listbox.see(self.index)
+
+    def run(self):
+        # Select the first item in the listbox
+        self.image_listbox.selection_set(0)
+        self.show_image()
+        self.root.mainloop()
 
     def parse_imginfo(self, image_path):
         path_txt = image_path.replace(".jpg", ".txt")
@@ -66,7 +214,7 @@ class ImageViewer:
             self.cubes_descriptions.append(str(num + 1) + ": " + line)
             num += 1
 
-        label_str = "Filename: " + path_txt + "\n" + "\n".join(self.cubes_descriptions)
+        label_str = "\n".join(self.cubes_descriptions)
         self.descr.config(text=label_str)
 
         for i, description in enumerate(self.cubes_descriptions):
