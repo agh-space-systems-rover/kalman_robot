@@ -2,6 +2,7 @@ from enum import Enum
 import yaml
 import rclpy
 from rclpy.node import Node
+from std_msgs.msg import String, Bool
 from example_interfaces.msg import Empty
 from kalman_interfaces.msg import MasterMessage, ScienceElement, ScienceButton
 from kalman_interfaces.srv import GetScienceElements
@@ -31,9 +32,11 @@ class SciencePanelDriver(Node):
         self.create_service(GetScienceElements, "science_panel/get_config", self.get_science_elements)
 
         # Create topic arrays
-        button_list = []
+        display_list = []
         container_list = []
         player_list = []
+        status_list = []
+        button_list = []
         for element in self.science_config.get("elements", []):
             parent_id = element.get("id")
             for button in element.get("buttons", []):
@@ -43,7 +46,14 @@ class SciencePanelDriver(Node):
                     "data": button.get("data", None)
                 })
 
-            if eval(element.get("type")).value is ScienceElementType.CONTAINER:
+            if eval(element.get("type")).value is ScienceElementType.DISPLAY.value:
+                display_list.append({
+                    "master_topic": element.get("type_data").get("topic", None),
+                    "topic": f"{parent_id}_display",
+                    "parser": eval(element.get("type_data").get("parser")),
+                })
+
+            if eval(element.get("type")).value is ScienceElementType.CONTAINER.value:
                 container_list.append({
                     "topic": f"{parent_id}_open_container",
                     "message": eval(element.get("type_data").get("open_message")),
@@ -56,7 +66,7 @@ class SciencePanelDriver(Node):
                     "data": element.get("type_data").get("close_data", None)
                 })
 
-            if eval(element.get("type")).value is ScienceElementType.PLAYER:
+            if eval(element.get("type")).value is ScienceElementType.PLAYER.value:
                 player_list.append({
                     "topic": f"{parent_id}_player_play",
                     "message": eval(element.get("type_data").get("play_message")),
@@ -75,11 +85,25 @@ class SciencePanelDriver(Node):
                     "data": element.get("type_data").get("stop_data", None)
                 })
 
-        # Create topics with empty data
-        all_topics = button_list + container_list + player_list
-        for topic_data in all_topics:
+            if eval(element.get("type")).value is ScienceElementType.STATUS.value:
+                status_list.append({
+                    "master_topic": element.get("type_data").get("topic", None),
+                    "topic": f"{parent_id}_status",
+                    "parser": eval(element.get("type_data").get("parser")),
+                })
+
+        # Create topics sending data to frontend
+        data_topics = display_list + status_list
+        for topic_data in data_topics:
             self.create_subscription(
-                Empty, f"science_panel/{topic_data.get('topic')}", self.handle_element_topic(topic_data), 10
+                MasterMessage, topic_data.get("master_topic"), self.handle_data_topic(topic_data), 10
+            )
+
+        # Create topics with empty data
+        empty_topics = button_list + container_list + player_list
+        for topic_data in empty_topics:
+            self.create_subscription(
+                Empty, f"science_panel/{topic_data.get('topic')}", self.handle_empty_topic(topic_data), 10
             )
 
     def get_science_elements(self, request: GetScienceElements.Request, response: GetScienceElements.Response):
@@ -87,7 +111,7 @@ class SciencePanelDriver(Node):
 
         for element in self.science_config.get("elements", []):
             science_element_buttons = []
-            for button in self.science_config.get("buttons", []):
+            for button in element.get("buttons", []):
                 science_element_buttons.append(ScienceButton(
                     id=button.get("id"),
                     name=button.get("name"),
@@ -107,9 +131,19 @@ class SciencePanelDriver(Node):
 
         return response
 
-    def handle_element_topic(self, topic_data: dict):
+    def handle_data_topic(self, topic_data: dict):
+        def callback(msg: MasterMessage):
+            topic_data.get("message")(msg.data, topic_data)
+
+        return callback
+
+    def handle_empty_topic(self, topic_data: dict):
         def callback(msg: Empty):
-            self.get_logger().info(f"Received on topic: {topic_data['topic']} with data: {topic_data['data']}")
+            message = MasterMessage(
+                cmd=topic_data.get("message"),
+                data=topic_data.get("data"),
+            )
+            self.science_pub.publish(message)
 
         return callback
 
@@ -123,3 +157,26 @@ def main():
         rclpy.shutdown()
     except KeyboardInterrupt:
         pass
+
+
+### PARSER FUNCTIONS
+def send_weight(data, topic_data, node):
+    publisher = node.create_publisher(
+        String,
+        f"science_panel/{topic_data.get('topic')}",
+        10
+    )
+    msg = String()
+    msg.data = str(data)
+    publisher.publish(msg)
+
+
+def send_status(data, topic_data, node):
+    publisher = node.create_publisher(
+        Bool,
+        f"science_panel/{topic_data.get('topic')}",
+        10
+    )
+    msg = Bool()
+    msg.data = bool(data)
+    publisher.publish(msg)
