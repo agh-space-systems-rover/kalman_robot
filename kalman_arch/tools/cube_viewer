@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+kalman_photo_app_dir=$(realpath $(dirname $BASH_SOURCE)/kalman_photo_app)
+python3 $kalman_photo_app_dir/main.py "$@"

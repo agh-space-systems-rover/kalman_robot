@@ -29,7 +29,7 @@ def parse_from_file(filename: str) -> str:
 
     for task in tasks:
         
-        temp = create_ros_msg_value(task["type"], task["coordinates"][0], task["coordinates"][1])
+        temp = create_ros_msg_value(task["type"], task["pos_m"][0], task["pos_m"][1])
         command += "{" + temp + "},"
 
     command = command[:-1]

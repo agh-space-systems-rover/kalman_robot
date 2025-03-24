@@ -34,9 +34,9 @@ class MapAnnotator:
 
         # Annotation data
         self.origin = None  # (pixel_x, pixel_y)
-        self.tasks = []  # list of dicts: {id, type, pixel_coords}
+        self.tasks = []  # list of dicts: {id, type, pos_px}
         self.goal_type = tk.StringVar(value="goal")
-        self.area_size_var = tk.DoubleVar(value=10.0)
+        self.width_m_var = tk.DoubleVar(value=10.0)
 
         # Create GUI layout
         self._create_layout()
@@ -70,7 +70,7 @@ class MapAnnotator:
         load_button.pack(pady=5, fill=tk.X)
 
         tk.Label(self.sidebar, text="Area Size (image width) [m]:").pack(pady=2)
-        tk.Entry(self.sidebar, textvariable=self.area_size_var).pack(pady=2, fill=tk.X)
+        tk.Entry(self.sidebar, textvariable=self.width_m_var).pack(pady=2, fill=tk.X)
 
         origin_button = tk.Button(
             self.sidebar,
@@ -182,7 +182,7 @@ class MapAnnotator:
     def _draw_goals(self):
         """Draw the annotated goals on the canvas."""
         for task in self.tasks:
-            x, y = task["pixel_coords"]
+            x, y = task["pos_px"]
             cx, cy = self.to_canvas_coords(x, y)
 
             r = 5
@@ -231,7 +231,7 @@ class MapAnnotator:
             new_task = {
                 "id": next_id,
                 "type": current_mode,
-                "pixel_coords": (x, y),
+                "pos_px": (x, y),
             }
             self.tasks.append(new_task)
 
@@ -245,7 +245,7 @@ class MapAnnotator:
         closest_dist = float("inf")
 
         for task in self.tasks:
-            tx, ty = task["pixel_coords"]
+            tx, ty = task["pos_px"]
             dist = ((tx - x) ** 2 + (ty - y) ** 2) ** 0.5
             if dist < closest_dist:
                 closest_dist = dist
@@ -309,31 +309,31 @@ class MapAnnotator:
     def image_to_map_coords(self, x_img, y_img):
         """
         Convert from image pixel coords to 'map' coords in meters,
-        using area_size and the chosen origin.
+        using width_m and the chosen origin.
         """
-        area_size = self.area_size_var.get()
+        width_m = self.width_m_var.get()
         if self.img_width == 0:
             return 0, 0
 
-        # Meters per pixel (assuming area_size is width in meters)
-        m_per_px = area_size / float(self.img_width)
+        # Meters per pixel (assuming width_m is width in meters)
+        m_per_px = width_m / float(self.img_width)
 
         # Shift relative to origin, invert y if desired
         if self.origin:
             ox, oy = self.origin
-            dx = (x_img - ox) * m_per_px
-            dy = (y_img - oy) * m_per_px
-            return -dy, -dx
+            dx = -(y_img - oy) * m_per_px
+            dy = -(x_img - ox) * m_per_px
+            return dx, dy
         else:
             return x_img * m_per_px, y_img * m_per_px
 
     def map_to_image_coords(self, x_map, y_map):
-        area_size = self.area_size_var.get()
+        width_m = self.width_m_var.get()
         if self.img_width == 0:
             return 0, 0
 
-        # Meters per pixel (assuming area_size is width in meters)
-        m_per_px = area_size / float(self.img_width)
+        # Meters per pixel (assuming width_m is width in meters)
+        m_per_px = width_m / float(self.img_width)
 
         # Shift relative to origin, invert y if desired
         if self.origin:
@@ -352,30 +352,27 @@ class MapAnnotator:
             return
 
         filename = os.path.basename(self.image_path)
-        area_size = self.area_size_var.get()
-
-        if self.origin is not None:
-            origin_map = self.image_to_map_coords(*self.origin)
-        else:
-            origin_map = (0.0, 0.0)
+        width_m = self.width_m_var.get()
 
         tasks_list = []
         for task in self.tasks:
             t_id = task["id"]
             t_type = task["type"]
-            map_coords = self.image_to_map_coords(*task["pixel_coords"])
+            map_coords = self.image_to_map_coords(*task["pos_px"])
             tasks_list.append(
                 {
                     "id": t_id,
                     "type": t_type,
-                    "coordinates": [round(map_coords[0], 3), round(map_coords[1], 3)],
+                    "pos_m": [round(map_coords[0], 3), round(map_coords[1], 3)],
                 }
             )
 
         data = {
             "filename": filename,
-            "area_size": area_size,
-            "origin": [round(origin_map[0], 3), round(origin_map[1], 3)],
+            "width_px": self.img_width,
+            "height_px": self.img_height,
+            "width_m": width_m,
+            "origin_px": [round(self.origin[0], 3), round(self.origin[1], 3)],
             "tasks": tasks_list,
         }
 
@@ -391,7 +388,9 @@ class MapAnnotator:
     def load_yaml(self):
         if self.original_image is None:
             # TODO: maybe add an error dialog?
-            tk.messagebox.showerror('No image file opened', 'Please open an image file first')
+            tk.messagebox.showerror(
+                "No image file opened", "Please open an image file first"
+            )
             return
 
         path = filedialog.askopenfilename(filetypes=[("YAML", "*.yaml *.yml")])
@@ -401,17 +400,17 @@ class MapAnnotator:
         with open(path, "r") as f:
             yml = yaml.safe_load(f)
         # print(f'YAML: {yml}')
-        self.area_size_var.set(yml["area_size"])
-        self.origin = yml["origin"]
+        self.width_m_var.set(yml["width_m"])
+        self.origin = yml["origin_px"]
         self.tasks = []
         max_id = 0
         for task in yml["tasks"]:
             t = {
-                'id': task["id"],
-                'type': task['type'],
-                'pixel_coords': self.map_to_image_coords(*task['coordinates'])
+                "id": task["id"],
+                "type": task["type"],
+                "pos_px": self.map_to_image_coords(*task["pos_m"]),
             }
-            max_id = max(max_id, t['id'])
+            max_id = max(max_id, t["id"])
             self.tasks.append(t)
         self.goal_id_counter = max_id
 

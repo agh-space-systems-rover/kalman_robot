@@ -330,7 +330,7 @@ class ImageViewer:
         print(f"Timestamp: {timestamp}")
         cube_coords = calculate_position((x, y, z), timestamp, self.trajectory)
         global_coords = (
-            f"{cube_coords["x"]:.3f} {cube_coords["y"]:.3f} {cube_coords["z"]:.3f}"
+            f"{cube_coords['x']:.3f} {cube_coords['y']:.3f} {cube_coords['z']:.3f}"
         )
 
         label = tk.Label(

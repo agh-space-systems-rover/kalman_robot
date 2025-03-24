@@ -2,7 +2,7 @@ import re
 
 
 def extract_timestamp(name):
-    match = re.search(r"-(\d+)\.\w+$", name)
+    match = re.search(r"cube-(\d+)", name)
     if match:
         return int(match.group(1))
-    raise ValueError("Timestamp not found in the provided name")
+    raise ValueError("Timestamp not found in the provided name: " + name)
