@@ -259,7 +259,7 @@ export default function Science() {
 
   if (scienceElements === null) {
     return (
-      <div className={styles['science']}>
+      <div className={styles['science-danger']}>
         <FontAwesomeIcon icon={faCircleExclamation} className={styles['science-danger-exclamation-icon']} />
         <h1>Waiting for service...</h1>
         <FontAwesomeIcon
@@ -273,7 +273,7 @@ export default function Science() {
 
   if (!scienceElements.enable) {
     return (
-      <div className={styles['science']}>
+      <div className={styles['science-danger']}>
         <FontAwesomeIcon icon={faCircleExclamation} className={styles['science-danger-exclamation-icon']} />
         <h1>Science panel is disabled.</h1>
       </div>

@@ -133,7 +133,7 @@ class SciencePanelDriver(Node):
 
     def handle_data_topic(self, topic_data: dict):
         def callback(msg: MasterMessage):
-            topic_data.get("message")(msg.data, topic_data)
+            topic_data.get("parser")(msg.data, topic_data, self)
 
         return callback
 

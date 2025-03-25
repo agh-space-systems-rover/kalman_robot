@@ -61,6 +61,15 @@
   width: 100%;
 }
 
+.science-danger {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
+
 .science-danger-exclamation-icon {
   width: 20%;
   height: 20%;
