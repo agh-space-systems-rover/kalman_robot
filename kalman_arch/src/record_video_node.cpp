@@ -47,7 +47,7 @@ class RecordVideo : public rclcpp::Node {
 	      it(std::shared_ptr<RecordVideo>(this, [](auto *) {})) {
 
 		frame_rate        = declare_parameter("frame_rate", 5);
-		single_frame_time = 1000 / frame_rate;
+		single_frame_time = 1e6 / frame_rate;
 		camera_name =
 		    declare_parameter("camera_name", std::string("d455_front"));
 		width  = declare_parameter("video_width", 640);
