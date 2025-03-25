@@ -13,7 +13,7 @@ import {
   faCircle
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Service, Topic } from 'roslib';
 
 import Button from '../components/button';
@@ -73,11 +73,14 @@ function Display({ element }: ScienceElementProps) {
     messageType: 'std_msgs/String'
   });
 
-  const [display, setDisplay] = useState<string>('N/A');
+  const [display, setDisplay] = useState<string>('Waiting for data...');
+  const [timestamp, setTimestamp] = useState<string>('Waiting for data...');
 
   useEffect(() => {
     const callback = (msg: { data: string }) => {
       setDisplay(msg.data);
+      const now = new Date();
+      setTimestamp(now.toLocaleTimeString()); // Format: HH:MM:SS
     };
 
     displayTopic.subscribe(callback);
@@ -90,7 +93,14 @@ function Display({ element }: ScienceElementProps) {
     <div className={styles['science-element']}>
       {element.display_name && <h2 className={styles['science-element-header']}>{element.display_name}</h2>}
       {element.buttons && <Buttons parent_id={element.id} buttons={element.buttons} />}
-      <div className={styles['row']}>{display}</div>
+      <div className={styles['science-element-display-container']}>
+        <div className={styles['science-element-display-data']}>
+          <span>{display}</span>
+        </div>
+        <div className={styles['science-element-display-timestamp']}>
+          <span>{timestamp}</span>
+        </div>
+      </div>
     </div>
   );
 }
@@ -115,18 +125,26 @@ function Container({ element }: ScienceElementProps) {
     <div className={styles['science-element']}>
       {element.display_name && <h2 className={styles['science-element-header']}>{element.display_name}</h2>}
       {element.buttons && <Buttons parent_id={element.id} buttons={element.buttons} />}
-      <div>
+      <div className={styles['science-element-icon-container']}>
         <FontAwesomeIcon
           icon={faBoxOpen}
           onClick={() => openTopic.publish({})}
-          style={containerStyle}
           className={styles['science-element-icon']}
+          style={{
+            ...containerStyle,
+            width: '45px',
+            height: '45px'
+          }}
         />
         <FontAwesomeIcon
           icon={faBox}
           onClick={() => closeTopic.publish({})}
-          style={containerStyle}
           className={styles['science-element-icon']}
+          style={{
+            ...containerStyle,
+            width: '42px',
+            height: '42px'
+          }}
         />
       </div>
     </div>
@@ -159,7 +177,7 @@ function Player({ element }: ScienceElementProps) {
     <div className={styles['science-element']}>
       {element.display_name && <h2 className={styles['science-element-header']}>{element.display_name}</h2>}
       {element.buttons && <Buttons parent_id={element.id} buttons={element.buttons} />}
-      <div>
+      <div className={styles['science-element-icon-container']}>
         <FontAwesomeIcon
           icon={faPlay}
           onClick={() => playTopic.publish({})}
@@ -191,7 +209,7 @@ function Status({ element }: ScienceElementProps) {
   });
 
   const [status, setStatus] = useState<boolean | null>(null);
-  const [timestamp, setTimestamp] = useState<string>('');
+  const [timestamp, setTimestamp] = useState<string>('Waiting for data...');
 
   const styleSheet = getComputedStyle(document.body);
   const defaultColor = styleSheet.getPropertyValue('--dark-background') || '#222';
@@ -262,6 +280,8 @@ function Buttons({ parent_id, buttons }: ScienceButtonsProps) {
 }
 
 export default function Science() {
+  const sciencePanel = useRef(null);
+  const scienceContainer = useRef(null);
   const [scienceElements, setScienceElements] = useState<ScienceElements | null>(null);
 
   const handleScienceElements = useCallback((data: ScienceElements) => {
@@ -274,11 +294,38 @@ export default function Science() {
     }
   }, [handleScienceElements]);
 
+  const onResize = useCallback(() => {
+    if (scienceContainer.current === null) return;
+
+    // Find the heighten child
+    const children = Array.from(scienceContainer.current.children) as HTMLElement[];
+    let maxChildHeight = 0;
+    children.forEach((child) => {
+      const childHeight = child.offsetHeight;
+      if (childHeight > maxChildHeight) maxChildHeight = childHeight;
+    });
+
+    // Calculate optimal height: to handle same number of elements
+    let calculatedHeight = maxChildHeight * (Math.round(Math.sqrt(children.length)) + 1);
+
+    scienceContainer.current.style.maxHeight = `${calculatedHeight}px`;
+  }, [scienceContainer, scienceElements]);
+
+  useLayoutEffect(() => {
+    if (scienceContainer.current !== null) {
+      onResize();
+    }
+  }, [scienceElements]);
+
   useEffect(() => {
     requestScienceElements();
     window.addEventListener('able-to-request-science-elements', requestScienceElements);
+    window.addEventListener('resize', onResize);
+    window.addEventListener('any-panel-resize', onResize);
     return () => {
       window.removeEventListener('able-to-request-science-elements', requestScienceElements);
+      window.removeEventListener('resize', onResize);
+      window.removeEventListener('any-panel-resize', onResize);
     };
   }, [requestScienceElements]);
 
@@ -306,21 +353,24 @@ export default function Science() {
   }
 
   return (
-    <div className={styles['science']}>
-      {scienceElements.science_elements?.map((elem) => {
-        switch (elem.type) {
-          case ScienceElementType.DISPLAY:
-            return <Display key={elem.id} element={elem} />;
-          case ScienceElementType.CONTAINER:
-            return <Container key={elem.id} element={elem} />;
-          case ScienceElementType.PLAYER:
-            return <Player key={elem.id} element={elem} />;
-          case ScienceElementType.STATUS:
-            return <Status key={elem.id} element={elem} />;
-          case ScienceElementType.NONE:
-            return <None key={elem.id} element={elem} />;
-        }
-      })}
+    <div className={styles['science']} ref={sciencePanel}>
+      <h1 className={styles['science-header']}>Science componenets</h1>
+      <div className={styles['science-container']} ref={scienceContainer}>
+        {scienceElements.science_elements?.map((elem) => {
+          switch (elem.type) {
+            case ScienceElementType.DISPLAY:
+              return <Display key={elem.id} element={elem} />;
+            case ScienceElementType.CONTAINER:
+              return <Container key={elem.id} element={elem} />;
+            case ScienceElementType.PLAYER:
+              return <Player key={elem.id} element={elem} />;
+            case ScienceElementType.STATUS:
+              return <Status key={elem.id} element={elem} />;
+            case ScienceElementType.NONE:
+              return <None key={elem.id} element={elem} />;
+          }
+        })}
+      </div>
     </div>
   );
 }

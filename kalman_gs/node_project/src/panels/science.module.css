@@ -1,12 +1,28 @@
 .science {
   display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+.science-header {
+  display: flex;
+  font-family: 'Bai Jamjuree';
+  color: var(--strong-foreground);
+  font-weight: 800;
+  justify-content: center;
+}
+
+.science-container {
+  display: flex;
+  flex-direction: column;
   flex-wrap: wrap;
   justify-content: center;
   align-items: center;
   align-content: center;
   gap: 1rem;
-  width: 100%;
-  height: 100%;
   box-sizing: border-box;
 }
 
@@ -23,7 +39,12 @@
   justify-content: center;
   align-items: center;
   flex-direction: column;
-  min-width: 100px;
+  min-width: 135px;
+  min-height: 120px;
+  background-color: var(--dark-active);
+  border-radius: 10px;
+  padding: 20px;
+  border: 1px solid var(--weak-foreground);
 }
 
 .science-element-header {
@@ -32,12 +53,14 @@
   color: var(--strong-foreground);
   font-weight: 800;
   justify-content: center;
+  margin-top: 0;
 }
 
 .science-element-icon-container {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 0.8rem
 }
 
 .science-element-icon {
@@ -48,14 +71,55 @@
 }
 
 .science-element-icon-text {
-  margin-left: 0.5rem;
+  margin-left: 0.2rem;
   font-family: 'Bai Jamjuree';
   color: var(--strong-foreground);
   font-size: 14px;
+  font-style: italic;
 }
 
 .science-element-icon:hover {
   transform: scale(1.05);
+}
+
+.science-element-display-container {
+  width: 100%;
+}
+
+.science-element-display-data {
+  margin-left: -20px;
+  margin-bottom: 0.8rem;
+  min-width: 100%;
+  text-align: left;
+  padding: 3px;
+  background-color: var(--dark-background);
+  border-radius: 0 10px 10px 0;
+}
+
+.science-element-display-data span {
+  font-family: 'Bai Jamjuree';
+  color: var(--strong-foreground);
+  font-size: 14px;
+  font-style: italic;
+  margin-left: 10px;
+}
+
+.science-element-display-timestamp {
+  margin-right: -20px;
+  float: right;
+  min-width: 100%;
+  text-align: right;
+  padding: 3px;
+  background-color: var(--strong-foreground);
+  border-radius: 10px 0 0 10px;
+}
+
+.science-element-display-timestamp span {
+  font-family: 'Bai Jamjuree';
+  color: var(--dark-background);
+  font-size: 14px;
+  font-style: italic;
+  margin-right: 10px;
 }
 
 .science-buttons {
