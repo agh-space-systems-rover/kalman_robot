@@ -67,14 +67,30 @@ window.addEventListener('ros-connect', () => {
 });
 
 function Display({ element }: ScienceElementProps) {
-  {
-    element.display_name && <h2 className={styles['science-element-header']}>{element.display_name}</h2>;
-  }
+  const displayTopic = new Topic({
+    ros: ros,
+    name: `/science_panel/${element.id}_display`,
+    messageType: 'std_msgs/String'
+  });
+
+  const [display, setDisplay] = useState<string>('');
+
+  useEffect(() => {
+    const callback = (msg: { data: string }) => {
+      setDisplay(msg.data);
+    };
+
+    displayTopic.subscribe(callback);
+    return () => {
+      displayTopic.unsubscribe(callback);
+    };
+  }, [element.id]);
 
   return (
     <div className={styles['science-element']}>
+      {element.display_name && <h2 className={styles['science-element-header']}>{element.display_name}</h2>}
       {element.buttons && <Buttons parent_id={element.id} buttons={element.buttons} />}
-      <div className={styles['row']}>{/*<Input dis*/}</div>
+      <div className={styles['row']}>{display}</div>
     </div>
   );
 }

@@ -1,45 +1,124 @@
 enable: true
 elements:
-  - id: rocks
+  - id: lenka_box
+    type: ScienceElementType.CONTAINER
+    display_name: Lenka Box
+    type_data:
+      color: blue-foreground
+      open_message: MasterMessage.GS_TO_UNIVERSAL
+      open_data: [ 0, 2 ]
+      close_message: MasterMessage.GS_TO_UNIVERSAL
+      close_data: [ 0, 3 ]
+  - id: pump
+    type: ScienceElementType.DISPLAY
+    display_name: Pump
+    buttons:
+      - id: pump_on
+        name: "ON"
+        message: MasterMessage.GS_TO_ESP
+        data: [ 3, 'P', 1 ]
+        color: green-foreground
+      - id: pump_off
+        name: "OFF"
+        message: MasterMessage.GS_TO_ESP
+        data: [ 3, 'P', 0 ]
+        color: red-foreground
+  - id: heater
+    type: ScienceElementType.DISPLAY
+    display_name: Heater
+    buttons:
+      - id: heater_on
+        name: "ON"
+        message: MasterMessage.GS_TO_ESP
+        data: [ 3, 'H', 1 ]
+        color: green-foreground
+      - id: heater_off
+        name: "OFF"
+        message: MasterMessage.GS_TO_ESP
+        data: [ 3, 'H', 0 ]
+        color: red-foreground
+  - id: peltier
+    type: ScienceElementType.DISPLAY
+    display_name: Peltier
+    buttons:
+      - id: peltier_on
+        name: "ON"
+        message: MasterMessage.GS_TO_ESP
+        data: [ 3, 'C', 1 ]
+        color: green-foreground
+      - id: peltier_off
+        name: "OFF"
+        message: MasterMessage.GS_TO_ESP
+        data: [ 3, 'C', 0 ]
+        color: red-foreground
+  - id: stacjolab
+    type: ScienceElementType.DISPLAY
+    display_name: Stacjolab
+    buttons:
+      - id: stacjolab_open
+        name: "Open"
+        message: MasterMessage.GS_TO_ESP
+        data: [ 3, 'O', 0 ]
+        color: green-foreground
+      - id: stacjolab_close
+        name: "Reset"
+        message: MasterMessage.GS_TO_ESP
+        data: [ 3, 'R', 0 ]
+        color: blue-foreground
+      - id: stacjolab_reset
+        name: "Close"
+        message: MasterMessage.GS_TO_ESP
+        data: [ 3, 'Z', 0 ]
+        color: red-foreground
+  - id: Status
     type: ScienceElementType.DISPLAY
     display_name: Display
     type_data:
       topic: "master_com/master_to_ros/x85"
-      parser: send_weight
-    buttons:
-      - id: rocks_tare
-        name: Tare
-        message: MasterMessage.GS_TO_ESP
-        data: [ 0, 0 ]
-        color: yellow-foreground
-      - id: rocks_request
-        name: Request
-        message: MasterMessage.GS_TO_ESP
-        data: [ 0, 1 ]
-        color: blue-foreground
-  - id: container
-    type: ScienceElementType.CONTAINER
-    display_name: Container
-    type_data:
-      color: red-foreground
-      open_message: MasterMessage.GS_TO_ESP
-      open_data: [ 0 ]
-      close_message: MasterMessage.GS_TO_ESP
-      close_data: [ 1 ]
-  - id: player
-    type: ScienceElementType.PLAYER
-    display_name: Player
-    type_data:
-      color: yellow-foreground
-      play_message: MasterMessage.GS_TO_ESP
-      play_data: [ 0, 0 ]
-      pause_message: MasterMessage.GS_TO_ESP
-      pause_data: [ 0, 1 ]
-      stop_message: MasterMessage.GS_TO_ESP
-      stop_data: [ 1, 1 ]
-  - id: status
-    type: ScienceElementType.STATUS
-    display_name: Status
-    type_data:
-      topic: "master_com/master_to_ros/x85"
-      parser: send_status
+      data_prefix: [3, 'S']
+      parser: parse_stacjolab_status
+  # - id: rocks
+  #   type: ScienceElementType.DISPLAY
+  #   display_name: Display
+  #   type_data:
+  #     topic: "master_com/master_to_ros/x85"
+  #     data_prefix: [30]
+  #     parser: send_weight
+  #   buttons:
+  #     - id: rocks_tare
+  #       name: Tare
+  #       message: MasterMessage.GS_TO_ESP
+  #       data: [ 0, 0 ]
+  #       color: yellow-foreground
+  #     - id: rocks_request
+  #       name: Request
+  #       message: MasterMessage.GS_TO_ESP
+  #       data: [ 0, 1 ]
+  #       color: blue-foreground
+  # - id: container
+  #   type: ScienceElementType.CONTAINER
+  #   display_name: Container
+  #   type_data:
+  #     color: red-foreground
+  #     open_message: MasterMessage.GS_TO_ESP
+  #     open_data: [ 0 ]
+  #     close_message: MasterMessage.GS_TO_ESP
+  #     close_data: [ 1 ]
+  # - id: player
+  #   type: ScienceElementType.PLAYER
+  #   display_name: Player
+  #   type_data:
+  #     color: yellow-foreground
+  #     play_message: MasterMessage.GS_TO_ESP
+  #     play_data: [ 0, 0 ]
+  #     pause_message: MasterMessage.GS_TO_ESP
+  #     pause_data: [ 0, 1 ]
+  #     stop_message: MasterMessage.GS_TO_ESP
+  #     stop_data: [ 1, 1 ]
+  # - id: status
+  #   type: ScienceElementType.STATUS
+  #   display_name: Status
+  #   type_data:
+  #     topic: "master_com/master_to_ros/x85"
+  #     data_prefix: [31]
+  #     parser: send_status
