@@ -181,7 +181,7 @@ class MapAnnotator:
 
     def _draw_goals(self):
         """Draw the annotated goals on the canvas."""
-        for task in self.tasks:
+        for i_task, task in enumerate(self.tasks):
             x, y = task["pos_px"]
             cx, cy = self.to_canvas_coords(x, y)
 
@@ -193,6 +193,23 @@ class MapAnnotator:
                 color = "orange"
             elif task["type"] == "explore":
                 color = "purple"
+
+            # Draw a line to the previous task
+            if self.origin is not None:
+                if i_task != 0:
+                    prev_task = self.tasks[i_task - 1]
+                    px, py = prev_task["pos_px"]
+                else:
+                    px, py = self.origin
+                # offset px,py by a few px towards cx,cy
+                l = ((cx - px) ** 2 + (cy - py) ** 2) ** 0.5
+                if l > 0:
+                    px += 5 * (cx - px) / l
+                    py += 5 * (cy - py) / l
+                pcx, pcy = self.to_canvas_coords(px, py)
+                self.canvas.create_line(
+                    pcx, pcy, cx, cy, fill="gray", width=2, arrow=tk.LAST
+                )
 
             self.canvas.create_oval(
                 cx - r, cy - r, cx + r, cy + r, fill=color, outline="black", width=1

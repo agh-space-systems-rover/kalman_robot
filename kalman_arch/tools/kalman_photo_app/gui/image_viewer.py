@@ -349,15 +349,51 @@ class ImageViewer:
         )
 
     def save_to_file(self, filename, coords, description):
-        print(filename)
-        print(coords)
+        # {color}.txt:
+        # timestamp ; x y z # mean_x mean_y mean_z
+        # ...
+
         color = description.split()[1] if len(description.split()) > 1 else "unknown"
-        new_filename = (
-            self.out_folder + "/" + filename.split("/")[-1].replace(".jpg", ".txt")
-        )
-        with open(new_filename, "w") as file:
-            file.write(f"{color}: {coords}\n")
-        print(f"Saved to {new_filename}")
+        timestamp = extract_timestamp(filename)
+
+        output_file = os.path.join(self.out_folder, f"{color}.txt")
+
+        # Read existing lines
+        existing_lines = []
+        if os.path.exists(output_file):
+            with open(output_file, "r") as file:
+                existing_lines = file.readlines()
+                # Remove newlines
+                existing_lines = [line.strip() for line in existing_lines]
+
+        # Remove means
+        existing_lines = [line.split("#")[0].strip() for line in existing_lines]
+
+        # Add new line
+        new_line = f"{timestamp} ; {coords}"
+        existing_lines.append(new_line)
+
+        # Remove duplicates
+        existing_lines = list(set(existing_lines))
+
+        # Sort by timestamp
+        existing_lines.sort(key=lambda x: x.split(";")[0].strip())
+
+        # Recompute means
+        sum = [0, 0, 0]
+        for i, line in enumerate(existing_lines):
+            parts = line.split(";")[1].strip().split()
+            for j in range(3):
+                sum[j] += float(parts[j])
+            mean = [f"{x / (i + 1):.2f}" for x in sum]
+            existing_lines[i] = f"{line} # {' '.join(mean)}"
+
+        # Write all lines back
+        with open(output_file, "w") as file:
+            existing_lines = [line + "\n" for line in existing_lines]
+            file.writelines(existing_lines)
+
+        print(f"Appended to {output_file}")
 
     def show_previous(self, event=None):
         self.index = (self.index - 1) % len(self.images)
