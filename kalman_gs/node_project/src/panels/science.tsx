@@ -17,13 +17,13 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Service, Topic } from 'roslib';
 
 import Button from '../components/button';
-import Input from '../components/input';
 
 enum ScienceElementType {
   DISPLAY = 0,
   CONTAINER = 1,
   PLAYER = 2,
-  STATUS = 3
+  STATUS = 3,
+  NONE = 4
 }
 
 type ScienceElementProps = {
@@ -73,7 +73,7 @@ function Display({ element }: ScienceElementProps) {
     messageType: 'std_msgs/String'
   });
 
-  const [display, setDisplay] = useState<string>('');
+  const [display, setDisplay] = useState<string>('N/A');
 
   useEffect(() => {
     const callback = (msg: { data: string }) => {
@@ -227,6 +227,15 @@ function Status({ element }: ScienceElementProps) {
   );
 }
 
+function None({ element }: ScienceElementProps) {
+  return (
+    <div className={styles['science-element']}>
+      {element.display_name && <h2 className={styles['science-element-header']}>{element.display_name}</h2>}
+      {element.buttons && <Buttons parent_id={element.id} buttons={element.buttons} />}
+    </div>
+  );
+}
+
 function Buttons({ parent_id, buttons }: ScienceButtonsProps) {
   const style = getComputedStyle(document.body);
 
@@ -308,6 +317,8 @@ export default function Science() {
             return <Player key={elem.id} element={elem} />;
           case ScienceElementType.STATUS:
             return <Status key={elem.id} element={elem} />;
+          case ScienceElementType.NONE:
+            return <None key={elem.id} element={elem} />;
         }
       })}
     </div>

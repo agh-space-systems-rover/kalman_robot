@@ -14,6 +14,7 @@ class ScienceElementType(Enum):
     CONTAINER = 1
     PLAYER = 2
     STATUS = 3
+    NONE = 4
 
 
 class SciencePanelDriver(Node):
