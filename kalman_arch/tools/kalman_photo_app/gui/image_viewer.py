@@ -17,7 +17,7 @@ class ImageViewer:
         self.folder_path = folder_path
         self.out_folder = out_folder
         self.sort_ascending = True
-        self.sort_method = "none"
+        self.sort_method = "timestamp"
 
         self.color_filter = {
             "red": False,
@@ -102,7 +102,7 @@ class ImageViewer:
         self.sort_label.pack(anchor=tk.W)
 
         # Radio button variable
-        self.sort_var = tk.StringVar(value="none")  # Default sort by none
+        self.sort_var = tk.StringVar(value="timestamp")
 
         # Radio buttons for sorting options
         sort_options_frame = tk.Frame(self.sort_frame, bg="#f0f0f0")
@@ -110,9 +110,9 @@ class ImageViewer:
 
         self.color_rb = tk.Radiobutton(
             sort_options_frame,
-            text="None",
+            text="Timestamp",
             variable=self.sort_var,
-            value="none",
+            value="timestamp",
             command=self.handle_radio_sorting,
             bg="#f0f0f0",
         )

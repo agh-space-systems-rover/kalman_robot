@@ -101,52 +101,50 @@ def get_image_array(folder_path, color_filter, sort_method, ascending):
     # Sort images based on selected color if only one color filter is active
     active_colors = [color for color, is_active in color_filter.items() if is_active]
 
-    if sort_method == "accuracy":
-
-        def get_match_value(img_path):
-            txt_path = img_path.replace(".jpg", ".txt")
+    def get_match_value(img_path):
+        if sort_method == "timestamp":
+            # Extract timestamp from filename
+            # Format: cube-<epoch>-<...>.jpg
             try:
-                with open(txt_path, "r") as file:
-                    for line in file:
-                        parts = line.strip().split()
-                        if len(parts) >= 2 and parts[0].lower() in [
-                            "red",
-                            "green",
-                            "blue",
-                            "white",
-                        ]:
-                            # Return the first numerical value after color name
-                            try:
+                return int(img_path.split("-")[1])
+            except (ValueError, IndexError):
+                return 0
+
+        txt_path = img_path.replace(".jpg", ".txt")
+        try:
+            with open(txt_path, "r") as file:
+                for line in file:
+                    parts = line.strip().split()
+                    if len(parts) >= 2 and parts[0].lower() in [
+                        "red",
+                        "green",
+                        "blue",
+                        "white",
+                    ]:
+                        if (
+                            len(active_colors) == 1
+                            and parts[0].lower() != active_colors[0]
+                        ):
+                            continue
+
+                        # Return the first numerical value after color name
+                        try:
+                            if sort_method == "accuracy":
                                 return float(parts[1])
-                            except (ValueError, IndexError):
-                                pass
-                return 0.0  # Default value if no valid match value found
-            except Exception:
-                return 0.0  # Default if file can't be read
+                            elif sort_method == "distance":
+                                return (
+                                    float(parts[2]) ** 2
+                                    + float(parts[3]) ** 2
+                                    + float(parts[4]) ** 2
+                                )
+                            else:
+                                return 0.0
+                        except (ValueError, IndexError):
+                            pass
+            return 0.0  # Default value if no valid match value found
+        except Exception:
+            return 0.0  # Default if file can't be read
 
-        if len(active_colors) == 1:
-            # Only one color filter is active, sort by this color's value
-            selected_color = active_colors[0]
-
-            def get_color_value(img_path):
-                txt_path = img_path.replace(".jpg", ".txt")
-                try:
-                    with open(txt_path, "r") as file:
-                        for line in file:
-                            parts = line.strip().split()
-                            if len(parts) >= 2 and parts[0].lower() == selected_color:
-                                try:
-                                    return float(parts[1])
-                                except (ValueError, IndexError):
-                                    pass
-                    return 0.0  # Default if color not found or value not readable
-                except Exception:
-                    return 0.0  # Default if file can't be read
-
-            images.sort(key=get_color_value, reverse=not ascending)
-        # Sort images based on the first value after color name in text file
-        else:
-            images.sort(key=get_match_value, reverse=not ascending)
-    print("sort ok")
+    images.sort(key=get_match_value, reverse=not ascending)
 
     return images
