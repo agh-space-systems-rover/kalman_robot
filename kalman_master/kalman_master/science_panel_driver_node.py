@@ -174,7 +174,8 @@ class SciencePanelDriver(Node):
 
     def handle_data_topic(self, topic_data: dict):
         def callback(msg: MasterMessage, topic_data=topic_data):
-            data_prefix = topic_data.get("data_prefix")
+            data_prefix = self._convert_data_to_integers(topic_data.get("data_prefix"))
+
             if data_prefix == msg.data[: len(data_prefix)].tolist():
                 data = msg.data[len(topic_data.get("data_prefix")) :]
                 topic_data.get("parser")(data, topic_data, self)
@@ -183,14 +184,7 @@ class SciencePanelDriver(Node):
 
     def handle_empty_topic(self, topic_data: dict):
         def callback(msg: Empty):
-            data_to_send = []
-            for byte in topic_data.get("data"):
-                if isinstance(byte, int):
-                    data_to_send.append(byte)
-                elif isinstance(byte, str) and len(byte) == 1:
-                    data_to_send.append(ord(byte))
-                else:
-                    self.get_logger().error(f"Unsupported data type: {type(byte)}")
+            data_to_send = self._convert_data_to_integers(topic_data.get("data", []))
             message = MasterMessage(
                 cmd=topic_data.get("message"),
                 data=data_to_send,
@@ -198,6 +192,18 @@ class SciencePanelDriver(Node):
             self.science_pub.publish(message)
 
         return callback
+
+    def _convert_data_to_integers(self, data):
+        data_int = []
+        for byte in data:
+            if isinstance(byte, int):
+                data_int.append(byte)
+            elif isinstance(byte, str) and len(byte) == 1:
+                data_int.append(ord(byte))
+            else:
+                self.get_logger().error(f"Unsupported data type: {type(byte)}")
+
+        return data_int
 
 
 def main():
