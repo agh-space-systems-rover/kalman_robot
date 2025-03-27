@@ -143,13 +143,21 @@ class MagnetoDriver(Node):
             try:
                 ax.clear()
                 ax.plot(
-                    df["timestamp"].values[-150:0],
-                    df["length"].values[-150:0],
+                    df["timestamp"].values[-150:],
+                    df["length"].values[-150:],
                     label="Vector magnitude",
+                )
+                ax.plot(
+                    df["timestamp"].values[-150:],
+                    df["tared_length"].values[-150:],
+                    label="Tared vector magnitude",
+                    color='green'
                 )
                 ax.set_title("Magnetic field vector length")
                 ax.set_xlabel("Time [s]")
                 ax.set_ylabel("Magnitude [uT]")
+
+                ax.legend()
             except KeyError:
                 self.get_logger().warn("Something wrong with csv keys")
 
