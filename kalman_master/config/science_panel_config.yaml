@@ -86,6 +86,11 @@ elements:
         message: MasterMessage.GS_TO_ESP
         data: [ 3, 'Z', 0 ]
         color: red-background
+      - id: stacjolab_tare
+        name: "Tare"
+        message: MasterMessage.GS_TO_ESP
+        data: [ 3, 'T', 0 ]
+        color: blue-background
   # - id: Status
   #   type: ScienceElementType.DISPLAY
   #   display_name: Display
