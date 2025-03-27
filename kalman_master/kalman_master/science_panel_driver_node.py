@@ -309,8 +309,7 @@ def get_pump_status(data, topic_data, node):
     publisher = node.create_publisher(
         String, f"science_panel/{topic_data.get('topic')}", 10
     )
-    pump_desired = bin(data[0])[6]
-    pump_current = bin(data[0])[7]
+    pump_desired, pump_current = f"{data[0]:08b}"[6:8]
 
     msg = String()
     msg.data = str(pump_desired) + "/" + str(pump_current)
@@ -321,8 +320,7 @@ def get_heater_status(data, topic_data, node):
     publisher = node.create_publisher(
         String, f"science_panel/{topic_data.get('topic')}", 10
     )
-    heater_desired = bin(data[0])[2]
-    heater_current = bin(data[0])[3]
+    heater_desired, heater_current = f"{data[0]:08b}"[2:4]
     heater_temp = struct.unpack("<h", data[1:3])[0]
 
     msg = String()
@@ -341,8 +339,7 @@ def get_peltier_status(data, topic_data, node):
     publisher = node.create_publisher(
         String, f"science_panel/{topic_data.get('topic')}", 10
     )
-    peltier_desired = bin(data[0])[4]
-    peltier_current = bin(data[0])[5]
+    peltier_desired, peltier_current = f"{data[0]:08b}"[4:6]
     peltier_temp_cold = struct.unpack("<h", data[5:7])[0]
     peltier_temp_hot = struct.unpack("<h", data[7:9])[0]
 
@@ -364,8 +361,7 @@ def get_stacjolab_status(data, topic_data, node):
     publisher = node.create_publisher(
         String, f"science_panel/{topic_data.get('topic')}", 10
     )
-    motor_desired = bin(data[0])[8]
-    motor_current = bin(data[0])[9]
+    motor_desired, motor_current = f"{data[0]:08b}"[6:8]
     chamber_temp = struct.unpack("<h", data[3:5])[0]
     battery_voltage = float(struct.unpack("<h", data[9:11])[0]) / 100.0
     weight = struct.unpack("<i", data[11:15])[0]  # in grams
