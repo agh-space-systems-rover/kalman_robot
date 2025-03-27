@@ -6,7 +6,7 @@ from std_msgs.msg import String, Bool, Empty
 
 # from example_interfaces.msg import
 from kalman_interfaces.msg import MasterMessage, ScienceElement, ScienceButton
-from kalman_interfaces.srv import GetScienceElements
+from kalman_interfaces.srv import GetScienceElements, RequestMagnetoTare
 
 
 class ScienceElementType(Enum):
@@ -49,8 +49,10 @@ class SciencePanelDriver(Node):
                 button_list.append(
                     {
                         "topic": f"{parent_id}_{button.get('id')}",
-                        "message": eval(button.get("message")),
+                        "message": eval(button.get("message", "''")),
                         "data": button.get("data", None),
+                        "custom": button.get("custom", False),
+                        "custom_sender": eval(button.get("custom_sender", "''")),
                     }
                 )
 
@@ -188,12 +190,18 @@ class SciencePanelDriver(Node):
 
     def handle_empty_topic(self, topic_data: dict):
         def callback(msg: Empty):
-            data_to_send = self._convert_data_to_integers(topic_data.get("data", []))
-            message = MasterMessage(
-                cmd=topic_data.get("message"),
-                data=data_to_send,
-            )
-            self.science_pub.publish(message)
+            if topic_data.get("custom", False):
+                topic_data.get("custom_sender")(topic_data, self)
+
+            else:
+                data_to_send = self._convert_data_to_integers(
+                    topic_data.get("data", [])
+                )
+                message = MasterMessage(
+                    cmd=topic_data.get("message"),
+                    data=data_to_send,
+                )
+                self.science_pub.publish(message)
 
         return callback
 
@@ -280,3 +288,17 @@ def send_magneto(data, topic_data, node):
     msg = String()
     msg.data = f"{data.length:.2f} / {data.percentage:.2f}"
     publisher.publish(msg)
+
+
+def magneto_tare_new(topic_data, node: Node):
+    publisher = node.create_client(RequestMagnetoTare, "magneto/request_tare")
+    request = RequestMagnetoTare.Request()
+    request.type = RequestMagnetoTare.Request.NEW
+    publisher.call_async(request)
+
+
+def magneto_tare_reset(topic_data, node: Node):
+    publisher = node.create_client(RequestMagnetoTare, "magneto/request_tare")
+    request = RequestMagnetoTare.Request()
+    request.type = RequestMagnetoTare.Request.RESET
+    publisher.call_async(request)

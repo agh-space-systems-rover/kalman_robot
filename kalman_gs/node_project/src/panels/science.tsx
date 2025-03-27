@@ -92,7 +92,6 @@ function Display({ element }: ScienceElementProps) {
   return (
     <div className={styles['science-element']}>
       {element.display_name && <h2 className={styles['science-element-header']}>{element.display_name}</h2>}
-      {element.buttons && <Buttons parent_id={element.id} buttons={element.buttons} />}
       <div className={styles['science-element-display-container']}>
         <div className={styles['science-element-display-data']}>
           <span>{display}</span>
@@ -101,6 +100,7 @@ function Display({ element }: ScienceElementProps) {
           <span>{timestamp}</span>
         </div>
       </div>
+      {element.buttons && <Buttons parent_id={element.id} buttons={element.buttons} />}
     </div>
   );
 }
@@ -261,7 +261,8 @@ function Buttons({ parent_id, buttons }: ScienceButtonsProps) {
     <div className={styles['row']}>
       {buttons.map((button) => {
         let buttonStyle = {};
-        if (button.color) buttonStyle = { backgroundColor: style.getPropertyValue(`--${button.color}`) };
+        if (button.color)
+          buttonStyle = { backgroundColor: style.getPropertyValue(`--${button.color}`), padding: '10px 20px' };
 
         const topic = new Topic({
           ros: ros,

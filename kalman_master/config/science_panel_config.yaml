@@ -4,7 +4,7 @@ elements:
   #   type: ScienceElementType.CONTAINER
   #   display_name: Lenka Box
   #   type_data:
-  #     color: blue-foreground
+  #     color: blue-background
   #     open_message: MasterMessage.GS_TO_UNIVERSAL
   #     open_data: [ 0, 2 ]
   #     close_message: MasterMessage.GS_TO_UNIVERSAL
@@ -17,12 +17,12 @@ elements:
         name: "ON"
         message: MasterMessage.GS_TO_ESP
         data: [ 3, 'P', 1 ]
-        color: green-foreground
+        color: green-background
       - id: pump_off
         name: "OFF"
         message: MasterMessage.GS_TO_ESP
         data: [ 3, 'P', 0 ]
-        color: red-foreground
+        color: red-background
   - id: heater
     type: ScienceElementType.NONE
     display_name: Heater
@@ -31,12 +31,12 @@ elements:
         name: "ON"
         message: MasterMessage.GS_TO_ESP
         data: [ 3, 'H', 1 ]
-        color: green-foreground
+        color: green-background
       - id: heater_off
         name: "OFF"
         message: MasterMessage.GS_TO_ESP
         data: [ 3, 'H', 0 ]
-        color: red-foreground
+        color: red-background
   - id: peltier
     type: ScienceElementType.NONE
     display_name: Peltier
@@ -45,12 +45,12 @@ elements:
         name: "ON"
         message: MasterMessage.GS_TO_ESP
         data: [ 3, 'C', 1 ]
-        color: green-foreground
+        color: green-background
       - id: peltier_off
         name: "OFF"
         message: MasterMessage.GS_TO_ESP
         data: [ 3, 'C', 0 ]
-        color: red-foreground
+        color: red-background
   - id: stacjolab
     type: ScienceElementType.NONE
     display_name: Stacjolab
@@ -59,17 +59,17 @@ elements:
         name: "Open"
         message: MasterMessage.GS_TO_ESP
         data: [ 3, 'O', 0 ]
-        color: green-foreground
+        color: green-background
       - id: stacjolab_close
         name: "Reset"
         message: MasterMessage.GS_TO_ESP
         data: [ 3, 'R', 0 ]
-        color: blue-foreground
+        color: yellow-background
       - id: stacjolab_reset
         name: "Close"
         message: MasterMessage.GS_TO_ESP
         data: [ 3, 'Z', 0 ]
-        color: red-foreground
+        color: red-background
   - id: Status
     type: ScienceElementType.DISPLAY
     display_name: Display
@@ -86,6 +86,18 @@ elements:
       topic: "magneto/result"
       field: "length"
       parser: send_magneto
+    buttons:
+      - id: magneto_tare_new
+        name: "New"
+        custom: true
+        custom_sender: magneto_tare_new
+        color: green-background
+      - id: magneto_tare_reset
+        name: "Reset"
+        custom: true
+        custom_sender: magneto_tare_reset
+        color: yellow-background
+    
   # - id: rocks
   #   type: ScienceElementType.DISPLAY
   #   display_name: Display
@@ -98,17 +110,17 @@ elements:
   #       name: Tare
   #       message: MasterMessage.GS_TO_ESP
   #       data: [ 0, 0 ]
-  #       color: yellow-foreground
+  #       color: yellow-background
   #     - id: rocks_request
   #       name: Request
   #       message: MasterMessage.GS_TO_ESP
   #       data: [ 0, 1 ]
-  #       color: blue-foreground
+  #       color: blue-background
   # - id: container
   #   type: ScienceElementType.CONTAINER
   #   display_name: Container
   #   type_data:
-  #     color: red-foreground
+  #     color: red-background
   #     open_message: MasterMessage.GS_TO_ESP
   #     open_data: [ 0 ]
   #     close_message: MasterMessage.GS_TO_ESP
@@ -117,7 +129,7 @@ elements:
   #   type: ScienceElementType.PLAYER
   #   display_name: Player
   #   type_data:
-  #     color: yellow-foreground
+  #     color: yellow-background
   #     play_message: MasterMessage.GS_TO_ESP
   #     play_data: [ 0, 0 ]
   #     pause_message: MasterMessage.GS_TO_ESP

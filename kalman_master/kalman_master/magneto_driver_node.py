@@ -28,9 +28,7 @@ class MagnetoDriver(Node):
         self.CALIBRATION_DIR = self.declare_parameter(
             "calibration_dir", "/home/ros/Documents/ilmenite/calib_data"
         ).value
-        self.REQ_PERIOD = self.declare_parameter(
-            "request_period", 2.0
-        ).value
+        self.REQ_PERIOD = self.declare_parameter("request_period", 2.0).value
 
         # Init magneto listener
         self.magneto = self.create_subscription(
@@ -122,7 +120,9 @@ class MagnetoDriver(Node):
             case RequestMagnetoTare.Request.NEW:
                 self._tare_length = self._last_length
             case RequestMagnetoTare.Request.RESET:
-                self._tare_length = self._last_length
+                self._tare_length = 0.0
+
+        self.get_logger().info(f"Tare request: {request.type}")
 
         return response
 
@@ -143,8 +143,8 @@ class MagnetoDriver(Node):
             try:
                 ax.clear()
                 ax.plot(
-                    df["timestamp"].values,
-                    df["length"].values,
+                    df["timestamp"].values[-150:0],
+                    df["length"].values[-150:0],
                     label="Vector magnitude",
                 )
                 ax.set_title("Magnetic field vector length")
