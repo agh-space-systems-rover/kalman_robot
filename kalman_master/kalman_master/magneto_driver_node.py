@@ -1,3 +1,4 @@
+from matplotlib import animation, pyplot as plt
 import rclpy
 import time
 import struct 
@@ -13,6 +14,8 @@ from std_msgs.msg import UInt8MultiArray
 
 from kalman_interfaces.msg import MagnetoData
 from kalman_interfaces.srv import RequestMagnetoTare
+
+import threading
 
 LOG_DIR_PATH = "/home/ros/Desktop/ilmenite"
 CALIBRATION_DIR_PATH="/home/ros/Documents/ilmenit_calibration_data"
@@ -44,13 +47,18 @@ class MagnetoDriver(Node):
 
         self._timestamp_start = dt.now()
 
-        with open(f"{LOG_DIR_PATH}/log_{self._timestamp_start.strftime('%d_%m_%y__%H_%M_%S')}.csv", 'w') as result_file:
+        self._filename = f"{LOG_DIR_PATH}/log_{self._timestamp_start.strftime('%d_%m_%y__%H_%M_%S')}.csv"
+
+        with open(self._filename, 'w') as result_file:
             result_file.write("timestamp;x;y;z;length;tared_length;percentage\n")
 
         self._last_vector = (0, 0, 0)
         self._last_length = 0
         
         self._tare_length = 0
+
+        self.thread = threading.Thread(target=self.start_chart_animation)
+        self.thread.start()
 
 
     def data_response(self, msg: UInt8MultiArray):
@@ -72,7 +80,7 @@ class MagnetoDriver(Node):
         )
         
         delta_t = dt.now() - self._timestamp_start
-        with open(f"{LOG_DIR_PATH}/log_{self._timestamp_start.strftime('%d_%m_%y__%H_%M_%S')}.csv", 'a') as result_file:
+        with open(self._filename, 'a') as result_file:
             result_file.write(f"{delta_t};{x};{y};{z};{vector_length};{tared_length};{estimator}\n")
 
         self.magneto_data_pub.publish(msg)
@@ -89,6 +97,31 @@ class MagnetoDriver(Node):
     @staticmethod
     def _fit_percents(x, a, b, c):
         return a*np.exp(b*x) + c
+    
+    def start_chart_animation(self):
+        fig, ax = plt.subplots()
+        
+        def update(frame):
+            df = pd.read_csv(self._filename, delimiter=';')
+
+            if df.size == 0:
+                self.get_logger().warn("No magneto data to display yet")
+                return
+            
+            try:
+                ax.clear()
+                ax.plot(df['timestamp'].values, df['length'].values, label="Vector magnitude")
+                ax.set_title("Magnetic field vector length")
+                ax.set_xlabel("Time")
+                ax.set_ylabel("Magnitude")
+                ax.set_xticklabels([])
+            except KeyError:
+                self.get_logger().warn("Something wrong with csv keys")
+            
+        anim = animation.FuncAnimation(fig, update, interval=1000)
+
+        plt.show()
+
     
 def main():
     try:
