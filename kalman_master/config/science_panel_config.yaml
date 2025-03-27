@@ -77,9 +77,9 @@ elements:
         data: [ 3, 'O', 0 ]
         color: green-background
       - id: stacjolab_close
-        name: "Reset"
+        name: "Stop"
         message: MasterMessage.GS_TO_ESP
-        data: [ 3, 'R', 0 ]
+        data: [ 3, 'S', 0 ]
         color: yellow-background
       - id: stacjolab_reset
         name: "Close"

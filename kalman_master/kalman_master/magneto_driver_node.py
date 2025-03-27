@@ -161,7 +161,7 @@ class MagnetoDriver(Node):
             except KeyError:
                 self.get_logger().warn("Something wrong with csv keys")
 
-        anim = animation.FuncAnimation(fig, update, interval=1000)
+        anim = animation.FuncAnimation(fig, update, interval=2000)
 
         plt.show()
 
@@ -169,6 +169,39 @@ class MagnetoDriver(Node):
         msg = UInt8MultiArray()
         for i in range(3):
             self.magnet_req_pub.publish(msg)
+
+def plot_from_file(filename):
+    fig, ax = plt.subplots()
+
+    df = pd.read_csv(filename, delimiter=";")
+
+    if df.size == 0:
+        print("No magneto data to display yet")
+        return
+
+    try:
+        ax.clear()
+        ax.plot(
+            df["timestamp"].values[-150:],
+            df["length"].values[-150:],
+            label="Vector magnitude",
+        )
+        ax.plot(
+            df["timestamp"].values[-150:],
+            df["tared_length"].values[-150:],
+            label="Tared vector magnitude",
+            color='green'
+        )
+        ax.set_title("Magnetic field vector length")
+        ax.set_xlabel("Time [s]")
+        ax.set_ylabel("Magnitude [uT]")
+
+        ax.legend()
+    except KeyError:
+        print("Something wrong with csv keys")
+
+    fig.show()
+    plt.show()
 
 
 def main():

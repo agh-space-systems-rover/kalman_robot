@@ -309,7 +309,7 @@ def get_pump_status(data, topic_data, node):
     publisher = node.create_publisher(
         String, f"science_panel/{topic_data.get('topic')}", 10
     )
-    pump_desired, pump_current = f"{data[0]:08b}"[6:8]
+    pump_current, pump_desired = f"{data[0]:08b}"[2:4]
 
     msg = String()
     msg.data = str(pump_desired) + "/" + str(pump_current)
@@ -320,7 +320,7 @@ def get_heater_status(data, topic_data, node):
     publisher = node.create_publisher(
         String, f"science_panel/{topic_data.get('topic')}", 10
     )
-    heater_desired, heater_current = f"{data[0]:08b}"[2:4]
+    heater_current, heater_desired = f"{data[0]:08b}"[6:8]
     heater_temp = float(struct.unpack("<h", data[1:3])[0]) / 100.0 
 
     msg = String()
@@ -332,12 +332,12 @@ def get_peltier_status(data, topic_data, node):
     publisher = node.create_publisher(
         String, f"science_panel/{topic_data.get('topic')}", 10
     )
-    peltier_desired, peltier_current = f"{data[0]:08b}"[4:6]
+    peltier_current, peltier_desired = f"{data[0]:08b}"[4:6]
     peltier_temp_cold = float(struct.unpack("<h", data[5:7])[0]) / 100.0
     peltier_temp_hot = float(struct.unpack("<h", data[7:9])[0]) / 100.0
 
     msg = String()
-    msg.data = f"{peltier_desired}/{peltier_current}: cold/hot {peltier_temp_cold:.1f}/{peltier_temp_hot:.1f}°C"
+    msg.data = f"{peltier_desired}/{peltier_current}: {peltier_temp_cold:.1f}°C cold/{peltier_temp_hot:.1f}°C hot"
     publisher.publish(msg)
 
 
@@ -345,11 +345,11 @@ def get_stacjolab_status(data, topic_data, node):
     publisher = node.create_publisher(
         String, f"science_panel/{topic_data.get('topic')}", 10
     )
-    motor_desired, motor_current = f"{data[0]:08b}"[6:8]
+    motor_current, motor_desired = f"{data[0]:08b}"[0:2]
     chamber_temp = float(struct.unpack("<h", data[3:5])[0]) / 100.0
     battery_voltage = float(struct.unpack("<h", data[9:11])[0]) / 1000.0 # converted from mV
     weight = struct.unpack("<i", data[11:15])[0]  # in grams
 
     msg = String()
-    msg.data = f"{motor_desired}/{motor_current}: {battery_voltage:.2f}V : {weight}g"
+    msg.data = f"Motor: {motor_desired}/{motor_current}: {battery_voltage:.2f}V: {weight}g"
     publisher.publish(msg)
