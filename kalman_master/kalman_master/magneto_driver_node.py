@@ -23,10 +23,13 @@ class MagnetoDriver(Node):
         super().__init__("magneto_driver")
 
         self.LOG_DIR = self.declare_parameter(
-            "log_dir", "/home/ros/Desktop/ilmenite"
+            "log_dir", "/home/ros/Documents/ilmenite"
         ).value
         self.CALIBRATION_DIR = self.declare_parameter(
-            "calibration_dir", "/home/ros/Desktop/ilmenite"
+            "calibration_dir", "/home/ros/Documents/ilmenite/calib_data"
+        ).value
+        self.REQ_PERIOD = self.declare_parameter(
+            "request_period", 2.0
         ).value
 
         # Init magneto listener
@@ -41,7 +44,7 @@ class MagnetoDriver(Node):
             UInt8MultiArray, "magneto/request", 10
         )
 
-        self.create_timer(5.0, self.request_data)
+        self.create_timer(self.REQ_PERIOD, self.request_data)
 
         # Init magneto tare service
         self.magneto_tare_service = self.create_service(
@@ -145,8 +148,8 @@ class MagnetoDriver(Node):
                     label="Vector magnitude",
                 )
                 ax.set_title("Magnetic field vector length")
-                ax.set_xlabel("Time")
-                ax.set_ylabel("Magnitude")
+                ax.set_xlabel("Time [s]")
+                ax.set_ylabel("Magnitude [uT]")
             except KeyError:
                 self.get_logger().warn("Something wrong with csv keys")
 
@@ -156,7 +159,8 @@ class MagnetoDriver(Node):
 
     def request_data(self):
         msg = UInt8MultiArray()
-        self.magnet_req_pub.publish(msg)
+        for i in range(3):
+            self.magnet_req_pub.publish(msg)
 
 
 def main():

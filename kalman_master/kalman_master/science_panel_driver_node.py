@@ -278,5 +278,5 @@ def send_magneto(data, topic_data, node):
         String, f"science_panel/{topic_data.get('topic')}", 10
     )
     msg = String()
-    msg.data = f"{data.length:.2f}"
+    msg.data = f"{data.length:.2f} / {data.percentage:.2f}"
     publisher.publish(msg)

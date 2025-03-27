@@ -1,14 +1,14 @@
 enable: true
 elements:
-  - id: lenka_box
-    type: ScienceElementType.CONTAINER
-    display_name: Lenka Box
-    type_data:
-      color: blue-foreground
-      open_message: MasterMessage.GS_TO_UNIVERSAL
-      open_data: [ 0, 2 ]
-      close_message: MasterMessage.GS_TO_UNIVERSAL
-      close_data: [ 0, 3 ]
+  # - id: lenka_box
+  #   type: ScienceElementType.CONTAINER
+  #   display_name: Lenka Box
+  #   type_data:
+  #     color: blue-foreground
+  #     open_message: MasterMessage.GS_TO_UNIVERSAL
+  #     open_data: [ 0, 2 ]
+  #     close_message: MasterMessage.GS_TO_UNIVERSAL
+  #     close_data: [ 0, 3 ]
   - id: pump
     type: ScienceElementType.NONE
     display_name: Pump
