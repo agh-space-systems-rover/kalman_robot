@@ -3,6 +3,7 @@ import yaml
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String, Bool, Empty
+import struct
 
 # from example_interfaces.msg import
 from kalman_interfaces.msg import MasterMessage, ScienceElement, ScienceButton
@@ -302,3 +303,73 @@ def magneto_tare_reset(topic_data, node: Node):
     request = RequestMagnetoTare.Request()
     request.type = RequestMagnetoTare.Request.RESET
     publisher.call_async(request)
+
+
+def get_pump_status(data, topic_data, node):
+    publisher = node.create_publisher(
+        String, f"science_panel/{topic_data.get('topic')}", 10
+    )
+    pump_desired = bin(data[0])[6]
+    pump_current = bin(data[0])[7]
+
+    msg = String()
+    msg.data = str(pump_desired) + "/" + str(pump_current)
+    publisher.publish(msg)
+
+
+def get_heater_status(data, topic_data, node):
+    publisher = node.create_publisher(
+        String, f"science_panel/{topic_data.get('topic')}", 10
+    )
+    heater_desired = bin(data[0])[2]
+    heater_current = bin(data[0])[3]
+    heater_temp = struct.unpack("<h", data[1:3])[0]
+
+    msg = String()
+    msg.data = (
+        str(heater_desired)
+        + "/"
+        + str(heater_current)
+        + " : "
+        + str(heater_temp)
+        + "°C"
+    )
+    publisher.publish(msg)
+
+
+def get_peltier_status(data, topic_data, node):
+    publisher = node.create_publisher(
+        String, f"science_panel/{topic_data.get('topic')}", 10
+    )
+    peltier_desired = bin(data[0])[4]
+    peltier_current = bin(data[0])[5]
+    peltier_temp_cold = struct.unpack("<h", data[5:7])[0]
+    peltier_temp_hot = struct.unpack("<h", data[7:9])[0]
+
+    msg = String()
+    msg.data = (
+        str(peltier_desired)
+        + "/"
+        + str(peltier_current)
+        + ": cold/hot "
+        + str(peltier_temp_cold)
+        + "/"
+        + str(peltier_temp_hot)
+        + "°C"
+    )
+    publisher.publish(msg)
+
+
+def get_stacjolab_status(data, topic_data, node):
+    publisher = node.create_publisher(
+        String, f"science_panel/{topic_data.get('topic')}", 10
+    )
+    motor_desired = bin(data[0])[8]
+    motor_current = bin(data[0])[9]
+    chamber_temp = struct.unpack("<h", data[3:5])[0]
+    battery_voltage = float(struct.unpack("<h", data[9:11])[0]) / 100.0
+    weight = struct.unpack("<i", data[11:15])[0]  # in grams
+
+    msg = String()
+    msg.data = f"{motor_desired}/{motor_current} : {chamber_temp}°C : {battery_voltage:.2f}V : {weight}g"
+    publisher.publish(msg)

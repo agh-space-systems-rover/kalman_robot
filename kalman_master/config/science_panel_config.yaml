@@ -10,8 +10,12 @@ elements:
   #     close_message: MasterMessage.GS_TO_UNIVERSAL
   #     close_data: [ 0, 3 ]
   - id: pump
-    type: ScienceElementType.NONE
+    type: ScienceElementType.DISPLAY
     display_name: Pump
+    type_data:
+      type: MasterMessage
+      topic: "master_com/master_to_ros/x85"
+      parser: get_pump_status
     buttons:
       - id: pump_on
         name: "ON"
@@ -24,8 +28,12 @@ elements:
         data: [ 3, 'P', 0 ]
         color: red-background
   - id: heater
-    type: ScienceElementType.NONE
+    type: ScienceElementType.DISPLAY
     display_name: Heater
+    type_data:
+      type: MasterMessage
+      topic: "master_com/master_to_ros/x85"
+      parser: get_heater_status
     buttons:
       - id: heater_on
         name: "ON"
@@ -38,8 +46,12 @@ elements:
         data: [ 3, 'H', 0 ]
         color: red-background
   - id: peltier
-    type: ScienceElementType.NONE
+    type: ScienceElementType.DISPLAY
     display_name: Peltier
+    type_data:
+      type: MasterMessage
+      topic: "master_com/master_to_ros/x85"
+      parser: get_peltier_status
     buttons:
       - id: peltier_on
         name: "ON"
@@ -52,8 +64,12 @@ elements:
         data: [ 3, 'C', 0 ]
         color: red-background
   - id: stacjolab
-    type: ScienceElementType.NONE
+    type: ScienceElementType.DISPLAY
     display_name: Stacjolab
+    type_data:
+      type: MasterMessage
+      topic: "master_com/master_to_ros/x85"
+      parser: get_stacjolab_status
     buttons:
       - id: stacjolab_open
         name: "Open"
@@ -70,14 +86,14 @@ elements:
         message: MasterMessage.GS_TO_ESP
         data: [ 3, 'Z', 0 ]
         color: red-background
-  - id: Status
-    type: ScienceElementType.DISPLAY
-    display_name: Display
-    type_data:
-      type: MasterMessage
-      topic: "master_com/master_to_ros/x85"
-      data_prefix: [ 3, 'S' ]
-      parser: parse_stacjolab_status
+  # - id: Status
+  #   type: ScienceElementType.DISPLAY
+  #   display_name: Display
+  #   type_data:
+  #     type: MasterMessage
+  #     topic: "master_com/master_to_ros/x85"
+  #     data_prefix: [ 3, 'S' ]
+  #     parser: parse_stacjolab_status
   - id: magneto
     type: ScienceElementType.DISPLAY
     display_name: Magneto
