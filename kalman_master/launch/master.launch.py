@@ -112,6 +112,10 @@ def launch_setup(context):
             package="kalman_master",
             executable="rfid_driver",
         ),
+        "magneto_driver": Node(
+            package="kalman_master",
+            executable="magneto_driver"
+        )
     }
 
     mode_configs = {
@@ -134,7 +138,8 @@ def launch_setup(context):
             "drill_driver",
             "estop_driver",
             "rfid_driver",
-            "science_panel_driver"
+            "science_panel_driver",
+            "magneto_driver",
         ],
         "arm": [
             "master_com",

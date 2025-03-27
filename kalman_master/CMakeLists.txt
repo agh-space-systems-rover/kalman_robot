@@ -51,6 +51,7 @@ install(PROGRAMS
   scripts/tunnel_client
   scripts/ueuos_driver
   scripts/wheel_driver
+  scripts/magneto_driver
   DESTINATION lib/${PROJECT_NAME}
 )
 
