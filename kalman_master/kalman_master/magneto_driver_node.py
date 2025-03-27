@@ -37,6 +37,12 @@ class MagnetoDriver(Node):
         # Init magneto data publisher
         self.magneto_data_pub = self.create_publisher(MagnetoData, "magneto/result", 10)
 
+        self.magnet_req_pub = self.create_publisher(
+            UInt8MultiArray, "magneto/request", 10
+        )
+
+        self.create_timer(5.0, self.request_data)
+
         # Init magneto tare service
         self.magneto_tare_service = self.create_service(
             RequestMagnetoTare, "magneto/request_tare", self.tare_request
@@ -101,7 +107,7 @@ class MagnetoDriver(Node):
         delta_t = dt.now() - self._timestamp_start
         with open(self._filename, "a") as result_file:
             result_file.write(
-                f"{delta_t};{x};{y};{z};{vector_length};{tared_length};{estimator}\n"
+                f"{delta_t.seconds};{x};{y};{z};{vector_length};{tared_length};{estimator}\n"
             )
 
         self.magneto_data_pub.publish(msg)
@@ -141,13 +147,16 @@ class MagnetoDriver(Node):
                 ax.set_title("Magnetic field vector length")
                 ax.set_xlabel("Time")
                 ax.set_ylabel("Magnitude")
-                ax.set_xticklabels([])
             except KeyError:
                 self.get_logger().warn("Something wrong with csv keys")
 
         anim = animation.FuncAnimation(fig, update, interval=1000)
 
         plt.show()
+
+    def request_data(self):
+        msg = UInt8MultiArray()
+        self.magnet_req_pub.publish(msg)
 
 
 def main():
