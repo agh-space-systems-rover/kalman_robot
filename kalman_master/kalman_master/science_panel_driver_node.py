@@ -59,9 +59,10 @@ class SciencePanelDriver(Node):
                     continue
                 display_list.append(
                     {
+                        "type": element.get("type_data").get("type", None),
                         "master_topic": element.get("type_data").get("topic", None),
                         "topic": f"{parent_id}_display",
-                        "data_prefix": element.get("type_data").get("data_prefix"),
+                        "data_prefix": element.get("type_data").get("data_prefix", []),
                         "parser": eval(element.get("type_data").get("parser")),
                     }
                 )
@@ -113,7 +114,7 @@ class SciencePanelDriver(Node):
                     {
                         "master_topic": element.get("type_data").get("topic", None),
                         "topic": f"{parent_id}_status",
-                        "data_prefix": element.get("type_data").get("data_prefix"),
+                        "data_prefix": element.get("type_data").get("data_prefix", []),
                         "parser": eval(element.get("type_data").get("parser")),
                     }
                 )
@@ -124,12 +125,15 @@ class SciencePanelDriver(Node):
         for topic_data in data_list:
             if topic_data.get("master_topic") is None:
                 continue
-            self.create_subscription(
-                MasterMessage,
-                topic_data.get("master_topic"),
-                self.handle_data_topic(topic_data),
-                10,
-            )
+            if topic_data.get("type", None) in [None, "MasterMessage"]:
+                self.create_subscription(
+                    MasterMessage,
+                    topic_data.get("master_topic"),
+                    self.handle_data_topic(topic_data),
+                    10,
+                )
+            else:
+                self._create_custom_subscriber(topic_data)
 
         # Create topics with empty data
         empty_topics = button_list + container_list + player_list
@@ -193,6 +197,12 @@ class SciencePanelDriver(Node):
 
         return callback
 
+    def handle_custom_topic(self, topic_data: dict):
+        def callback(msg):
+            topic_data.get("parser")(msg, topic_data, self)
+
+        return callback
+
     def _convert_data_to_integers(self, data):
         data_int = []
         for byte in data:
@@ -204,6 +214,24 @@ class SciencePanelDriver(Node):
                 self.get_logger().error(f"Unsupported data type: {type(byte)}")
 
         return data_int
+
+    def _create_custom_subscriber(self, topic_data):
+        msg_type = self._get_msg_type(topic_data.get("type"))
+        self.create_subscription(
+            msg_type,
+            topic_data.get("master_topic"),
+            self.handle_custom_topic(topic_data),
+            10,
+        )
+
+    def _get_msg_type(self, type_path):
+        path_items = type_path.split("/")
+        package = ".".join(path_items[:-1])
+        class_name = path_items[-1]
+
+        # Import the interface and save it in the cache.
+        module = __import__(package, fromlist=[class_name])
+        return getattr(module, class_name)
 
 
 def main():
@@ -242,4 +270,13 @@ def parse_stacjolab_status(data, topic_data, node):
     )
     msg = String()
     msg.data = "".join([str(x) for x in data])
+    publisher.publish(msg)
+
+
+def send_magneto(data, topic_data, node):
+    publisher = node.create_publisher(
+        String, f"science_panel/{topic_data.get('topic')}", 10
+    )
+    msg = String()
+    msg.data = f"{data.length:.2f}"
     publisher.publish(msg)

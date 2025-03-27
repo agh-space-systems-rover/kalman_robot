@@ -74,9 +74,18 @@ elements:
     type: ScienceElementType.DISPLAY
     display_name: Display
     type_data:
+      type: MasterMessage
       topic: "master_com/master_to_ros/x85"
       data_prefix: [ 3, 'S' ]
       parser: parse_stacjolab_status
+  - id: magneto
+    type: ScienceElementType.DISPLAY
+    display_name: Magneto
+    type_data:
+      type: kalman_interfaces/msg/MagnetoData
+      topic: "magneto/result"
+      field: "length"
+      parser: send_magneto
   # - id: rocks
   #   type: ScienceElementType.DISPLAY
   #   display_name: Display

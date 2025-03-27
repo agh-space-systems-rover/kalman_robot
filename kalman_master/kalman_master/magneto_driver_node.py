@@ -1,7 +1,7 @@
 from matplotlib import animation, pyplot as plt
 import rclpy
 import time
-import struct 
+import struct
 from datetime import datetime as dt
 
 import numpy as np
@@ -17,52 +17,67 @@ from kalman_interfaces.srv import RequestMagnetoTare
 
 import threading
 
-LOG_DIR_PATH = "/home/ros/Desktop/ilmenite"
-CALIBRATION_DIR_PATH="/home/ros/Documents/ilmenit_calibration_data"
 
 class MagnetoDriver(Node):
     def __init__(self):
         super().__init__("magneto_driver")
-        # Init magneto listener
-        self.magneto = self.create_subscription(UInt8MultiArray, "magneto/data", self.data_response, 10)
 
-        # Init magneto data publisher 
+        self.LOG_DIR = self.declare_parameter(
+            "log_dir", "/home/ros/Desktop/ilmenite"
+        ).value
+        self.CALIBRATION_DIR = self.declare_parameter(
+            "calibration_dir", "/home/ros/Desktop/ilmenite"
+        ).value
+
+        # Init magneto listener
+        self.magneto = self.create_subscription(
+            UInt8MultiArray, "magneto/data", self.data_response, 10
+        )
+
+        # Init magneto data publisher
         self.magneto_data_pub = self.create_publisher(MagnetoData, "magneto/result", 10)
 
         # Init magneto tare service
-        self.magneto_tare_service = self.create_service(RequestMagnetoTare, "magneto/request_tare", self.tare_request)
+        self.magneto_tare_service = self.create_service(
+            RequestMagnetoTare, "magneto/request_tare", self.tare_request
+        )
 
         ilmenit_data_points = {}
         percents = [0, 5, 10, 15, 25]
 
         for percent in percents:
-            ilmenit_data_points[percent] = pd.read_csv(f"{CALIBRATION_DIR_PATH}/ilmenit_{percent}.csv")
-            ilmenit_data_points[percent]["radius"] = np.sqrt(np.sum(np.power(ilmenit_data_points[percent], 2), axis=1))
+            ilmenit_data_points[percent] = pd.read_csv(
+                f"{self.CALIBRATION_DIR}/ilmenit_{percent}.csv"
+            )
+            ilmenit_data_points[percent]["radius"] = np.sqrt(
+                np.sum(np.power(ilmenit_data_points[percent], 2), axis=1)
+            )
 
         means = []
         for percent in percents:
             means.append(np.mean(ilmenit_data_points[percent]["radius"][-20:]))
 
-        self._interpolation_coeffs, covariance = curve_fit(self._fit_percents, means, percents)
+        self._interpolation_coeffs, covariance = curve_fit(
+            self._fit_percents, means, percents
+        )
 
         self._timestamp_start = dt.now()
 
-        self._filename = f"{LOG_DIR_PATH}/log_{self._timestamp_start.strftime('%d_%m_%y__%H_%M_%S')}.csv"
+        self._filename = f"{self.LOG_DIR}/log_{self._timestamp_start.strftime('%d_%m_%y__%H_%M_%S')}.csv"
 
-        with open(self._filename, 'w') as result_file:
+        with open(self._filename, "w") as result_file:
             result_file.write("timestamp;x;y;z;length;tared_length;percentage\n")
 
         self._last_vector = (0, 0, 0)
         self._last_length = 0
-        
+
         self._tare_length = 0
 
         self.thread = threading.Thread(target=self.start_chart_animation)
         self.thread.start()
 
-
     def data_response(self, msg: UInt8MultiArray):
-        x, y, z = struct.unpack('<fff', bytearray(msg.data))
+        x, y, z = struct.unpack("<fff", bytearray(msg.data))
         self.get_logger().info(f"Received: {x} {y} {z}")
 
         vector_length = np.sqrt(x**2 + y**2 + z**2)
@@ -70,23 +85,31 @@ class MagnetoDriver(Node):
         self._last_length = vector_length
 
         tared_length = vector_length - self._tare_length
-        estimator = np.clip(self._fit_percents(tared_length, *self._interpolation_coeffs), 0, 100)
+        estimator = np.clip(
+            self._fit_percents(tared_length, *self._interpolation_coeffs), 0, 100
+        )
 
         msg = MagnetoData(
-            x=x, y=y, z=z,
+            x=x,
+            y=y,
+            z=z,
             length=vector_length,
             tared_length=tared_length,
             percentage=estimator,
         )
-        
+
         delta_t = dt.now() - self._timestamp_start
-        with open(self._filename, 'a') as result_file:
-            result_file.write(f"{delta_t};{x};{y};{z};{vector_length};{tared_length};{estimator}\n")
+        with open(self._filename, "a") as result_file:
+            result_file.write(
+                f"{delta_t};{x};{y};{z};{vector_length};{tared_length};{estimator}\n"
+            )
 
         self.magneto_data_pub.publish(msg)
 
-    def tare_request(self, request: RequestMagnetoTare.Request, response: RequestMagnetoTare.Response):
-        match(request.type):
+    def tare_request(
+        self, request: RequestMagnetoTare.Request, response: RequestMagnetoTare.Response
+    ):
+        match (request.type):
             case RequestMagnetoTare.Request.NEW:
                 self._tare_length = self._last_length
             case RequestMagnetoTare.Request.RESET:
@@ -96,33 +119,37 @@ class MagnetoDriver(Node):
 
     @staticmethod
     def _fit_percents(x, a, b, c):
-        return a*np.exp(b*x) + c
-    
+        return a * np.exp(b * x) + c
+
     def start_chart_animation(self):
         fig, ax = plt.subplots()
-        
+
         def update(frame):
-            df = pd.read_csv(self._filename, delimiter=';')
+            df = pd.read_csv(self._filename, delimiter=";")
 
             if df.size == 0:
                 self.get_logger().warn("No magneto data to display yet")
                 return
-            
+
             try:
                 ax.clear()
-                ax.plot(df['timestamp'].values, df['length'].values, label="Vector magnitude")
+                ax.plot(
+                    df["timestamp"].values,
+                    df["length"].values,
+                    label="Vector magnitude",
+                )
                 ax.set_title("Magnetic field vector length")
                 ax.set_xlabel("Time")
                 ax.set_ylabel("Magnitude")
                 ax.set_xticklabels([])
             except KeyError:
                 self.get_logger().warn("Something wrong with csv keys")
-            
+
         anim = animation.FuncAnimation(fig, update, interval=1000)
 
         plt.show()
 
-    
+
 def main():
     try:
         rclpy.init()
