@@ -112,6 +112,13 @@ def launch_setup(context):
                             package="point_cloud_utils",
                             plugin="point_cloud_utils::ObstacleDetection",
                             namespace=camera_id,
+                            parameters=[
+                                str(
+                                    get_package_share_path("kalman_nav2")
+                                    / "config"
+                                    / "obstacle_detection.yaml"
+                                ),
+                            ],
                             remappings={
                                 "input": "point_cloud",
                                 "output": "point_cloud/obstacles",
@@ -218,7 +225,7 @@ def launch_setup(context):
                 ),
                 {
                     "driving_mode": driving_mode,
-                }
+                },
             ],
         ),
     ]

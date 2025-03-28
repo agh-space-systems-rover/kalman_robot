@@ -140,10 +140,10 @@ stvl:
     # Clearing params:
     clearing: true
     min_z: 0.5                  # default 0, meters
-    max_z: 5.0                  # default 10, meters
+    max_z: 3.0                  # default 10, meters
     vertical_fov_angle: 1.025   # default 0.7, radians
     horizontal_fov_angle: 1.571 # default 1.04, radians
-    decay_acceleration: 1.0     # default 0, 1/s^2. If laser scanner MUST be 0
+    decay_acceleration: 0.1     # default 0, 1/s^2. If laser scanner MUST be 0
 {% endfor %}
 {% endif %}
 
