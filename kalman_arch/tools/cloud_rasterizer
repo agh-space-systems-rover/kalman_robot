@@ -12,14 +12,13 @@ import sys
 def inpaint_black_pixels(img, radius):
     # Kernel for inpainting
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2 * radius + 1, 2 * radius + 1))
-    num_neighbors = np.sum(kernel)
 
     # Blur the og image
     valid_mask = np.any(img != 0, axis=2).astype(np.uint8)
     sum_img = cv2.filter2D(
-        img.astype(np.uint16), -1, kernel, borderType=cv2.BORDER_CONSTANT
+        img.astype(np.float32), -1, kernel, borderType=cv2.BORDER_CONSTANT
     )
-    valid_counts = cv2.filter2D(valid_mask, -1, kernel, borderType=cv2.BORDER_CONSTANT)
+    valid_counts = cv2.filter2D(valid_mask.astype(np.float32), -1, kernel, borderType=cv2.BORDER_CONSTANT)
     blurred_img = sum_img / np.maximum(valid_counts[:, :, np.newaxis], 1)
 
     # Replace the black pixels with the inpainted pixels
@@ -40,7 +39,10 @@ def main():
         "--scale", type=float, default=1.0, help="Scale-up output image"
     )
     parser.add_argument(
-        "--fill-holes", action="store_true", help="Fill holes in the output image"
+        "--fill-holes-radius", type=int, default=0, help="Radius for hole filling"
+    )
+    parser.add_argument(
+        "--depth", action="store_true", help="Store depth in alpha channel"
     )
     args = parser.parse_args()
 
@@ -71,7 +73,10 @@ def main():
     height_range = max_height - min_height
 
     # Create output image
-    img = np.zeros((config["height_px"], config["width_px"], 4), dtype=np.uint8)
+    if args.depth:
+        img = np.zeros((config["height_px"], config["width_px"], 4), dtype=np.uint8)
+    else:
+        img = np.zeros((config["height_px"], config["width_px"], 3), dtype=np.uint8)
 
     # Calculate scales and offsets
     scale_x = config["height_px"] / config["width_m"]  # Inverted because +X points up
@@ -95,9 +100,6 @@ def main():
     colors = colors[mask]
     heights = points[mask, 2]
     print(f"Binning {len(img_points)} points...", file=sys.stderr)
-
-    # Calculate alpha values (0-255) based on height
-    alphas = ((heights - min_height) / height_range * 255).astype(np.uint8)
 
     # Create accumulation arrays for colors and heights
     color_sums = np.zeros(
@@ -124,12 +126,13 @@ def main():
     alpha_channel[mask] = (
         (height_maxes[mask] - min_height) / height_range * 255
     ).astype(np.uint8)
-    img[..., 3] = alpha_channel
+    if args.depth:
+        img[..., 3] = alpha_channel
 
     # Fill holes in the output image
-    if args.fill_holes:
+    if args.fill_holes_radius > 0:
         print("Filling holes...", file=sys.stderr)
-        img = inpaint_black_pixels(img, radius=1)
+        img = inpaint_black_pixels(img, radius=args.fill_holes_radius)
 
     print(f"Saving image to {args.out}...", file=sys.stderr)
     # Save image

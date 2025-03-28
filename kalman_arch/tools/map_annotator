@@ -188,11 +188,11 @@ class MapAnnotator:
             r = 5
             color = "blue"
             if task["type"] == "panorama":
-                color = "green"
+                color = "#00ff00"
             elif task["type"] == "loop":
                 color = "orange"
             elif task["type"] == "explore":
-                color = "purple"
+                color = "#ff00ff"
 
             # Draw a line to the previous task
             if self.origin is not None:
@@ -215,6 +215,10 @@ class MapAnnotator:
                 cx - r, cy - r, cx + r, cy + r, fill=color, outline="black", width=1
             )
             text_label = f"{task['id']} ({task['type']})"
+            self.canvas.create_text(cx - 1, cy - 15 - 1, text=text_label, fill="black")
+            self.canvas.create_text(cx + 1, cy - 15 + 1, text=text_label, fill="black")
+            self.canvas.create_text(cx - 1, cy - 15 + 1, text=text_label, fill="black")
+            self.canvas.create_text(cx + 1, cy - 15 - 1, text=text_label, fill="black")
             self.canvas.create_text(cx, cy - 15, text=text_label, fill=color)
 
     # -------------------------
