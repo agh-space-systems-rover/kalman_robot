@@ -153,6 +153,16 @@ export type WheelStates = {
   back_left?: WheelState;
   back_right?: WheelState;
 };
+export type WheelTemperature = {
+  motor?: number;
+  swivel?: number;
+};
+export type WheelTemperatures = {
+  front_left?: WheelTemperature;
+  front_right?: WheelTemperature;
+  back_left?: WheelTemperature;
+  back_right?: WheelTemperature;
+};
 
 export type SetFeedRequest = {
   feed?: number;
@@ -205,14 +215,17 @@ export type ArmAxesLocks = {
 export type SetColorRequest = {
   color: ColorRGB;
 };
+// Response is empty.
 
 export type SetStateRequest = {
   state: number;
 };
+// Response is empty.
 
 export type SetEffectRequest = {
   effect: number;
 };
+// Response is empty.
 
 export type ColorRGB = {
   r: number;
