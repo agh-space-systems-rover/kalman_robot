@@ -18,7 +18,9 @@ def inpaint_black_pixels(img, radius):
     sum_img = cv2.filter2D(
         img.astype(np.float32), -1, kernel, borderType=cv2.BORDER_CONSTANT
     )
-    valid_counts = cv2.filter2D(valid_mask.astype(np.float32), -1, kernel, borderType=cv2.BORDER_CONSTANT)
+    valid_counts = cv2.filter2D(
+        valid_mask.astype(np.float32), -1, kernel, borderType=cv2.BORDER_CONSTANT
+    )
     blurred_img = sum_img / np.maximum(valid_counts[:, :, np.newaxis], 1)
 
     # Replace the black pixels with the inpainted pixels
@@ -39,7 +41,7 @@ def main():
         "--scale", type=float, default=1.0, help="Scale-up output image"
     )
     parser.add_argument(
-        "--fill-holes-radius", type=int, default=0, help="Radius for hole filling"
+        "--fill-holes", type=int, default=0, help="Radius for hole filling"
     )
     parser.add_argument(
         "--depth", action="store_true", help="Store depth in alpha channel"
@@ -130,9 +132,9 @@ def main():
         img[..., 3] = alpha_channel
 
     # Fill holes in the output image
-    if args.fill_holes_radius > 0:
+    if args.fill_holes > 0:
         print("Filling holes...", file=sys.stderr)
-        img = inpaint_black_pixels(img, radius=args.fill_holes_radius)
+        img = inpaint_black_pixels(img, radius=args.fill_holes)
 
     print(f"Saving image to {args.out}...", file=sys.stderr)
     # Save image
