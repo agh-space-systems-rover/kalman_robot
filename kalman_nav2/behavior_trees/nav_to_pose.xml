@@ -1,4 +1,4 @@
-<root BTCPP_format="4" main_tree_to_execute="MainTree">
+<!-- <root BTCPP_format="4" main_tree_to_execute="MainTree">
   <BehaviorTree ID="MainTree">
     <RecoveryNode number_of_retries="3" name="NavigateRecovery">
       <PipelineSequence name="NavigateWithReplanning">
@@ -18,5 +18,22 @@
         </Sequence>
       </ReactiveFallback>
     </RecoveryNode>
+  </BehaviorTree>
+</root> -->
+<root BTCPP_format="4" main_tree_to_execute="MainTree">
+  <BehaviorTree ID="MainTree">
+    <PipelineSequence name="NavigateWithReplanning">
+      <RateController hz="2.0">
+        <Sequence>
+          <GoalUpdater input_goal="{goal}" output_goal="{updated_goal}">
+            <ComputePathToPose goal="{updated_goal}" path="{path}" planner_id="GridBased"/>
+          </GoalUpdater>
+         <TruncatePath distance="0.0" input_path="{path}" output_path="{truncated_path}"/>   
+        </Sequence>
+      </RateController>
+      <KeepRunningUntilFailure>
+        <FollowPath path="{truncated_path}" controller_id="FollowPath"/>
+      </KeepRunningUntilFailure>
+    </PipelineSequence>
   </BehaviorTree>
 </root>
