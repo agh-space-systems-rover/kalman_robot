@@ -173,10 +173,10 @@ class CubeNode(Node):
 
     def cleanup_buffers(self):
         """Remove old entries from buffers."""
-        current_time = time.time() * 1000  # Convert to milliseconds
+        current_time = time.time() * 1_000_000  # Convert to microseconds
 
-        # Remove entries older than 5 seconds
-        cutoff_time = current_time - self.BUFFER_CLEANUP_TIME
+        # Remove entries older than 5 seconds (convert BUFFER_CLEANUP_TIME to microseconds)
+        cutoff_time = current_time - (self.BUFFER_CLEANUP_TIME * 1_000)
 
         self.image_buffer = deque(
             [x for x in self.image_buffer if x.timestamp > cutoff_time],

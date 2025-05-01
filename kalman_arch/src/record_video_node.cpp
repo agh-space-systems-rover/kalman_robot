@@ -83,7 +83,9 @@ class RecordVideo : public rclcpp::Node {
 	}
 
 	~RecordVideo() {
-		writer->release();
+		if (writer) {
+			writer->release();
+		}
 	}
 
 	rclcpp::Service<cob_srvs::srv::SetInt>::SharedPtr service;
