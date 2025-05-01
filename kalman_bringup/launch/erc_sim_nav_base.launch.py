@@ -13,5 +13,8 @@ def generate_launch_description():
             },
             "gs": {},
             "wheels": {},
+            "description": {
+                "layout": "autonomy",
+            },
         }
     )
