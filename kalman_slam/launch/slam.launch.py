@@ -174,7 +174,7 @@ def launch_setup(context):
             ),
             # Navsat transform listens to global odometry (map->base_link) from the second Kalman filter, ekf_filter_node_gps.
             # The node listens for GPS fixes from the sensor (or gps_spoofer) and will use them to correct the global odometry for drift.
-            # The corrected global odometry will then be republished on a different topic and used by ekf_filter_node_gps
+            # The corrected global odometry will then be republished on a different topic and used by ekf_filter_node_global
             # to apply the correction to global odometry.
             # Additionally, the global odometry is converted to a GPS fix relative to a starting position (the datum).
             # We use this fix to display the robot's position on the map when no GPS sensor is available.
