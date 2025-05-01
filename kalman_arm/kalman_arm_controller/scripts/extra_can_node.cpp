@@ -36,7 +36,7 @@ private:
   rclcpp::TimerBase::SharedPtr read_timer_;
 
   rclcpp::Subscription<std_msgs::msg::Int8>::SharedPtr gripper_sub_;
-  rclcpp::Subscription<std_msgs::msg::UInt8>::SharedPtr fastclick_sub_;
+  //   rclcpp::Subscription<std_msgs::msg::UInt8>::SharedPtr fastclick_sub_;
 
   uint16_t calculate_gripper_position(int8_t position)
   {
@@ -73,9 +73,10 @@ public:
           CAN_driver::write_gripper_position(&extra_driver_, calculate_gripper_position(msg->data));
         });
 
-    fastclick_sub_ = this->create_subscription<std_msgs::msg::UInt8>(
-        "fastclick", rclcpp::SystemDefaultsQoS(),
-        [this](const std_msgs::msg::UInt8::SharedPtr msg) { CAN_driver::write_fastclick(&extra_driver_, msg->data); });
+    // fastclick_sub_ = this->create_subscription<std_msgs::msg::UInt8>(
+    //     "fastclick", rclcpp::SystemDefaultsQoS(),
+    //     [this](const std_msgs::msg::UInt8::SharedPtr msg) { CAN_driver::write_fastclick(&extra_driver_, msg->data);
+    //     });
   }
 
   ~ExtraCanNode() override = default;
