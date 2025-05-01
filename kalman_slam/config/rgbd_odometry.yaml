@@ -6,5 +6,8 @@
     approx_sync: False
     topic_queue_size: 1
     publish_null_when_lost: True
+    # ^ Publish one empty message before pausing when lost.
 
+    # https://github.com/introlab/rtabmap/blob/master/corelib/include/rtabmap/core/Parameters.h
     Odom/ResetCountdown: "1"
+    # ^ Restart pose integration when lost instead of waiting for a match to continue, We only need the velocity, so it's ok.

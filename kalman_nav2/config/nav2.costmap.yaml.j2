@@ -4,7 +4,7 @@
 # Any parameters that are commented out with ##### here should be set in nav2.yaml.j2.
 
 # Reference frame.
-global_frame: odom # default: map
+global_frame: map # default: map
 # Robot base frame.
 robot_base_frame: base_footprint # default: base_link
 # Topic of map from map_server or SLAM.
@@ -140,7 +140,7 @@ stvl:
     # Clearing params:
     clearing: true
     min_z: 0.5                  # default 0, meters
-    max_z: 3.0                  # default 10, meters
+    max_z: 5.0                  # default 10, meters
     vertical_fov_angle: 1.025   # default 0.7, radians
     horizontal_fov_angle: 1.571 # default 1.04, radians
     decay_acceleration: 0.1     # default 0, 1/s^2. If laser scanner MUST be 0

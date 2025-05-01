@@ -39,7 +39,7 @@ behavior_server:
     # TF transform tolerance.
     transform_tolerance: 0.1 # seconds
     # Global frame.
-    global_frame: odom
+    global_frame: map
     # Robot base frame.
     robot_base_frame: base_footprint
     # List of plugin names to use, also matches action server names.
@@ -61,7 +61,7 @@ behavior_server:
 bt_navigator:
   ros__parameters:
     # Reference frame.
-    global_frame: odom
+    global_frame: map
     # Robot base frame.
     robot_base_frame: base_footprint
     # Topic on which odometry is published
@@ -249,7 +249,7 @@ controller_server:
     goal_checker_plugins: ["simple_goal_checker"]
     simple_goal_checker:
       plugin: "nav2_controller::SimpleGoalChecker"
-      xy_goal_tolerance: 0.3 # meters
+      xy_goal_tolerance: 0.1 # meters
       yaw_goal_tolerance: 4.0 # radians (allows full circle error)
       stateful: False # do not check XY after rotating
     

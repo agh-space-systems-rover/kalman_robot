@@ -11,9 +11,9 @@
     publish_tf: true
     initial_reset: true
     rgb_camera:
-      color_profile: 1280x720x30
+      color_profile: 640x360x15
       # enable_auto_exposure: False
       # exposure: 4 # FIXME: Change for indoor/outdoor mapping.; outdoor=2; indoor=200; outdoor with filters=4
     depth_module:
-      depth_profile: 640x360x30
+      depth_profile: 640x360x15
     clip_distance: 5.0
