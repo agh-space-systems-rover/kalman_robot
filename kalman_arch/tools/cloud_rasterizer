@@ -80,14 +80,11 @@ def main():
     else:
         img = np.zeros((config["height_px"], config["width_px"], 3), dtype=np.uint8)
 
-    # Calculate scales and offsets
-    scale_x = config["height_px"] / config["width_m"]  # Inverted because +X points up
-    scale_y = config["width_px"] / config["width_m"]
-
     # Convert points to image coordinates
     img_points = np.zeros_like(points)
-    img_points[:, 0] = config["origin_px"][1] - points[:, 0] * scale_x  # X -> down
-    img_points[:, 1] = config["origin_px"][0] - points[:, 1] * scale_y  # Y -> left
+    scale = config["width_px"] / config["width_m"]
+    img_points[:, 0] = config["origin_px"][1] - points[:, 0] * scale
+    img_points[:, 1] = config["origin_px"][0] - points[:, 1] * scale
     img_points = img_points.astype(np.int32)
 
     print("Filtering points...", file=sys.stderr)
