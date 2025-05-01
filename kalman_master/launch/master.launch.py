@@ -110,7 +110,6 @@ def launch_setup(context):
             "wheel_driver",
             "ueuos_driver",
             "autonomy_spammer",
-            "tunnel_client",
         ],
         "gs": [
             "master_com",
@@ -123,6 +122,7 @@ def launch_setup(context):
             "drill_driver",
             "estop_driver",
             "rfid_driver",
+            "tunnel_client",
         ],
         "arm": [
             "master_com",
