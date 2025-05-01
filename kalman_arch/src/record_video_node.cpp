@@ -31,7 +31,7 @@ class RecordVideo : public rclcpp::Node {
 	cv::Mat                         last_image;
 	int                             frame_rate;
 	int                             single_frame_time;
-	int                             old_frame_timestamp = 0;
+	int64_t                         old_frame_timestamp = 0;
 	int64_t                         last_image_timestamp_us;
 	int codec = cv::VideoWriter::fourcc('H', '2', '6', '4');
 	std::unique_ptr<cv::VideoWriter> writer;
