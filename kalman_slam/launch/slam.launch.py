@@ -332,8 +332,7 @@ def launch_setup(context):
                 ],
                 remappings={
                     "odom": "/odometry/local",
-                    # "imu": "/imu/data",
-                    # ^ Keep commented out - dead_reckoning fuses IMU data into odometry/local.
+                    "imu": "/imu/data",
                     "rgb/image": f"/{slam_rgbd_ids[0]}/color/image_raw",
                     "depth/image": f"/{slam_rgbd_ids[0]}/depth/image_raw",
                     "rgb/camera_info": f"/{slam_rgbd_ids[0]}/color/camera_info",
