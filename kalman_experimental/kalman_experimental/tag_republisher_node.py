@@ -32,23 +32,24 @@ class TagRepublisher(Node):
 
             markers: list[MarkerPose] = msg.markers
             for marker in markers:
-                pose_stamped = PoseStamped()
-                pose_stamped.header.stamp = msg.header.stamp
-                pose_stamped.header.frame_id = msg.header.frame_id
+                if(marker.marker_id == 55):
+                    pose_stamped = PoseStamped()
+                    pose_stamped.header.stamp = msg.header.stamp
+                    pose_stamped.header.frame_id = msg.header.frame_id
 
-                pose_stamped.pose.position.x = marker.pose.position.x
-                pose_stamped.pose.position.y = marker.pose.position.y
-                pose_stamped.pose.position.z = 0.0
+                    pose_stamped.pose.position.x = marker.pose.position.x
+                    pose_stamped.pose.position.y = marker.pose.position.y
+                    pose_stamped.pose.position.z = 0.0
 
-                pose_stamped.pose.orientation.x = 0.0
-                pose_stamped.pose.orientation.y = 0.0
-                pose_stamped.pose.orientation.z = 0.0
-                pose_stamped.pose.orientation.w = 1.0
+                    pose_stamped.pose.orientation.x = 0.0
+                    pose_stamped.pose.orientation.y = 0.0
+                    pose_stamped.pose.orientation.z = 0.0
+                    pose_stamped.pose.orientation.w = 1.0
 
-                detection_transformed: PoseStamped = do_transform_pose_stamped(
-                    pose_stamped, transform=transform
-                )
-                self.pub_.publish(detection_transformed)
+                    detection_transformed: PoseStamped = do_transform_pose_stamped(
+                        pose_stamped, transform=transform
+                    )
+                    self.pub_.publish(detection_transformed)
 
         except Exception as ex:
             self.get_logger().info(f"Error:{ex}")

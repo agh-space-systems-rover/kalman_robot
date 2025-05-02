@@ -28,11 +28,12 @@
           <GoalUpdater input_goal="{goal}" output_goal="{updated_goal}">
             <ComputePathToPose goal="{updated_goal}" path="{path}" planner_id="GridBased"/>
           </GoalUpdater>
-         <TruncatePath distance="0.0" input_path="{path}" output_path="{truncated_path}"/>   
+           <SmoothPath unsmoothed_path="{path}" smoothed_path="{smooth_path}"/>
+         <!-- <TruncatePath distance="0.5" input_path="{smooth_path}" output_path="{truncated_path}"/>    -->
         </Sequence>
       </RateController>
       <KeepRunningUntilFailure>
-        <FollowPath path="{truncated_path}" controller_id="FollowPath"/>
+        <FollowPath path="{smooth_path}" controller_id="FollowPath"/>
       </KeepRunningUntilFailure>
     </PipelineSequence>
   </BehaviorTree>

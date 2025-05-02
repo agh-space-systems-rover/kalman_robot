@@ -19,7 +19,6 @@ def generate_launch_description():
             },
             "slam": {
                 "rgbd_ids": RGBD_IDS,
-                "fiducials": "erc2024",
             },
             "nav2": {
                 "rgbd_ids": RGBD_IDS,
