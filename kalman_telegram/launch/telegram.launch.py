@@ -5,8 +5,21 @@ from launch_ros.actions import Node
 
 
 def launch_setup(context):
-    pass
+    description = []
+
+    description += [
+        Node(
+            package="kalman_telegram",
+            executable="telegram_channel"
+        ),
+    ]
+
+    return description
 
 
 def generate_launch_description():
-    pass
+    return LaunchDescription(
+        [
+            OpaqueFunction(function=launch_setup)
+        ]
+    )
