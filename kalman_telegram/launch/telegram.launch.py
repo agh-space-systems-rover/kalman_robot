@@ -20,6 +20,18 @@ def launch_setup(context):
 def generate_launch_description():
     return LaunchDescription(
         [
+            # DeclareLaunchArgument(
+            #     "mode",
+            #     default_value="gs",
+            #     choices=["gs", "pc", "arm"],
+            #     description="On what hardware is this module being run? Available modes: gs, pc, arm",
+            # ),
+            # DeclareLaunchArgument(
+            #     "mode",
+            #     default_value="gs",
+            #     choices=["gs", "pc", "arm"],
+            #     description="On what hardware is this module being run? Available modes: gs, pc, arm",
+            # ),
             OpaqueFunction(function=launch_setup)
         ]
     )
