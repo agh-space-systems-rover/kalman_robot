@@ -7,6 +7,7 @@
 #define KALMAN_ARM_CONTROLLER__HARDWARE__CAN_TYPES_HPP_
 
 #include <cstdint>
+#include <functional>
 #include "can_messages.hpp"
 
 /**
@@ -16,32 +17,32 @@
  *
  * @param can_id uint16_t Command identifier
  * @param len uint8_t Length of the data
- * @param func Function pointer to the handler
+ * @param func std::function container to the handler
  */
-typedef struct
+struct canCmdHandler_t
 {
     uint16_t can_id;
     uint8_t len;
-    int (*func)(uint32_t identifier, uint8_t *data, uint8_t len);
-} canCmdHandler_t;
+    std::function<int (uint32_t identifier, uint8_t *data, uint8_t len)> func;
+};
 
 /**
  * @brief Structure representing the status of a joint motor laready calculated to normal, humanreadable
  * and supported by moveit format.
  */
-typedef struct
+struct jointMoveStatus_t
 {
     float velocity_deg_s;
     float position_deg;
-} jointMoveStatus_t;
+};
 
-typedef struct
+struct jointMoveSetpoint_t
 {
     float torque_Nm;
     float velocity_deg_s;
     float position_deg;
     float acceleration_deg_ss;
-} jointMoveSetpoint_t;
+};
 
 /**
  * @brief Structure representing the status of a joint motor and its setpoint.
@@ -51,7 +52,7 @@ typedef struct
  * @param status jointMotorStatus_t Received joint motor status
  * @param setpoint jointCmdSetpoint_t Joint setpoint to send
  */
-typedef struct __attribute__((__packed__))
+struct __attribute__((__packed__)) jointStatus_t
 {
     /**
      * @brief Structure representing the status of a joint motor received from CAN.
@@ -86,14 +87,14 @@ typedef struct __attribute__((__packed__))
      * @brief Structure where the setpoint of differential joints is stored (later converted to `moveSetpoint`).
      */
     jointMoveSetpoint_t moveSetpointDiff;
-} jointStatus_t;
+};
 
 /**
  * @brief Structure representing the configuration of a joint motor.
  *
  * This structure is used to store the configuration of a joint motors in arm_config file.
  */
-typedef struct
+struct jointConfig_t
 {
 
     float maxVelocity_deg_s;
@@ -117,14 +118,14 @@ typedef struct
     uint16_t positioningTimeout;
     uint8_t differential;
 
-} jointConfig_t;
+};
 
 /**
  * @brief Structure representing the configuration of the arm.
  *
  * This structure is used to store the configuration of the arm (every joint) in arm_config file.
  */
-typedef struct
+struct armConfig_t
 {
     uint8_t jointNumber;
 
@@ -133,7 +134,7 @@ typedef struct
     uint16_t jointCommunicationTimeout;
     uint16_t canRoverStatusSendPeriod_ms;
 
-} armConfig_t;
+};
 
 enum ControlType
 {
