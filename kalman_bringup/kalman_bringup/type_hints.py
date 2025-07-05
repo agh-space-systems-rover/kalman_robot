@@ -9,6 +9,8 @@ class Arch(TypedDict):
     "Name of an existing component container to use. Empty to disable composition."
     rgbd_ids: str
     "Space-separated IDs of the depth cameras to use."
+    hd_cameras: Literal["false", "true"]
+    "Use camera/raw/color/image_raw images for screenshots. Only works on hardware setup. Valid choices are: ['true', 'false']"
 
 
 class Arm(TypedDict):
@@ -20,6 +22,10 @@ class Arm(TypedDict):
     "One of: ['true', 'false', 'True', 'False']"
     monitor_dynamics: Literal["False", "True", "false", "true"]
     "One of: ['true', 'false', 'True', 'False']"
+    config_file: str
+    "Path to the YAML configuration file"
+    can_interface: str
+    "CAN interface to use"
 
 
 class ArmGs(TypedDict):
@@ -45,8 +51,8 @@ class Clouds(TypedDict):
 
 
 class Description(TypedDict):
-    layout: Literal["arm", "autonomy", "dev_pole"]
-    "layout of the robot: autonomy, arm. Valid choices are: ['autonomy', 'arm', 'dev_pole']"
+    layout: Literal["arm", "autonomy", "autonomy_90deg_cams", "dev_pole"]
+    "layout of the robot: autonomy, arm. Valid choices are: ['autonomy', 'arm', 'autonomy_90deg_cams', 'dev_pole']"
     joint_state_publisher_gui: Literal["false", "true"]
     "Start the joint state publisher in GUI mode. Valid choices are: ['true', 'false']"
 
@@ -81,7 +87,7 @@ class Nav2(TypedDict):
     rgbd_ids: str
     "Space-separated IDs of the depth cameras to use."
     static_map: Literal["", "erc2023", "erc2024"]
-    "Name of the static map to use. Maps are stored in kalman_nav2/maps. Empty by default to disable static map. Valid choices are: ['', 'erc2023', 'erc2024']"
+    "Name of the static map to use. Maps are stored in kalman_nav2/maps. Empty by default to disable static map. Valid choices are: ['', 'erc2024', 'erc2023']"
     driving_mode: Literal["backward", "forward", "hybrid"]
     "Direction to drive in. The default 'hybrid' mode allows driving in both directions. Valid choices are: ['hybrid', 'forward', 'backward']"
 
@@ -102,8 +108,8 @@ class Slam(TypedDict):
     "Name of the list of fiducials to use. Empty disables fiducial odometry. Valid choices are: ['', 'erc2024', 'terc2024']"
     use_mag: Literal["false", "true"]
     "Use IMU yaw readings for global EKF. If disabled, heading will drift over time. Valid choices are: ['true', 'false']"
-    slam: str
-    "Use SLAM with the specified RGBD camera. Empty to disable SLAM."
+    slam_rgbd_ids: str
+    "Space-separated IDs of the depth cameras to use for SLAM."
 
 
 class Spacenav(TypedDict):
@@ -141,7 +147,7 @@ class Yolo(TypedDict):
     rgbd_ids: str
     "Space-separated IDs of the depth cameras to use."
     config: Literal["arch2025", "urc2024"]
-    "name of the configuration to load. Valid choices are: {'urc2024', 'arch2025'}"
+    "name of the configuration to load. Valid choices are: {'arch2025', 'urc2024'}"
 
 
 class BringupConfig(TypedDict):
