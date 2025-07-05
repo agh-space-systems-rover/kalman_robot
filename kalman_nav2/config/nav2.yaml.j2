@@ -3,8 +3,8 @@ global_costmap:
   global_costmap:
     ros__parameters:
       # See nav2.costmap.yaml.j2 for details on these parameters.
-      update_frequency: 3.0
-      publish_frequency: 1.0
+      update_frequency: 2.0
+      publish_frequency: 2.0
       width: 50
       height: 50
       resolution: 0.2
@@ -14,8 +14,8 @@ local_costmap:
   local_costmap:
     ros__parameters:
       # See nav2.costmap.yaml.j2 for details on these parameters.
-      update_frequency: 3.0
-      publish_frequency: 1.0
+      update_frequency: 5.0
+      publish_frequency: 5.0
       width: 10
       height: 10
       resolution: 0.1
@@ -281,7 +281,7 @@ velocity_smoother:
     # Maximum acceleration to apply to each axis [x, y, theta].
     max_accel: [0.5, 0.5, 0.5]
     # Minimum acceleration to apply to each axis [x, y, theta]. This is signed and thus these should generally all be negative.
-    max_decel: [-0.5, -0.5, -0.5]
+    max_decel: [-2.0, -2.0, -2.0]
     # Topic to find robot odometry, if in CLOSED_LOOP operational mode.
     # odom_topic: "odom"
     # Time (s) to buffer odometry commands to estimate the robot speed, if in CLOSED_LOOP operational mode.

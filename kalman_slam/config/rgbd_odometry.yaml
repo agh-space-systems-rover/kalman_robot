@@ -3,15 +3,11 @@
     odom_frame_id: odom
     frame_id: base_link
     publish_tf: False
-    # publish_null_when_lost: True
     approx_sync: False
     topic_queue_size: 1
-    # qos: 2 # sets just the reliability, 2=BEST_EFFORT
-    # rgb_transport: compressed
-    # depth_transport: compressedDepth
-    # ^ Set in launch file
+    publish_null_when_lost: True
+    # ^ Publish one empty message before pausing when lost.
 
     # https://github.com/introlab/rtabmap/blob/master/corelib/include/rtabmap/core/Parameters.h
-    Odom/ResetCountdown: "1"  # restart when lost, we only need the velocity, so it's ok
-    Odom/Strategy: "0"        # F2M
-    # Odom/ImageDecimation: "2" # 1/scale of the image
+    Odom/ResetCountdown: "1"
+    # ^ Restart pose integration when lost instead of waiting for a match to continue, We only need the velocity, so it's ok.

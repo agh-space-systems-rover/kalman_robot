@@ -56,7 +56,11 @@ def launch_setup(context):
     ]
     fiducials = LaunchConfiguration("fiducials").perform(context)
     use_mag = LaunchConfiguration("use_mag").perform(context).lower() == "true"
-    slam = LaunchConfiguration("slam").perform(context)
+    slam_rgbd_ids = [
+        x
+        for x in LaunchConfiguration("slam_rgbd_ids").perform(context).split(" ")
+        if x != ""
+    ]
 
     if len(rgbd_ids) == 0:
         raise ValueError(
@@ -75,16 +79,12 @@ def launch_setup(context):
                         ComposableNode(
                             package="rtabmap_odom",
                             plugin="rtabmap_odom::RGBDOdometry",
-                            namespace=f"{camera_id}",
+                            namespace=camera_id,
                             parameters=[
                                 str(
                                     get_package_share_path("kalman_slam")
                                     / "config"
-                                    / (
-                                        "rgbd_odometry_slam.yaml"
-                                        if slam
-                                        else "rgbd_odometry.yaml"
-                                    )
+                                    / "rgbd_odometry.yaml"
                                 )
                             ],
                             remappings=[
@@ -108,7 +108,7 @@ def launch_setup(context):
                     str(
                         get_package_share_path("kalman_slam")
                         / "config"
-                        / ("rgbd_odometry_slam.yaml" if slam else "rgbd_odometry.yaml")
+                        / "rgbd_odometry.yaml"
                     ),
                     {
                         "rgb_transport": "compressed",
@@ -125,7 +125,7 @@ def launch_setup(context):
             for camera_id in rgbd_ids
         ]
 
-    if not slam:
+    if len(slam_rgbd_ids) == 0:
         # Fuse odometry from multiple cameras.
         description += [
             # Local Kalman filter, publishes odom->base_link.
@@ -174,7 +174,7 @@ def launch_setup(context):
             ),
             # Navsat transform listens to global odometry (map->base_link) from the second Kalman filter, ekf_filter_node_gps.
             # The node listens for GPS fixes from the sensor (or gps_spoofer) and will use them to correct the global odometry for drift.
-            # The corrected global odometry will then be republished on a different topic and used by ekf_filter_node_gps
+            # The corrected global odometry will then be republished on a different topic and used by ekf_filter_node_global
             # to apply the correction to global odometry.
             # Additionally, the global odometry is converted to a GPS fix relative to a starting position (the datum).
             # We use this fix to display the robot's position on the map when no GPS sensor is available.
@@ -245,7 +245,48 @@ def launch_setup(context):
         ]
 
     # SLAM
-    if slam:
+    if len(slam_rgbd_ids) > 1:
+        description += [
+            LoadComposableNodes(
+                target_container=component_container,
+                composable_node_descriptions=[
+                    ComposableNode(
+                        package="rtabmap_sync",
+                        plugin="rtabmap_sync::RGBDSync",
+                        namespace=rgbd_id,
+                        remappings=[
+                            ("rgb/image", "color/image_raw"),
+                            ("depth/image", "depth/image_raw"),
+                            ("rgb/camera_info", "color/camera_info"),
+                        ],
+                        extra_arguments=[{"use_intra_process_comms": True}],
+                    )
+                    for rgbd_id in slam_rgbd_ids
+                ],
+            ),
+            LoadComposableNodes(
+                target_container=component_container,
+                composable_node_descriptions=[
+                    ComposableNode(
+                        package="rtabmap_sync",
+                        plugin="rtabmap_sync::RGBDXSync",
+                        namespace="rtabmap",
+                        parameters=[
+                            {
+                                "rgbd_cameras": len(slam_rgbd_ids),
+                            }
+                        ],
+                        remappings=[
+                            (f"rgbd_image{i}", f"/{rgbd_id}/rgbd_image/compressed")
+                            for i, rgbd_id in enumerate(slam_rgbd_ids)
+                        ],
+                        extra_arguments=[{"use_intra_process_comms": True}],
+                    )
+                ],
+            ),
+        ]
+
+    if len(slam_rgbd_ids) > 0:
         description += [
             Node(
                 package="kalman_slam",
@@ -253,15 +294,25 @@ def launch_setup(context):
                 parameters=[
                     {
                         "num_odoms": len(rgbd_ids),
-                        "sync_with_odom": rgbd_ids.index(slam),
+                        "sync_with_odom": (
+                            rgbd_ids.index(slam_rgbd_ids[0])
+                            if len(slam_rgbd_ids) == 1
+                            else -1
+                        ),
+                        "imu_correction_use_yaw": use_mag,
                     }
                 ],
-                remappings=[("odom", "odometry/local")]
+                remappings=[
+                    ("odom", "odometry/local"),
+                    ("imu", "imu/data"),
+                ]
                 + [
                     (f"odom{i}", f"/{rgbd_id}/odom")
                     for i, rgbd_id in enumerate(rgbd_ids)
                 ],
                 # arguments=["--ros-args", "--log-level", "debug"],
+                # prefix=["gdbserver localhost:1234"],
+                # output="screen",
             ),
             Node(
                 namespace="rtabmap",
@@ -272,18 +323,21 @@ def launch_setup(context):
                     str(
                         get_package_share_path("kalman_slam")
                         / "config"
-                        / "rtabmap_slam.yaml"
+                        / (
+                            "rtabmap_slam.yaml"
+                            if len(slam_rgbd_ids) == 1
+                            else "rtabmap_slam_multicam.yaml"
+                        )
                     )
                 ],
                 remappings={
-                    "rgb/image": f"/{slam}/color/image_raw",
-                    "depth/image": f"/{slam}/depth/image_raw",
-                    "rgb/camera_info": f"/{slam}/color/camera_info",
-                    # "rgbd_image": "/rtabmap/{slam}/rgbd_image",
                     "odom": "/odometry/local",
                     "imu": "/imu/data",
+                    "rgb/image": f"/{slam_rgbd_ids[0]}/color/image_raw",
+                    "depth/image": f"/{slam_rgbd_ids[0]}/depth/image_raw",
+                    "rgb/camera_info": f"/{slam_rgbd_ids[0]}/color/camera_info",
                 }.items(),
-                arguments=["-d"],
+                arguments=["-d", "--ros-args", "--log-level", "warn"],
             ),
             # # For development:
             # Node(
@@ -330,9 +384,9 @@ def generate_launch_description():
                 description="Use IMU yaw readings for global EKF. If disabled, heading will drift over time.",
             ),
             DeclareLaunchArgument(
-                "slam",
+                "slam_rgbd_ids",
                 default_value="",
-                description="Use SLAM with the specified RGBD camera. Empty to disable SLAM.",
+                description="Space-separated IDs of the depth cameras to use for SLAM.",
             ),
             OpaqueFunction(function=launch_setup),
         ]

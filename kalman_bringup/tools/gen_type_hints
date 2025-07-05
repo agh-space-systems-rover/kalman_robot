@@ -28,7 +28,11 @@ def get_pkg_desc(pkg: str) -> str:
         with open(pkg_xml, "r") as f:
             pkg_xml = f.read()
         pkg_xml = ElementTree.fromstring(pkg_xml)
-        return pkg_xml.find("description").text
+        text = pkg_xml.find("description").text
+        text = text.replace("\n", " ").replace("\t", " ")
+        while "  " in text:
+            text = text.replace("  ", " ")
+        return text
     except Exception as e:
         print(e)
         return ""
