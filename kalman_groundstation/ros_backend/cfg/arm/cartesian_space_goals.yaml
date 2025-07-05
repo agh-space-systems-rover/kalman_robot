@@ -1,9 +1,0 @@
-tube1:
-  x: 0.5
-  y: 0.5
-  z: 0.5
-  qx: 0.0
-  qy: 0.0
-  qz: 0.0
-  qw: 0.0
-  frame_id: arm_link

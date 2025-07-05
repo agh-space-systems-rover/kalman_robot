@@ -5,16 +5,28 @@ import { getKeybind } from './keybinds';
 import { Service } from 'roslib';
 
 let feedCameras = [1, 2];
-let feedChannels = [4, 8];
+let feedChannels = [15, 8];
 let feedPowers = [1, 1];
 
 // Load feed config from local storage.
 const feedConfig = localStorage.getItem('feed-config');
 if (feedConfig) {
   const feeds: any = JSON.parse(feedConfig);
-  feedCameras = feeds.cameras;
-  feedChannels = feeds.channels;
-  feedPowers = feeds.powers;
+
+  // Verify that the values are valid.
+  if (
+    feeds.cameras.length === 2 &&
+    feeds.channels.length === 2 &&
+    feeds.powers.length === 2 &&
+    feeds.cameras.every((camera: any) => typeof camera === 'number') &&
+    feeds.channels.every((channel: any) => typeof channel === 'number') &&
+    feeds.powers.every((power: any) => typeof power === 'number')
+  ) {
+    // If valid, use the values.
+    feedCameras = feeds.cameras;
+    feedChannels = feeds.channels;
+    feedPowers = feeds.powers;
+  }
 }
 
 // Save feed config to local storage on update.
@@ -44,7 +56,7 @@ window.addEventListener('ros-connect', () => {
   let prevPowers = [0, 0];
   let lastActionableReq = null;
 
-  const sendCall = (silent = false) => {
+  const sendCall = (showAlerts = true) => {
     let errorShownOnce = false; // Prevents from showing two errors, one for each feed.
     // For each of the two feeds, send a call if any of the values have changed.
     for (let feed = 0; feed < 2; feed++) {
@@ -53,8 +65,7 @@ window.addEventListener('ros-connect', () => {
       const req: SetFeedRequest = {
         feed: feed + 1, // Feeds in SetFeed are 1-indexed.
         camera: feedCameras[feed] === prevCameras[feed] ? 0 : feedCameras[feed],
-        channel:
-          feedChannels[feed] === prevChannels[feed] ? 0 : feedChannels[feed],
+        channel: feedChannels[feed] === prevChannels[feed] ? 0 : feedChannels[feed],
         power: feedPowers[feed] === prevPowers[feed] ? 0 : feedPowers[feed]
       };
 
@@ -65,8 +76,10 @@ window.addEventListener('ros-connect', () => {
 
       // If any of the values have changed, send the call.
       const errorCb = (error: string) => {
-        if (!errorShownOnce && !silent) {
-          alertsRef.current?.pushAlert('Failed to update feeds: ' + error);
+        if (!errorShownOnce) {
+          if (showAlerts) {
+            alertsRef.current?.pushAlert('Failed to update feeds: ' + error);
+          }
           errorShownOnce = true;
         }
       };
@@ -81,7 +94,7 @@ window.addEventListener('ros-connect', () => {
   };
 
   window.addEventListener('feeds-updated', () => sendCall());
-  sendCall(true);
+  sendCall(false);
 });
 
 // Keybinds

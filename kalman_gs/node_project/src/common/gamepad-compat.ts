@@ -1,3 +1,5 @@
+const DEADZONE = 0.02;
+
 type GamepadInput =
   | 'left-x' // right is positive
   | 'left-y' // up is positive
@@ -83,7 +85,7 @@ const inputChromium: GamepadInputMap = {
   'x-button': xInputFirefox['y-button'],
   'y-button': xInputFirefox['x-button']
 };
-const inititlizedTriggers = new Map<Gamepad, Map<GamepadInput, boolean>>();
+const initializedTriggers = new Map<Gamepad, Map<GamepadInput, boolean>>();
 function readGamepad(pad: Gamepad, input: GamepadInput): number {
   // Determine XInput or DirectInput.
   // XInput has 17 buttons, DirectInput differs between browsers.
@@ -115,22 +117,20 @@ function readGamepad(pad: Gamepad, input: GamepadInput): number {
   // Set triggers to zero until they were moved from 0.5.
   // Fixes a Firefox XInput bug.
   if (input === 'left-trigger' || input === 'right-trigger') {
-    if (!inititlizedTriggers.has(pad)) {
-      inititlizedTriggers.set(pad, new Map());
+    if (!initializedTriggers.has(pad)) {
+      initializedTriggers.set(pad, new Map());
     }
     if (value != 0.5) {
-      inititlizedTriggers.get(pad).set(input, true);
+      initializedTriggers.get(pad).set(input, true);
     }
-    if (!inititlizedTriggers.get(pad).get(input)) {
+    if (!initializedTriggers.get(pad).get(input)) {
       value = 0;
     }
   }
 
   // Apply small deadzone to sticks.
   if (input === 'left-x' || input === 'left-y' || input === 'right-x' || input === 'right-y' || input === 'left-trigger' || input === 'right-trigger') {
-    if (Math.abs(value) < 0.1) {
-      value = 0;
-    }
+    value = Math.sign(value) * Math.max(Math.abs(value) - DEADZONE, 0) / (1 - DEADZONE);
   }
 
   return value;

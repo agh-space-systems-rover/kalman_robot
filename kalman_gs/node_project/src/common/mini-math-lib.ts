@@ -90,6 +90,10 @@ export function quatFromAxisAngle(axis: Vector3, angle: number): Quaternion {
   };
 }
 
+export function quatConj(q: Quaternion): Quaternion {
+  return { w: q.w, v: scaleVec(q.v, -1) };
+}
+
 export function vecFromCssColor(color: string): Vector3 {
   // Check whether it is hex or rgb
   if (color[0] === '#') {

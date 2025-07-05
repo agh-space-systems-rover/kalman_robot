@@ -40,6 +40,12 @@ def render_jinja_config(template_path, **kwargs):
     return config
 
 
+def find_available_maps() -> set[str]:
+    maps_dir = get_package_share_path("kalman_nav2") / "maps"
+    maps = [f.stem for f in maps_dir.glob("*.yaml")]
+    return set(maps)
+
+
 def render_nav2_config(rgbd_ids, static_map):
     # Render core Nav2 params.
     nav2_params = render_jinja_config(
@@ -91,28 +97,37 @@ def launch_setup(context):
         if x != ""
     ]
     static_map = LaunchConfiguration("static_map").perform(context)
+    driving_mode = LaunchConfiguration("driving_mode").perform(context)
 
     description = []
 
     # obstacle detection
     if component_container:
-        description += [
-            LoadComposableNodes(
-                target_container=component_container,
-                composable_node_descriptions=[
-                    ComposableNode(
-                        package="point_cloud_utils",
-                        plugin="point_cloud_utils::ObstacleDetection",
-                        namespace=camera_id,
-                        remappings={
-                            "input": "point_cloud",
-                            "output": "point_cloud/obstacles",
-                        }.items(),
-                    )
-                    for camera_id in rgbd_ids
-                ],
-            ),
-        ]
+        if rgbd_ids:
+            description += [
+                LoadComposableNodes(
+                    target_container=component_container,
+                    composable_node_descriptions=[
+                        ComposableNode(
+                            package="point_cloud_utils",
+                            plugin="point_cloud_utils::ObstacleDetection",
+                            namespace=camera_id,
+                            parameters=[
+                                str(
+                                    get_package_share_path("kalman_nav2")
+                                    / "config"
+                                    / "obstacle_detection.yaml"
+                                ),
+                            ],
+                            remappings={
+                                "input": "point_cloud",
+                                "output": "point_cloud/obstacles",
+                            }.items(),
+                        )
+                        for camera_id in rgbd_ids
+                    ],
+                ),
+            ]
     else:
         description += [
             Node(
@@ -208,6 +223,9 @@ def launch_setup(context):
                     / "config"
                     / "path_follower.yaml"
                 ),
+                {
+                    "driving_mode": driving_mode,
+                },
             ],
         ),
     ]
@@ -225,13 +243,20 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument(
                 "rgbd_ids",
-                default_value="d455_front d455_back d455_left d455_right",
+                default_value="",
                 description="Space-separated IDs of the depth cameras to use.",
             ),
             DeclareLaunchArgument(
                 "static_map",
                 default_value="",
+                choices=["", *find_available_maps()],
                 description="Name of the static map to use. Maps are stored in kalman_nav2/maps. Empty by default to disable static map.",
+            ),
+            DeclareLaunchArgument(
+                "driving_mode",
+                default_value="hybrid",
+                choices=["hybrid", "forward", "backward"],
+                description="Direction to drive in. The default 'hybrid' mode allows driving in both directions.",
             ),
             OpaqueFunction(function=launch_setup),
         ]

@@ -71,6 +71,7 @@ def generate_launch_description():
             DeclareLaunchArgument(
                 "joy",
                 default_value="",
+                choices=["", "gamepad", "arduino"],
                 description="Joy device to use for headless driving. Choose 'gamepad' or 'arduino'. Empty disables headless teleop.",
             ),
             OpaqueFunction(function=launch_setup),

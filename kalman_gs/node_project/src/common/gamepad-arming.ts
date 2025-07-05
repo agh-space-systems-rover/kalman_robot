@@ -1,3 +1,4 @@
+import { audioLoop } from '../indicators/interstellar';
 import { GamepadInput } from './gamepad-compat';
 import { readGamepads } from './gamepads';
 import { ros } from './ros';
@@ -97,23 +98,18 @@ function translateGamepadToCommand({ type, input, mapping }: JointBind) {
       if (!('positiveAxisId' in input && 'negativeAxisId' in input)) {
         return 0;
       }
-      return mapping(
-        readGamepads(input.positiveAxisId, 'arm') -
-          readGamepads(input.negativeAxisId, 'arm')
-      );
+      return mapping(readGamepads(input.positiveAxisId, 'arm') - readGamepads(input.negativeAxisId, 'arm'));
     case AxisType.TWO_BUTTONS:
       if (!('positiveButtonId' in input && 'negativeButtonId' in input)) {
         return 0;
       }
       const pos = input.positiveButtonId;
-      return mapping(
-        readGamepads(input.positiveButtonId, 'arm') -
-          readGamepads(input.negativeButtonId, 'arm')
-      );
+      return mapping(readGamepads(input.positiveButtonId, 'arm') - readGamepads(input.negativeButtonId, 'arm'));
   }
 }
 
 let previousArmButtons = new Map<GamepadInput, number>();
+let dpadLeftDown = false;
 
 export let armJointsLocks = {
   'joint_1': false,
@@ -141,11 +137,26 @@ function resetLockedJoints(msg: ArmFkCommand) {
   return msg;
 }
 
+function setFastclick(position: number) {
+  const fastclickTopic = new Topic({
+    ros: ros,
+    name: '/fastclick',
+    messageType: 'std_msgs/msg/UInt8'
+  });
+  fastclickTopic.publish({ data: position });
+}
+
 window.addEventListener('ros-connect', () => {
   const fkTopic = new Topic<ArmFkCommand>({
     ros: ros,
     name: '/station/arm/fk/command',
     messageType: 'kalman_interfaces/ArmFkCommand'
+  });
+
+  const fastclickTopic = new Topic({
+    ros: ros,
+    name: '/fastclick',
+    messageType: 'std_msgs/msg/UInt8'
   });
 
   setInterval(() => {
@@ -159,33 +170,31 @@ window.addEventListener('ros-connect', () => {
       gripper: translateGamepadToCommand(jointInputMapping.gripper)
     };
 
-    if (
-      readGamepads('right-shoulder', 'arm') > 0.5 &&
-      previousArmButtons['right-shoulder'] <= 0.5
-    ) {
+    if (readGamepads('right-shoulder', 'arm') > 0.5 && previousArmButtons['right-shoulder'] <= 0.5) {
       currentAxisLockFocus = (currentAxisLockFocus % 6) + 1;
     }
-    if (
-      readGamepads('left-shoulder', 'arm') > 0.5 &&
-      previousArmButtons['left-shoulder'] <= 0.5
-    ) {
+    if (readGamepads('left-shoulder', 'arm') > 0.5 && previousArmButtons['left-shoulder'] <= 0.5) {
       currentAxisLockFocus = ((currentAxisLockFocus + 4) % 6) + 1;
     }
-    if (
-      readGamepads('x-button', 'arm') > 0.5 &&
-      previousArmButtons['x-button'] <= 0.5
-    ) {
-      toggleArmJointLock(`joint_${currentAxisLockFocus}`);
+    if (readGamepads('x-button', 'arm') > 0.5 && previousArmButtons['x-button'] <= 0.5) {
+      fastclickTopic.publish({ data: 255 });
+    }
+    if (readGamepads('b-button', 'arm') > 0.5 && previousArmButtons['b-button'] <= 0.5) {
+      fastclickTopic.publish({ data: 0 });
     }
 
-    previousArmButtons['right-shoulder'] = readGamepads(
-      'right-shoulder',
-      'arm'
-    );
+    previousArmButtons['right-shoulder'] = readGamepads('right-shoulder', 'arm');
     previousArmButtons['left-shoulder'] = readGamepads('left-shoulder', 'arm');
     previousArmButtons['x-button'] = readGamepads('x-button', 'arm');
+    previousArmButtons['b-button'] = readGamepads('b-button', 'arm');
 
     msg = resetLockedJoints(msg);
     fkTopic.publish(msg);
+
+    // Extra stupid feature for ARCh 2025
+    if (readGamepads('dpad-left', 'arm') == 1 && !dpadLeftDown) {
+      audioLoop.togglePlayback();
+    }
+    dpadLeftDown = readGamepads('dpad-left', 'arm') > 0.5;
   }, 1000 / RATE);
 });

@@ -1,96 +1,46 @@
-# kalman_base
+# Master
 
-Note: This package is configured for Python and C++ - for future rewrite in C++.
+driver for our custom "Master" device
 
-## Description
+Communicates with the Master over serial and exposes its functionality as a ROS 2 API, using messages and services.
 
-Package that provides modules and nodes for handling serial communication with a Kalman rover and is a bridge between Master and ROS.
 
-## Modules
+> [!NOTE]
+> Master is a device that controls the rover's subsystems.
+> It communicates over a serial port using a custom protocol.
+> The protocol is based on a frame structure, where each frame has a unique ID and a payload.
+> The ID determines the function of the frame, and the payload is the data that the frame carries.
+> The frames forwarded by Master can control of the rover's wheels, drill, and other actuators, as well as read data from sensors like the IMU and encoders.
+> Additionally, the Master can send data over the radio to a remote adapter connected to the ground station.
 
-### `lightweight_serial_driver`
-
-#### Description
-
-Module for reading data from serial and writing data to serial.
-
-#### Usage
-
-```python
-# Initialize the serial driver
-driver = SerialDriver(port_name=port_name, start_byte='<', stop_byte='>', baud_rate=baud_rate, ascii_mode=ascii_mode)
-
-# Read all messages from serial (as list of SerialMsg objects)
-driver.tick()
-messages: List[SerialMsg] = driver.read_all_msgs()
-
-# Write a message to serial
-msg = MasterMessage()
-
-driver.write_msg(msg)
-driver.tick()
-```
-
-#### SerialMsg
-
-```python
-@dataclass
-class SerialMsg:
-    cmd: UInt8
-    argc: UInt8
-    argv: List[UInt8]
-```
 
 ## Nodes
 
-### `master_com`
+#### master_com
 
-#### Description
+Main node, responsible for interfacing with the device. It reads and writes data from a serial port, and exposes it to ROS 2. The node is split into two parts, the ROS node [`master_com_node.py`](./kalman_master/master_com_node.py) and [`serial_driver.py`](./kalman_master/serial_driver.py) which encapsulates the serial communication logic and the Master's protocol.
 
-Handles serial communication between Master device and ROS network.
+Every frame received from the Master on a serial port is published as a ROS message [`MasterMessage`](../kalman_interfaces/msg/MasterMessage.msg) on a dynamically created topic `master_com/master_to_ros/{0x(lowercase hexadecimal frame ID)}`.
 
-Every frame received from master is published as a ROS message (MasterMessage) on a dynamically
-created topic `master_com/master_to_ros/{0x(lowercase hexadecimal frame ID)}`.
-Frame data interpretation should be handled by client.
+Here each data frame sent or received from the Master is identified by a unique ID. The ID is a 1-byte number which determines the function of that frame, for example, a frame that controls the speed of the robot's wheels will have a different ID than a frame that controls the drill. `MasterMessage` is basically a byte array, but it stores the ID as a separate field for clarity.
 
-Every ROS message sent on topic `master_com/ros_to_master` should have MasterMessage format.
-Message is then encoded as a binary frame and sent out using the serial driver.
+In order to send data to the Master, `MasterMessage`s should be published to `master_com/ros_to_master`. `master_com` will then forward the received frames to the serial port.
 
-Messages should be of type `MasterMessage` and contain the following data:
+#### Other Drivers
 
--   `cmd` - command id
--   `data` - list of arguments
+Later, other nodes, such as `feed_driver`, `drill_driver`, `ueuos_driver`, `wheel_driver`, expose a high-level API for different functionalities of the Master. They translate the API into the low-level `MasterMessage` format sent to and received on the `master_com`'s topics.
 
-#### Usage
+#### ros_link
 
-Run as a ROS node.
+This node leverages the Master's ability to send data over the radio to connect two independent ROS instances (here ground station and the rover) using RF comms.
 
-#### Parameters
+It reads a [YAML config](./config/pc_ros_link.yaml) to determine which topics/services/actions to forward to the other end. The config specifies two sides of communication and must be replicated on both ends for the link to work.
 
--   `/serial_port` - serial port name
--   `/baud_rate` - baud rate
--   `/ascii_mode` - if true, messages are sent as ASCII strings (default: false)
+#### master_loopback
 
-#### Topics
+Alternative `master_com` implementation that allows to test nodes that use its topics. Every message sent to `master_com/ros_to_master` will get echoed back to `master_com/master_to_ros/{0xID}`. This is useful for testing the behavior of the nodes that use the Master's low-level API without having the Master connected. `master_loopback` also allows to simulate various message loss rates and delays to test the robustness of the system. This came in handy when debugging `ros_link`!
 
--   `master_com/master_to_ros/{0x(lowercase hexadecimal frame ID)}` - messages received from serial
--   `master_com/ros_to_master` - messages to be sent to serial
+#### arm_twist_driver
 
-## Uses
-
--   `pyserial`
-
-## Package structure
-
-```
-    kalman_base
-    ├── CMakeLists.txt              # compiler instructions
-    ├── package.xml                 # package metadata
-    ├── README.md                   # this file
-    ├── kalman_base                 # Python modules
-    |   ├── __init__.py             # init file - empty
-    |   ├── serial_driver.py        # serial driver helper class
-    |   └── master_com.py           # Master-ROS communication node
-    └── exec                        # Executables for Python-based nodes
-        └── master_com
-```
+Interprets linear and angular velocity inputs and translates them into Master's arm control frames.
+Used to steer the arm using a 3D Space Mouse.

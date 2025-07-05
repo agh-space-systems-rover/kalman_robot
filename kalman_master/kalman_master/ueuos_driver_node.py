@@ -6,6 +6,9 @@ from rclpy.node import Node
 from kalman_interfaces.srv import SetUeuosColor, SetUeuosEffect, SetUeuosState
 from kalman_interfaces.msg import MasterMessage
 
+NUMBER_OF_RETRIES_PER_CALL = 10
+RETRY_DT = 0.5
+
 
 class UeuosDriver(Node):
     def __init__(self):
@@ -24,7 +27,8 @@ class UeuosDriver(Node):
         self.tick_msg = MasterMessage(
             cmd=MasterMessage.UEUOS_SET_STATE, data=[SetUeuosState.Request.OFF]
         )
-        self.create_timer(1.0, self.tick)
+        self.frames_to_send = 0
+        self.create_timer(RETRY_DT, self.tick)
 
     def set_color(
         self, request: SetUeuosColor.Request, response: SetUeuosColor.Response
@@ -37,6 +41,7 @@ class UeuosDriver(Node):
                 int(request.color.b * 255),
             ],
         )
+        self.frames_to_send = NUMBER_OF_RETRIES_PER_CALL
         return response
 
     def set_effect(
@@ -45,6 +50,7 @@ class UeuosDriver(Node):
         self.tick_msg = MasterMessage(
             cmd=MasterMessage.UEUOS_SET_EFFECT, data=[request.effect]
         )
+        self.frames_to_send = NUMBER_OF_RETRIES_PER_CALL
         return response
 
     def set_state(
@@ -53,10 +59,13 @@ class UeuosDriver(Node):
         self.tick_msg = MasterMessage(
             cmd=MasterMessage.UEUOS_SET_STATE, data=[request.state]
         )
+        self.frames_to_send = NUMBER_OF_RETRIES_PER_CALL
         return response
 
     def tick(self):
-        self.ueuos_pub.publish(self.tick_msg)
+        if self.frames_to_send > 0:
+            self.frames_to_send -= 1
+            self.ueuos_pub.publish(self.tick_msg)
 
 
 def main():

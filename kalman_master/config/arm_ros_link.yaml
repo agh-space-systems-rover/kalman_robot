@@ -1,0 +1,176 @@
+# This is not a ROS 2 parameter file, but a custom YAML config.
+
+rover: # or 'station'
+  topics:
+    - name: arm_state
+      type: kalman_interfaces/msg/ArmState
+      max_rate: 5
+      fields:
+        - path: joint_1
+          float_range:
+            min: -6.4
+            max: 6.4
+            bytes: 2
+        - path: joint_2
+          float_range:
+            min: -3.2
+            max: 3.2
+            bytes: 1
+        - path: joint_3
+          float_range:
+            min: -3
+            max: 3
+            bytes: 1
+        - path: joint_4
+          float_range:
+            min: -6.4
+            max: 6.4
+            bytes: 2
+        - path: joint_5
+          float_range:
+            min: -2
+            max: 2
+            bytes: 1
+        - path: joint_6
+          float_range:
+            min: -3.5
+            max: 3.5
+            bytes: 1
+    - name: imu/data
+      type: sensor_msgs/msg/Imu
+      max_rate: 5
+      fields:
+        - path: orientation
+          float_range: # skip header, velocity and acceleration
+            min: -1.0
+            max: 1.0
+            bytes: 1 # precision = 0.008; will un-normalize the quaternion a bit
+    - name: gps/fix
+      type: sensor_msgs/msg/NavSatFix
+      max_rate: 1
+      fields:
+        - path: status.status
+          int_range:
+            min: -1 # min status.status
+            max: 2 # max status.status
+        - path: latitude
+          float_range:
+            min: -90.0
+            max: 90.0
+            bytes: 4 # precision = 0.00000005 degrees = 0.5 cm
+        - path: longitude
+          float_range:
+            min: -180.0
+            max: 180.0
+            bytes: 4 # precision = 0.0000001 degrees = 1 cm
+        - path: altitude
+          float_range:
+            min: 0.0
+            max: 2000.0
+            bytes: 2
+    - name: trajectory/status
+      type: kalman_interfaces/msg/ArmGoalStatus
+      max_rate: 2
+      int_range:
+        min: 0
+        max: 255
+    - name: pose_request/status
+      type: kalman_interfaces/msg/ArmGoalStatus
+      max_rate: 2
+      int_range:
+        min: 0
+        max: 255
+    - name: magneto/data
+      type: std_msgs/msg/UInt8MultiArray
+      max_rate: 2
+      fields:
+        - path: data
+    - name: gripper/temperature
+      type: std_msgs/msg/UInt8
+      max_rate: 2
+      int_range:
+        min: 0
+        max: 255
+    - name: kutong/data
+      type: std_msgs/msg/UInt8MultiArray
+      max_rate: 2
+      fields:
+        - path: data
+    - name: gripper/position
+      type: std_msgs/msg/UInt16
+      max_rate: 2
+      int_range:
+        min: 0
+        max: 65535
+
+station:
+  topics:
+    - name: gripper/command_incremental
+      type: std_msgs/msg/Int8
+      max_rate: 10
+      int_range:
+        min: -128
+        max: 127
+    - name: joy_compressed
+      type: kalman_interfaces/msg/ArmCompressed
+      max_rate: 10
+      int_range:
+        min: 0
+        max: 255
+    - name: servo/set_linear_scale
+      type: std_msgs/msg/Float64
+      max_rate: 2
+      float_range:
+        min: 0
+        max: 1
+        bytes: 1
+    - name: servo/set_rotational_scale
+      type: std_msgs/msg/Float64
+      max_rate: 2
+      float_range:
+        min: 0
+        max: 1
+        bytes: 1
+    - name: pose_request/execute
+      type: kalman_interfaces/msg/ArmPoseSelect
+      max_rate: 2
+      int_range:
+        min: 0
+        max: 255
+    - name: pose_request/abort
+      type: example_interfaces/msg/Empty
+      max_rate: 10
+    - name: pose_request/keep_alive
+      type: example_interfaces/msg/Empty
+      max_rate: 10
+    - name: trajectory/execute
+      type: kalman_interfaces/msg/ArmTrajectorySelect
+      max_rate: 2
+      int_range:
+        min: 0
+        max: 255
+    - name: trajectory/abort
+      type: example_interfaces/msg/Empty
+      max_rate: 10
+    - name: trajectory/keep_alive
+      type: example_interfaces/msg/Empty
+      max_rate: 10
+    - name: fastclick
+      type: std_msgs/msg/UInt8
+      max_rate: 5
+    - name: magneto/tare
+      type: std_msgs/msg/UInt8MultiArray
+      max_rate: 2
+      fields:
+        - path: data
+    - name: magneto/request
+      type: std_msgs/msg/UInt8MultiArray
+      max_rate: 2
+      fields:
+        - path: data
+    - name: kutong/request
+      type: std_msgs/msg/UInt8MultiArray
+      max_rate: 2
+      fields:
+        - path: data
+

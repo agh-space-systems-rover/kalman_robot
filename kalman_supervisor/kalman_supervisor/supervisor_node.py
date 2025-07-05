@@ -22,7 +22,9 @@ class Supervisor(Node):
         super().__init__("supervisor")
 
         # Set per-module type hints for autocomplete.
+        self.arch: Arch
         self.aruco: ArUco
+        self.cmd_vel: CmdVel
         self.map: Map
         self.missions: Missions
         self.nav: Nav
@@ -111,7 +113,7 @@ class Supervisor(Node):
                 module.tick()
             except Exception as e:
                 self.get_logger().error(
-                    f"Error when ticking {module.name}:\n{traceback.format_exc()}\nContinuing to next module. Let there be dragons."
+                    f"Error when ticking {module.name}:\n{traceback.format_exc()}\nContinuing to next module. Expect anything."
                 )
 
         # Tick the state.
@@ -120,7 +122,7 @@ class Supervisor(Node):
             new_state_name = self.__state_dict[self.state].tick()
         except Exception as e:
             self.get_logger().error(
-                f"Error when ticking {self.state} state:\n{traceback.format_exc()}\nContinuing to next tick. Let there be dragons."
+                f"Error when ticking {self.state} state:\n{traceback.format_exc()}\nContinuing to next tick. Expect anything."
             )
 
         # Transition if requested.
@@ -129,14 +131,14 @@ class Supervisor(Node):
                 self.__state_dict[self.state].exit()
             except Exception as e:
                 self.get_logger().error(
-                    f"Error when exiting {self.state} state:\n{traceback.format_exc()}\nContinuing to next tick. Let there be dragons."
+                    f"Error when exiting {self.state} state:\n{traceback.format_exc()}\nContinuing to next tick. Expect anything."
                 )
             self.state = new_state_name
             try:
                 self.__state_dict[self.state].enter()
             except Exception as e:
                 self.get_logger().error(
-                    f"Error when entering {self.state} state:\n{traceback.format_exc()}\nContinuing to next tick. Let there be dragons."
+                    f"Error when entering {self.state} state:\n{traceback.format_exc()}\nContinuing to next tick. Expect anything."
                 )
             self.get_logger().info(f"[State] Transitioned to {new_state_name}.")
 

@@ -37,7 +37,6 @@ import BabylonJS from '../components/babylon-js';
 
 const ORTHO_FOV_SCALE_INV = 5;
 const FOG_DENSITY = 0.001;
-const ROS_IMU_LINK_YAW = 1.57;
 
 function getClosestTargetAngle(current: number, target: number) {
   const diff = target - current;
@@ -132,18 +131,11 @@ export default function Imu({ props }: Props) {
   useEffect(() => {
     const onImuUpdated = () => {
       if (kalman.current !== undefined) {
-        const imuToWorld = Object.assign({}, imuRotation); // imu frame -> world frame
-        const roverToImu = quatFromAxisAngle(
-          { x: 0, y: 0, z: 1 },
-          ROS_IMU_LINK_YAW
-        ); // rover frame -> imu frame
-        const roverToWorld = quatTimesQuat(imuToWorld, roverToImu); // rover frame -> world frame
-
         kalman.current.rotationQuaternion = new Quaternion(
-          -roverToWorld.v.x,
-          -roverToWorld.v.z,
-          -roverToWorld.v.y,
-          roverToWorld.w
+          -imuRotation.v.x,
+          -imuRotation.v.z,
+          -imuRotation.v.y,
+          imuRotation.w
         );
       }
     };

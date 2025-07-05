@@ -75,12 +75,14 @@ class AdjustWheelsState(State):
 
 
 def away_from_zero(x: float):
-    if 0 <= x and x < 1e-5:
-        return 1e-5
-    elif -1e-5 < x and x < 0:
-        return -1e-5
+    EPS = 1e-3
+    if 0 <= x and x < EPS:
+        return EPS
+    elif -EPS < x and x < 0:
+        return -EPS
     else:
         return x
+
 
 # This node republishes different motion control messages as a universal wheel
 # state message for a robot with quadruple independent swivel wheels.
@@ -93,9 +95,10 @@ class TwistController(rclpy.node.Node):
         self.declare_parameter("stop_timeout", 1.0)
         self.declare_parameter("robot_radius", 0.5)
         self.declare_parameter("max_wheel_vel", 1.0)
-        self.declare_parameter("wheel_accel", 2.0)
-        self.declare_parameter("wheel_turn_vel", 1.57)
-        self.declare_parameter("max_wheel_turn_diff", 0.8)
+        self.declare_parameter("wheel_accel", 0.5)
+        self.declare_parameter("wheel_decel", 2.0)
+        self.declare_parameter("wheel_turn_vel", 1.2)
+        self.declare_parameter("max_wheel_turn_diff", 0.6)
         self.declare_parameter("min_wheel_turn_diff", 0.2)
 
         # Initialize current wheel states.
@@ -110,9 +113,7 @@ class TwistController(rclpy.node.Node):
         self.create_subscription(Twist, "cmd_vel", self.on_cmd_vel, 10)
 
         # Create state publisher.
-        self.wheel_state_pub = self.create_publisher(
-            WheelStates, "wheel_states", 10
-        )
+        self.wheel_state_pub = self.create_publisher(WheelStates, "wheel_states", 10)
 
         # Create state publisher timer.
         rate = self.get_parameter("rate").value
@@ -137,7 +138,7 @@ class TwistController(rclpy.node.Node):
         # wheel angles
         wheel_angles = [np.arctan2(vec[1], vec[0]) for vec in wheel_vectors]
 
-        # Choose either angle or its complement, whichever is closer to the current angle.
+        # Choose either angle or its complement, whichever        is closer to the current angle.
         # When choosing the complement, flip the velocity sign.
         for i in range(len(wheel_angles)):
             if angle_distance(wheel_angles[i], self.current_angles[i]) > np.pi / 2:
@@ -217,30 +218,34 @@ class TwistController(rclpy.node.Node):
         # Update current wheel velocities while respecting acceleration limits.
         def update_current_velocities(target):
             max_wheel_accel = self.get_parameter("wheel_accel").value
-            scales = [1] * len(self.target_velocities)
-            for i in range(len(self.target_velocities)):
+            max_wheel_decel = self.get_parameter("wheel_decel").value
+            for i in range(len(target)):
                 # Simple P=1 controller.
                 # It will precisely converge to the target velocity.
                 dv = target[i] - self.current_velocities[i]
-                dv = np.clip(dv, -max_wheel_accel * dt, max_wheel_accel * dt)
-                new_vel = self.current_velocities[i] + dv
-                scales[i] = new_vel / away_from_zero(self.target_velocities[i])
-            min_scale = np.min(scales)
-            self.current_velocities = [vel * min_scale for vel in self.target_velocities]
+                accel_limit = (
+                    max_wheel_accel
+                    if np.sign(dv) == np.sign(self.current_velocities[i])
+                    else max_wheel_decel
+                )
+                dv = np.clip(dv, -accel_limit * dt, accel_limit * dt)
+                self.current_velocities[i] += dv
 
         # Update current wheel angles.
         def update_current_angles(target):
             wheel_turn_vel = self.get_parameter("wheel_turn_vel").value
-            for i in range(len(self.target_angles)):
+            for i in range(len(target)):
                 dx = target[i] - self.current_angles[i]
                 dx = np.clip(dx, -wheel_turn_vel * dt, wheel_turn_vel * dt)
                 self.current_angles[i] += dx
 
         # Publish current states.
         # Use target_angles instead of current_angles, because the robot's wheel turn motors do not experience any high-acceleration issues.
-        def publish_current_states(use_target_angles=True):
+        def publish_current_states():
             vels = self.current_velocities
-            angles = self.target_angles if use_target_angles else self.current_angles
+            angles = self.target_angles
+            # ^ Send target angles to avoid this module's PID
+            # visibly overlaying with the robot's own PID.
 
             wheel_states = WheelStates()
             wheel_states.front_left.velocity = vels[0]
@@ -259,7 +264,8 @@ class TwistController(rclpy.node.Node):
             if not np.all(np.isclose(self.current_velocities, 0)):
                 # Gradually slow down.
                 update_current_velocities([0.0, 0.0, 0.0, 0.0])
-                publish_current_states(use_target_angles=False)
+
+                publish_current_states()
 
         elif isinstance(self.state, DriveState):
             # Follow target velocities and angles within the safety limits.
@@ -269,16 +275,15 @@ class TwistController(rclpy.node.Node):
             publish_current_states()
 
         elif isinstance(self.state, AdjustWheelsState):
-            # Gradually slow down.
-            update_current_velocities([0.0, 0.0, 0.0, 0.0])
-
             # Only adjust wheel angles if the robot is stopped.
             if np.all(np.isclose(self.current_velocities, 0)):
-                self.current_velocities = [0.0, 0.0, 0.0, 0.0]
+                # The robot is stopped.
                 update_current_angles(self.target_angles)
-                publish_current_states()
             else:
-                publish_current_states(use_target_angles=False)
+                # Still driving, so we gradually slow down.
+                update_current_velocities([0.0, 0.0, 0.0, 0.0])
+
+            publish_current_states()
 
 
 def main():

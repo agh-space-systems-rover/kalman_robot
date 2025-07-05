@@ -5,6 +5,7 @@ import Map from './map';
 import MapHeader from './map.header';
 import Mobile from './mobile';
 import Supervisor from './supervisor';
+import Ueuos from './ueuos';
 import Waypoints from './waypoints';
 import Wheels from './wheels';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
@@ -16,7 +17,8 @@ import {
   faDiagramProject,
   faFlag,
   faGear,
-  faMobileScreenButton
+  faMobileScreenButton,
+  faPalette
 } from '@fortawesome/free-solid-svg-icons';
 
 // Add new panels here:
@@ -28,7 +30,9 @@ export type PanelID =
   | 'feeds'
   | 'arm'
   | 'waypoints'
-  | 'mobile';
+  | 'mobile'
+  | 'ueuos';
+
 export const defaultPanel: PanelID = 'map';
 export const panelInfos: Panels = {
   imu: {
@@ -71,6 +75,11 @@ export const panelInfos: Panels = {
     Component: Mobile,
     name: 'Mobile',
     icon: faMobileScreenButton
+  },
+  ueuos: {
+    Component: Ueuos,
+    name: 'UEUOS',
+    icon: faPalette
   }
 };
 

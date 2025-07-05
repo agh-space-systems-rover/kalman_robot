@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="kalman">
+    <!-- base Kalman links -->
+    <xacro:include filename="$(find kalman_description)/urdf/kalman.urdf.xacro" />
+    <xacro:kalman />
+
+    <!-- IMU -->
+    <link name="imu_link" />
+    <joint name="imu_joint" type="fixed">
+        <origin xyz="0.088 0.000 -0.015" rpy="0 0 -1.5708" />
+        <parent link="base_link" />
+        <child link="imu_link" />
+    </joint>
+
+    <!-- Altimeter -->
+    <link name="altimeter_link" />
+    <joint name="altimeter_joint" type="fixed">
+        <origin xyz="0.088 0.000 -0.015" />
+        <parent link="base_link" />
+        <child link="altimeter_link" />
+    </joint>
+
+    <!-- GPS -->
+    <link name="gps_link" />
+    <joint name="gps_joint" type="fixed">
+        <origin xyz="-0.560 -0.175 0.670" />
+        <parent link="base_link" />
+        <child link="gps_link" />
+    </joint>
+
+    <!-- RealSense -->
+    <!-- origin at bottom screw mount -->
+    <xacro:include filename="$(find realsense2_description)/urdf/_d455.urdf.xacro" />
+    <xacro:sensor_d455 name="d455_front" parent="base_link" use_nominal_extrinsics="true">
+        <origin xyz="0.125 0.105 0.355" rpy="0 0 0" />
+    </xacro:sensor_d455>
+    <xacro:sensor_d455 name="d455_back" parent="base_link" use_nominal_extrinsics="true">
+        <origin xyz="-0.605 -0.175 0.355" rpy="0 0 -3.1416" />
+    </xacro:sensor_d455>
+    <xacro:sensor_d455 name="d455_left" parent="base_link" use_nominal_extrinsics="true">
+        <origin xyz="0.080 0.150 0.305" rpy="0 0 1.5708" />
+    </xacro:sensor_d455>
+    <xacro:sensor_d455 name="d455_right" parent="base_link" use_nominal_extrinsics="true">
+        <origin xyz="-0.560 -0.22 0.305" rpy="0 0 -1.5708" />
+    </xacro:sensor_d455>
+</robot>

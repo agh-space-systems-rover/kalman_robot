@@ -14,28 +14,31 @@ def launch_point_cloud_utils_nodes(
     parameters: list,
     remappings: list,
     component_container: str,
-    rgb_ids: list,
+    rgbd_ids: list,
 ) -> list:
     if component_container:
         plugin = "point_cloud_utils::" + "".join(
             [x.capitalize() for x in name.split("_")]
         )
-        return [
-            LoadComposableNodes(
-                target_container=component_container,
-                composable_node_descriptions=[
-                    ComposableNode(
-                        package="point_cloud_utils",
-                        plugin=plugin,
-                        namespace=camera_id,
-                        parameters=parameters,
-                        remappings=remappings,
-                        extra_arguments=[{"use_intra_process_comms": True}],
-                    )
-                    for camera_id in rgb_ids
-                ],
-            )
-        ]
+        if rgbd_ids:
+            return [
+                LoadComposableNodes(
+                    target_container=component_container,
+                    composable_node_descriptions=[
+                        ComposableNode(
+                            package="point_cloud_utils",
+                            plugin=plugin,
+                            namespace=camera_id,
+                            parameters=parameters,
+                            remappings=remappings,
+                            extra_arguments=[{"use_intra_process_comms": True}],
+                        )
+                        for camera_id in rgbd_ids
+                    ],
+                )
+            ]
+        else:
+            return []
     else:
         return [
             Node(
@@ -45,7 +48,7 @@ def launch_point_cloud_utils_nodes(
                 parameters=parameters,
                 remappings=remappings,
             )
-            for camera_id in rgb_ids
+            for camera_id in rgbd_ids
         ]
 
 
@@ -63,11 +66,19 @@ def launch_setup(context):
 
     # cloud generation
     parameters = [
-        str(get_package_share_path("kalman_clouds") / "config" / "rgbd_cloud.yaml")
+        str(get_package_share_path("kalman_clouds") / "config" / "rgbd_cloud.yaml"),
+        (
+            {
+                "color_transport": "compressed",
+                "depth_transport": "compressedDepth",
+            }
+            if not component_container
+            else {}
+        ),
     ]
     remappings = [
         ("color/image_raw", "color/image_raw"),
-        ("depth/image_raw", "aligned_depth_to_color/image_raw"),
+        ("depth/image_raw", "depth/image_raw"),
         ("cloud", "point_cloud/raw"),
     ]
     description += launch_point_cloud_utils_nodes(
@@ -110,6 +121,43 @@ def launch_setup(context):
     # ]
     # description += launch_point_cloud_utils_nodes("statistical_outlier_removal", parameters, remappings, component_container, rgbd_ids)
 
+    # # cloud synchronization - makes a single 3D point cloud
+    # parameters = [
+    #     {
+    #         "number_of_inputs": len(rgbd_ids),
+    #     }
+    # ]
+    # remappings = [
+    #     ("output", "point_cloud"),
+    # ] + [
+    #     (f"input{n}", f"{camera_id}/point_cloud")
+    #     for n, camera_id in enumerate(rgbd_ids)
+    # ]
+    # if component_container:
+    #     description += [
+    #         LoadComposableNodes(
+    #             target_container=component_container,
+    #             composable_node_descriptions=[
+    #                 ComposableNode(
+    #                     package="point_cloud_utils",
+    #                     plugin="point_cloud_utils::CloudSync",
+    #                     parameters=parameters,
+    #                     remappings=remappings,
+    #                     extra_arguments=[{"use_intra_process_comms": True}],
+    #                 )
+    #             ],
+    #         )
+    #     ]
+    # else:
+    #     description += [
+    #         Node(
+    #             package="point_cloud_utils",
+    #             executable="cloud_sync",
+    #             parameters=parameters,
+    #             remappings=remappings,
+    #         )
+    #     ]
+
     return description
 
 
@@ -118,6 +166,7 @@ def generate_launch_description():
         [
             DeclareLaunchArgument(
                 "component_container",
+                default_value="",
                 description="Name of an existing component container to use. Empty to disable composition.",
             ),
             DeclareLaunchArgument(

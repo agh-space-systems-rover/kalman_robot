@@ -15,11 +15,12 @@
   <exec_depend>navigation2</exec_depend>
   <exec_depend>nav2_bringup</exec_depend>
   <exec_depend>python3-jinja2</exec_depend> <!-- for config generation in launch file -->
+  <exec_depend>spatio_temporal_voxel_layer</exec_depend>
+  <exec_depend>service_based_nav2_controller</exec_depend>
 
   <!-- path follower dependencies -->
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>tf2_ros</exec_depend>
-  <exec_depend>python-numpy-quaternion-pip</exec_depend>
   <exec_depend>service_based_nav2_controller_srvs</exec_depend>
 
   <test_depend>ament_lint_auto</test_depend>

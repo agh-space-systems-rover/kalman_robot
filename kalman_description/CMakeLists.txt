@@ -3,7 +3,7 @@ project(kalman_description)
 
 find_package(ament_cmake REQUIRED)
 
-install(DIRECTORY launch urdf stl
+install(DIRECTORY launch urdf stl layouts
   DESTINATION share/${PROJECT_NAME}
 )
 

@@ -78,7 +78,7 @@ function getNamesAndValues() {
     return a.name.localeCompare(b.name);
   });
 
-  return namesAndValues.slice(1);
+  return namesAndValues.slice(0, 6);
 }
 
 function isCloseEnough(
