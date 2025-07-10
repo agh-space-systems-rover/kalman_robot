@@ -1,0 +1,2 @@
+- republish joint states from /arm/joints/current_pos to /joint_states to see the arm in RViz
+- node that converts EE /arm/ik/target_twist to /arm/joints/target_vel using IK via KDL

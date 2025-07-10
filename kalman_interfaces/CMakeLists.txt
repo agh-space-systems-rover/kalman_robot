@@ -20,6 +20,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/ArmPoseSelect.msg"
   "msg/ArmState.msg"
   "msg/ArmTrajectorySelect.msg"
+  "msg/ArmValues.msg"
   "msg/Drill.msg"
   "msg/Drive.msg"
   "msg/MasterMessage.msg"
