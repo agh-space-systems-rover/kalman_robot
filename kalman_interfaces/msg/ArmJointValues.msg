@@ -1,7 +1,11 @@
 # array of any kind of per-joint values,
 # like angle or angular velocity
+
+std_msgs/Header header
+
 float32[6] joints
 float32 jaw
+
 # expected movement when values are positive:
 # - joints[0]: turns the entire arm clockwise (to the right) [left stick to the right]
 # - joints[1]: bends the first joint forwards (used when reaching out with the arm) [left stick up]

@@ -9,11 +9,10 @@ def generate_launch_description():
                 "selective_launch": "no_rs_pub",
             },
             "description": {
-                "layout": "arm",
+                "layout": "arm_autonomy",
             },
             "rviz": {
                 "configs": "arm_dev",
             },
-            
         },
     )
