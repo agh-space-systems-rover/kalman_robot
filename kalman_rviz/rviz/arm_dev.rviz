@@ -56,19 +56,152 @@ Visualization Manager:
       Reference Frame: <Fixed Frame>
       Value: true
     - Class: rviz_default_plugins/TF
-      Enabled: false
+      Enabled: true
       Frame Timeout: 3
       Frames:
         All Enabled: false
-      Marker Scale: 1
+        arm_link:
+          Value: true
+        arm_link_1:
+          Value: true
+        arm_link_2:
+          Value: true
+        arm_link_3:
+          Value: true
+        arm_link_4:
+          Value: true
+        arm_link_5:
+          Value: true
+        arm_link_6:
+          Value: true
+        arm_link_end:
+          Value: true
+        arm_link_jaw:
+          Value: true
+        base_footprint:
+          Value: true
+        base_link:
+          Value: true
+        body_link:
+          Value: true
+        d455_arm_accel_frame:
+          Value: true
+        d455_arm_accel_optical_frame:
+          Value: true
+        d455_arm_bottom_screw_frame:
+          Value: true
+        d455_arm_color_frame:
+          Value: true
+        d455_arm_color_optical_frame:
+          Value: true
+        d455_arm_depth_frame:
+          Value: true
+        d455_arm_depth_optical_frame:
+          Value: true
+        d455_arm_gyro_frame:
+          Value: true
+        d455_arm_gyro_optical_frame:
+          Value: true
+        d455_arm_imu_optical_frame:
+          Value: true
+        d455_arm_infra1_frame:
+          Value: true
+        d455_arm_infra1_optical_frame:
+          Value: true
+        d455_arm_infra2_frame:
+          Value: true
+        d455_arm_infra2_optical_frame:
+          Value: true
+        d455_arm_link:
+          Value: true
+        imu_link:
+          Value: true
+        map:
+          Value: true
+        odom:
+          Value: true
+        suspension_l_link:
+          Value: true
+        suspension_r_link:
+          Value: true
+        swivel_bl_link:
+          Value: true
+        swivel_br_link:
+          Value: true
+        swivel_fl_link:
+          Value: true
+        swivel_fr_link:
+          Value: true
+        wheel_bl_link:
+          Value: true
+        wheel_br_link:
+          Value: true
+        wheel_fl_link:
+          Value: true
+        wheel_fr_link:
+          Value: true
+      Marker Scale: 0.5
       Name: TF
       Show Arrows: false
       Show Axes: true
-      Show Names: true
+      Show Names: false
       Tree:
-        {}
+        map:
+          odom:
+            base_link:
+              arm_link:
+                arm_link_1:
+                  arm_link_2:
+                    arm_link_3:
+                      arm_link_4:
+                        arm_link_5:
+                          arm_link_6:
+                            arm_link_end:
+                              {}
+                            arm_link_jaw:
+                              {}
+                            d455_arm_bottom_screw_frame:
+                              d455_arm_link:
+                                d455_arm_accel_frame:
+                                  d455_arm_accel_optical_frame:
+                                    {}
+                                d455_arm_color_frame:
+                                  d455_arm_color_optical_frame:
+                                    {}
+                                d455_arm_depth_frame:
+                                  d455_arm_depth_optical_frame:
+                                    {}
+                                d455_arm_gyro_frame:
+                                  d455_arm_gyro_optical_frame:
+                                    d455_arm_imu_optical_frame:
+                                      {}
+                                d455_arm_infra1_frame:
+                                  d455_arm_infra1_optical_frame:
+                                    {}
+                                d455_arm_infra2_frame:
+                                  d455_arm_infra2_optical_frame:
+                                    {}
+              base_footprint:
+                {}
+              body_link:
+                suspension_l_link:
+                  swivel_bl_link:
+                    wheel_bl_link:
+                      {}
+                  swivel_fl_link:
+                    wheel_fl_link:
+                      {}
+                suspension_r_link:
+                  swivel_br_link:
+                    wheel_br_link:
+                      {}
+                  swivel_fr_link:
+                    wheel_fr_link:
+                      {}
+              imu_link:
+                {}
       Update Interval: 0
-      Value: false
+      Value: true
     - Alpha: 1
       Class: rviz_default_plugins/RobotModel
       Collision Enabled: false
@@ -347,25 +480,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 8.491354942321777
+      Distance: 1.9207805395126343
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 1.9045432806015015
-        Y: -1.2055429220199585
-        Z: 0.241743803024292
+        X: 0.6830261945724487
+        Y: -0.06825903058052063
+        Z: -0.11958105862140656
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.7347972393035889
+      Pitch: 0.6697967648506165
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 2.300665855407715
+      Yaw: 2.180663824081421
     Saved: ~
 Window Geometry:
   Displays:
@@ -375,7 +508,7 @@ Window Geometry:
   Hide Right Dock: true
   Navigation 2:
     collapsed: true
-  QMainWindow State: 000000ff00000000fd0000000400000000000001ab00000359fc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073000000003b00000359000000c700fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000011200000352fc0200000003fc0000003f000001fc0000000000fffffffaffffffff0100000002fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730000000000ffffffff0000008c00fffffffb0000000a0056006900650077007300000006710000010f0000010000fffffffb00000018004e0061007600690067006100740069006f006e002000320000000241000001500000012300fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000007800000003efc0100000002fb0000000800540069006d00650100000000000007800000025300fffffffb0000000800540069006d00650100000000000004500000000000000000000007800000035900000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000400000000000001ab00000359fc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073000000003b00000359000000c700fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000011200000352fc0200000003fc0000003f000001fc0000000000fffffffaffffffff0100000002fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730000000000ffffffff0000008c00fffffffb0000000a0056006900650077007300000006710000010f0000010000fffffffb00000018004e0061007600690067006100740069006f006e002000320000000241000001500000012300fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000003c00000003efc0100000002fb0000000800540069006d00650100000000000003c00000025300fffffffb0000000800540069006d00650100000000000004500000000000000000000003c00000035900000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:
@@ -384,6 +517,6 @@ Window Geometry:
     collapsed: true
   Views:
     collapsed: false
-  Width: 1920
+  Width: 960
   X: 0
   Y: 32

@@ -18,15 +18,15 @@ def node_or_component(
     namespace=None,
     parameters=[],
     remappings=[],
-    **kwargs
+    **kwargs,
 ):
     if name is None:
         name = executable
-    
+
     if component_container:
         if plugin is None:
             raise ValueError(f"Plugin name required for composable node {name}")
-        
+
         return [
             LoadComposableNodes(
                 target_container=component_container,
@@ -39,7 +39,7 @@ def node_or_component(
                         parameters=parameters,
                         remappings=remappings,
                         extra_arguments=[{"use_intra_process_comms": True}],
-                        **kwargs
+                        **kwargs,
                     ),
                 ],
             ),
@@ -53,14 +53,14 @@ def node_or_component(
                 namespace=namespace,
                 parameters=parameters,
                 remappings=remappings,
-                **kwargs
+                **kwargs,
             ),
         ]
 
 
 def launch_setup(context):
     component_container = LaunchConfiguration("component_container").perform(context)
-    
+
     actions = []
 
     # Joint republisher
@@ -73,20 +73,61 @@ def launch_setup(context):
         remappings=[
             ("current_pos", "joints/current_pos"),
             ("joint_states", "joint_states"),
-        ]
+        ],
     )
 
-    # TODO: Add twist_ik_node when implemented
+    # Twist IK node
+    actions += node_or_component(
+        component_container=component_container,
+        package="kalman_arm2",
+        executable="twist_ik",
+        plugin="kalman_arm2::TwistIK",
+        namespace="arm",
+        remappings=[
+            ("current_pos", "joints/current_pos"),
+            ("target_twist", "ik/target_twist"),
+            ("target_vel", "joints/target_vel"),
+        ],
+    )
+
+    # Gamepad control node
+    actions += node_or_component(
+        component_container=component_container,
+        package="kalman_arm2",
+        executable="gamepad_control",
+        plugin="kalman_arm2::GamepadControl",
+        namespace="arm",
+        remappings=[
+            ("joy", "/joy"),
+            ("target_twist", "ik/target_twist"),
+            ("jaw_vel", "joints/target_vel"),
+        ],
+    )
+
+    # Joy node
+    actions += [
+        Node(
+            package="joy_linux",
+            executable="joy_linux_node",
+            parameters=[
+                {
+                    "dev_name": "Logitech Gamepad",
+                }
+            ],
+        )
+    ]
 
     return actions
 
 
 def generate_launch_description():
-    return LaunchDescription([
-        DeclareLaunchArgument(
-            "component_container",
-            default_value="",
-            description="Name of an existing component container to use. Empty to disable composition.",
-        ),
-        OpaqueFunction(function=launch_setup),
-    ])
+    return LaunchDescription(
+        [
+            DeclareLaunchArgument(
+                "component_container",
+                default_value="",
+                description="Name of an existing component container to use. Empty to disable composition.",
+            ),
+            OpaqueFunction(function=launch_setup),
+        ]
+    )
