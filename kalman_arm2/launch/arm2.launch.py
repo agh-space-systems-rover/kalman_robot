@@ -56,6 +56,15 @@ def node_or_component(
                 **kwargs,
             ),
         ]
+    
+def remap_action(from_name, to_name):
+    return [
+        (f"{from_name}/_action/send_goal", f"{to_name}/_action/send_goal"),
+        (f"{from_name}/_action/cancel_goal", f"{to_name}/_action/cancel_goal"),
+        (f"{from_name}/_action/feedback", f"{to_name}/_action/feedback"),
+        (f"{from_name}/_action/get_result", f"{to_name}/_action/get_result"),
+        (f"{from_name}/_action/status", f"{to_name}/_action/status"),
+    ]
 
 
 def launch_setup(context):
@@ -108,12 +117,13 @@ def launch_setup(context):
     actions += node_or_component(
         component_container=component_container,
         package="kalman_arm2",
-        executable="joint_move",
-        plugin="kalman_arm2::JointMove",
+        executable="goto_joint_pose",
+        plugin="kalman_arm2::GotoJointPose",
         namespace="arm",
         remappings=[
             ("current_pos", "joints/current_pos"),
             ("target_vel", "joints/target_vel"),
+            *remap_action("goto_pose", "joints/goto_pose"),
         ],
     )
 

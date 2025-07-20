@@ -43,17 +43,17 @@ rclcpp_components_register_node(
   EXECUTABLE gamepad_control
 )
 
-add_library(joint_move_node SHARED src/joint_move_node.cpp)
-ament_target_dependencies(joint_move_node rclcpp rclcpp_components kalman_interfaces geometry_msgs std_msgs urdf kdl_parser orocos_kdl_vendor tf2_ros tf2_geometry_msgs)
+add_library(goto_joint_pose_node SHARED src/goto_joint_pose_node.cpp)
+ament_target_dependencies(goto_joint_pose_node rclcpp rclcpp_components kalman_interfaces geometry_msgs std_msgs tf2_ros tf2_geometry_msgs)
 rclcpp_components_register_node(
-  joint_move_node
-  PLUGIN "kalman_arm2::JointMove"
-  EXECUTABLE joint_move
+  goto_joint_pose_node
+  PLUGIN "kalman_arm2::GotoJointPose"
+  EXECUTABLE goto_joint_pose
 )
 
 
 ament_export_targets(kalman_arm2-targets)
-install(TARGETS joint_republisher_node twist_ik_node gamepad_control_node joint_move_node
+install(TARGETS joint_republisher_node twist_ik_node gamepad_control_node goto_joint_pose_node
   EXPORT kalman_arm2-targets
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
