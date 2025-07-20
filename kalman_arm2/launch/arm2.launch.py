@@ -104,6 +104,19 @@ def launch_setup(context):
         ],
     )
 
+
+    actions += node_or_component(
+        component_container=component_container,
+        package="kalman_arm2",
+        executable="joint_move",
+        plugin="kalman_arm2::JointMove",
+        namespace="arm",
+        remappings=[
+            ("current_pos", "joints/current_pos"),
+            ("target_vel", "joints/target_vel"),
+        ],
+    )
+
     # Joy node
     actions += [
         Node(
