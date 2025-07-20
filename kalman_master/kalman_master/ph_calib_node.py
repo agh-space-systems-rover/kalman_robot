@@ -70,7 +70,7 @@ class PHCalibApp(QtWidgets.QWidget):
 
         # Request button
         self.req_btn = QtWidgets.QPushButton("Request SEM value")
-        self.req_btn.clicked.connect(self.spam_request)
+        self.req_btn.clicked.connect(self.request_value)
         layout.addWidget(self.req_btn)
 
         # pH buttons
@@ -175,15 +175,8 @@ class PHCalibApp(QtWidgets.QWidget):
         else:
             self.timer_label.setText("Last update: --- s ago")
 
-    def spam_request(self):
-        def spam():
-            received = False
-            while not received:
-                self.ros_node.request_value()
-                QtCore.QThread.msleep(100)
-                if self.sem_value is not None:
-                    received = True
-        threading.Thread(target=spam, daemon=True).start()
+    def request_value(self):
+        self.ros_node.request_value()
 
     def add_datapoint(self, ph):
         if self.sem_value is None:
