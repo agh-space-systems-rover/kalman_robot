@@ -5,6 +5,12 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+# Check ROS distro and set up humble compatibility
+if(DEFINED ENV{ROS_DISTRO} AND "$ENV{ROS_DISTRO}" STREQUAL "humble")
+  message(STATUS "Detected ROS Humble - enabling compatibility headers")
+  set(HUMBLE_COMPAT_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/humble_compat")
+endif()
+
 # find dependencies
 set(HW_IF_INCLUDE_DEPENDS
   pluginlib
@@ -69,6 +75,11 @@ set(SERVO_PUBLISHER servo_publisher)
 add_library(${SERVO_PUBLISHER} SHARED scripts/servo_publisher.cpp)
 target_compile_features(${SERVO_PUBLISHER} PUBLIC cxx_std_20)
 ament_target_dependencies(${SERVO_PUBLISHER} ${THIS_PACKAGE_INCLUDE_DEPENDS})
+if(DEFINED HUMBLE_COMPAT_INCLUDE_DIR)
+  target_include_directories(${SERVO_PUBLISHER} BEFORE PRIVATE ${HUMBLE_COMPAT_INCLUDE_DIR})
+  target_sources(${SERVO_PUBLISHER} PRIVATE 
+    ${HUMBLE_COMPAT_INCLUDE_DIR}/moveit_msgs/srv/servo_command_type.cpp)
+endif()
 rclcpp_components_register_nodes(${SERVO_PUBLISHER} "arm_master::MasterToServo")
 
 set(EXTRA_CAN extra_can)
@@ -87,6 +98,11 @@ rclcpp_components_register_nodes(${EXTRA_CAN} "kalman_arm::ExtraCanNode")
 
 add_executable(servo_keyboard_input scripts/servo_keyboard_input.cpp)
 target_include_directories(servo_keyboard_input PUBLIC include)
+if(DEFINED HUMBLE_COMPAT_INCLUDE_DIR)
+  target_include_directories(servo_keyboard_input BEFORE PRIVATE ${HUMBLE_COMPAT_INCLUDE_DIR})
+  target_sources(servo_keyboard_input PRIVATE 
+    ${HUMBLE_COMPAT_INCLUDE_DIR}/moveit_msgs/srv/servo_command_type.cpp)
+endif()
 ament_target_dependencies(servo_keyboard_input ${THIS_PACKAGE_INCLUDE_DEPENDS})
 
 set(CAN_BRIDGE can_bridge)
