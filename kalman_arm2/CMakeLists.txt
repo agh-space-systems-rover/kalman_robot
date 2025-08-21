@@ -8,7 +8,7 @@ find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
 
 find_package(sensor_msgs REQUIRED)
-
+find_package(control_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(urdf REQUIRED)
@@ -51,9 +51,17 @@ rclcpp_components_register_node(
   EXECUTABLE goto_joint_pose
 )
 
+add_library(arm1_moveit_compat_node SHARED src/arm1_moveit_compat_node.cpp)
+ament_target_dependencies(arm1_moveit_compat_node rclcpp rclcpp_components kalman_interfaces sensor_msgs std_msgs control_msgs)
+rclcpp_components_register_node(
+  arm1_moveit_compat_node
+  PLUGIN "kalman_arm2::Arm1MoveitCompatNode"
+  EXECUTABLE arm1_moveit_compat
+)
+
 
 ament_export_targets(kalman_arm2-targets)
-install(TARGETS joint_republisher_node twist_ik_node gamepad_control_node goto_joint_pose_node
+install(TARGETS joint_republisher_node twist_ik_node gamepad_control_node goto_joint_pose_node arm1_moveit_compat_node
   EXPORT kalman_arm2-targets
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
