@@ -85,6 +85,9 @@ rover: # or 'station'
       max_rate: 2
       fields:
         - path: data
+      int_range:
+        min: 0
+        max: 255
     - name: gripper/temperature
       type: std_msgs/msg/UInt8
       max_rate: 2
