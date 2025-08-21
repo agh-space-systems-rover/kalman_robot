@@ -1,11 +1,8 @@
-#include <kalman_interfaces/action/detail/arm_joint_move__struct.hpp>
-#include <rclcpp/create_timer.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_action/server_goal_handle.hpp>
 #include <rclcpp_components/register_node_macro.hpp>
 #include <geometry_msgs/msg/twist_stamped.hpp>
 #include <kalman_interfaces/msg/arm_joint_values.hpp>
-#include <kalman_interfaces/action/arm_joint_move.hpp>
 #include <tf2_ros/transform_listener.h>
 #include <tf2_ros/buffer.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
@@ -28,9 +25,6 @@ public:
     rclcpp::Subscription<std_msgs::msg::String>::SharedPtr robot_description_sub;
     rclcpp::Publisher<kalman_interfaces::msg::ArmJointValues>::SharedPtr joint_vel_pub;
     rclcpp::TimerBase::SharedPtr compute_timer;
-
-    using ArmJointMove = kalman_interfaces::action::ArmJointMove;
-    using GoalHandleJointMove = rclcpp_action::ServerGoalHandle<ArmJointMove>;
 
     // TF2
     std::shared_ptr<tf2_ros::TransformListener> tf_listener;
@@ -96,11 +90,7 @@ public:
             std::bind(&TwistIK::on_robot_description, this, std::placeholders::_1));
 
         RCLCPP_INFO(get_logger(), "TwistIK node waiting for robot description on /robot_description...");
-        // timer_ = this->create_wall_timer(
-        //     std::chrono::milliseconds{500}, [this](){stupid_test();});
-
     }
-    rclcpp::TimerBase::SharedPtr timer_;
 
     void on_robot_description(const std_msgs::msg::String::SharedPtr msg) {
         if (kinematics_ready) return;
@@ -259,22 +249,6 @@ public:
         vel_msg.jaw = 0.0;
 
         joint_vel_pub->publish(vel_msg);
-    }
-
-    void stupid_test() {
-        auto vel_msg = kalman_interfaces::msg::ArmJointValues();
-        vel_msg.header.stamp = now();
-        // for (size_t i = 0; i < joint_velocities.rows(); ++i) {
-        //     vel_msg.joints[i] = joint_velocities(i);
-        // }
-        for (auto &v : vel_msg.joints) {
-            v = 1.0;
-        }
-        vel_msg.jaw = 0.0;
-
-        joint_vel_pub->publish(vel_msg);
-
-        RCLCPP_INFO(get_logger(), "Sending some shit");
     }
 };
 
