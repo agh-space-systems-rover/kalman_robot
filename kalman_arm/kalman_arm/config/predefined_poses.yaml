@@ -134,3 +134,18 @@ poses:
       joints_checked: ["arm_joint_2", "arm_joint_3"]
       joints_reversed: []
       safe_previous_poses: [0, 2, 5]
+    - id: 9
+      name: "Lenka box"
+      path: "predefined_poses/lenka_box.yaml"
+      joints_set:
+          [
+              "arm_joint_1",
+              "arm_joint_2",
+              "arm_joint_3",
+              "arm_joint_4",
+              "arm_joint_5",
+              "arm_joint_6",
+          ]
+      joints_checked: ["arm_joint_2", "arm_joint_3"]
+      joints_reversed: []
+      safe_previous_poses: [0, 2, 5]
