@@ -99,27 +99,27 @@ std::vector<hardware_interface::CommandInterface> ArmSystem::export_command_inte
 return_type ArmSystem::read(const rclcpp::Time& /*time*/, const rclcpp::Duration& period)
 {
     return read_joint_states();
-    if (current_control_type == ControlType::posvel)
-    {
-        joint_velocities_ = joint_velocities_command_;
-        for (int i = 0; i < 6; i++)
-        {
-            joint_position_[i] += joint_velocities_[i] * period.seconds();
-        }
-    }
-    else
-    {
-        joint_position_ = joint_position_command_;
-        joint_velocities_ = joint_velocities_command_;
-    }
+    // if (current_control_type == ControlType::posvel)
+    // {
+    //     joint_velocities_ = joint_velocities_command_;
+    //     for (int i = 0; i < 6; i++)
+    //     {
+    //         joint_position_[i] += joint_velocities_[i] * period.seconds();
+    //     }
+    // }
+    // else
+    // {
+    //     joint_position_ = joint_position_command_;
+    //     joint_velocities_ = joint_velocities_command_;
+    // }
 
-    return return_type::OK;
+    // return return_type::OK;
 }
 
 return_type ArmSystem::write(const rclcpp::Time&, const rclcpp::Duration&)
 {
     return write_joint_commands();
-    return return_type::OK;
+    // return return_type::OK;
 }
 
 return_type ArmSystem::read_joint_states()
@@ -134,6 +134,14 @@ return_type ArmSystem::read_joint_states()
         if (!CAN_vars::received_joint_status[i])
             already_read_ = false;
     }
+
+    // Flip joint 1 (base)
+    joint_position_[0] = -joint_position_[0];
+    joint_velocities_[0] = -joint_velocities_[0];
+    // Flip joint 7 (gripper jaw)
+    joint_position_[5] = -joint_position_[5];
+    joint_velocities_[5] = -joint_velocities_[5];
+
     return return_type::OK;
 }
 
@@ -180,6 +188,18 @@ return_type ArmSystem::write_joint_commands()
                     CAN_vars::joints[i].moveSetpointDiff.torque_Nm = 0x02fa;
                     CAN_vars::joints[i].moveSetpointDiff.acceleration_deg_ss = 0xffff;
                 }
+
+                // Flip joint 1 (base)
+                float temp_pos = CAN_vars::joints[0].moveSetpoint.position_deg;
+                float temp_vel = CAN_vars::joints[0].moveSetpoint.velocity_deg_s;
+                CAN_vars::joints[0].moveSetpoint.position_deg = -temp_pos;
+                CAN_vars::joints[0].moveSetpoint.velocity_deg_s = -temp_vel;
+                // Flip joint 7 (gripper jaw)
+                temp_pos = CAN_vars::joints[5].moveSetpointDiff.position_deg;
+                temp_vel = CAN_vars::joints[5].moveSetpointDiff.velocity_deg_s;
+                CAN_vars::joints[5].moveSetpointDiff.position_deg = -temp_pos;
+                CAN_vars::joints[5].moveSetpointDiff.velocity_deg_s = -temp_vel;
+                
                 // Run write in a separate thread
                 writer = std::async(std::launch::async,
                                     [&] { CAN_driver::arm_write(current_control_type); });
