@@ -31,19 +31,18 @@ class Arm1MoveitCompatNode : public rclcpp::Node {
 
 	uint16_t gripper_open_pos    = 2000;
 	uint16_t gripper_closed_pos  = 3000;
-	int      gripper_cmd_per_deg = 5;
+	int      gripper_cmd_per_deg = 10;
 
 	float                                  control_timeout = 0.1;  // seconds
 	float                                  control_rate    = 10.0; // Hz
 	kalman_interfaces::msg::ArmJointValues last_target_joint_vel;
 	rclcpp::Time                           last_target_joint_vel_time;
-	rclcpp::Time                           last_control_pub_time;
 
 	sensor_msgs::msg::JointState last_joint_state;
 	std_msgs::msg::UInt16        last_gripper_pos;
 
 	Arm1MoveitCompatNode(const rclcpp::NodeOptions &options)
-	    : Node("arm1_moveit_compat", options), last_target_joint_vel_time(this->now()), last_control_pub_time(this->now()) {
+	    : Node("arm1_moveit_compat", options), last_target_joint_vel_time(this->now()) {
 
 		// Initialize subscribers and publishers
 
@@ -109,11 +108,6 @@ class Arm1MoveitCompatNode : public rclcpp::Node {
 			return;
 		}
 
-        // delta time
-        rclcpp::Time now = this->now();
-        double delta_time = (now - last_control_pub_time).seconds();
-        last_control_pub_time = now;
-
 		// 6-DoF
 		control_msgs::msg::JointJog jog_msg;
 		jog_msg.header.stamp = this->now();
@@ -137,7 +131,7 @@ class Arm1MoveitCompatNode : public rclcpp::Node {
 		// Gripper control
 		std_msgs::msg::Int8 gripper_msg;
 		gripper_msg.data =
-		    gripper_cmd_per_deg * (last_target_joint_vel.jaw * 180 / M_PI) * delta_time;
+		    gripper_cmd_per_deg * (last_target_joint_vel.jaw * 180 / M_PI) / control_rate;
 		gripper_cmd->publish(gripper_msg);
 	}
 
@@ -161,8 +155,8 @@ class Arm1MoveitCompatNode : public rclcpp::Node {
 		joint_msg.joints[3]       = last_joint_state.position[3];
 		joint_msg.joints[4]       = last_joint_state.position[4];
 		joint_msg.joints[5]       = last_joint_state.position[5];
-		joint_msg.jaw = std::abs(last_gripper_pos.data - gripper_open_pos) /
-		                std::abs(gripper_closed_pos - gripper_open_pos);
+		joint_msg.jaw = static_cast<float>(gripper_closed_pos - last_gripper_pos.data) /
+		                (gripper_closed_pos - gripper_open_pos) * 1.57;
 		joint_pos_pub->publish(joint_msg);
 	}
 };
