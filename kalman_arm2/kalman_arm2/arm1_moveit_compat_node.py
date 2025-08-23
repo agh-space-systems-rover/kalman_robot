@@ -16,11 +16,11 @@ class Arm1MoveitCompatNode(Node):
         super().__init__("arm1_moveit_compat")
 
         # Declare parameters
-        self.declare_parameter("gripper_pos_open", 2000)
-        self.declare_parameter("gripper_pos_closed", 3000)
-        self.declare_parameter("gripper_cmd_incr_per_deg", 10)
-        self.declare_parameter("gripper_cmd_abs_open", 430)
-        self.declare_parameter("gripper_cmd_abs_closed", 1150)
+        self.declare_parameter("gripper_pos_open", 2100)
+        self.declare_parameter("gripper_pos_closed", 3070)
+        self.declare_parameter("gripper_cmd_incr_per_deg", -10)
+        self.declare_parameter("gripper_cmd_abs_open", 1570)
+        self.declare_parameter("gripper_cmd_abs_closed", 2400)
         self.declare_parameter("control_timeout", 0.1)
         self.declare_parameter("control_rate", 10.0)
         self.gripper_pos_open = self.get_parameter("gripper_pos_open").value
@@ -73,7 +73,7 @@ class Arm1MoveitCompatNode(Node):
             UInt16, "old/gripper/position", self.gripper_pos_cb, 10
         )
         self.joint_pos_pub = self.create_publisher(
-            ArmValues, "new/joints/current_pos", 10
+            ArmValues, "new/current_pos", 10
         )
 
     def target_pos_jaw_cb(self, msg):
