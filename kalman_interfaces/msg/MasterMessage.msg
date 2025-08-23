@@ -8,9 +8,9 @@ uint8 MOTOR_GET_WHEELS = 0x4F
 
 uint8 SERVO_SET = 0x50
 uint8 SCALE_REQ = 0x57
-uint8 PH_RES = 0x59
+uint8 PH_RES = 0x5C
 uint8 SCALE_RES = 0x5B
-uint8 PH_REQ = 0x5C
+uint8 PH_REQ = 0x59
 
 uint8 GS_TO_UNIVERSAL = 0x5E
 

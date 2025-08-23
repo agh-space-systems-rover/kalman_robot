@@ -13,16 +13,16 @@ storage = {
         "scale": 1.0,
         "bias": 0.0,
         # safe angles for the servo
-        "open_angle": 180,
-        "close_angle": 0,
+        "open_angle": 0,
+        "close_angle": 180,
     },
     "rock": {
         "board": 0,
         "device": 1,
         "scale": 1.0,
         "bias": 0.0,
-        "open_angle": 180,
-        "close_angle": 0,
+        "open_angle": 0,
+        "close_angle": 180,
     },
 }
 

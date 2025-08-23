@@ -54,7 +54,7 @@ class PHDriver(Node):
             return
 
         # Unpack the response
-        board_id, device_id, ph_value = struct.unpack("BBH", msg.data[:4])
+        board_id, device_id, ph_value = struct.unpack("<BBH", msg.data[:4])
 
         # Publish the raw value
         self.value_raw_pub.publish(Float32(data=float(ph_value)))
