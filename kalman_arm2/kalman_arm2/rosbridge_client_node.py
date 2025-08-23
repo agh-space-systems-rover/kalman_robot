@@ -92,7 +92,6 @@ class RosbridgeWsBridge(Node):
     def ws_send_loop(self):
         while rclpy.ok():
             try:
-                self.get_logger().info("Connecting to WebSocket...")
                 self.ws = websocket.WebSocket()
                 self.ws.connect(self.ws_url)
 
@@ -111,7 +110,7 @@ class RosbridgeWsBridge(Node):
                 while rclpy.ok():
                     if not self.ws.connected:
                         raise Exception("WebSocket disconnected")
-                    time.sleep(1)  # avoid busy loop
+                    time.sleep(0.1)  # avoid busy loop
 
             except Exception as e:
                 self.get_logger().error(f"WebSocket error: {e}")
@@ -122,28 +121,36 @@ class RosbridgeWsBridge(Node):
                 for _ in range(10):
                     if not rclpy.ok():
                         break
-                    time.sleep(1)
+                    time.sleep(0.1)
 
     def ws_recv_loop(self):
         def on_message(ws, message):
-            try:
-                msg_obj = json.loads(message)
-                if (
-                    msg_obj.get("op") == "publish"
-                    and msg_obj.get("topic") == self.topic
-                ):
-                    ros_msg = self.dict_to_ros_msg(msg_obj["msg"], self.msg_class)
-                    self.publisher.publish(ros_msg)
-            except Exception as e:
-                self.get_logger().error(f"Error in ws_recv_loop on_message: {e}")
+            msg_obj = json.loads(message)
+            if (
+                msg_obj.get("op") == "publish"
+                and msg_obj.get("topic") == self.topic
+            ):
+                ros_msg = self.dict_to_ros_msg(msg_obj["msg"], self.msg_class)
+                self.publisher.publish(ros_msg)
 
         def on_open(ws):
             self.connected_event.set()
+            self.get_logger().info("Connected to WebSocket")
             sub_msg = {"op": "subscribe", "topic": self.topic, "type": self.type_param}
             ws.send(json.dumps(sub_msg))
 
         def on_error(ws, error):
-            self.get_logger().error(f"WebSocket error: {error}")
+            if rclpy.ok():
+                self.get_logger().error(f"WebSocket error: {error}")
+            ws.close()
+
+        def monitor_sigint():
+            while rclpy.ok():
+                time.sleep(0.1)
+            if self.ws:
+                self.ws.close()
+        self.recv_sigint_monitor_thread = threading.Thread(target=monitor_sigint)
+        self.recv_sigint_monitor_thread.start()
 
         while rclpy.ok():
             self.ws = websocket.WebSocketApp(
@@ -154,13 +161,14 @@ class RosbridgeWsBridge(Node):
             )
             self.ws.run_forever()
 
-            self.get_logger().warn(
-                "WebSocket disconnected, will reconnect in 10 seconds..."
-            )
-            for _ in range(10):
-                if not rclpy.ok():
-                    break
-                time.sleep(1)
+            if rclpy.ok():
+                self.get_logger().warn(
+                    "WebSocket disconnected, will reconnect in 10 seconds..."
+                )
+                for _ in range(10):
+                    if not rclpy.ok():
+                        break
+                    time.sleep(0.1)
 
     def dict_to_ros_msg(self, data, msg_class):
         # Construct ROS msg from dict recursively
@@ -174,9 +182,18 @@ class RosbridgeWsBridge(Node):
                     nested_class = import_ros_message_type(field_type)
                     setattr(msg, field, self.dict_to_ros_msg(value, nested_class))
                 else:
-                    setattr(msg, field, value)
+                    setattr(msg, field, self.set_nan_where_null(value))
         return msg
 
+    def set_nan_where_null(self, data):
+        if data == None:
+            return float("nan")
+        elif isinstance(data, list):
+            return [self.set_nan_where_null(v) for v in data]
+        elif isinstance(data, dict):
+            return {k: self.set_nan_where_null(v) for k, v in data.items()}
+        else:
+            return data
 
 def main():
     try:

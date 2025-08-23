@@ -155,7 +155,7 @@ def launch_setup(context):
                 name="rosbridge_client_" + topic.replace("/", "_").strip("_"),
                 parameters=[
                     {
-                        "ws_address": "localhost:9473",
+                        "ws_address": "192.168.2.77:9473",
                         "topic": topic,
                         "type": msg_type,
                         "mode": mode,
