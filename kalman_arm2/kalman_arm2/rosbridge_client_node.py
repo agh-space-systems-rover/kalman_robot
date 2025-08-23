@@ -118,7 +118,7 @@ class RosbridgeWsBridge(Node):
                 self.get_logger().warn(
                     "WebSocket disconnected, will reconnect in 10 seconds..."
                 )
-                for _ in range(10):
+                for _ in range(100):
                     if not rclpy.ok():
                         break
                     time.sleep(0.1)
@@ -165,7 +165,7 @@ class RosbridgeWsBridge(Node):
                 self.get_logger().warn(
                     "WebSocket disconnected, will reconnect in 10 seconds..."
                 )
-                for _ in range(10):
+                for _ in range(100):
                     if not rclpy.ok():
                         break
                     time.sleep(0.1)
