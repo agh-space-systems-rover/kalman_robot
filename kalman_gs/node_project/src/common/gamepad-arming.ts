@@ -82,7 +82,7 @@ const jointInputMapping: JointMapping = {
   gripper: {
     type: AxisType.TWO_BUTTONS,
     input: { positiveButtonId: 'y-button', negativeButtonId: 'a-button' },
-    mapping: invertedMapping // TODO: remove the inversion only after ERC, so that operators can peacefully get used to the "proper" mapping
+    mapping: noMapping
   }
 };
 

@@ -92,7 +92,7 @@ private:
       spacenav_last_time_ = now;
       if (spacenav_send_)
       {
-        send_gripper_msg(msg->buttons[1] - msg->buttons[0]);
+        send_gripper_msg(msg->buttons[0] - msg->buttons[1]);
       }
     }
   }

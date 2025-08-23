@@ -138,9 +138,6 @@ return_type ArmSystem::read_joint_states()
     // Flip joint 1 (base)
     joint_position_[0] = -joint_position_[0];
     joint_velocities_[0] = -joint_velocities_[0];
-    // Flip joint 7 (gripper jaw)
-    joint_position_[5] = -joint_position_[5];
-    joint_velocities_[5] = -joint_velocities_[5];
 
     return return_type::OK;
 }
@@ -194,11 +191,6 @@ return_type ArmSystem::write_joint_commands()
                 float temp_vel = CAN_vars::joints[0].moveSetpoint.velocity_deg_s;
                 CAN_vars::joints[0].moveSetpoint.position_deg = -temp_pos;
                 CAN_vars::joints[0].moveSetpoint.velocity_deg_s = -temp_vel;
-                // Flip joint 7 (gripper jaw)
-                temp_pos = CAN_vars::joints[5].moveSetpointDiff.position_deg;
-                temp_vel = CAN_vars::joints[5].moveSetpointDiff.velocity_deg_s;
-                CAN_vars::joints[5].moveSetpointDiff.position_deg = -temp_pos;
-                CAN_vars::joints[5].moveSetpointDiff.velocity_deg_s = -temp_vel;
                 
                 // Run write in a separate thread
                 writer = std::async(std::launch::async,
