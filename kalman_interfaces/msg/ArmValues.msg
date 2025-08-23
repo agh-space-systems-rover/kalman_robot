@@ -1,10 +1,10 @@
-# array of any kind of per-joint values,
+# any kind of values for the arm
 # like angle or angular velocity
 
 std_msgs/Header header
 
-float32[6] joints
-float32 jaw
+float32[6] joints # rad or rad/s
+float32 jaw # rad or rad/s
 
 # expected movement when values are positive:
 # - joints[0]: turns the entire arm clockwise (to the right) [left stick to the right]

@@ -1,7 +1,7 @@
 #include <cmath>
 #include <geometry_msgs/msg/twist_stamped.hpp>
 #include <kalman_interfaces/action/arm_goto_joint_pose.hpp>
-#include <kalman_interfaces/msg/arm_joint_values.hpp>
+#include <kalman_interfaces/msg/arm_values.hpp>
 #include <rclcpp/create_timer.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_action/create_server.hpp>
@@ -27,11 +27,11 @@ template <typename T> auto &ith_joint_val(T &msg, size_t i) {
 class GotoJointPose : public rclcpp::Node {
   public:
 	// ROS interfaces
-	rclcpp::Subscription<kalman_interfaces::msg::ArmJointValues>::SharedPtr
+	rclcpp::Subscription<kalman_interfaces::msg::ArmValues>::SharedPtr
 	    joint_pos_sub;
 	rclcpp::Subscription<std_msgs::msg::String>::SharedPtr
 	    robot_description_sub;
-	rclcpp::Publisher<kalman_interfaces::msg::ArmJointValues>::SharedPtr
+	rclcpp::Publisher<kalman_interfaces::msg::ArmValues>::SharedPtr
 	                             joint_vel_pub;
 	rclcpp::TimerBase::SharedPtr timer;
 
@@ -50,7 +50,7 @@ class GotoJointPose : public rclcpp::Node {
 	float  max_error;
 
 	// State
-	kalman_interfaces::msg::ArmJointValues      current_pos;
+	kalman_interfaces::msg::ArmValues      current_pos;
 	std::shared_ptr<GoalHandleArmGotoJointPose> current_gh;
 
 	GotoJointPose(const rclcpp::NodeOptions &options)
@@ -65,11 +65,11 @@ class GotoJointPose : public rclcpp::Node {
 
 		// Publishers & subscribers
 		joint_vel_pub =
-		    create_publisher<kalman_interfaces::msg::ArmJointValues>(
+		    create_publisher<kalman_interfaces::msg::ArmValues>(
 		        "target_vel", 10
 		    );
 		joint_pos_sub =
-		    create_subscription<kalman_interfaces::msg::ArmJointValues>(
+		    create_subscription<kalman_interfaces::msg::ArmValues>(
 		        "current_pos",
 		        10,
 		        std::bind(
@@ -122,7 +122,7 @@ class GotoJointPose : public rclcpp::Node {
 	}
 
 	void on_joint_positions(
-	    const kalman_interfaces::msg::ArmJointValues::SharedPtr msg
+	    const kalman_interfaces::msg::ArmValues::SharedPtr msg
 	) {
 		current_pos = *msg;
 	}
@@ -132,7 +132,7 @@ class GotoJointPose : public rclcpp::Node {
 			return;
 		}
 
-		auto vel_msg         = kalman_interfaces::msg::ArmJointValues();
+		auto vel_msg         = kalman_interfaces::msg::ArmValues();
 		vel_msg.header.stamp = now();
 		vel_msg.joints.fill(0.0);
 		vel_msg.jaw = 0.0;

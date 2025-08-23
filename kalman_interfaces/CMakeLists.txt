@@ -18,7 +18,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/ArmCompressed.msg"
   "msg/ArmFkCommand.msg"
   "msg/ArmGoalStatus.msg"
-  "msg/ArmJointValues.msg"
+  "msg/ArmValues.msg"
   "msg/ArmPoseSelect.msg"
   "msg/ArmState.msg"
   "msg/ArmTrajectorySelect.msg"

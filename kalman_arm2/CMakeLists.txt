@@ -19,28 +19,12 @@ find_package(tf2_geometry_msgs REQUIRED)
 
 find_package(kalman_interfaces REQUIRED)
 
-add_library(joint_republisher_node SHARED src/joint_republisher_node.cpp)
-ament_target_dependencies(joint_republisher_node rclcpp rclcpp_components kalman_interfaces sensor_msgs)
-rclcpp_components_register_node(
-  joint_republisher_node
-  PLUGIN "kalman_arm2::JointRepublisher"
-  EXECUTABLE joint_republisher
-)
-
 add_library(twist_ik_node SHARED src/twist_ik_node.cpp)
 ament_target_dependencies(twist_ik_node rclcpp rclcpp_components kalman_interfaces geometry_msgs std_msgs urdf kdl_parser orocos_kdl_vendor tf2_ros tf2_geometry_msgs)
 rclcpp_components_register_node(
   twist_ik_node
   PLUGIN "kalman_arm2::TwistIK"
   EXECUTABLE twist_ik
-)
-
-add_library(gamepad_control_node SHARED src/gamepad_control_node.cpp)
-ament_target_dependencies(gamepad_control_node rclcpp rclcpp_components sensor_msgs geometry_msgs kalman_interfaces)
-rclcpp_components_register_node(
-  gamepad_control_node
-  PLUGIN "kalman_arm2::GamepadControl"
-  EXECUTABLE gamepad_control
 )
 
 add_library(goto_joint_pose_node SHARED src/goto_joint_pose_node.cpp)
@@ -51,21 +35,22 @@ rclcpp_components_register_node(
   EXECUTABLE goto_joint_pose
 )
 
-add_library(arm1_moveit_compat_node SHARED src/arm1_moveit_compat_node.cpp)
-ament_target_dependencies(arm1_moveit_compat_node rclcpp rclcpp_components kalman_interfaces sensor_msgs std_msgs control_msgs)
-rclcpp_components_register_node(
-  arm1_moveit_compat_node
-  PLUGIN "kalman_arm2::Arm1MoveitCompatNode"
-  EXECUTABLE arm1_moveit_compat
-)
-
-
 ament_export_targets(kalman_arm2-targets)
-install(TARGETS joint_republisher_node twist_ik_node gamepad_control_node goto_joint_pose_node arm1_moveit_compat_node
+install(TARGETS twist_ik_node goto_joint_pose_node
   EXPORT kalman_arm2-targets
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
+)
+
+ament_python_install_package(${PROJECT_NAME})
+
+install(PROGRAMS
+  scripts/arm1_moveit_compat
+  scripts/gamepad_control
+  scripts/joint_republisher
+  scripts/rosbridge_client
+  DESTINATION lib/${PROJECT_NAME}
 )
 
 install(DIRECTORY launch

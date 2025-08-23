@@ -2,7 +2,7 @@
 #include <rclcpp_action/server_goal_handle.hpp>
 #include <rclcpp_components/register_node_macro.hpp>
 #include <geometry_msgs/msg/twist_stamped.hpp>
-#include <kalman_interfaces/msg/arm_joint_values.hpp>
+#include <kalman_interfaces/msg/arm_values.hpp>
 #include <tf2_ros/transform_listener.h>
 #include <tf2_ros/buffer.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
@@ -21,9 +21,9 @@ class TwistIK : public rclcpp::Node {
 public:
     // ROS interfaces
     rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr twist_sub;
-    rclcpp::Subscription<kalman_interfaces::msg::ArmJointValues>::SharedPtr joint_pos_sub;
+    rclcpp::Subscription<kalman_interfaces::msg::ArmValues>::SharedPtr joint_pos_sub;
     rclcpp::Subscription<std_msgs::msg::String>::SharedPtr robot_description_sub;
-    rclcpp::Publisher<kalman_interfaces::msg::ArmJointValues>::SharedPtr joint_vel_pub;
+    rclcpp::Publisher<kalman_interfaces::msg::ArmValues>::SharedPtr joint_vel_pub;
     rclcpp::TimerBase::SharedPtr compute_timer;
 
     // TF2
@@ -35,6 +35,7 @@ public:
     std::string end_effector_link;
     float max_joint_vel;
     double update_rate;
+    double control_timeout;
 
     // Kinematics
     KDL::Chain arm_chain;
@@ -46,27 +47,30 @@ public:
     // Latest twist message
     geometry_msgs::msg::TwistStamped::SharedPtr latest_twist;
     std::mutex twist_mutex;
+    rclcpp::Time last_twist_time;
 
     TwistIK(const rclcpp::NodeOptions &options)
-        : Node("twist_ik", options), joints_initialized(false), kinematics_ready(false) {
+        : Node("twist_ik", options), joints_initialized(false), kinematics_ready(false), last_twist_time(now()) {
         
         this->declare_parameter<std::string>("base_link", "base_link");
         this->declare_parameter<std::string>("end_effector_link", "arm_link_end");
         this->declare_parameter<float>("max_joint_vel", 0.5);
         this->declare_parameter<double>("update_rate", 10.0);
+        this->declare_parameter<double>("control_timeout", 0.5);
         this->get_parameter("base_link", base_link);
         this->get_parameter("end_effector_link", end_effector_link);
         this->get_parameter("max_joint_vel", max_joint_vel);
         this->get_parameter("update_rate", update_rate);
+        this->get_parameter("control_timeout", control_timeout);
 
         // Initialize TF2
         tf_buffer = std::make_shared<tf2_ros::Buffer>(get_clock());
         tf_listener = std::make_shared<tf2_ros::TransformListener>(*tf_buffer);
 
         // Publishers & subscribers
-        joint_vel_pub = create_publisher<kalman_interfaces::msg::ArmJointValues>("target_vel", 10);
+        joint_vel_pub = create_publisher<kalman_interfaces::msg::ArmValues>("target_vel", 10);
 
-        joint_pos_sub = create_subscription<kalman_interfaces::msg::ArmJointValues>(
+        joint_pos_sub = create_subscription<kalman_interfaces::msg::ArmValues>(
             "current_pos", 10,
             std::bind(&TwistIK::on_joint_positions, this, std::placeholders::_1));
 
@@ -130,7 +134,7 @@ public:
         RCLCPP_INFO(get_logger(), "Kinematic chain initialized with %d joints.", arm_chain.getNrOfJoints());
     }
 
-    void on_joint_positions(const kalman_interfaces::msg::ArmJointValues::SharedPtr msg) {
+    void on_joint_positions(const kalman_interfaces::msg::ArmValues::SharedPtr msg) {
         if (!kinematics_ready) return;
 
         if (msg->joints.size() < current_joint_positions.rows()) {
@@ -195,6 +199,7 @@ public:
     void on_target_twist(const geometry_msgs::msg::TwistStamped::SharedPtr msg) {
         std::lock_guard<std::mutex> lock(twist_mutex);
         latest_twist = msg;
+        last_twist_time = now();
     }
 
     void compute_joint_velocities() {
@@ -205,7 +210,7 @@ public:
         geometry_msgs::msg::TwistStamped::SharedPtr twist_msg;
         {
             std::lock_guard<std::mutex> lock(twist_mutex);
-            if (!latest_twist) {
+            if (!latest_twist || (now() - last_twist_time).seconds() > control_timeout) {
                 return;
             }
             twist_msg = latest_twist;
@@ -241,12 +246,11 @@ public:
         }
 
         // Translate to a joint velocity message
-        auto vel_msg = kalman_interfaces::msg::ArmJointValues();
+        auto vel_msg = kalman_interfaces::msg::ArmValues();
         vel_msg.header.stamp = now();
         for (size_t i = 0; i < joint_velocities.rows(); ++i) {
             vel_msg.joints[i] = joint_velocities(i);
         }
-        vel_msg.jaw = 0.0;
 
         joint_vel_pub->publish(vel_msg);
     }

@@ -56,7 +56,8 @@ def node_or_component(
                 **kwargs,
             ),
         ]
-    
+
+
 def remap_action(from_name, to_name):
     return [
         (f"{from_name}/_action/send_goal", f"{to_name}/_action/send_goal"),
@@ -73,17 +74,17 @@ def launch_setup(context):
     actions = []
 
     # Joint republisher
-    actions += node_or_component(
-        component_container=component_container,
-        package="kalman_arm2",
-        executable="joint_republisher",
-        plugin="kalman_arm2::JointRepublisher",
-        namespace="arm",
-        remappings=[
-            ("current_pos", "joints/current_pos"),
-            ("joint_states", "joint_states"),
-        ],
-    )
+    actions += [
+        Node(
+            package="kalman_arm2",
+            executable="joint_republisher",
+            namespace="arm",
+            remappings=[
+                ("current_pos", "current_pos"),
+                ("joint_states", "joint_states"),
+            ],
+        )
+    ]
 
     # Twist IK node
     actions += node_or_component(
@@ -93,26 +94,25 @@ def launch_setup(context):
         plugin="kalman_arm2::TwistIK",
         namespace="arm",
         remappings=[
-            ("current_pos", "joints/current_pos"),
-            ("target_twist", "ik/target_twist"),
-            ("target_vel", "joints/target_vel"),
+            ("current_pos", "current_pos"),
+            ("target_twist", "target_twist"),
+            ("target_vel", "target_vel/joints"),
         ],
     )
 
     # Gamepad control node
-    actions += node_or_component(
-        component_container=component_container,
-        package="kalman_arm2",
-        executable="gamepad_control",
-        plugin="kalman_arm2::GamepadControl",
-        namespace="arm",
-        remappings=[
-            ("joy", "/joy"),
-            ("target_twist", "ik/target_twist"),
-            ("jaw_vel", "joints/target_vel"),
-        ],
-    )
-
+    actions += [
+        Node(
+            package="kalman_arm2",
+            executable="gamepad_control",
+            namespace="arm",
+            remappings=[
+                ("joy", "/joy"),
+                ("target_twist", "target_twist"),
+                ("jaw_vel", "target_vel/jaw"),
+            ],
+        )
+    ]
 
     actions += node_or_component(
         component_container=component_container,
@@ -121,9 +121,9 @@ def launch_setup(context):
         plugin="kalman_arm2::GotoJointPose",
         namespace="arm",
         remappings=[
-            ("current_pos", "joints/current_pos"),
-            ("target_vel", "joints/target_vel"),
-            *remap_action("goto_pose", "joints/goto_pose"),
+            ("current_pos", "current_pos"),
+            ("target_vel", "target_vel"),
+            *remap_action("goto_pose", "goto_pose"),
         ],
     )
 
@@ -136,6 +136,51 @@ def launch_setup(context):
                 {
                     "dev_name": "Logitech Gamepad",
                 }
+            ],
+        )
+    ]
+
+    # Share topics from RPi
+    for topic, msg_type, mode in [
+        ("/arm_controllers/joint_states", "sensor_msgs/msg/JointState", "recv"),
+        ("/servo_node/delta_joint_cmds", "control_msgs/msg/JointJog", "send"),
+        ("/gripper/position", "std_msgs/msg/UInt16", "recv"),
+        ("/gripper/command_absolute", "std_msgs/msg/UInt16", "send"),
+        ("/gripper/command_incremental", "std_msgs/msg/Int8", "send"),
+    ]:
+        actions += [
+            Node(
+                package="kalman_arm2",
+                executable="rosbridge_client",
+                name="rosbridge_client_" + topic.replace("/", "_").strip("_"),
+                parameters=[
+                    {
+                        "ws_address": "localhost:9473",
+                        "topic": topic,
+                        "type": msg_type,
+                        "mode": mode,
+                    }
+                ],
+            )
+        ]
+
+    # Translate legacy API
+    actions += [
+        Node(
+            package="kalman_arm2",
+            executable="arm1_moveit_compat",
+            namespace="arm",
+            remappings=[
+                ("new/current_pos", "current_pos"),
+                ("new/target_pos/jaw", "target_pos/jaw"),
+                ("new/target_vel", "target_vel"),
+                ("new/target_vel/joints", "target_vel/joints"),
+                ("new/target_vel/jaw", "target_vel/jaw"),
+                ("old/arm_controllers/joint_states", "/arm_controllers/joint_states"),
+                ("old/servo_node/delta_joint_cmds", "/servo_node/delta_joint_cmds"),
+                ("old/gripper/position", "/gripper/position"),
+                ("old/gripper/command_absolute", "/gripper/command_absolute"),
+                ("old/gripper/command_incremental", "/gripper/command_incremental"),
             ],
         )
     ]
