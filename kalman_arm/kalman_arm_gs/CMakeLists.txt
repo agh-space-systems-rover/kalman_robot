@@ -48,6 +48,12 @@ target_compile_features(arm_state_republisher PUBLIC c_std_99 cxx_std_17)  # Req
 install(TARGETS arm_state_republisher
 DESTINATION lib/${PROJECT_NAME}) 
 
+ament_python_install_package(${PROJECT_NAME})
+
+install(PROGRAMS
+  scripts/magnetometer_driver
+  DESTINATION lib/${PROJECT_NAME}
+)
 
 install(DIRECTORY launch
   DESTINATION share/${PROJECT_NAME}
