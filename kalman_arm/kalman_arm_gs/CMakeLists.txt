@@ -52,6 +52,7 @@ ament_python_install_package(${PROJECT_NAME})
 
 install(PROGRAMS
   scripts/magnetometer_driver
+  scripts/magnetometer_mock
   DESTINATION lib/${PROJECT_NAME}
 )
 

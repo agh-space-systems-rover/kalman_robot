@@ -2,7 +2,6 @@ import struct
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import UInt8MultiArray
-from kalman_interfaces.msg import MagnetoData
 from std_srvs.srv import Trigger
 from sensor_msgs.msg import MagneticField
 
@@ -16,12 +15,12 @@ class MagnetometerDriver(Node):
         super().__init__("magnetometer_driver")
 
         # Publisher for sensor_msgs/MagneticField
-        self.magfield_pub = self.create_publisher(MagneticField, "science/magnetometer/magnetic_field", 10)
+        self.magfield_pub = self.create_publisher(MagneticField, "science/magnetic_field/value", 10)
 
         # Service for requesting magnetometer data
         self.data_req_srv = self.create_service(
             Trigger,
-            "science/magnetometer/value/req",
+            "science/magnetic_field/value/req",
             self.cb_data_req,
         )
 
