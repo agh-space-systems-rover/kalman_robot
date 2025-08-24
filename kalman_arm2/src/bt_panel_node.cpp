@@ -2,7 +2,6 @@
 #include "actions/average_pose.hpp"
 #include "actions/build_uv.hpp"
 #include "actions/come_closer.hpp"
-#include "actions/do_something.hpp"
 #include "actions/get_next_goal.hpp"
 #include "actions/ik_navigate_to_pose.hpp"
 #include "actions/say_something.hpp"
@@ -70,9 +69,6 @@ class BTPanel : public rclcpp::Node {
 		try {
 			factory_ = std::make_unique<BT::BehaviorTreeFactory>();
 
-			factory_->registerBuilder<DoSomething>(
-			    "DoSomething", Builder<DoSomething>()
-			);
 			factory_->registerBuilder<ArmNavigateToPose>(
 			    "ArmNavigateToPose", Builder<ArmNavigateToPose>()
 			);
