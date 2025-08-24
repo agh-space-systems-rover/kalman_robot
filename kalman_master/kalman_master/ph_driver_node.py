@@ -10,6 +10,10 @@ from std_srvs.srv import Trigger
 BOARD_ID = 0
 DEVICE_ID = 0
 
+RAIL_BOARD_ID = 0
+RAIL_DEVICE_ID = 1
+RAIL_MAX_SPEED = 100
+
 class PHDriver(Node):
     def __init__(self):
         super().__init__("ph_driver")
@@ -18,11 +22,17 @@ class PHDriver(Node):
         self.value_pub = self.create_publisher(Float32, "science/ph/value", 10)
         self.value_raw_pub = self.create_publisher(Float32, "science/ph/value/raw", 10)
 
-        # Replace topic subscription with a service
         self.value_req_srv = self.create_service(
             Trigger,
             "science/ph/value/req",
             self.cb_value_req,
+        )
+
+        self.rail_control_sub = self.create_subscription(
+            Float32,
+            "science/ph/rail/target_vel",
+            self.cb_rail_control,
+            10
         )
 
         # Master comms
@@ -47,6 +57,14 @@ class PHDriver(Node):
         response.success = True
         response.message = "pH value requested"
         return response
+
+    def cb_rail_control(self, msg: Float32):
+        rail_msg = MasterMessage()
+        rail_msg.cmd = MasterMessage.PH_RAIL
+        target_vel = max(-1.0, min(1.0, msg.data))
+        target_vel_int = int(target_vel * RAIL_MAX_SPEED)
+        rail_msg.data = struct.pack("BBB", RAIL_BOARD_ID, RAIL_DEVICE_ID, target_vel_int)
+        self.master_pub.publish(rail_msg)
 
     def cb_master_res(self, msg: MasterMessage):
         if len(msg.data) < 4:
