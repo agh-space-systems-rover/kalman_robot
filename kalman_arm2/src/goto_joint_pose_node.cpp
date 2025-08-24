@@ -5,6 +5,7 @@
 #include <rclcpp/create_timer.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_action/create_server.hpp>
+#include <rclcpp_action/rclcpp_action.hpp>
 #include <rclcpp_action/server.hpp>
 #include <rclcpp_action/server_goal_handle.hpp>
 #include <rclcpp_components/register_node_macro.hpp>

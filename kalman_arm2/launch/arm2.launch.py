@@ -5,8 +5,10 @@ from launch.actions import (
     DeclareLaunchArgument,
     OpaqueFunction,
 )
-from launch.substitutions import LaunchConfiguration
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.descriptions import ComposableNode
+from launch_ros.substitutions import FindPackageShare
+from launch_ros.parameter_descriptions import ParameterValue
 
 
 def node_or_component(
@@ -127,6 +129,47 @@ def launch_setup(context):
         ],
     )
 
+    panel_layout_file = PathJoinSubstitution(
+        [FindPackageShare("kalman_arm2"), "config", "panel_layout.yaml"]
+    )
+
+    tree_xml_file = PathJoinSubstitution(
+        [FindPackageShare("kalman_arm2"), "trees", "demo.xml"]
+    )
+
+    if 1:
+        actions += node_or_component(
+            component_container=component_container,
+            package="kalman_arm2",
+            executable="bt_panel",
+            plugin="kalman_arm2::BTPanel",
+            namespace="arm",
+            remappings=[
+                ("current_pos", "current_pos"),
+                ("target_vel", "target_vel"),
+                *remap_action("goto_pose", "goto_pose"),
+            ],
+            parameters=[
+                {"layout_yaml": ParameterValue(panel_layout_file, value_type=str)},
+                {"tree_xml": ParameterValue(tree_xml_file, value_type=str)},
+                {"auto_start": ParameterValue(False, value_type=bool)},
+            ],
+        )
+
+    actions += node_or_component(
+        component_container=component_container,
+        package="kalman_arm2",
+        executable="panel_layout",
+        plugin="kalman_arm2::PanelLayout",
+        namespace="arm",
+        remappings=[
+            ("current_pos", "current_pos"),
+            ("target_vel", "target_vel"),
+            *remap_action("goto_pose", "goto_pose"),
+        ],
+        parameters=[{"layout_yaml": ParameterValue(panel_layout_file, value_type=str)}],
+    )
+
     # Joy node
     actions += [
         Node(
@@ -148,6 +191,7 @@ def launch_setup(context):
         ("/gripper/command_absolute", "std_msgs/msg/UInt16", "send"),
         ("/gripper/command_incremental", "std_msgs/msg/Int8", "send"),
     ]:
+        break
         actions += [
             Node(
                 package="kalman_arm2",
