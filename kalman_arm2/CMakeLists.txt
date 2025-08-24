@@ -58,7 +58,6 @@ rclcpp_components_register_node(
 target_link_libraries(panel_layout_node yaml-cpp)
 
 add_library(bt_panel_node SHARED src/bt_panel_node.cpp
-src/actions/do_something.cpp include/actions/do_something.hpp
 src/actions/arm_navigate_to_pose.cpp include/actions/arm_navigate_to_pose.hpp
 src/conditions/is_recent_detection.cpp include/conditions/is_recent_detection.hpp
 src/actions/come_closer.cpp include/actions/come_closer.hpp
