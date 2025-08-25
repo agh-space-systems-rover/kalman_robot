@@ -30,13 +30,9 @@
     odom0_queue_size: 10
 
     # Apply world-referenced pitch and roll correction from the IMU.
-    imu0: imu/data # From the IMU
+    imu0: imu/data
     imu0_config: [false, false, false,
-{% if use_mag %}
-                  true,  true,  true,
-{% else %}
                   true,  true,  false,
-{% endif %}
                   false, false, false,
                   false, false, false,
                   false, false, false]
@@ -45,28 +41,41 @@
     imu0_queue_size: 10
     imu0_remove_gravitational_acceleration: true
 
+{% if use_mag %}
+    imu1: imu/data
+    imu1_config: [false, false, false,
+                  false, false, true,
+                  false, false, false,
+                  false, false, false,
+                  false, false, false]
+    imu1_differential: false
+    imu1_relative: true
+    imu1_queue_size: 10
+    imu1_remove_gravitational_acceleration: true
+{% endif %}
 
-#     # XY correction from navsat_transform (GPS).
-#     odom1: odometry/gps
-#     odom1_config: [true,  true,  false,
-#                    false, false, false,
-#                    false, false, false,
-#                    false, false, false,
-#                    false, false, false]
-#     odom1_differential: false
-#     odom1_relative: false
-#     odom1_queue_size: 10
 
-#     # XY correction from detected fiducials.
-#     odom2: odometry/fiducial
-#     odom2_config: [true,  true,  false,
-#                    false, false, false,
-#                    false, false, false,
-#                    false, false, false,
-#                    false, false, false]
-#     odom2_differential: false
-#     odom2_relative: false
-#     odom2_queue_size: 10
+    # XY correction from navsat_transform (GPS).
+    odom1: odometry/gps
+    odom1_config: [true,  true,  false,
+                   false, false, false,
+                   false, false, false,
+                   false, false, false,
+                   false, false, false]
+    odom1_differential: false
+    odom1_relative: false
+    odom1_queue_size: 10
+
+    # XY correction from detected fiducials.
+    odom2: odometry/fiducial
+    odom2_config: [true,  true,  false,
+                   false, false, false,
+                   false, false, false,
+                   false, false, false,
+                   false, false, false]
+    odom2_differential: false
+    odom2_relative: false
+    odom2_queue_size: 10
 
 #     # Yaw fix from the ground station.
 #     imu1: imu/spoofed # From the IMU
@@ -83,23 +92,3 @@
     # TODO: Yaw+XYZ correction from SLAM.
     
     use_control: false
-
-    process_noise_covariance: [
-      0.05, 0.0,  0.0,  0.0,  0.0,  0.0,  0.0,   0.0,   0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
-      0.0,  0.05, 0.0,  0.0,  0.0,  0.0,  0.0,   0.0,   0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
-      0.0,  0.0,  0.06, 0.0,  0.0,  0.0,  0.0,   0.0,   0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
-      0.0,  0.0,  0.0,  10.0, 0.0,  0.0,  0.0,   0.0,   0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
-      0.0,  0.0,  0.0,  0.0,  10.0, 0.0,  0.0,   0.0,   0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
-      0.0,  0.0,  0.0,  0.0,  0.0,  10.0, 0.0,   0.0,   0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
-      0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.025, 0.0,   0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
-      0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,   0.025, 0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
-      0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,   0.0,   0.04, 0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
-      0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,   0.0,   0.0,  0.01, 0.0,  0.0,  0.0,  0.0,  0.0,
-      0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,   0.0,   0.0,  0.0,  0.01, 0.0,  0.0,  0.0,  0.0,
-      0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,   0.0,   0.0,  0.0,  0.0,  0.02, 0.0,  0.0,  0.0,
-      0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,   0.0,   0.0,  0.0,  0.0,  0.0,  0.01, 0.0,  0.0,
-      0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,   0.0,   0.0,  0.0,  0.0,  0.0,  0.0,  0.01, 0.0,
-      0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,   0.0,   0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.015
-    ]
-    # NOTE: This is mostly the default value of this matrix. Only the variances of absolute angular were increased so that IMU feels more stable.
-    

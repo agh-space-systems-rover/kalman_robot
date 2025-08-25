@@ -6,7 +6,7 @@ def generate_launch_description():
         {
             "unity_sim": {
                 "scene": "ARCh2024",
-                "selective_launch": "only_sim",
+                "selective_launch": "no_rs_pub",
             },
             "rviz": {
                 "configs": "rtabmap",

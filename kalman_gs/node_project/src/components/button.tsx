@@ -1,7 +1,7 @@
 import styles from './button.module.css';
 
 import Tooltip from './tooltip';
-import { ReactNode } from 'react';
+import {CSSProperties, ReactNode} from 'react';
 
 type Props = {
   children: ReactNode;
@@ -9,6 +9,7 @@ type Props = {
   onClick?: () => void;
   disabled?: boolean;
   className?: string;
+  style?: CSSProperties;
 };
 
 export default function Button({
@@ -16,7 +17,8 @@ export default function Button({
   tooltip,
   onClick,
   disabled,
-  className
+  className,
+  style
 }: Props) {
   if (tooltip === undefined || disabled) {
     return (
@@ -26,6 +28,7 @@ export default function Button({
           (className ? ` ${className}` : '') +
           (disabled ? ` ${styles['disabled']}` : '')
         }
+        style={style}
         onClick={disabled ? undefined : onClick}
       >
         {children}
@@ -40,6 +43,7 @@ export default function Button({
           (className ? ` ${className}` : '') +
           (disabled ? ` ${styles['disabled']}` : '')
         }
+        style={style}
         onClick={disabled ? undefined : onClick}
       >
         {children}

@@ -69,6 +69,10 @@ export type Twist = {
   angular?: Vector3;
 };
 
+export type Bool = {
+  data?: boolean;
+};
+
 export type Pose = {
   position?: Point;
   orientation?: Quaternion;
@@ -88,6 +92,22 @@ export type Odometry = {
   header?: Header;
   pose?: PoseWithCovariance;
   twist?: TwistWithCovariance;
+};
+
+// std_srvs/SetBool
+export type SetBoolRequest = {
+  data?: boolean;
+};
+export type SetBoolResponse = {
+  success?: boolean;
+  message?: string;
+};
+
+export type ColorRGBA = {
+  r?: number;
+  g?: number;
+  b?: number;
+  a?: number;
 };
 
 // kalman_interfaces
@@ -198,24 +218,23 @@ export type ArmAxesLocks = {
   yaw?: boolean;
 };
 
-// UEUOS interfaces
-export type SetColorRequest = {
-  color: ColorRGB;
+export type SetUeuosColorRequest = {
+  color?: ColorRGBA;
 };
 // Response is empty.
 
-export type SetStateRequest = {
-  state: number;
+export const SET_UEUOS_STATE_OFF: number = 0;
+export const SET_UEUOS_STATE_AUTONOMY: number = 1;
+export const SET_UEUOS_STATE_TELEOP: number = 2;
+export const SET_UEUOS_STATE_FINISHED: number = 3;
+export type SetUeuosStateRequest = {
+  state?: number;
 };
 // Response is empty.
 
-export type SetEffectRequest = {
-  effect: number;
+export const SET_UEUOS_EFFECT_BOOT: number = 0;
+export const SET_UEUOS_EFFECT_RAINBOW: number = 1;
+export type SetUeuosEffectRequest = {
+  effect?: number;
 };
 // Response is empty.
-
-export type ColorRGB = {
-  r: number;
-  g: number;
-  b: number;
-};

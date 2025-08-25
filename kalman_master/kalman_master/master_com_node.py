@@ -101,10 +101,10 @@ class MasterCom(Node):
             )
             self.get_logger().info(f"Master is connected via {self.port}.")
         except (SerialException, OSError):
-            self.port = None  # Clear port if driver creation failed
             self.get_logger().error(
                 f"Master is not available via {self.port}. Will retry in 3 seconds."
             )
+            self.port = None  # Clear port if driver creation failed
             time.sleep(3)
 
     def master_to_ros(self) -> None:

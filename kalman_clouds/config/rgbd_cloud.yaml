@@ -6,7 +6,7 @@
     # depth_transport: compressedDepth
     # ^ Set in launch file
     # horizontal resolution of the point cloud
-    cloud_width: 300
+    cloud_width: 400
     # minimum Z coordinate of a point to be included in the point cloud
     min_distance: 0.1
     # maximum Z coordinate of a point to be included in the point cloud

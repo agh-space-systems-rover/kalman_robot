@@ -2,7 +2,7 @@ import { alertsRef } from './refs';
 import { Ros } from 'roslib';
 
 const ros = new Ros({
-  url: 'ws://localhost:9065'
+  url: `ws://${window.location.hostname}:9065`
 });
 // ros.on('connection', () => {
 //   console.log('ROSLIB connected.');

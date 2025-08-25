@@ -3,4 +3,4 @@
     # size of the input topic queue
     queue_size: 10
     # leaf size of the voxel grid filter
-    leaf_size: 0.05
+    leaf_size: 0.07

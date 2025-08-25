@@ -1,10 +1,12 @@
+from threading import Condition, Lock
+from typing import Literal
+
 import numpy as np
 
 from geometry_msgs.msg import PoseStamped
 from rclpy.action import ActionServer, CancelResponse
 from rclpy.action.server import ServerGoalHandle
 from rclpy.callback_groups import ReentrantCallbackGroup
-from threading import Condition, Lock
 
 from kalman_supervisor.module import Module
 from kalman_interfaces.action import (
@@ -12,7 +14,9 @@ from kalman_interfaces.action import (
     SupervisorGpsGoal,
     SupervisorGpsArUcoSearch,
     SupervisorGpsYoloSearch,
+    SupervisorMappingGoals,
 )
+from kalman_interfaces.msg import SupervisorMappingGoal
 
 
 class Missions(Module):
@@ -66,6 +70,37 @@ class Missions(Module):
 
             self.obj_world_frame_pos = np.array([0.0, 0.0, 0.0])
 
+    class MappingGoals(Mission):
+        class Goal:
+            GoalType = Literal[
+                "NAVIGATE_TO_PRECISE_LOCATION",
+                "NAVIGATE_TO_ROUGH_LOCATION",
+                "ATTEMPT_LOOP_CLOSURE",
+                "TAKE_PHOTOS",
+            ]
+            NAVIGATE_TO_PRECISE_LOCATION = "NAVIGATE_TO_PRECISE_LOCATION"
+            NAVIGATE_TO_ROUGH_LOCATION = "NAVIGATE_TO_ROUGH_LOCATION"
+            ATTEMPT_LOOP_CLOSURE = "ATTEMPT_LOOP_CLOSURE"
+            TAKE_PHOTOS = "TAKE_PHOTOS"
+            types = (
+                NAVIGATE_TO_PRECISE_LOCATION,
+                NAVIGATE_TO_ROUGH_LOCATION,
+                ATTEMPT_LOOP_CLOSURE,
+                TAKE_PHOTOS,
+            )
+
+            def __init__(self, type: GoalType, location_x: float, location_y: float):
+                self.type = type
+                self.location_x = location_x
+                self.location_y = location_y
+
+        def __init__(self, goals: list[Goal]):
+            super().__init__()
+            self.goals = goals
+
+            self.current_goal = -1
+            self.next_photo_label = 1
+
     def __init__(self):
         super().__init__("missions")
 
@@ -116,6 +151,14 @@ class Missions(Module):
             SupervisorGpsYoloSearch,
             "missions/gps_yolo_search",
             self.__gps_yolo_search_cb,
+            callback_group=self.__callback_group,
+            cancel_callback=self.__action_cancel_cb,
+        )
+        self.mapping_server = ActionServer(
+            self.supervisor,
+            SupervisorMappingGoals,
+            "missions/mapping_goals",
+            self.__mapping_goals_cb,
             callback_group=self.__callback_group,
             cancel_callback=self.__action_cancel_cb,
         )
@@ -284,6 +327,56 @@ class Missions(Module):
             self.__queue_up_mission(mission, goal_handle)
         return SupervisorGpsYoloSearch.Result()
 
+    def __mapping_goals_cb(
+        self, goal_handle: ServerGoalHandle
+    ) -> SupervisorMappingGoals.Result:
+        goals: list[Missions.MappingGoals.Goal] = []
+        # Map goals from msg to Supervisor's own goals
+        goal: SupervisorMappingGoal
+        for goal in goal_handle.request.goals:
+            type = Missions.MappingGoals.Goal.types[goal.type]
+            goals.append(
+                Missions.MappingGoals.Goal(type, goal.location.x, goal.location.y)
+            )
+        # Insert precise navigation before loop closure and photos if they have a location and it is far away from last goal
+        last_location = None
+        i = 0
+        while i < len(goals):
+            goal = goals[i]
+            if goal.type in (
+                Missions.MappingGoals.Goal.NAVIGATE_TO_PRECISE_LOCATION,
+                Missions.MappingGoals.Goal.NAVIGATE_TO_ROUGH_LOCATION,
+            ):
+                last_location = np.array([goal.location_x, goal.location_y])
+            elif goal.type in (
+                Missions.MappingGoals.Goal.ATTEMPT_LOOP_CLOSURE,
+                Missions.MappingGoals.Goal.TAKE_PHOTOS,
+            ):
+                # If the loop/photo goal has a location
+                if abs(goal.location_x) > 1e-3 or abs(goal.location_y) > 1e-3:
+                    # If there was no last precise location or the last one was too far away:
+                    if (
+                        last_location is None
+                        or np.linalg.norm(
+                            np.array([goal.location_x, goal.location_y]) - last_location
+                        )
+                        > 0.5
+                    ):
+                        last_location = np.array([goal.location_x, goal.location_y])
+                        goals.insert(
+                            i,
+                            Missions.MappingGoals.Goal(
+                                Missions.MappingGoals.Goal.NAVIGATE_TO_PRECISE_LOCATION,
+                                goal.location_x,
+                                goal.location_y,
+                            ),
+                        )
+            i += 1
+        mission = Missions.MappingGoals(goals)
+        with self.__mission_condition:
+            self.__queue_up_mission(mission, goal_handle)
+        return SupervisorMappingGoals.Result()
+
     def __action_cancel_cb(self, _) -> CancelResponse:
         return CancelResponse.ACCEPT
 
@@ -297,6 +390,9 @@ class Missions(Module):
 
     def succeed_mission(self) -> None:
         with self.__mission_condition:
+            if self.__mission is None:
+                return
+
             self.supervisor.get_logger().info(
                 f"[Missions] Mission #{self.__mission.id} completed successfully."
             )

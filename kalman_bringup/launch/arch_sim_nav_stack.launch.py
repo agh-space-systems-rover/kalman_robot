@@ -7,20 +7,26 @@ def generate_launch_description():
     return gen_launch(
         {
             "unity_sim": {
-                "selective_launch": "only_ros",
+                "selective_launch": "only_rs_pub",
             },
             "clouds": {
                 "rgbd_ids": RGBD_IDS,
             },
             "slam": {
                 "rgbd_ids": RGBD_IDS,
-                "slam": "d455_front",
+                "slam_rgbd_ids": RGBD_IDS,
+                "use_mag": "false",
             },
             "nav2": {
                 "rgbd_ids": RGBD_IDS,
-                "driving_mode": "forward",
+                # "driving_mode": "forward",
             },
-            "supervisor": {},
+            "supervisor": {
+                "arch_camera_ids": RGBD_IDS,
+            },
+            "arch": {
+                "rgbd_ids": RGBD_IDS,
+            },
         },
         composition="start_container",
     )

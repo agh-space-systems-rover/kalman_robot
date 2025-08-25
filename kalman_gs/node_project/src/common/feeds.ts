@@ -5,16 +5,28 @@ import { getKeybind } from './keybinds';
 import { Service } from 'roslib';
 
 let feedCameras = [1, 2];
-let feedChannels = [4, 8];
+let feedChannels = [15, 8];
 let feedPowers = [1, 1];
 
 // Load feed config from local storage.
 const feedConfig = localStorage.getItem('feed-config');
 if (feedConfig) {
   const feeds: any = JSON.parse(feedConfig);
-  feedCameras = feeds.cameras;
-  feedChannels = feeds.channels;
-  feedPowers = feeds.powers;
+
+  // Verify that the values are valid.
+  if (
+    feeds.cameras.length === 2 &&
+    feeds.channels.length === 2 &&
+    feeds.powers.length === 2 &&
+    feeds.cameras.every((camera: any) => typeof camera === 'number') &&
+    feeds.channels.every((channel: any) => typeof channel === 'number') &&
+    feeds.powers.every((power: any) => typeof power === 'number')
+  ) {
+    // If valid, use the values.
+    feedCameras = feeds.cameras;
+    feedChannels = feeds.channels;
+    feedPowers = feeds.powers;
+  }
 }
 
 // Save feed config to local storage on update.

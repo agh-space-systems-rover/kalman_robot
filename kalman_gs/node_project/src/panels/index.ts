@@ -3,10 +3,12 @@ import Feeds from './feeds';
 import Imu from './imu';
 import Map from './map';
 import MapHeader from './map.header';
+import Mobile from './mobile';
 import Supervisor from './supervisor';
 import Ueuos from './ueuos';
 import Waypoints from './waypoints';
 import Wheels from './wheels';
+import Science from './science';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import {
   faBullseye,
@@ -16,11 +18,13 @@ import {
   faDiagramProject,
   faFlag,
   faGear,
-  faPalette
+  faMobileScreenButton,
+  faPalette,
+  faMicroscope
 } from '@fortawesome/free-solid-svg-icons';
 
 // Add new panels here:
-export type PanelID = 'imu' | 'wheels' | 'supervisor' | 'map' | 'feeds' | 'arm' | 'waypoints' | 'ueuos';
+export type PanelID = 'imu' | 'wheels' | 'supervisor' | 'map' | 'feeds' | 'arm' | 'waypoints'| 'mobile' | 'ueuos' | 'science';
 export const defaultPanel: PanelID = 'map';
 export const panelInfos: Panels = {
   imu: {
@@ -59,10 +63,20 @@ export const panelInfos: Panels = {
     name: 'Waypoints',
     icon: faFlag
   },
+  mobile: {
+    Component: Mobile,
+    name: 'Mobile',
+    icon: faMobileScreenButton
+  },
   ueuos: {
     Component: Ueuos,
     name: 'UEUOS',
     icon: faPalette
+  },
+  science: {
+    Component: Science,
+    name: 'Science',
+    icon: faMicroscope
   }
 };
 

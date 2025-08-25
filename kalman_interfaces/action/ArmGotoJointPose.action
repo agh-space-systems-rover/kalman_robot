@@ -1,0 +1,7 @@
+ArmValues target_pos
+uint8 ignore_mask
+# ^ Bits 0-5 correspond to joints 1-6.
+# Bit no. 6 corresponds to the jaw.
+---
+---
+ArmValues current_pos

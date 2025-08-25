@@ -37,7 +37,8 @@ const defaultKeybinds = {
   'Lock SpaceMouse X Axis': 'KeyX',
   'Lock SpaceMouse Y Axis': 'KeyC',
   'Lock SpaceMouse Z Axis': 'KeyZ',
-  'Hold to Lock Rotational Axes': 'AltLeft', 
+  'Hold to Lock Rotational Axes': 'AltLeft',
+  'Engage Remote E-STOP': 'Semicolon'
 };
 
 // Copy default keybinds to keybinds.

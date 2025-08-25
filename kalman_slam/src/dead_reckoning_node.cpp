@@ -1,6 +1,8 @@
 #include <deque>
 #include <functional>
+#include <geometry_msgs/msg/detail/transform_stamped__struct.hpp>
 #include <rclcpp/logging.hpp>
+#include <rclcpp/subscription.hpp>
 #include <rclcpp/time.hpp>
 #include <vector>
 
@@ -16,8 +18,11 @@
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp/timer.hpp>
 #include <rclcpp_components/register_node_macro.hpp>
+#include <sensor_msgs/msg/imu.hpp>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
+#include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_broadcaster.h>
+#include <tf2_ros/transform_listener.h>
 
 namespace kalman_slam {
 
@@ -171,9 +176,21 @@ class DeltaSubscriber {
 // to use their average velocity for more precise integration.
 class DeadReckoning : public rclcpp::Node {
   public:
-	std::vector<DeltaSubscriber>                          odom_subs;
-	rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_pub;
-	tf2_ros::TransformBroadcaster                         tf_broadcaster;
+	class ImuReading {
+	  public:
+		rclcpp::Time time;
+		cv::Quatd    rot;
+
+		ImuReading(rclcpp::Time time, cv::Quatd rot) : time(time), rot(rot) {}
+	};
+
+	std::vector<DeltaSubscriber>                           odom_subs;
+	rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr  odom_pub;
+	tf2_ros::TransformBroadcaster                          tf_broadcaster;
+	rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr imu_sub;
+	tf2_ros::Buffer                                        tf_buffer;
+	tf2_ros::TransformListener                             tf_listener;
+	rclcpp::TimerBase::SharedPtr                           imu_corr_timer;
 
 	double timeout;
 
@@ -183,17 +200,25 @@ class DeadReckoning : public rclcpp::Node {
 	std::vector<std::deque<Delta>> deltas;
 	std::vector<rclcpp::Time>      last_reading_times;
 
+	std::deque<ImuReading> imu_b2w_buffer, transform_b2o_buffer;
+
 	DeadReckoning(const rclcpp::NodeOptions &options)
-	    : Node("dead_reckoning", options), tf_broadcaster(this) {
+	    : Node("dead_reckoning", options), tf_broadcaster(this),
+	      tf_buffer(get_clock()), tf_listener(tf_buffer) {
 		declare_parameter("odom_frame_id", "odom");
 		declare_parameter("base_link_frame_id", "base_link");
 		declare_parameter("publish_tf", true);
 		declare_parameter("sync_with_odom", -1);
 		declare_parameter("output_covariance", 0.1);
+		declare_parameter("imu_correction_window_duration", 1.0);
+		declare_parameter("imu_correction_window_samples", 30);
+		declare_parameter("imu_correction_kp", 0.2);
+		declare_parameter("imu_correction_rate", 10.0);
+		declare_parameter("imu_correction_use_yaw", false);
 
 		// Subscribe to visodo
 		int num_odoms = declare_parameter("num_odoms", 1);
-		timeout       = declare_parameter("timeout", 0.3);
+		timeout       = declare_parameter("timeout", 0.5);
 		odom_subs.reserve(num_odoms);
 		// ^ Required! DeltaSubscriber binds "this" to a callback, and it must
 		// not be invalidated by a reallocation.
@@ -210,6 +235,21 @@ class DeadReckoning : public rclcpp::Node {
 
 		// Publish integrated odometry
 		odom_pub = create_publisher<nav_msgs::msg::Odometry>("odom", 10);
+
+		// Subscribe to IMU
+		imu_sub = create_subscription<sensor_msgs::msg::Imu>(
+		    "imu",
+		    10,
+		    std::bind(&DeadReckoning::imu_cb, this, std::placeholders::_1)
+		);
+
+		// Timer for IMU corrections
+		imu_corr_timer = create_wall_timer(
+		    std::chrono::duration<double>(
+		        1.0 / get_parameter("imu_correction_rate").as_double()
+		    ),
+		    std::bind(&DeadReckoning::imu_corr_timer_cb, this)
+		);
 
 		// Initialize state
 		deltas.resize(num_odoms);
@@ -303,30 +343,17 @@ class DeadReckoning : public rclcpp::Node {
 			// This will be the first start/end time in the buffer.
 			// Only times > buffer's start_time are considered so that we
 			// get duration > 0.
-			rclcpp::Time  next_start_time = end_time;
-			std::set<int> next_start_time_odom_is;
+			rclcpp::Time next_start_time = end_time;
 			for (int j = 0; j < deltas.size(); j++) {
 				auto &d = deltas[j];
 				if (!d.empty()) {
 					if (d.front().start_time > start_time) {
 						if (d.front().start_time <= next_start_time) {
-							if (d.front().start_time == next_start_time) {
-								next_start_time_odom_is.insert(j);
-							} else {
-								next_start_time_odom_is.clear();
-								next_start_time_odom_is.insert(j);
-							}
 							next_start_time = d.front().start_time;
 						}
 					}
 					if (d.front().end_time > start_time) {
 						if (d.front().end_time <= next_start_time) {
-							if (d.front().end_time == next_start_time) {
-								next_start_time_odom_is.insert(j);
-							} else {
-								next_start_time_odom_is.clear();
-								next_start_time_odom_is.insert(j);
-							}
 							next_start_time = d.front().end_time;
 						}
 					}
@@ -404,13 +431,21 @@ class DeadReckoning : public rclcpp::Node {
 			}
 
 			// Clip readings to begin at the new buffer start_time.
-			for (auto &d : deltas) {
+			for (int j = 0; j < deltas.size(); j++) {
+				auto &d = deltas[j];
 				while (!d.empty()) {
 					if (d.front().start_time <= next_start_time) {
 						d.front().start_time = next_start_time;
 						if (d.front().start_time >= d.front().end_time) {
 							// This delta is too old and was made invalid.
 							d.pop_front();
+
+							// Publish if sync_with_odom is set and the
+							// corresponding odom has just been fully
+							// integrated.
+							if (sync_with_odom == j) {
+								publish_transform(last_integration_time);
+							}
 						} else {
 							break;
 						}
@@ -420,21 +455,215 @@ class DeadReckoning : public rclcpp::Node {
 				}
 			}
 
+			// Push to transform buffer for IMU corrections.
+			transform_b2o_buffer.emplace_back(
+			    last_integration_time,
+			    cv::Quatd::createFromRvec(integrated_transform.rvec())
+			);
+			while (!transform_b2o_buffer.empty() &&
+			       last_integration_time - transform_b2o_buffer.front().time >
+			           rclcpp::Duration::from_seconds(
+			               get_parameter("imu_correction_window_duration")
+			                   .as_double()
+			           )) {
+				transform_b2o_buffer.pop_front();
+			}
+
 			// Update start time.
 			start_time = next_start_time;
-
-			// Publish if sync_with_odom is set and the corresponding odom has
-			// just been integrated.
-			if (sync_with_odom != -1 &&
-			    next_start_time_odom_is.find(sync_with_odom) !=
-			        next_start_time_odom_is.end()) {
-				publish_transform(last_integration_time);
-			}
 		}
 
 		// Publish transform. (Only if sync_with_odom is not set.)
 		if (integrated_anything && sync_with_odom == -1) {
 			publish_transform(last_integration_time);
+		}
+	}
+
+	void imu_cb(const sensor_msgs::msg::Imu::SharedPtr msg) {
+		// Transform to base frame rotation.
+		// 1. Get transform from base frame to IMU frame.
+		cv::Affine3d base_to_imu_transform;
+		try {
+			geometry_msgs::msg::TransformStamped tf = tf_buffer.lookupTransform(
+			    msg->header.frame_id,
+			    get_parameter("base_link_frame_id").as_string(),
+			    rclcpp::Time(msg->header.stamp)
+			);
+			base_to_imu_transform = cv::Affine3d(
+			    cv::Quatd(
+			        tf.transform.rotation.w,
+			        tf.transform.rotation.x,
+			        tf.transform.rotation.y,
+			        tf.transform.rotation.z
+			    )
+			        .toRotVec(),
+			    cv::Vec3d(
+			        tf.transform.translation.x,
+			        tf.transform.translation.y,
+			        tf.transform.translation.z
+			    )
+			);
+		} catch (tf2::TransformException &ex) {
+			RCLCPP_ERROR(
+			    get_logger(), "Could not transform IMU reading: %s", ex.what()
+			);
+			return;
+		}
+		// 2. Transform IMU orientation to base frame.
+		cv::Quatd imu_to_world(
+		    msg->orientation.w,
+		    msg->orientation.x,
+		    msg->orientation.y,
+		    msg->orientation.z
+		);
+		cv::Quatd base_to_imu =
+		    cv::Quatd::createFromRvec(base_to_imu_transform.rvec());
+		cv::Quatd base_to_world = imu_to_world * base_to_imu;
+		// ^ rotation of base frame in the world frame
+
+		// Push to buffer.
+		imu_b2w_buffer.emplace_back(msg->header.stamp, base_to_world);
+		while (
+		    !imu_b2w_buffer.empty() &&
+		    rclcpp::Time(msg->header.stamp) - imu_b2w_buffer.front().time >
+		        rclcpp::Duration::from_seconds(
+		            get_parameter("imu_correction_window_duration").as_double()
+		        )
+		) {
+			imu_b2w_buffer.pop_front();
+		}
+	}
+
+	void imu_corr_timer_cb() {
+		// Check if buffers have enough data.
+		if (imu_b2w_buffer.size() < 2 || transform_b2o_buffer.size() < 2) {
+			return;
+		}
+
+		// Pick common start/end time of the window
+		rclcpp::Time start_time = std::max(
+		    imu_b2w_buffer.front().time, transform_b2o_buffer.front().time
+		);
+		rclcpp::Time end_time = std::min(
+		    imu_b2w_buffer.back().time, transform_b2o_buffer.back().time
+		);
+		if (end_time - start_time <
+		    rclcpp::Duration::from_seconds(
+		        get_parameter("imu_correction_window_duration").as_double() / 2
+		    )) {
+			return;
+		}
+
+		// Compute correction.
+		bool      use_yaw = get_parameter("imu_correction_use_yaw").as_bool();
+		cv::Quatd mean_o2w;
+		if (use_yaw) {
+			mean_o2w = calc_imu_correction(start_time, end_time);
+		} else {
+			mean_o2w = calc_imu_correction_no_yaw(start_time, end_time);
+		}
+
+		// Apply correction to integrated_transform.
+		// integrated_transform = base -> odom
+		// we want it to be base -> world
+		cv::Quatd new_rot_b2w =
+		    mean_o2w * cv::Quatd::createFromRvec(integrated_transform.rvec());
+		integrated_transform = cv::Affine3d(
+		    new_rot_b2w.toRotVec(), integrated_transform.translation()
+		);
+		// Apply correction to the transform buffer.
+		for (auto &r : transform_b2o_buffer) {
+			r.rot = mean_o2w * r.rot;
+		}
+
+		// Log the correction.
+		cv::Vec3d euler =
+		    mean_o2w.toEulerAngles(cv::QuatEnum::EulerAnglesType::INT_XYZ);
+		RCLCPP_DEBUG(
+		    get_logger(),
+		    "Applied IMU correction: dR=%f, dP=%f, dY=%f",
+		    euler[0],
+		    euler[1],
+		    euler[2]
+		);
+	}
+
+	cv::Quatd calc_imu_correction(
+	    const rclcpp::Time &start_time, const rclcpp::Time &end_time
+	) {
+		// Go over both sequences and compute mean correction (odom <-> world
+		// rotation).
+		cv::Vec3d mean_o2w_rvec(0, 0, 0);
+		size_t    num_seq_samples =
+		    get_parameter("imu_correction_window_samples").as_int();
+		for (size_t i = 0; i < num_seq_samples; i++) {
+			// Select the sampling time.
+			rclcpp::Time sample_time =
+			    start_time + rclcpp::Duration::from_seconds(
+			                     i * (end_time - start_time).seconds() /
+			                     (num_seq_samples - 1)
+			                 );
+
+			// Take samples from both sequences.
+			cv::Quatd b2w = resample_quat_sequence(imu_b2w_buffer, sample_time);
+			cv::Quatd b2o =
+			    resample_quat_sequence(transform_b2o_buffer, sample_time);
+
+			// Compute odom frame to world frame rotation.
+			cv::Quatd o2w = b2w * b2o.inv();
+
+			// Accumulate.
+			mean_o2w_rvec += norm_rvec(o2w.toRotVec());
+		}
+		mean_o2w_rvec      /= static_cast<double>(num_seq_samples);
+		mean_o2w_rvec      *= get_parameter("imu_correction_kp").as_double();
+		cv::Quatd mean_o2w  = cv::Quatd::createFromRvec(mean_o2w_rvec);
+
+		return mean_o2w;
+	}
+
+	cv::Quatd calc_imu_correction_no_yaw(
+	    const rclcpp::Time &start_time, const rclcpp::Time &end_time
+	) {
+		// Go over both sequences and compute mean gravity direction.
+		const cv::Vec3d g_w(0, 0, -1);
+		cv::Vec3d       mean_g_o(0, 0, 0);
+		// ^ mean gravity vector in odom frame
+		size_t num_seq_samples =
+		    get_parameter("imu_correction_window_samples").as_int();
+		for (size_t i = 0; i < num_seq_samples; i++) {
+			// Select the sampling time.
+			rclcpp::Time sample_time =
+			    start_time + rclcpp::Duration::from_seconds(
+			                     i * (end_time - start_time).seconds() /
+			                     (num_seq_samples - 1)
+			                 );
+
+			// Take samples from both sequences.
+			cv::Quatd b2w = resample_quat_sequence(imu_b2w_buffer, sample_time);
+			cv::Quatd b2o =
+			    resample_quat_sequence(transform_b2o_buffer, sample_time);
+
+			// Compute gravity vector delta.
+			cv::Quatd w2o = b2o * b2w.inv();
+			cv::Vec3d g_o = w2o.toRotMat3x3() * g_w;
+
+			// Accumulate.
+			mean_g_o += g_o;
+		}
+		mean_g_o /= static_cast<double>(num_seq_samples);
+		mean_g_o = mean_g_o / cv::norm(mean_g_o);
+		// ^ normalize to unit vector
+
+		// Compute correction quaternion.
+		cv::Vec3d axis_o2w  = mean_g_o.cross(g_w);
+		double    angle_ow  = std::acos(mean_g_o.dot(g_w));
+		angle_ow           *= get_parameter("imu_correction_kp").as_double();
+
+		if (cv::norm(axis_o2w) < 1e-4) {
+			return cv::Quatd(1, 0, 0, 0);
+		} else {
+			return cv::Quatd::createFromAngleAxis(angle_ow, axis_o2w);
 		}
 	}
 
@@ -450,6 +679,10 @@ class DeadReckoning : public rclcpp::Node {
 			    transform_from_affine(integrated_transform, time);
 			tf_broadcaster.sendTransform(tf_msg);
 		}
+
+		RCLCPP_DEBUG(
+		    get_logger(), "Published odom and TF at %f", time.seconds()
+		);
 	}
 
 	geometry_msgs::msg::TransformStamped transform_from_affine(
@@ -514,6 +747,15 @@ class DeadReckoning : public rclcpp::Node {
 		return msg;
 	}
 
+	cv::Vec3d norm_rvec(const cv::Vec3d &rvec) {
+		double mag = cv::norm(rvec);
+		if (mag > CV_PI) {
+			return rvec * (1 - 2 * CV_PI / mag);
+		} else {
+			return rvec;
+		}
+	}
+
 	cv::Affine3d mean_affine(const std::vector<cv::Affine3d> &transforms) {
 		// Compute mean translation
 		cv::Vec3d mean_translation(0, 0, 0);
@@ -525,11 +767,38 @@ class DeadReckoning : public rclcpp::Node {
 		// Compute mean rotation
 		cv::Vec3d mean_rotation(0, 0, 0);
 		for (const auto &t : transforms) {
-			mean_rotation += t.rvec();
+			mean_rotation += norm_rvec(t.rvec());
 		}
 		mean_rotation /= static_cast<double>(transforms.size());
 
 		return cv::Affine3d(mean_rotation, mean_translation);
+	}
+
+	cv::Quatd resample_quat_sequence(
+	    const std::deque<ImuReading> &sequence, const rclcpp::Time &time
+	) {
+		// Find the two closest readings.
+		size_t i_prev = 0;
+		for (size_t i = 0; i < sequence.size(); i++) {
+			if (sequence[i].time > time) {
+				break;
+			}
+			i_prev = i;
+		}
+		if (i_prev == sequence.size() - 1) {
+			return sequence.back().rot;
+		}
+		size_t i_next = i_prev + 1;
+
+		// Compute mix factor from time difference.
+		float mix_factor =
+		    (time - sequence[i_prev].time).seconds() /
+		    (sequence[i_next].time - sequence[i_prev].time).seconds();
+
+		// Interpolate.
+		return cv::Quatd::slerp(
+		    sequence[i_prev].rot, sequence[i_next].rot, mix_factor
+		);
 	}
 };
 

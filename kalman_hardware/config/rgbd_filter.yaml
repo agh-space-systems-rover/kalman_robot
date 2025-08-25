@@ -4,8 +4,8 @@
     color_transport: raw
     depth_transport: raw
     # ^ The filter is composed with the driver - needs no compression.
-    max_rate: 30.0
-    max_height: 720
+    max_rate: 15.0
+    max_height: 360
     # ^ These do not necessarily reduce the fidelity, but there's another use for RGBD filter:
     # The node can provide compressed topics when composition is enabled,
     # which disables compression in the driver itself.

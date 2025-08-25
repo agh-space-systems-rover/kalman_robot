@@ -93,10 +93,22 @@ def launch_setup(context):
             package="kalman_master",
             executable="drill_driver",
         ),
+        "estop_driver": Node(
+            package="kalman_master",
+            executable="estop_driver",
+        ),
         "rfid_driver": Node(
             package="kalman_master",
             executable="rfid_driver",
-        )
+        ),
+        "storage_driver": Node(
+            package="kalman_master",
+            executable="storage_driver",
+        ),
+        "ph_driver": Node(
+            package="kalman_master",
+            executable="ph_driver",
+        ),
     }
 
     mode_configs = {
@@ -106,7 +118,6 @@ def launch_setup(context):
             "wheel_driver",
             "ueuos_driver",
             "autonomy_spammer",
-            "tunnel_client",
         ],
         "gs": [
             "master_com",
@@ -117,7 +128,11 @@ def launch_setup(context):
             "feed_driver",
             "arm_twist_driver",
             "drill_driver",
+            "estop_driver",
             "rfid_driver",
+            "tunnel_client",
+            "storage_driver",
+            "ph_driver",
         ],
         "arm": [
             "master_com",
