@@ -26,10 +26,6 @@ AveragePose::AveragePose(
 	    "target_twist", 10
 	);
 
-	RCLCPP_ERROR_STREAM(
-	    parent_->get_logger(),
-	    this->name() << " AveragePose constructor is being run..."
-	);
 	tf_buffer_ = std::make_unique<tf2_ros::Buffer>(parent_->get_clock());
 	// tf_buffer_->setUsingDedicatedThread(true);
 	tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
@@ -90,14 +86,10 @@ BT::NodeStatus AveragePose::onRunning() {
 		update_board_from_marker(st, tracked_marker);
 	}
 	if (filter.get_sample_count() > 10) {
-		RCLCPP_ERROR_STREAM(
-		    parent_->get_logger(), name() << ": returning SUCCESS"
-		);
     mark_done_in_mission_helper();
 		return BT::NodeStatus::SUCCESS;
 	}
 
-	RCLCPP_INFO_STREAM(parent_->get_logger(), name() << ": returning RUNNING");
 	return BT::NodeStatus::RUNNING;
 }
 
