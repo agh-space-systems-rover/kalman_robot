@@ -36,14 +36,8 @@ BT::NodeStatus HasNextGoal::tick() {
 	const auto &mission_helper = mission_helper_opt.value();
   const auto unvisited_marker = mission_helper->get_unvisited_marker();
 	if (unvisited_marker.has_value()) {
-		RCLCPP_INFO_STREAM(
-		    parent_->get_logger(), name() << ": returning true as there is an unvisited marker " << unvisited_marker.value()
-		);
 		return BT::NodeStatus::SUCCESS;
 	}
 
-		RCLCPP_INFO_STREAM(
-		    parent_->get_logger(), name() << ": false - no unvisited markers left"
-  );
 	return BT::NodeStatus::FAILURE;
 }

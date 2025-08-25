@@ -184,15 +184,9 @@ BT::NodeStatus IKNavigateToPose::onRunning() {
 				twist.twist.angular = angularVelToTarget(current_pose.orientation, pose_copy.orientation);
 			}
 
-			// twist.twist.angular = angularVelToTarget(current_pose.orientation, pose.orientation);
-			// current_pose.orientation
-			RCLCPP_INFO_STREAM(parent_->get_logger(), name() << "Target rotation is " << pose.orientation.w << " " << pose.orientation.x << " " << pose.orientation.y << " " << pose.orientation.z);
-			// current_pose.orientation * pose.orientation.inverse();
-
 			const auto v = twist.twist.linear;
 
 			const auto vec3mag = [](geometry_msgs::msg::Vector3 v) -> float {
-				// return 10000.0;
 				return v.x * v.x + v.y * v.y + v.z * v.z;
 			};
 			const float magnitude = vec3mag(v);
@@ -216,7 +210,6 @@ BT::NodeStatus IKNavigateToPose::onRunning() {
 		);
 	}
 
-	RCLCPP_INFO_STREAM(parent_->get_logger(), name() << "Returning RUNNING");
 	return BT::NodeStatus::RUNNING;
 }
 void IKNavigateToPose::onHalted() {}

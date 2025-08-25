@@ -14,6 +14,7 @@
 #include <behaviortree_cpp_v3/loggers/bt_zmq_publisher.h> // optional (Groot)
 #include <kalman_interfaces/action/arm_mission.hpp>
 #include <memory>
+#include <rclcpp/logging.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_action/create_server.hpp>
 #include <rclcpp_action/rclcpp_action.hpp>
@@ -192,8 +193,10 @@ class BTPanel : public rclcpp::Node {
 
 			std::this_thread::sleep_for(tick_period_);
 
-			RCLCPP_ERROR(
+			RCLCPP_INFO_THROTTLE(
 			    get_logger(),
+				*get_clock(),
+				2000,
 			    "Mission state: %s",
 			    mission_helper_->to_string().c_str()
 			);
