@@ -10,15 +10,15 @@ storage = {
         "board": 0,
         "channel": 3,
         # calibration coeffs
-        "scale": 1.0,
-        "bias": 0.0,
+        "scale": -0.1082,
+        "bias": 258,
         # safe angles for the servo
-        "open_angle": 0,
-        "close_angle": 180,
+        "open_angle": 180,
+        "close_angle": 0,
     },
     "rock": {
         "board": 0,
-        "channel": 1,
+        "channel": 0,
         "scale": 1.0,
         "bias": 0.0,
         "open_angle": 0,
@@ -92,7 +92,7 @@ class StorageDriver(Node):
 
         # Pad data to 8 bytes to handle struct alignment
         padded_data = bytes(msg.data[:6]) + b'\x00\x00'
-        board_id, channel_id, value = struct.unpack("BBi", padded_data)
+        board_id, channel_id, value = struct.unpack("<BBi", padded_data)
         storage_name = next(
             (
                 name
@@ -102,11 +102,10 @@ class StorageDriver(Node):
             None,
         )
 
-        # Apply linear mapping
-        value = value * storage[storage_name]["scale"] + storage[storage_name]["bias"]
-        
         # Publish the value
         if storage_name:
+            # Apply linear mapping
+            value = value * storage[storage_name]["scale"] + storage[storage_name]["bias"]
             self.api_pubs[storage_name].publish(Float32(data=float(value)))
         else:
             self.get_logger().warn(
