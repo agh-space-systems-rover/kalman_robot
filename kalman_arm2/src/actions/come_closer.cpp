@@ -16,7 +16,7 @@ ComeCloser::ComeCloser(
 
 	aruco_sub_ =
 	    parent_->create_subscription<aruco_opencv_msgs::msg::ArucoDetection>(
-	        "/d455_arm/aruco_detections", // topic name
+	        "/d435_arm/aruco_detections", // topic name
 	        10,                           // queue size
 	        std::bind(&ComeCloser::aruco_callback, this, std::placeholders::_1)
 	    );
@@ -77,7 +77,7 @@ BT::NodeStatus ComeCloser::onRunning() {
 
 	RCLCPP_INFO_THROTTLE(parent_->get_logger(), *parent_->get_clock(), 1000, "Movement magnitude²: %f", magnitude);
 
-	if (magnitude < 1e-5) {
+	if (magnitude < 1e-3) {
 		// Stop
 		geometry_msgs::msg::TwistStamped zero_vel{};
 		zero_vel.header = last_aruco_pose->header;
