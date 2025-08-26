@@ -2,9 +2,11 @@
 #include <behaviortree_cpp_v3/action_node.h>
 #include <behaviortree_cpp_v3/basic_types.h>
 #include <bitset>
+#include <chrono>
 #include <cstdlib>
 #include <kalman_interfaces/action/detail/arm_goto_joint_pose__struct.hpp>
 #include <memory>
+#include <rclcpp/logging.hpp>
 #include <rclcpp_action/create_client.hpp>
 #include <string>
 
@@ -17,7 +19,7 @@ ArmNavigateToPose::ArmNavigateToPose(
     action_node_{std::make_shared<rclcpp::Node>("action_node")},
     parent_{parent} {
 	client_ = rclcpp_action::create_client<
-	    kalman_interfaces::action::ArmGotoJointPose>(action_node_, "goto_pose");
+	    kalman_interfaces::action::ArmGotoJointPose>(parent_, "goto_pose");
 }
 
 BT::PortsList ArmNavigateToPose::providedPorts() {
@@ -59,9 +61,12 @@ BT::NodeStatus ArmNavigateToPose::onStart() {
 			jaw = opt.value();
 		}
 	}
+	target_joints_ = target_joints;
 
 	kalman_interfaces::action::ArmGotoJointPose::Goal goal;
 	goal.target_pos.joints = target_joints;
+	// goal.target_pos.jaw = jaw;
+	goal.target_pos.jaw = 0.0;
 	goal.ignore_mask       = ignore_mask.to_ulong();
 
 	auto send_opts =
@@ -71,6 +76,7 @@ BT::NodeStatus ArmNavigateToPose::onStart() {
 		    std::lock_guard<std::mutex> lk(m_);
 		    last_result_ = r.code; // store for onRunning
 	    };
+	last_result_ = {};
 
 	goal_handle_future_ = client_->async_send_goal(goal, send_opts);
 
@@ -80,7 +86,6 @@ BT::NodeStatus ArmNavigateToPose::onStart() {
 }
 
 BT::NodeStatus ArmNavigateToPose::onRunning() {
-
   RCLCPP_INFO(parent_->get_logger(), "[ArmNavigateToPose] onRunning()");
 	// If cancellation was requested via halt(), report SUCCESS so the Parallel
 	// can finish.
@@ -88,7 +93,6 @@ BT::NodeStatus ArmNavigateToPose::onRunning() {
     RCLCPP_INFO(parent_->get_logger(), "[ArmNavigateToPose] onRunning() CANCELLED");
 		return BT::NodeStatus::SUCCESS;
 	}
-
 	// If goal finished, convert result to SUCCESS/FAILURE
 	std::lock_guard<std::mutex> lk(m_);
 	if (last_result_) {
@@ -100,7 +104,11 @@ BT::NodeStatus ArmNavigateToPose::onRunning() {
 			return BT::NodeStatus::FAILURE;
 		}
 	}
-  RCLCPP_INFO(parent_->get_logger(), "[ArmNavigateToPose] onRunning() returning RUNNING");
+	std::string joints_str = "";
+	for (const auto j : target_joints_){
+		joints_str += std::to_string(j) + " ";
+	}
+	RCLCPP_INFO(parent_->get_logger(), "[ArmNavigateToPose] onRunning() returning RUNNING to %s", joints_str.c_str());
 	return BT::NodeStatus::RUNNING;
 }
 
