@@ -55,6 +55,15 @@
 
       <Say message="I am done, entering infinite loop ..." />
 
+      <RetryUntilSuccessful num_attempts="-1">
+        <ForceFailure>
+          <Sequence>
+            <WaitForUVRequest target_pose="{target_pose}" />
+            <IKNavigateToPose pose="{target_pose}" />
+          </Sequence>
+        </ForceFailure>
+      </RetryUntilSuccessful>
+
       <!-- Infinite loop at the end -->
       <!-- <RetryUntilSuccessful num_attempts="-1">
         <ForceFailure>
