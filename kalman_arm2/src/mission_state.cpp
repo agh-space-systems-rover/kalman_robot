@@ -43,6 +43,14 @@ std::optional<PanelLayout> PanelLayout::read_yaml(
 			mi.v            = it.second["v"].as<double>();
 			ret.markers[id] = mi;
 		}
+		YAML::Node g = config["gizmos"];
+		for (auto it : g) {
+			const auto id = it.first.as<std::string>();
+			GizmoInfo  mi;
+			mi.u           = it.second["u"].as<double>();
+			mi.v           = it.second["v"].as<double>();
+			ret.gizmos[id] = mi;
+		}
 		RCLCPP_INFO(
 		    logger,
 		    "Loaded %zu markers from %s",
