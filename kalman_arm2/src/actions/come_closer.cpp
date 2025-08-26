@@ -65,6 +65,21 @@ BT::NodeStatus ComeCloser::onRunning() {
 	const geometry_msgs::msg::Pose &mp = last_aruco_pose->pose;
 	twist.header                       = last_aruco_pose->header;
 
+	// FIXME: Using time for collision detection is stupid and naive
+	constexpr std::chrono::milliseconds MAX_ARUCO_DETECTION_AGE{500};
+	const auto time_since_last_msg = parent_->now() - last_aruco_pose->header.stamp;
+	if (time_since_last_msg > MAX_ARUCO_DETECTION_AGE){
+		geometry_msgs::msg::TwistStamped zero_vel{};
+		zero_vel.header = last_aruco_pose->header;
+		arm_pub_->publish(zero_vel);
+
+		RCLCPP_ERROR_STREAM(
+		    parent_->get_logger(),
+		    name() << ": did not get an aruco detection during the last " << MAX_ARUCO_DETECTION_AGE.count() << "ms "
+		);
+		return BT::NodeStatus::FAILURE;
+	}
+
 	twist.twist.linear.x = mp.position.x;
 	twist.twist.linear.y = mp.position.y;
 	twist.twist.linear.z = mp.position.z - 0.3;
