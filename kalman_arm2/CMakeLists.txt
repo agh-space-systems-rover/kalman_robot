@@ -69,6 +69,7 @@ src/actions/ik_navigate_to_pose.cpp include/actions/ik_navigate_to_pose.hpp
 src/actions/say_something.cpp include/actions/say_something.hpp
 src/actions/build_uv.cpp include/actions/build_uv.hpp
 src/actions/show_board.cpp include/actions/show_board.hpp
+src/actions/set_jaw.cpp include/actions/set_jaw.hpp
 )
 ament_target_dependencies(bt_panel_node rclcpp rclcpp_components kalman_interfaces geometry_msgs std_msgs tf2_ros tf2_geometry_msgs aruco_opencv_msgs behaviortree_cpp_v3 std_srvs tf2_eigen visualization_msgs yaml-cpp)
 rclcpp_components_register_node(

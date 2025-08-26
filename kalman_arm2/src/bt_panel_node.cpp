@@ -1,4 +1,5 @@
 #include "actions/arm_navigate_to_pose.hpp"
+#include "actions/set_jaw.hpp"
 #include "actions/average_pose.hpp"
 #include "actions/build_uv.hpp"
 #include "actions/come_closer.hpp"
@@ -97,6 +98,9 @@ class BTPanel : public rclcpp::Node {
 			factory_->registerBuilder<BuildUV>("BuildUV", Builder<BuildUV>());
 			factory_->registerBuilder<ShowBoard>(
 			    "ShowBoard", Builder<ShowBoard>()
+			);
+			factory_->registerBuilder<SetJaw>(
+			    "SetJaw", Builder<SetJaw>()
 			);
 
 			// Build tree
