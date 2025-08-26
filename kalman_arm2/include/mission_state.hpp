@@ -14,8 +14,13 @@ struct MarkerInfo {
 	size_t id = std::numeric_limits<size_t>::max();
 };
 
+struct GizmoInfo {
+	double u,v;
+};
+
 struct PanelLayout {
 	std::map<size_t, MarkerInfo> markers;
+	std::map<std::string, GizmoInfo> gizmos;
 	double                       board_width;
 	double                       board_height;
 	double marker_size;

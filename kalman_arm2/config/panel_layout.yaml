@@ -10,3 +10,6 @@ markers:
 marker_size: 0.050   # meters (edge length)
 board_width: 0.400   # meters
 board_height: 0.600  # meters
+
+gizmos:
+  "button": {u: 0.2, v: 0.2}
