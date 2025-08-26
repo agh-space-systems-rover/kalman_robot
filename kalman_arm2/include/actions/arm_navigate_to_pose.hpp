@@ -35,4 +35,5 @@ private:
   std::mutex m_;
   std::atomic<bool> cancelled_{false};
   std::shared_future<typename rclcpp_action::ClientGoalHandle<kalman_interfaces::action::ArmGotoJointPose>::SharedPtr> goal_handle_future_;
+  std::array<float, 6> target_joints_;
 };
