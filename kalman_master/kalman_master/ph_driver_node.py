@@ -8,11 +8,11 @@ from std_msgs.msg import Float32
 from std_srvs.srv import Trigger
 
 BOARD_ID = 0
-DEVICE_ID = 0
+CHANNEL_ID = 0
 
 RAIL_BOARD_ID = 0
-RAIL_DEVICE_ID = 1
-RAIL_MAX_SPEED = 100
+RAIL_CHANNEL_ID = 1
+RAIL_MAX_SPEED = 70
 
 class PHDriver(Node):
     def __init__(self):
@@ -50,7 +50,7 @@ class PHDriver(Node):
         # Create the request message
         req_msg = MasterMessage()
         req_msg.cmd = MasterMessage.PH_REQ
-        req_msg.data = struct.pack("BB", BOARD_ID, DEVICE_ID)
+        req_msg.data = struct.pack("BB", BOARD_ID, CHANNEL_ID)
 
         # Publish the request to the master
         self.master_pub.publish(req_msg)
@@ -59,11 +59,12 @@ class PHDriver(Node):
         return response
 
     def cb_rail_control(self, msg: Float32):
+        target_vel = max(-1.0, min(1.0, msg.data))
+        target_vel_int = int(abs(target_vel * RAIL_MAX_SPEED))
+        
         rail_msg = MasterMessage()
         rail_msg.cmd = MasterMessage.PH_RAIL
-        target_vel = max(-1.0, min(1.0, msg.data))
-        target_vel_int = int(target_vel * RAIL_MAX_SPEED)
-        rail_msg.data = struct.pack("BBB", RAIL_BOARD_ID, RAIL_DEVICE_ID, target_vel_int)
+        rail_msg.data = [RAIL_BOARD_ID, RAIL_CHANNEL_ID, target_vel_int, 1 if msg.target_vel < 0 else 0]
         self.master_pub.publish(rail_msg)
 
     def cb_master_res(self, msg: MasterMessage):
@@ -72,7 +73,7 @@ class PHDriver(Node):
             return
 
         # Unpack the response
-        board_id, device_id, ph_value = struct.unpack("<BBH", msg.data[:4])
+        board_id, channel_id, ph_value = struct.unpack("<BBH", msg.data[:4])
 
         # Publish the raw value
         self.value_raw_pub.publish(Float32(data=float(ph_value)))
@@ -92,11 +93,11 @@ class PHDriver(Node):
             self.get_logger().warn(f"Calibration file not found: {path}")
 
         # Publish the value if IDs match
-        if board_id == BOARD_ID and device_id == DEVICE_ID:
+        if board_id == BOARD_ID and channel_id == CHANNEL_ID:
             self.value_pub.publish(Float32(data=float(ph_value)))
         else:
             self.get_logger().warn(
-                f"Unknown pH sensor response: board_id={board_id}, device_id={device_id}"
+                f"Unknown pH sensor response: board_id={board_id}, channel_id={channel_id}"
             )
 
 def main():

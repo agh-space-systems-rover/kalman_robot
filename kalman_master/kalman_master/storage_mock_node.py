@@ -5,9 +5,9 @@ from rclpy.node import Node
 from kalman_interfaces.msg import MasterMessage
 
 SAND_BOARD_ID = 0
-SAND_DEVICE_ID = 0
+SAND_CHANNEL_ID = 0
 ROCK_BOARD_ID = 0
-ROCK_DEVICE_ID = 1
+ROCK_CHANNEL_ID = 1
 
 class StorageMockNode(Node):
     def __init__(self):
@@ -30,12 +30,12 @@ class StorageMockNode(Node):
     def handle_scale_request(self, msg: MasterMessage):
         if len(msg.data) < 2:
             return
-        board_id, device_id = struct.unpack("BB", msg.data[:2])
+        board_id, channel_id = struct.unpack("BB", msg.data[:2])
         
         # Check if it's sand or rock container
-        if (board_id == SAND_BOARD_ID and device_id == SAND_DEVICE_ID) or \
-           (board_id == ROCK_BOARD_ID and device_id == ROCK_DEVICE_ID):
-            container_name = "sand" if device_id == SAND_DEVICE_ID else "rock"
+        if (board_id == SAND_BOARD_ID and channel_id == SAND_CHANNEL_ID) or \
+           (board_id == ROCK_BOARD_ID and channel_id == ROCK_CHANNEL_ID):
+            container_name = "sand" if channel_id == SAND_CHANNEL_ID else "rock"
             # Generate random weight between 0 and 10000 (representing 0.000-10.000 kg in raw units)
             weight_value = random.randint(0, 10000)
             
@@ -43,17 +43,17 @@ class StorageMockNode(Node):
             
             res_msg = MasterMessage()
             res_msg.cmd = MasterMessage.SCALE_RES
-            res_msg.data = struct.pack("BBi", board_id, device_id, weight_value)
+            res_msg.data = struct.pack("BBi", board_id, channel_id, weight_value)
             self.scale_res_pub.publish(res_msg)
 
     def handle_servo_request(self, msg: MasterMessage):
         if len(msg.data) < 3:
             return
-        board_id, device_id, angle = struct.unpack("BBB", msg.data[:3])
+        board_id, channel_id, angle = struct.unpack("BBB", msg.data[:3])
         
-        if (board_id == SAND_BOARD_ID and device_id == SAND_DEVICE_ID) or \
-           (board_id == ROCK_BOARD_ID and device_id == ROCK_DEVICE_ID):
-            container_name = "sand" if device_id == SAND_DEVICE_ID else "rock"
+        if (board_id == SAND_BOARD_ID and channel_id == SAND_CHANNEL_ID) or \
+           (board_id == ROCK_BOARD_ID and channel_id == ROCK_CHANNEL_ID):
+            container_name = "sand" if channel_id == SAND_CHANNEL_ID else "rock"
             self.get_logger().info(f"SERVO event received for {container_name} container (angle={angle})")
 
 def main():

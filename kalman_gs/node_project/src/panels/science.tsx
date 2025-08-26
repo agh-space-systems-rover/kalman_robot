@@ -11,10 +11,14 @@ import {
   faTrash,
   faList,
   faBan,
-  faMagnet
+  faMagnet,
+  faArrowDown,
+  faArrowUp,
+  faStop,
+  faDiagramProject
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Topic, Service } from 'roslib';
 
 import Button from '../components/button';
@@ -32,6 +36,7 @@ const STORAGE_OPTIONS = [
 let sandWeightTopic: any;
 let rockWeightTopic: any;
 let phValueTopic: any;
+let phRailTargetVelTopic: any;
 let magnetometerTopic: any;
 let sandWeightService: any;
 let rockWeightService: any;
@@ -57,6 +62,11 @@ window.addEventListener('ros-connect', () => {
   phValueTopic = new Topic({
     ros,
     name: '/science/ph/value',
+    messageType: 'std_msgs/Float32'
+  });
+  phRailTargetVelTopic = new Topic({
+    ros,
+    name: '/science/ph/rail/target_vel',
     messageType: 'std_msgs/Float32'
   });
 
@@ -343,7 +353,11 @@ function StorageContainer({ selectedStorage, tareHistory, onTareHistoryChange }:
 
 function PHProbe({}: PHProbeProps) {
   const [phValue, setPhValue] = useState<number | null>(null);
+  const [moveSpeed, setMoveSpeed] = useState(0);
   const [rerenderCount, setRerenderCount] = useState(0);
+  const sentZerosRef = useRef(0);
+
+  const MAX_MOVE_SPEED = 3;
 
   // Rerender on science-subscribed event
   useEffect(() => {
@@ -370,6 +384,27 @@ function PHProbe({}: PHProbeProps) {
     return () => phValueTopic.unsubscribe(cb);
   }, [rerenderCount]);
 
+  // Send rail speed every 100ms
+  useEffect(() => {
+    sentZerosRef.current = 0;
+
+    const interval = setInterval(() => {
+      if (!phRailTargetVelTopic) return;
+      const MOVE_SPEED_VALUES = [-1.0, -0.6, -0.2, 0.0, 0.2, 0.6, 1.0];
+      const speed = MOVE_SPEED_VALUES[moveSpeed + MAX_MOVE_SPEED];
+      if (Math.abs(speed) < 0.01) {
+        if (sentZerosRef.current >= 5) return; // Don't spam zeros
+        phRailTargetVelTopic.publish({ data: 0.0 });
+        sentZerosRef.current++;
+      } else {
+        phRailTargetVelTopic.publish({ data: speed });
+        sentZerosRef.current = 0;
+      }
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, [moveSpeed]);
+
   // Service call helper
   function requestPhMeasurement() {
     if (phValueService) {
@@ -378,12 +413,17 @@ function PHProbe({}: PHProbeProps) {
   }
 
   const style = getComputedStyle(document.body);
+  const redBg = style.getPropertyValue('--red-background');
+  const yellowBg = style.getPropertyValue('--yellow-background');
   const greenBg = style.getPropertyValue('--green-background');
+  const blueBg = style.getPropertyValue('--blue-background');
   const darkBg = style.getPropertyValue('--dark-background');
+  const bgColor  = style.getPropertyValue('--background');
+  const activeColor = style.getPropertyValue('--active');
 
   return <>
     <div className={styles['science-row']}>
-      <Label color={greenBg}>
+      <Label color={blueBg}>
         <FontAwesomeIcon icon={faDroplet} />
       </Label>
       <Label color={darkBg} className={styles['science-row-item'] + ' ' + styles['science-selectable']}>
@@ -397,6 +437,77 @@ function PHProbe({}: PHProbeProps) {
         <span style={{ marginTop: '2px' }}>Refresh</span>
       </Button>
     </div>
+    <div className={styles['science-row']}>
+    <div className={styles['tare-history']}>
+      <div className={styles['science-row']}>
+        <Label color={darkBg} className={styles['science-row-item']}>
+          <FontAwesomeIcon icon={faDiagramProject} />
+          &nbsp;&nbsp;
+          Movement Speed
+        </Label>
+      </div>
+      <div className={styles['science-row']}>
+        {Array.from({ length: MAX_MOVE_SPEED * 2 + 1 }, (_, i) => {
+          const speed = -MAX_MOVE_SPEED + i;
+          const isActive = speed === moveSpeed;
+          let color;
+          if (isActive) {
+            color = speed > 0 ? greenBg : speed < 0 ? redBg : activeColor;
+          } else {
+            color = bgColor;
+          }
+          // Saturation modifier: more extreme values get more saturated color
+          const saturation = Math.abs(speed) / MAX_MOVE_SPEED;
+          console.log(saturation);
+          const style = isActive && speed !== 0
+            ? { filter: `saturate(${saturation})` }
+            : {};
+
+          return (
+            <Label
+              key={speed}
+              color={color}
+              className={styles['science-row-item']}
+              style={style}
+            >
+              {null}
+            </Label>
+          );
+        })}
+      </div>
+      <div className={styles['science-row']}>
+        <Button
+          className={styles['science-row-item']}
+          tooltip="Decrease movement speed"
+          onClick={() => setMoveSpeed((speed) => Math.max(-MAX_MOVE_SPEED, speed - 1))}
+        >
+          <FontAwesomeIcon icon={faArrowDown} />
+          &nbsp;&nbsp;
+          <span style={{ marginTop: '2px' }}>Down</span>
+        </Button>
+        <Button
+          className={styles['science-row-item']}
+          tooltip="Stop movement"
+          onClick={() => {
+            setMoveSpeed(0);
+            sentZerosRef.current = 0;
+          }}
+        >
+          <FontAwesomeIcon icon={faStop} />
+          &nbsp;&nbsp;
+          <span style={{ marginTop: '2px' }}>Stop</span>
+        </Button>
+        <Button
+          className={styles['science-row-item']}
+          tooltip="Increase movement speed"
+          onClick={() => setMoveSpeed((speed) => Math.min(MAX_MOVE_SPEED, speed + 1))}
+        >
+          <FontAwesomeIcon icon={faArrowUp} />
+          &nbsp;&nbsp;
+          <span style={{ marginTop: '2px' }}>Up</span>
+        </Button>
+      </div>
+    </div></div>
     </>
 }
 

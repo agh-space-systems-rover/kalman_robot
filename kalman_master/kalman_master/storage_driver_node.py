@@ -8,7 +8,7 @@ from std_srvs.srv import Trigger
 storage = {
     "sand": {
         "board": 0,
-        "device": 3,
+        "channel": 3,
         # calibration coeffs
         "scale": 1.0,
         "bias": 0.0,
@@ -18,7 +18,7 @@ storage = {
     },
     "rock": {
         "board": 0,
-        "device": 1,
+        "channel": 1,
         "scale": 1.0,
         "bias": 0.0,
         "open_angle": 0,
@@ -71,12 +71,12 @@ class StorageDriver(Node):
     def handle_value_req(self, storage_name, response):
         storage_info = storage[storage_name]
         board_id = storage_info["board"]
-        device_id = storage_info["device"]
+        channel_id = storage_info["channel"]
 
         # Create the request message
         req_msg = MasterMessage()
         req_msg.cmd = MasterMessage.SCALE_REQ
-        req_msg.data = struct.pack("BB", board_id, device_id)
+        req_msg.data = struct.pack("BB", board_id, channel_id)
 
         # Publish the request to the master
         self.master_pub.publish(req_msg)
@@ -92,12 +92,12 @@ class StorageDriver(Node):
 
         # Pad data to 8 bytes to handle struct alignment
         padded_data = bytes(msg.data[:6]) + b'\x00\x00'
-        board_id, device_id, value = struct.unpack("BBi", padded_data)
+        board_id, channel_id, value = struct.unpack("BBi", padded_data)
         storage_name = next(
             (
                 name
                 for name, info in storage.items()
-                if info["board"] == board_id and info["device"] == device_id
+                if info["board"] == board_id and info["channel"] == channel_id
             ),
             None,
         )
@@ -110,18 +110,18 @@ class StorageDriver(Node):
             self.api_pubs[storage_name].publish(Float32(data=float(value)))
         else:
             self.get_logger().warn(
-                f"Unknown storage response: board_id={board_id}, device_id={device_id}"
+                f"Unknown storage response: board_id={board_id}, channel_id={channel_id}"
             )
 
     def handle_servo(self, storage_name, open_flag, response):
         storage_info = storage[storage_name]
         board_id = storage_info["board"]
-        device_id = storage_info["device"]
+        channel_id = storage_info["channel"]
         angle = storage_info["open_angle"] if open_flag else storage_info["close_angle"]
 
         msg = MasterMessage()
         msg.cmd = MasterMessage.SERVO_SET
-        msg.data = struct.pack("BBB", board_id, device_id, angle)
+        msg.data = struct.pack("BBB", board_id, channel_id, angle)
         self.master_pub.publish(msg)
 
         response.success = True

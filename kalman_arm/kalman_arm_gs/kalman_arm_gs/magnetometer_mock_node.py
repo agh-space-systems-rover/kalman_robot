@@ -5,7 +5,7 @@ from rclpy.node import Node
 from std_msgs.msg import UInt8MultiArray
 
 BOARD_ID = 0
-DEVICE_ID = 0
+CHANNEL_ID = 0
 
 class MagnetometerMockNode(Node):
     def __init__(self):
@@ -20,16 +20,16 @@ class MagnetometerMockNode(Node):
     def cb_req(self, msg: UInt8MultiArray):
         if len(msg.data) < 2:
             return
-        board_id, device_id = msg.data[:2]
-        if board_id != BOARD_ID or device_id != DEVICE_ID:
+        board_id, channel_id = msg.data[:2]
+        if board_id != BOARD_ID or channel_id != CHANNEL_ID:
             return
         # Generate random float values for x, y, z
         x = random.uniform(-10.0, 10.0)
         y = random.uniform(-10.0, 10.0)
         z = random.uniform(-10.0, 10.0)
         res_data = list(struct.pack("<fff", x, y, z))
-        # Optionally, append board/device id for protocol completeness
-        # res_data += [board_id, device_id]
+        # Optionally, append board/channel id for protocol completeness
+        # res_data += [board_id, channel_id]
         res_msg = UInt8MultiArray()
         res_msg.data = res_data
         self.res_pub.publish(res_msg)
