@@ -7,9 +7,11 @@
 #include "actions/ik_navigate_to_pose.hpp"
 #include "actions/say_something.hpp"
 #include "actions/show_board.hpp"
+#include "actions/rotate_head.hpp"
 #include "conditions/has_next_goal.hpp"
 #include "conditions/is_recent_detection.hpp"
 #include "mission_state.hpp"
+#include <algorithm>
 #include <behaviortree_cpp_v3/behavior_tree.h>
 #include <behaviortree_cpp_v3/bt_factory.h>
 #include <behaviortree_cpp_v3/loggers/bt_zmq_publisher.h> // optional (Groot)
@@ -101,6 +103,9 @@ class BTPanel : public rclcpp::Node {
 			);
 			factory_->registerBuilder<SetJaw>(
 			    "SetJaw", Builder<SetJaw>()
+			);
+			factory_->registerBuilder<RotateHead>(
+				"RotateHead", Builder<RotateHead>()
 			);
 
 			// Build tree

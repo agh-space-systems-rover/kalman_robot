@@ -48,17 +48,23 @@ BT::NodeStatus ComeCloser::onStart() {
 	    parent_->get_logger(),
 	    name() << ": setting tracked marker to: " << tracked_marker
 	);
+	start_time = parent_->now();
 	return BT::NodeStatus::RUNNING;
 }
 
 BT::NodeStatus ComeCloser::onRunning() {
 	geometry_msgs::msg::TwistStamped twist{};
 	if (!last_aruco_pose.has_value()) {
-
-		RCLCPP_ERROR_STREAM(
+		RCLCPP_ERROR_STREAM_THROTTLE(
 		    parent_->get_logger(),
+			*parent_->get_clock(),
+			1000,
 		    name() << ": last_aruco_pose is empty, waiting for a message"
 		);
+		if (parent_->now() - start_time > std::chrono::seconds{5}){
+			return BT::NodeStatus::FAILURE;
+		}
+		
 		return BT::NodeStatus::RUNNING;
 	}
 
