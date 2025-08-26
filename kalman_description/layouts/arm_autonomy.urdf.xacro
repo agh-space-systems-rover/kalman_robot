@@ -17,8 +17,8 @@
     </joint>
 
     <!-- RealSense -->
-    <xacro:include filename="$(find realsense2_description)/urdf/_d455.urdf.xacro" />
-    <xacro:sensor_d455 name="d455_arm" parent="arm_link_6" use_nominal_extrinsics="true">
+    <xacro:include filename="$(find realsense2_description)/urdf/_d435.urdf.xacro" />
+    <xacro:sensor_d435 name="d435_arm" parent="arm_link_6" use_nominal_extrinsics="true">
         <origin xyz="-0.1 0.0 0.035" rpy="0 -1.5708 0" />
-    </xacro:sensor_d455>
+    </xacro:sensor_d435>
 </robot>

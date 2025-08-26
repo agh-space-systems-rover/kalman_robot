@@ -17,7 +17,7 @@ AveragePose::AveragePose(
 
 	aruco_sub_ =
 	    parent_->create_subscription<aruco_opencv_msgs::msg::ArucoDetection>(
-	        "/d455_arm/aruco_detections", // topic name
+	        "/d435_arm/aruco_detections", // topic name
 	        10,                           // queue size
 	        std::bind(&AveragePose::aruco_callback, this, std::placeholders::_1)
 	    );
