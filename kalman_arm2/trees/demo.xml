@@ -2,7 +2,7 @@
   <BehaviorTree ID="MainTree">
     <Sequence>
       <Parallel name="Run goal guard" success_threshold="1" failure_threshold="2">
-        <ArmNavigateToPose j0="0.0" j1="-1.2" j2="2.9" j3="0" j4="0.2" j5="0.0" jaw="0.0" />
+        <ArmNavigateToPose j0="0.0" j1="-1.2" j2="2.7" j3="0" j4="0.7" j5="0.0"/>
         <RetryUntilSuccessful num_attempts="-1">
           <IsRecentDetection max_age_ms="500" first_marker_position="{first_marker_pos}"
             first_marker_id="{first_marker_id}" />
