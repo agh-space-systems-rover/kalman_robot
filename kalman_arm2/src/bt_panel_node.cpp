@@ -7,6 +7,7 @@
 #include "actions/ik_navigate_to_pose.hpp"
 #include "actions/say_something.hpp"
 #include "actions/show_board.hpp"
+#include "actions/wait_for_uv_request.hpp"
 #include "actions/rotate_head.hpp"
 #include "conditions/has_next_goal.hpp"
 #include "conditions/is_recent_detection.hpp"
@@ -106,6 +107,10 @@ class BTPanel : public rclcpp::Node {
 			);
 			factory_->registerBuilder<RotateHead>(
 				"RotateHead", Builder<RotateHead>()
+			);
+
+			factory_->registerBuilder<WaitForUVRequest>(
+				"WaitForUVRequest", Builder<WaitForUVRequest>()
 			);
 
 			// Build tree
