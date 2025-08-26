@@ -86,7 +86,7 @@
             <child link="arm_link_4" />
             <origin xyz="0 -0.110 0.133" />
             <axis xyz="0 0 1" />
-            <limit effort="1000.0" lower="-6.40" upper="6.40" velocity="0.5" />
+            <limit effort="1000.0" lower="-3.20" upper="3.20" velocity="0.5" />
         </joint>
 
         <link name="arm_link_5">
@@ -116,9 +116,9 @@
         <joint name="arm_joint_6" type="revolute">
             <parent link="arm_link_5" />
             <child link="arm_link_6" />
-            <origin xyz="0 0 0.047" />
+            <origin xyz="0.02 0 0.047" />
             <axis xyz="0 0 1" />
-            <limit effort="1000.0" lower="-3.40" upper="3.40" velocity="0.5" />
+            <limit effort="1000.0" lower="-1.70" upper="1.70" velocity="0.5" />
         </joint>
 
         <link name="arm_link_jaw">

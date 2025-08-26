@@ -1,20 +1,24 @@
 #include "actions/arm_navigate_to_pose.hpp"
+#include "actions/set_jaw.hpp"
 #include "actions/average_pose.hpp"
 #include "actions/build_uv.hpp"
 #include "actions/come_closer.hpp"
-#include "actions/do_something.hpp"
 #include "actions/get_next_goal.hpp"
 #include "actions/ik_navigate_to_pose.hpp"
 #include "actions/say_something.hpp"
 #include "actions/show_board.hpp"
+#include "actions/wait_for_uv_request.hpp"
+#include "actions/rotate_head.hpp"
 #include "conditions/has_next_goal.hpp"
 #include "conditions/is_recent_detection.hpp"
 #include "mission_state.hpp"
+#include <algorithm>
 #include <behaviortree_cpp_v3/behavior_tree.h>
 #include <behaviortree_cpp_v3/bt_factory.h>
 #include <behaviortree_cpp_v3/loggers/bt_zmq_publisher.h> // optional (Groot)
 #include <kalman_interfaces/action/arm_mission.hpp>
 #include <memory>
+#include <rclcpp/logging.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_action/create_server.hpp>
 #include <rclcpp_action/rclcpp_action.hpp>
@@ -70,9 +74,6 @@ class BTPanel : public rclcpp::Node {
 		try {
 			factory_ = std::make_unique<BT::BehaviorTreeFactory>();
 
-			factory_->registerBuilder<DoSomething>(
-			    "DoSomething", Builder<DoSomething>()
-			);
 			factory_->registerBuilder<ArmNavigateToPose>(
 			    "ArmNavigateToPose", Builder<ArmNavigateToPose>()
 			);
@@ -100,6 +101,16 @@ class BTPanel : public rclcpp::Node {
 			factory_->registerBuilder<BuildUV>("BuildUV", Builder<BuildUV>());
 			factory_->registerBuilder<ShowBoard>(
 			    "ShowBoard", Builder<ShowBoard>()
+			);
+			factory_->registerBuilder<SetJaw>(
+			    "SetJaw", Builder<SetJaw>()
+			);
+			factory_->registerBuilder<RotateHead>(
+				"RotateHead", Builder<RotateHead>()
+			);
+
+			factory_->registerBuilder<WaitForUVRequest>(
+				"WaitForUVRequest", Builder<WaitForUVRequest>()
 			);
 
 			// Build tree
@@ -196,8 +207,10 @@ class BTPanel : public rclcpp::Node {
 
 			std::this_thread::sleep_for(tick_period_);
 
-			RCLCPP_ERROR(
+			RCLCPP_INFO_THROTTLE(
 			    get_logger(),
+				*get_clock(),
+				2000,
 			    "Mission state: %s",
 			    mission_helper_->to_string().c_str()
 			);

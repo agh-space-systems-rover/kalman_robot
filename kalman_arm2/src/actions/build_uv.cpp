@@ -14,10 +14,6 @@ BuildUV::BuildUV(
 )
     : BT::StatefulActionNode(name, config), parent_{parent} {
 
-	RCLCPP_ERROR_STREAM(
-	    parent_->get_logger(),
-	    this->name() << " BuildUV constructor is being run..."
-	);
 	tf_buffer_   = std::make_unique<tf2_ros::Buffer>(parent_->get_clock());
 	tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
 	static_broadcaster_ =
@@ -61,7 +57,7 @@ BT::NodeStatus BuildUV::onStart() {
 	}
 
 	Eigen::Isometry3d T_base_to_board{};
-	if (!buildUnitScale(anchors, *tf_buffer_, "base_link", "uv_board", T_base_to_board)) {
+	if (!buildUnitScale_v3(anchors, *tf_buffer_, "base_link", "uv_board", T_base_to_board)) {
 		return BT::NodeStatus::FAILURE;
 	}
 

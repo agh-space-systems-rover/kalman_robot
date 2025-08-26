@@ -140,7 +140,7 @@ class GotoJointPose : public rclcpp::Node {
 
 		uint8_t mask     = current_gh->get_goal()->ignore_mask;
 		bool    all_done = true;
-		for (size_t i = 0; i < 7; i++) {
+		for (size_t i = 0; i < 6; i++) {
 			// mask check
 			if ((mask & (1 << i))) {
 				continue;
