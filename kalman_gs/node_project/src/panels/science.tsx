@@ -532,7 +532,8 @@ function Magnetometer() {
       setMagField({
         x: msg.magnetic_field.x,
         y: msg.magnetic_field.y,
-        z: msg.magnetic_field.z
+        z: msg.magnetic_field.z,
+        abs: Math.sqrt(msg.magnetic_field.x**2 + msg.magnetic_field.y**2 + msg.magnetic_field.z**2), 
       });
     };
     magnetometerTopic.subscribe(cb);
@@ -549,6 +550,7 @@ function Magnetometer() {
   const redBg = style.getPropertyValue('--red-background');
   const greenBg = style.getPropertyValue('--green-background');
   const blueBg = style.getPropertyValue('--blue-background');
+  const whiteBg = style.getPropertyValue('--white-background');
   const darkBg = style.getPropertyValue('--dark-background');
 
   return <>
@@ -564,6 +566,10 @@ function Magnetometer() {
       <Label color={blueBg}>Z</Label>
       <Label color={darkBg} className={styles['science-row-item'] + ' ' + styles['science-selectable']}>
         {magField ? magField.z.toFixed(2) : '---'}
+      </Label>
+      <Label color={whiteBg}>Mag</Label>
+      <Label color={darkBg} className={styles['science-row-item'] + ' ' + styles['science-selectable']}>
+        {magField ? magField.abs.toFixed(2) : '---'}
       </Label>
     </div>
     <div className={styles['science-row']}>
