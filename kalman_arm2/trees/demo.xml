@@ -3,7 +3,7 @@
     <Sequence>
       <SetJaw jaw="0.0" />
       <Parallel name="Run goal guard" success_threshold="1" failure_threshold="2">
-        <ArmNavigateToPose j0="0.0" j1="-1.2" j2="2.7" j3="0" j4="0.7" j5="0.0"/>
+        <ArmNavigateToPose j0="0.0" j1="-1.2" j2="2.7" j3="0" j4="0.7" j5="0.0" />
         <RetryUntilSuccessful num_attempts="-1">
           <IsRecentDetection max_age_ms="500" first_marker_position="{first_marker_pos}"
             first_marker_id="{first_marker_id}" />
@@ -24,7 +24,20 @@
               <Say message="GetNextGoal did not fail" />
               <IKNavigateToPose pose="{next_marker_pose}" />
               <Say message="IK did not fail" />
-              <ComeCloser aruco_id="{first_marker_id}" />
+              <Fallback>
+                <ComeCloser aruco_id="{first_marker_id}" />
+                <ForceFailure>
+                  <RotateHead ry="0.3" />
+                </ForceFailure>
+                <ComeCloser aruco_id="{first_marker_id}" />
+                <ForceFailure>
+                  <IKNavigateToPose pose="{next_marker_pose}" />
+                </ForceFailure>
+                <ForceFailure>
+                  <RotateHead ry="-0.3" />
+                </ForceFailure>
+                <ComeCloser aruco_id="{first_marker_id}" />
+              </Fallback>
               <Say message="ComeCloser did not fail" />
               <AveragePose mission_helper="{state}" aruco_id="{first_marker_id}" />
               <Say message="AveragePose did not fail" />
@@ -49,5 +62,11 @@
         </ForceFailure>
       </RetryUntilSuccessful> -->
     </Sequence>
+  </BehaviorTree>
+
+  <BehaviorTree ID="TestTree">
+    <RetryUntilSuccessful num_attempts="10">
+      <RotateHead ry="0.1" />
+    </RetryUntilSuccessful>
   </BehaviorTree>
 </root>
