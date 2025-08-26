@@ -57,7 +57,7 @@ BT::NodeStatus BuildUV::onStart() {
 	}
 
 	Eigen::Isometry3d T_base_to_board{};
-	if (!buildUnitScale(anchors, *tf_buffer_, "base_link", "uv_board", T_base_to_board)) {
+	if (!buildUnitScale_v3(anchors, *tf_buffer_, "base_link", "uv_board", T_base_to_board)) {
 		return BT::NodeStatus::FAILURE;
 	}
 

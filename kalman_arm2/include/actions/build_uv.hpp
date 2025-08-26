@@ -174,4 +174,162 @@ class BuildUV : public BT::StatefulActionNode {
 		bool   valid_ = true;
 		return true;
 	}
+	bool buildUnitScale_v3(
+	    const std::vector<UVAnchor> &anchors,
+	    tf2_ros::Buffer             &tf_buffer,
+	    const std::string           &base_frame,
+	    const std::string           &uv_board_frame,
+	    Eigen::Isometry3d           &T_base_to_board, // Output
+	    rclcpp::Logger logger = rclcpp::get_logger("UVtoXYZMapper")
+	) {
+		//   reset_();
+
+		if (anchors.size() < 3) {
+			RCLCPP_ERROR(logger, "Need ≥3 anchors, got %zu", anchors.size());
+			return false;
+		}
+
+		// --- 1) Fetch 3D points in base_frame and the UVs ---
+		const int                    N = static_cast<int>(anchors.size());
+		std::vector<Eigen::Vector3d> P;
+		P.reserve(N);
+		Eigen::Matrix<double, 2, Eigen::Dynamic> UV(2, N);
+
+		try {
+			for (int i = 0; i < N; ++i) {
+				const auto &a  = anchors[i];
+				auto        ts = tf_buffer.lookupTransform(
+                    base_frame, a.tf_name, tf2::TimePointZero
+                );
+				Eigen::Isometry3d T = tf2::transformToEigen(ts);
+				P.emplace_back(T.translation());
+				UV(0, i) = a.uv.x();
+				UV(1, i) = a.uv.y();
+			}
+		} catch (const tf2::TransformException &e) {
+			RCLCPP_ERROR(logger, "TF lookup failed: %s", e.what());
+			return false;
+		}
+
+		// --- 2) Plane fit (PCA) to get orthonormal basis {e1,e2,n} ---
+		Eigen::Vector3d centroid = Eigen::Vector3d::Zero();
+		for (auto &p : P) {
+			centroid += p;
+		}
+		centroid /= double(N);
+
+		Eigen::Matrix3d C = Eigen::Matrix3d::Zero();
+		for (auto &p : P) {
+			Eigen::Vector3d d  = p - centroid;
+			C                 += d * d.transpose();
+		}
+
+		Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es(C);
+		if (es.info() != Eigen::Success) {
+			RCLCPP_ERROR(logger, "Eigen decomposition failed");
+			return false;
+		}
+		Eigen::Vector3d n_hat =
+		    es.eigenvectors().col(0).normalized(); // smallest eigenvector
+		Eigen::Vector3d e1 =
+		    es.eigenvectors().col(2).normalized(); // largest eigenvector
+		Eigen::Vector3d e2 = n_hat.cross(e1).normalized();
+
+		// --- 3) Project 3D anchors onto the plane coords S (meters) ---
+		Eigen::Matrix<double, 2, Eigen::Dynamic> S(2, N);
+		for (int i = 0; i < N; ++i) {
+			Eigen::Vector3d d = P[i] - centroid;
+			S(0, i)           = e1.dot(d);
+			S(1, i)           = e2.dot(d);
+		}
+
+		// --- 4) Centroid align both sets in 2D ---
+		Eigen::Vector2d Umean = UV.rowwise().mean();
+		Eigen::Vector2d Smean = S.rowwise().mean();
+		Eigen::MatrixXd U0    = UV.colwise() - Umean; // 2xN
+		Eigen::MatrixXd S0    = S.colwise() - Smean;  // 2xN
+
+		// --- 5) Estimate rotation as the circular mean of per-pair angles ---
+		auto cross2 = [](const Eigen::Vector2d &a, const Eigen::Vector2d &b) {
+			return a.x() * b.y() - a.y() * b.x(); // 2D "scalar cross"
+		};
+
+		const double r_min     = 1e-6; // ignore points too close to centroid
+		double       sum_w_sin = 0.0, sum_w_cos = 0.0, sum_w = 0.0;
+
+		for (int i = 0; i < N; ++i) {
+			Eigen::Vector2d u  = U0.col(i);
+			Eigen::Vector2d s  = S0.col(i);
+			double          ru = u.norm(), rs = s.norm();
+			if (ru < r_min || rs < r_min) {
+				continue; // ill-defined angle near origin
+			}
+
+			// angle that rotates u onto s
+			double c   = u.dot(s) / (ru * rs);
+			double sgn = cross2(u, s) / (ru * rs);
+			// clamp c to [-1,1] for numeric safety
+			c = std::max(-1.0, std::min(1.0, c));
+
+			// weight by radius (larger baselines contribute more)
+			double w   = std::max(ru, rs);
+			sum_w_sin += w * sgn;
+			sum_w_cos += w * c;
+			sum_w     += w;
+		}
+
+		if (sum_w <= 0.0) {
+			RCLCPP_ERROR(
+			    logger,
+			    "Degenerate anchors after centroiding (all near the centroid)"
+			);
+			return false;
+		}
+
+		// Circular mean
+		double          theta = std::atan2(sum_w_sin, sum_w_cos);
+		double          ct = std::cos(theta), st = std::sin(theta);
+		Eigen::Matrix2d R2;
+		R2 << ct, -st, st, ct;
+
+		// Translation in plane coords (UV -> S)
+		Eigen::Vector2d t2 = Smean - R2 * Umean;
+
+		// --- 6) Lift to 3D frame: base -> uv_board ---
+		Eigen::Vector3d U_vec = e1 * R2(0, 0) + e2 * R2(1, 0); // +u axis
+		Eigen::Vector3d V_vec = e1 * R2(0, 1) + e2 * R2(1, 1); // +v axis
+		Eigen::Vector3d O3    = centroid + e1 * t2.x() + e2 * t2.y();
+
+		// Orthonormalize (guards tiny drift)
+		U_vec.normalize();
+		V_vec = (n_hat.cross(U_vec)).normalized();
+		n_hat = U_vec.cross(V_vec).normalized();
+
+		// Pack into transform and A
+		// base_frame_     = base_frame;
+		// uv_board_frame_ = uv_board_frame;
+
+		Eigen::Matrix3d R3;
+		R3.col(0) = U_vec;
+		R3.col(1) = V_vec;
+		R3.col(2) = n_hat;
+
+		T_base_to_board.setIdentity();
+		T_base_to_board.linear()      = R3;
+		T_base_to_board.translation() = O3;
+
+		// A_.col(0) = U_vec; // for direct uv->xyz usage
+		// A_.col(1) = V_vec;
+		// A_.col(2) = O3;
+
+		// --- 7) RMS error in 3D (diagnostic) ---
+		double err2 = 0.0;
+		for (int i = 0; i < N; ++i) {
+			Eigen::Vector3d pred  = O3 + U_vec * UV(0, i) + V_vec * UV(1, i);
+			err2                 += (pred - P[i]).squaredNorm();
+		}
+		// rms_   = std::sqrt(err2 / N);
+		// valid_ = true;
+		return true;
+	}
 };
