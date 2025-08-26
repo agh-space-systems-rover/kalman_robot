@@ -5,10 +5,6 @@ from std_msgs.msg import UInt8MultiArray
 from std_srvs.srv import Trigger
 from sensor_msgs.msg import MagneticField
 
-BOARD_ID = 0
-DEVICE_ID = 0
-
-
 
 class MagnetometerDriver(Node):
     def __init__(self):
@@ -38,7 +34,7 @@ class MagnetometerDriver(Node):
     def cb_data_req(self, request, response):
         # Create the request message
         req_msg = UInt8MultiArray()
-        req_msg.data = [BOARD_ID, DEVICE_ID]
+        req_msg.data = []
         self.master_pub.publish(req_msg)
         response.success = True
         response.message = "magnetometer reading requested"

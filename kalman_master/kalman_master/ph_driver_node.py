@@ -12,7 +12,7 @@ CHANNEL_ID = 0
 
 RAIL_BOARD_ID = 0
 RAIL_CHANNEL_ID = 1
-RAIL_MAX_SPEED = 70
+RAIL_MAX_SPEED = 100
 
 class PHDriver(Node):
     def __init__(self):
@@ -64,7 +64,7 @@ class PHDriver(Node):
         
         rail_msg = MasterMessage()
         rail_msg.cmd = MasterMessage.PH_RAIL
-        rail_msg.data = [RAIL_BOARD_ID, RAIL_CHANNEL_ID, target_vel_int, 1 if msg.target_vel < 0 else 0]
+        rail_msg.data = [RAIL_BOARD_ID, RAIL_CHANNEL_ID, target_vel_int, 0 if target_vel < 0 else 1]
         self.master_pub.publish(rail_msg)
 
     def cb_master_res(self, msg: MasterMessage):
