@@ -10,7 +10,8 @@ import {
   faDroplet,
   faTrash,
   faList,
-  faBan
+  faBan,
+  faMagnet
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useEffect, useState } from 'react';
@@ -23,13 +24,15 @@ import Label from '../components/label';
 const STORAGE_OPTIONS = [
   { name: 'Sand Storage', value: 'sand', icon: faFlask },
   { name: 'Rock Storage', value: 'rock', icon: faBox },
-  { name: 'pH Probe', value: 'ph', icon: faDroplet }
+  { name: 'pH Probe', value: 'ph', icon: faDroplet },
+  { name: 'Magnetometer', value: 'magneto', icon: faMagnet }
 ];
 
 // Global ROS clients
 let sandWeightTopic: any;
 let rockWeightTopic: any;
 let phValueTopic: any;
+let magnetometerTopic: any;
 let sandWeightService: any;
 let rockWeightService: any;
 let sandOpenService: any;
@@ -37,6 +40,7 @@ let sandCloseService: any;
 let rockOpenService: any;
 let rockCloseService: any;
 let phValueService: any;
+let magnetometerResetService: any;
 
 window.addEventListener('ros-connect', () => {
   // Weight topics
@@ -54,6 +58,12 @@ window.addEventListener('ros-connect', () => {
     ros,
     name: '/science/ph/value',
     messageType: 'std_msgs/Float32'
+  });
+
+  magnetometerTopic = new Topic({
+    ros,
+    name: '/science/magnetic_field/value',
+    messageType: 'sensor_msgs/MagneticField'
   });
 
   // Weight request services
@@ -94,6 +104,12 @@ window.addEventListener('ros-connect', () => {
   phValueService = new Service({
     ros,
     name: '/science/ph/value/req',
+    serviceType: 'std_srvs/Trigger'
+  });
+
+  magnetometerResetService = new Service({
+    ros,
+    name: '/science/magnetic_field/value/req',
     serviceType: 'std_srvs/Trigger'
   });
 
@@ -172,6 +188,7 @@ export default function Science({ props }: SciencePanelProps) {
         )}
 
         {selectedStorage === 'ph' && <PHProbe />}
+        {selectedStorage === 'magneto' && <Magnetometer />}
       </div>
     </div>
   );
@@ -266,7 +283,7 @@ function StorageContainer({ selectedStorage, tareHistory, onTareHistoryChange }:
         <Label color={greenBg}>
           <FontAwesomeIcon icon={faWeightHanging} />
         </Label>
-        <Label color={darkBg} className={styles['science-row-item']}>
+        <Label color={darkBg} className={styles['science-row-item'] + ' ' + styles['science-selectable']}>
           {displayWeight !== null ? `${displayWeight.toFixed(2)} g` : '---'}
         </Label>
         <Button tooltip='Refresh weight measurement' onClick={() => callStorageService('weight')}>
@@ -364,17 +381,85 @@ function PHProbe({}: PHProbeProps) {
   const greenBg = style.getPropertyValue('--green-background');
   const darkBg = style.getPropertyValue('--dark-background');
 
-  return (
+  return <>
     <div className={styles['science-row']}>
       <Label color={greenBg}>
         <FontAwesomeIcon icon={faDroplet} />
       </Label>
-      <Label color={darkBg} className={styles['science-row-item']}>
+      <Label color={darkBg} className={styles['science-row-item'] + ' ' + styles['science-selectable']}>
         {phValue !== null ? `${phValue.toFixed(2)} pH` : '---'}
       </Label>
-      <Button tooltip='Request new pH measurement' onClick={requestPhMeasurement}>
+    </div>
+    <div className={styles['science-row']}>
+      <Button className={styles['science-row-item']} tooltip='Request new pH measurement' onClick={requestPhMeasurement}>
         <FontAwesomeIcon icon={faArrowRotateRight} />
+        &nbsp;&nbsp;
+        <span style={{ marginTop: '2px' }}>Refresh</span>
       </Button>
     </div>
-  );
+    </>
+}
+
+function Magnetometer() {
+  const [magField, setMagField] = useState(null);
+  const [rerenderCount, setRerenderCount] = useState(0);
+
+  useEffect(() => {
+    const updateScience = () => {
+      setRerenderCount((count) => count + 1);
+    };
+    window.addEventListener('science-subscribed', updateScience);
+    return () => {
+      window.removeEventListener('science-subscribed', updateScience);
+    };
+  }, []);
+
+  useEffect(() => {
+    setMagField(null);
+    if (!magnetometerTopic) return;
+    const cb = (msg) => {
+      setMagField({
+        x: msg.magnetic_field.x,
+        y: msg.magnetic_field.y,
+        z: msg.magnetic_field.z
+      });
+    };
+    magnetometerTopic.subscribe(cb);
+    return () => magnetometerTopic.unsubscribe(cb);
+  }, [rerenderCount]);
+
+  function requestMagnetometerMeasurement() {
+    if (magnetometerResetService) {
+      magnetometerResetService.callService({}, () => {});
+    }
+  }
+
+  const style = getComputedStyle(document.body);
+  const redBg = style.getPropertyValue('--red-background');
+  const greenBg = style.getPropertyValue('--green-background');
+  const blueBg = style.getPropertyValue('--blue-background');
+  const darkBg = style.getPropertyValue('--dark-background');
+
+  return <>
+    <div className={styles['science-row']}>
+      <Label  color={redBg}>X</Label>
+      <Label color={darkBg} className={styles['science-row-item'] + ' ' + styles['science-selectable']}>
+        {magField ? magField.x.toFixed(2) : '---'}
+      </Label>
+      <Label color={greenBg}>Y</Label>
+      <Label color={darkBg} className={styles['science-row-item'] + ' ' + styles['science-selectable']}>
+        {magField ? magField.y.toFixed(2) : '---'}
+      </Label>
+      <Label color={blueBg}>Z</Label>
+      <Label color={darkBg} className={styles['science-row-item'] + ' ' + styles['science-selectable']}>
+        {magField ? magField.z.toFixed(2) : '---'}
+      </Label>
+    </div>
+    <div className={styles['science-row']}>
+      <Button className={styles['science-row-item']} tooltip='Request new magnetometer measurement' onClick={requestMagnetometerMeasurement}>
+        <FontAwesomeIcon icon={faArrowRotateRight} />
+        &nbsp;&nbsp;<span style={{ marginTop: '2px' }}>Refresh</span>
+      </Button>
+    </div>
+  </>;
 }

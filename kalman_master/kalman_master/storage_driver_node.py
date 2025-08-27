@@ -8,7 +8,7 @@ from std_srvs.srv import Trigger
 storage = {
     "sand": {
         "board": 0,
-        "device": 0,
+        "device": 3,
         # calibration coeffs
         "scale": 1.0,
         "bias": 0.0,

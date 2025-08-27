@@ -39,16 +39,23 @@ def launch_setup(context):
         ),
     ]
 
+    parameters=[
+        {
+            "rate": 30,
+            "source_list": [
+                "arm_controllers/joint_states",
+                "arm/joint_states",
+            ]
+        },
+        # ^ "arm/" is from kalman_arm2
+    ]
     if get_bool("joint_state_publisher_gui"):
         # alternative joint state publisher with GUI
         description += [
             Node(
                 package="joint_state_publisher_gui",
                 executable="joint_state_publisher_gui",
-                parameters=[
-                    {"rate": 10},
-                    {"source_list": ["arm_controllers/joint_states"]},
-                ],
+                parameters=parameters,
             ),
         ]
     else:
@@ -58,10 +65,7 @@ def launch_setup(context):
             Node(
                 package="joint_state_publisher",
                 executable="joint_state_publisher",
-                parameters=[
-                    {"rate": 10},
-                    {"source_list": ["arm_controllers/joint_states"]},
-                ],
+                parameters=parameters,
             ),
         ]
 

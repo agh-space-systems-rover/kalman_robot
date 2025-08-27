@@ -52,7 +52,7 @@ const jointInputMapping: JointMapping = {
   joint_1: {
     type: AxisType.AXIS,
     input: { axisId: 'left-x' },
-    mapping: invertedMapping
+    mapping: noMapping
   },
   joint_2: {
     type: AxisType.AXIS,

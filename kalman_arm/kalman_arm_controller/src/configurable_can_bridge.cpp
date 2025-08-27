@@ -577,7 +577,9 @@ void CANBridge::setupConverters()
         {
           if (conversion_type == "direct")
           {
-            memcpy(&msg->data, frame.data, 2);
+            // memcpy(&msg->data, frame.data, 2);
+            // reverse endianness:
+            msg->data = (frame.data[1] | (frame.data[0] << 8));
           }
           else
           {

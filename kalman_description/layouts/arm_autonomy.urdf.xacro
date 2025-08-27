@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="kalman">
+    <!-- base Kalman links -->
+    <xacro:include filename="$(find kalman_description)/urdf/kalman.urdf.xacro" />
+    <xacro:kalman />
+
+    <!-- arm links -->
+    <xacro:include filename="$(find kalman_description)/urdf/arm.urdf.xacro" />
+    <xacro:arm base_link="base_link" />
+
+    <!-- IMU -->
+    <link name="imu_link" />
+    <joint name="imu_joint" type="fixed">
+        <origin xyz="0.088 0.000 -0.015" rpy="0 0 -1.5708" />
+        <parent link="base_link" />
+        <child link="imu_link" />
+    </joint>
+
+    <!-- RealSense -->
+    <xacro:include filename="$(find realsense2_description)/urdf/_d455.urdf.xacro" />
+    <xacro:sensor_d455 name="d455_arm" parent="arm_link_6" use_nominal_extrinsics="true">
+        <origin xyz="-0.1 0.0 0.035" rpy="0 -1.5708 0" />
+    </xacro:sensor_d455>
+</robot>

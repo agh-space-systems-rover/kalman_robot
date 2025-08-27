@@ -160,6 +160,16 @@ export type WheelStates = {
   back_left?: WheelState;
   back_right?: WheelState;
 };
+export type WheelTemperature = {
+  motor?: number;
+  swivel?: number;
+};
+export type WheelTemperatures = {
+  front_left?: WheelTemperature;
+  front_right?: WheelTemperature;
+  back_left?: WheelTemperature;
+  back_right?: WheelTemperature;
+};
 
 export type SetFeedRequest = {
   feed?: number;
