@@ -190,6 +190,7 @@ def launch_setup(context):
         ("/gripper/position", "std_msgs/msg/UInt16", "recv"),
         ("/gripper/command_absolute", "std_msgs/msg/UInt16", "send"),
         ("/gripper/command_incremental", "std_msgs/msg/Int8", "send"),
+        ("/joy_compressed", "kalman_interfaces/msg/ArmCompressed", "send"),
     ]:
         break
         actions += [
@@ -225,6 +226,7 @@ def launch_setup(context):
                 ("old/gripper/position", "/gripper/position"),
                 ("old/gripper/command_absolute", "/gripper/command_absolute"),
                 ("old/gripper/command_incremental", "/gripper/command_incremental"),
+                ("old/joy_compressed", "/joy_compressed"),
             ],
         )
     ]
