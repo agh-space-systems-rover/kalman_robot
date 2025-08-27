@@ -1,14 +1,14 @@
 #include "actions/arm_navigate_to_pose.hpp"
-#include "actions/set_jaw.hpp"
 #include "actions/average_pose.hpp"
 #include "actions/build_uv.hpp"
 #include "actions/come_closer.hpp"
 #include "actions/get_next_goal.hpp"
 #include "actions/ik_navigate_to_pose.hpp"
+#include "actions/rotate_head.hpp"
 #include "actions/say_something.hpp"
+#include "actions/set_jaw.hpp"
 #include "actions/show_board.hpp"
 #include "actions/wait_for_uv_request.hpp"
-#include "actions/rotate_head.hpp"
 #include "conditions/has_next_goal.hpp"
 #include "conditions/is_recent_detection.hpp"
 #include "mission_state.hpp"
@@ -46,8 +46,11 @@ class BTPanel : public rclcpp::Node {
 		declare_parameter<bool>("auto_start", true);
 
 		mission_helper_ = std::make_shared<MissionHelper>(
-			// FIXME: assumption that the panel layout was read successfully
-		    MissionState{PanelLayout::read_yaml(panel_layout_yaml_path_, get_logger()).value()}
+		    // FIXME: assumption that the panel layout was read successfully
+		    MissionState{
+		        PanelLayout::read_yaml(panel_layout_yaml_path_, get_logger())
+		            .value()
+		    }
 		);
 
 		// Build the tree
@@ -102,15 +105,13 @@ class BTPanel : public rclcpp::Node {
 			factory_->registerBuilder<ShowBoard>(
 			    "ShowBoard", Builder<ShowBoard>()
 			);
-			factory_->registerBuilder<SetJaw>(
-			    "SetJaw", Builder<SetJaw>()
-			);
+			factory_->registerBuilder<SetJaw>("SetJaw", Builder<SetJaw>());
 			factory_->registerBuilder<RotateHead>(
-				"RotateHead", Builder<RotateHead>()
+			    "RotateHead", Builder<RotateHead>()
 			);
 
 			factory_->registerBuilder<WaitForUVRequest>(
-				"WaitForUVRequest", Builder<WaitForUVRequest>()
+			    "WaitForUVRequest", Builder<WaitForUVRequest>()
 			);
 
 			// Build tree
@@ -165,6 +166,8 @@ class BTPanel : public rclcpp::Node {
 	}
 
 	void startTicking() {
+		requestStop();
+		configure(); // HACK: reload from disk every time
 		double hz    = get_parameter("tick_rate_hz").as_double();
 		tick_period_ = std::chrono::duration<double>(1.0 / std::max(1e-3, hz));
 		stop_requested_ = false;
@@ -209,8 +212,8 @@ class BTPanel : public rclcpp::Node {
 
 			RCLCPP_INFO_THROTTLE(
 			    get_logger(),
-				*get_clock(),
-				2000,
+			    *get_clock(),
+			    2000,
 			    "Mission state: %s",
 			    mission_helper_->to_string().c_str()
 			);
@@ -226,6 +229,9 @@ class BTPanel : public rclcpp::Node {
 				tree_->rootNode()->halt();
 			}
 		}
+		if (worker_.joinable()) {
+			worker_.join();
+		}
 	}
 
 	template <typename T> const BT::NodeBuilder Builder() {
@@ -239,7 +245,7 @@ class BTPanel : public rclcpp::Node {
 	std::unique_ptr<BT::BehaviorTreeFactory> factory_;
 	std::unique_ptr<BT::Tree>                tree_;
 	std::unique_ptr<BT::PublisherZMQ>        zmq_publisher_; // optional
-	std::string panel_layout_yaml_path_;
+	std::string                              panel_layout_yaml_path_;
 
 	std::thread                                  worker_;
 	std::atomic<bool>                            stop_requested_{true};
