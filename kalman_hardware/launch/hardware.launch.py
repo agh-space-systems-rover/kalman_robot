@@ -168,19 +168,44 @@ def launch_setup(context):
             )
 
         # Load IMU driver and filter.
-        actions += launch_node_or_load_component(
-            component_container=component_container,
-            package="phidgets_spatial",
-            executable="phidgets_spatial_node",
-            plugin="phidgets::SpatialRosI",
-            parameters=[
-                load_standalone_config("kalman_hardware", "phidgets_spatial.yaml"),
-                load_standalone_config_file(phidgets_spatial_calibration_params_path),
-            ],
-            extra_arguments=[{"use_intra_process_comms": False}],
-        )
-        # ^ NOTE: Spatial does not support intra-process communication.
-
+        if component_container:
+            actions += [
+                LoadComposableNodes(
+                    target_container=component_container,
+                    composable_node_descriptions=[
+                        ComposableNode(
+                            package="phidgets_spatial",
+                            plugin="phidgets::SpatialRosI",
+                            parameters=[
+                                load_standalone_config("kalman_hardware", "phidgets_spatial.yaml"),
+                                phidgets_spatial_calibration_params_path,
+                            ],
+                            extra_arguments=[{"use_intra_process_comms": False}],
+                            # NOTE: Spatial does not support intra-process communication.
+                        ),
+                    ],
+                ),
+            ]
+        else:
+            actions += [
+                ComposableNodeContainer(
+                    package="rclcpp_components",
+                    executable="component_container",
+                    namespace="",
+                    name=PHIDGETS_CONTAINER_NAME,
+                    composable_node_descriptions=[
+                        ComposableNode(
+                            package="phidgets_spatial",
+                            plugin="phidgets::SpatialRosI",
+                            parameters=[
+                                load_standalone_config("kalman_hardware", "phidgets_spatial.yaml"),
+                                phidgets_spatial_calibration_params_path,
+                            ],
+                            extra_arguments=[{"use_intra_process_comms": False}],
+                        ),
+                    ],
+                ),
+            ]
         actions += launch_node_or_load_component(
             component_container=component_container,
             package="imu_filter_madgwick",
