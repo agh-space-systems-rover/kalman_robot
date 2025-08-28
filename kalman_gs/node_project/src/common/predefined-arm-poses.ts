@@ -77,8 +77,8 @@ const POSES_JOINTS = {
   'Base Left': [2.2435, 0.3388, 1.7765, 0.0, 1.0902, 0.7],
   'Base Right': [-2.2435, 0.3388, 1.7765, 0.0, 1.0902, -0.7],
   'Based': [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-  'Sand Storage': [-3.14, 0.7, 2.2, 0.0, 1.0, 0.0],
-  'Rock Storage': [-2.44, 0.1, 1.75, 0.66, 0.93, -1.0],
+  'Sand Storage': [-2.44, 0.1, 1.75, 0.66, 0.93, -1.0],
+  'Rock Storage': [-3.14, 0.7, 2.2, 0.0, 1.0, 0.0],
 };
 
 export default { PREDEFINED_POSES, POSES_JOINTS };
