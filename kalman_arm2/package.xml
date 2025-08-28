@@ -30,7 +30,7 @@
   <exec_depend>rosbridge_server</exec_depend>
   
   <depend>kalman_interfaces</depend>
-  <depend>kalman_utils</depend>
+  <exec_depend>kalman_utils</exec_depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
