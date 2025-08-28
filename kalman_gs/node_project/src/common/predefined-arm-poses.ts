@@ -67,6 +67,14 @@ const PREDEFINED_POSES = {
       'joints_checked': [],
       'safe_previous_poses': [0, 2, 5]
     },
+    {
+      'id': 8,
+      'name': 'Spectro Approach',
+      'path': 'predefined_poses/spectro_approach.yaml',
+      'joints_set': [1, 2, 3, 4, 5, 6],
+      'joints_checked': [],
+      'safe_previous_poses': [0, 2, 5]
+    }
   ]
 };
 
@@ -79,6 +87,7 @@ const POSES_JOINTS = {
   'Based': [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
   'Sand Storage': [-2.44, 0.1, 1.75, 0.66, 0.93, -1.0],
   'Rock Storage': [-3.14, 0.7, 2.2, 0.0, 1.0, 0.0],
+  'Spectro Approach': [0.0, 0.28, 2.4, 3.14, -1.7, 0.0]
 };
 
 export default { PREDEFINED_POSES, POSES_JOINTS };

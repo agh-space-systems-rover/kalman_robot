@@ -90,7 +90,7 @@ poses:
       joints_reversed: []
       safe_previous_poses: [0, 2, 3, 4, 5, 6]
     - id: 6
-      name: "Sand storage"
+      name: "Sand Storage"
       path: "predefined_poses/sand_storage.yaml"
       joints_set:
           [
@@ -105,8 +105,23 @@ poses:
       joints_reversed: []
       safe_previous_poses: [0, 2, 5]
     - id: 7
-      name: "Rock storage"
+      name: "Rock Storage"
       path: "predefined_poses/rock_storage.yaml"
+      joints_set:
+          [
+              "arm_joint_1",
+              "arm_joint_2",
+              "arm_joint_3",
+              "arm_joint_4",
+              "arm_joint_5",
+              "arm_joint_6",
+          ]
+      joints_checked: []
+      joints_reversed: []
+      safe_previous_poses: [0, 2, 5]
+    - id: 8
+      name: "Spectro Approach"
+      path: "predefined_poses/spectro_approach.yaml"
       joints_set:
           [
               "arm_joint_1",
