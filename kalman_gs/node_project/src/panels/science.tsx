@@ -15,7 +15,8 @@ import {
   faArrowDown,
   faArrowUp,
   faStop,
-  faDiagramProject
+  faDiagramProject,
+  faRuler
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useEffect, useState, useRef } from 'react';
@@ -550,7 +551,7 @@ function Magnetometer() {
   const redBg = style.getPropertyValue('--red-background');
   const greenBg = style.getPropertyValue('--green-background');
   const blueBg = style.getPropertyValue('--blue-background');
-  const whiteBg = style.getPropertyValue('--white-background');
+  const magentaBg = style.getPropertyValue('--magenta-background');
   const darkBg = style.getPropertyValue('--dark-background');
 
   return <>
@@ -567,7 +568,11 @@ function Magnetometer() {
       <Label color={darkBg} className={styles['science-row-item'] + ' ' + styles['science-selectable']}>
         {magField ? magField.z.toFixed(2) : '---'}
       </Label>
-      <Label color={whiteBg}>Mag</Label>
+    </div>
+    <div className={styles['science-row']}>
+      <Label color={magentaBg}>
+        <FontAwesomeIcon icon={faRuler} />
+      </Label>
       <Label color={darkBg} className={styles['science-row-item'] + ' ' + styles['science-selectable']}>
         {magField ? magField.abs.toFixed(2) : '---'}
       </Label>
