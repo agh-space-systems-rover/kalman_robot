@@ -3,6 +3,7 @@ from rclpy.node import Node
 import numpy as np
 from struct import pack
 from kalman_interfaces.msg import Drill, MasterMessage
+from std_srvs.srv import Trigger
 
 ARM_SPEED = 50
 RACK_SPEED = 50
@@ -23,6 +24,22 @@ class DrillDriver(Node):
         )
 
         self.create_subscription(Drill, "drill", self.drill_data, 1)
+
+        self.create_service(Trigger, "drill/auto/start", self.start_autonomy_cb)
+        self.create_service(Trigger, "drill/auto/stop", self.start_autonomy_cb)
+
+    def start_autonomy_cb(self):
+        msg = MasterMessage()
+        msg.cmd = MasterMessage.DRILL_AUTONOMY
+        msg.data = [1]
+        self.master_pub.publish(msg)
+
+    def stop_autonomy_cb(self):
+        msg = MasterMessage()
+        msg.cmd = MasterMessage.DRILL_AUTONOMY
+        msg.data = [0]
+        self.master_pub.publish(msg)
+
 
     def drill_data(self, msg: Drill):
         msg.arm = np.clip(msg.arm, -1, 1)
