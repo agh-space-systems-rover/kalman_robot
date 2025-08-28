@@ -10,8 +10,8 @@ storage = {
         "board": 0,
         "channel": 3,
         # calibration coeffs
-        "scale": 134.0 / 3565.0,
-        "bias": -1782.0 / 31.0,
+        "scale": 23739.0 / 1310000.0,
+        "bias": - 44568183.0 / 1310000.0,
         # safe angles for the servo
         "open_angle": 180,
         "close_angle": 0,
@@ -20,18 +20,18 @@ storage = {
         {
             "board": 0,
             "channel": 0,
-            "scale": 1.0,
-            "bias": 0.0, 
-            "open_angle": 0,
-            "close_angle": 180,
+            "scale": 23739.0 / 1425700.0,
+            "bias": -447639993.0 / 712850.0,
+            "open_angle": 180,
+            "close_angle": 0,
         },
         {
             "board": 0,
-            "channel": 1,
-            "scale": 1.0,
+            "channel": 2,
+            "scale": 23739.0 / 1425700.0,
             "bias": 0.0, 
-            "open_angle": 0,
-            "close_angle": 180,
+            "open_angle": 180,
+            "close_angle": 0,
         },
 
     ]
@@ -109,6 +109,8 @@ class StorageDriver(Node):
         # Pad data to 8 bytes to handle struct alignment
         padded_data = bytes(msg.data[:6])
         board_id, channel_id, value = struct.unpack("<BBi", padded_data)
+
+        self.get_logger().info(f"{channel_id} = {value}")
         
         # Find which storage this corresponds to
         storage_name = None
@@ -128,6 +130,8 @@ class StorageDriver(Node):
             value = value * storage[storage_name][info_idx]["scale"] + storage[storage_name][info_idx]["bias"]
             self.last_values[storage_name][info_idx] = value
             total_value = sum(self.last_values[storage_name])
+
+            self.get_logger().info(f"{self.last_values}")
             self.api_pubs[storage_name].publish(Float32(data=float(total_value)))
         else:
             self.get_logger().warn(
