@@ -90,8 +90,8 @@ poses:
       joints_reversed: []
       safe_previous_poses: [0, 2, 3, 4, 5, 6]
     - id: 6
-      name: "Spectro approach"
-      path: "predefined_poses/spectro_approach.yaml"
+      name: "Sand storage"
+      path: "predefined_poses/sand_storage.yaml"
       joints_set:
           [
               "arm_joint_1",
@@ -101,25 +101,10 @@ poses:
               "arm_joint_5",
               "arm_joint_6",
           ]
-      joints_checked: ["arm_joint_2", "arm_joint_3"]
+      joints_checked: []
       joints_reversed: []
       safe_previous_poses: [0, 2, 5]
     - id: 7
-      name: "Sample storage"
-      path: "predefined_poses/sample_storage.yaml"
-      joints_set:
-          [
-              "arm_joint_1",
-              "arm_joint_2",
-              "arm_joint_3",
-              "arm_joint_4",
-              "arm_joint_5",
-              "arm_joint_6",
-          ]
-      joints_checked: ["arm_joint_2", "arm_joint_3"]
-      joints_reversed: []
-      safe_previous_poses: [0, 2, 5]
-    - id: 8
       name: "Rock storage"
       path: "predefined_poses/rock_storage.yaml"
       joints_set:
@@ -131,21 +116,6 @@ poses:
               "arm_joint_5",
               "arm_joint_6",
           ]
-      joints_checked: ["arm_joint_2", "arm_joint_3"]
-      joints_reversed: []
-      safe_previous_poses: [0, 2, 5]
-    - id: 9
-      name: "Lenka box"
-      path: "predefined_poses/lenka_box.yaml"
-      joints_set:
-          [
-              "arm_joint_1",
-              "arm_joint_2",
-              "arm_joint_3",
-              "arm_joint_4",
-              "arm_joint_5",
-              "arm_joint_6",
-          ]
-      joints_checked: ["arm_joint_2", "arm_joint_3"]
+      joints_checked: []
       joints_reversed: []
       safe_previous_poses: [0, 2, 5]
