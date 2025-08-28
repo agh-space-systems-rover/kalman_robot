@@ -27,7 +27,8 @@ class SetJaw : public BT::StatefulActionNode {
 
 	std::shared_ptr<rclcpp::Publisher<kalman_interfaces::msg::ArmValues>> pub_;
 	std::shared_ptr<rclcpp::Subscription<kalman_interfaces::msg::ArmValues>>
-	    sub_;
+	             sub_;
+	rclcpp::Time start_time_;
 
 	void arm_callback(const kalman_interfaces::msg::ArmValues::SharedPtr msg);
 };

@@ -1,9 +1,15 @@
-<root main_tree_to_execute="MainTree">
+<!-- <root main_tree_to_execute="MainTree"> -->
+<root main_tree_to_execute="SimpleTree">
+  <!-- <root main_tree_to_execute="TestTree"> -->
   <BehaviorTree ID="MainTree">
     <Sequence>
-      <SetJaw jaw="0.0" />
+      <!-- <SetJaw jaw="0.0" />
+      <Say message="Jaw set" /> -->
+      <!-- <ArmNavigateToPose j0="0.0" j1="-1.2" j2="2.7" j3="0" j4="0.7" j5="0.0" /> -->
       <Parallel name="Run goal guard" success_threshold="1" failure_threshold="2">
-        <ArmNavigateToPose j0="0.0" j1="-1.2" j2="2.7" j3="0" j4="0.7" j5="0.0" />
+        <ForceFailure>
+          <ArmNavigateToPose j0="0.0" j1="-1.2" j2="2.7" j3="0" j4="0.7" j5="0.0" />
+        </ForceFailure>
         <RetryUntilSuccessful num_attempts="-1">
           <IsRecentDetection max_age_ms="500" first_marker_position="{first_marker_pos}"
             first_marker_id="{first_marker_id}" />
@@ -74,8 +80,97 @@
   </BehaviorTree>
 
   <BehaviorTree ID="TestTree">
-    <RetryUntilSuccessful num_attempts="10">
+    <!-- <ArmNavigateToPose j0="0.0" j1="-1.2" j2="2.7" j3="0" j4="0.7" j5="0.0" /> -->
+    <!-- <RetryUntilSuccessful num_attempts="10">
       <RotateHead ry="0.1" />
-    </RetryUntilSuccessful>
+    </RetryUntilSuccessful> -->
+    <Sequence>
+      <!-- <Timeout msec="1000">
+        <SetJaw jaw="0.0" />
+      </Timeout> -->
+      <!-- <ArmNavigateToPose j0="0.0" j1="0" j2="0" j3="0" j4="0.0" j5="0.0" /> -->
+      <ArmNavigateToPose j0="0.0" j1="-1.2" j2="2.7" j3="0" j4="0.7" j5="0.0" />
+      <Parallel name="Run goal guard" success_threshold="1" failure_threshold="2">
+        <ForceFailure>
+          <ArmNavigateToPose j0="0.0" j1="-1.2" j2="2.7" j3="0" j4="0.7" j5="0.0" />
+        </ForceFailure>
+        <RetryUntilSuccessful num_attempts="-1">
+          <IsRecentDetection max_age_ms="500" first_marker_position="{first_marker_pos}"
+            first_marker_id="{first_marker_id}" />
+        </RetryUntilSuccessful>
+      </Parallel>
+      <ComeCloser aruco_position="{first_marker_pos}" aruco_id="{first_marker_id}" />
+    </Sequence>
+  </BehaviorTree>
+
+  <BehaviorTree ID="SimpleTree">
+    <Sequence>
+      <SetJaw jaw="0.0" />
+      <Say message="Jaw set" />
+
+      <!-- Hopefully, this pose will prevent IK from fucking up the arm later -->
+      <ArmNavigateToPose j0="0.0" j1="0.8" j2="2.5" j3="0" j4="-1.2" j5="0.0" />
+      <!-- <ArmNavigateToPose j0="0.0" j1="-1.2" j2="2.7" j3="0" j4="0.7" j5="0.0" /> -->
+      <Parallel name="Run goal guard" success_threshold="1" failure_threshold="2">
+        <ForceFailure>
+          <ArmNavigateToPose j0="0.0" j1="-1.2" j2="2.7" j3="0" j4="0.7" j5="0.0" />
+        </ForceFailure>
+        <RetryUntilSuccessful num_attempts="-1">
+          <IsRecentDetection max_age_ms="500" first_marker_position="{first_marker_pos}"
+            first_marker_id="{first_marker_id}" />
+        </RetryUntilSuccessful>
+      </Parallel>
+
+      <ComeCloser aruco_position="{first_marker_pos}" aruco_id="{first_marker_id}" />
+
+      <AveragePose mission_helper="{state}" aruco_id="{first_marker_id}" />
+
+      <!-- <ForceFailure>
+        <Say message="End" />
+      </ForceFailure> -->
+
+      <!-- <ForceFailure>
+        <Say message="End" />
+      </ForceFailure> -->
+
+      <!-- One marker pose is known, let's find the rest -->
+      <RetryUntilSuccessful num_attempts="-1">
+        <Inverter>
+          <WhileDoElse name="LoopUntilEmpty">
+            <HasNextGoal mission_helper="{state}" />
+
+            <Sequence name="OneIteration">
+              <GetNextGoal mission_helper="{state}" next_marker_pose="{next_marker_pose}"
+                aruco_id="{first_marker_id}" />
+              <Say message="GetNextGoal did not fail" />
+
+              <RetryUntilSuccessful num_attempts="-1">
+                <Sequence>
+                  <ForceSuccess>
+                    <Timeout msec="2000">
+                      <IKNavigateToPose pose="{next_marker_pose}" />
+                    </Timeout>
+                  </ForceSuccess>
+                  <Say message="IK did not fail" />
+                  <ComeCloser aruco_id="{first_marker_id}" />
+                  <Say message="ComeCloser did not fail" />
+                </Sequence>
+              </RetryUntilSuccessful>
+              <AveragePose mission_helper="{state}" aruco_id="{first_marker_id}" />
+              <Say message="AveragePose did not fail" />
+            </Sequence>
+
+            <!-- Return false, so inverter produces success -->
+            <AlwaysFailure />
+          </WhileDoElse>
+        </Inverter>
+      </RetryUntilSuccessful>
+
+      <Say message="All markers detected, calculating plane" />
+      <BuildUV mission_helper="{state}" />
+      <ShowBoard mission_helper="{state}" />
+
+      <Say message="I am done, entering infinite loop ..." />
+    </Sequence>
   </BehaviorTree>
 </root>

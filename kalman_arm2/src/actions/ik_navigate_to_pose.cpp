@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <geometry_msgs/msg/detail/pose__struct.hpp>
 #include <geometry_msgs/msg/detail/transform_stamped__struct.hpp>
+#include <geometry_msgs/msg/detail/vector3__struct.hpp>
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include <geometry_msgs/msg/transform.hpp>
 #include <geometry_msgs/msg/twist_stamped.hpp>
@@ -13,6 +14,7 @@
 #include <memory>
 #include <rclcpp/logging.hpp>
 #include <rclcpp_action/create_client.hpp>
+#include <sstream>
 #include <string>
 #include <tf2/LinearMath/QuadWord.hpp>
 #include <tf2/LinearMath/Quaternion.hpp>
@@ -24,6 +26,7 @@
 #include <tf2_ros/static_transform_broadcaster.h>
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2_ros/transform_listener.h>
+#include <rosidl_runtime_cpp/traits.hpp>
 
 IKNavigateToPose::IKNavigateToPose(
     const std::string           &name,
@@ -38,6 +41,11 @@ IKNavigateToPose::IKNavigateToPose(
 	tf_buffer_   = std::make_unique<tf2_ros::Buffer>(parent_->get_clock());
 	tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
 	static_broadcaster_ = std::make_shared<tf2_ros::StaticTransformBroadcaster>(parent_);
+
+	marker_pub_ =
+	    parent_->create_publisher<visualization_msgs::msg::MarkerArray>(
+	        "debug_markers", 10
+	    );
 }
 
 BT::PortsList IKNavigateToPose::providedPorts() {
@@ -48,6 +56,32 @@ BT::PortsList IKNavigateToPose::providedPorts() {
 
 BT::NodeStatus IKNavigateToPose::onStart() {
 	pose = getInput<geometry_msgs::msg::Pose>("pose").value();
+	RCLCPP_ERROR_STREAM(parent_->get_logger(), name() << "Navigating to " << geometry_msgs::msg::to_yaml(pose));
+
+
+	{
+	visualization_msgs::msg::MarkerArray arr;
+	rclcpp::Time                         stamp = parent_->now();
+
+		visualization_msgs::msg::Marker m{};
+		m.header.frame_id    = "base_link";
+		m.header.stamp       = stamp;
+		m.ns                 = "debug";
+		m.id                 = 999;
+		m.action             = visualization_msgs::msg::Marker::ADD;
+		m.type               = visualization_msgs::msg::Marker::CUBE;
+		m.scale.x            = 0.1;
+		m.scale.y            = 0.1;
+		m.scale.z            = 0.1;
+		m.pose = pose;
+		m.color.a = 0.15;
+		m.color.r = 0.9;
+		m.color.g = 0.0;
+		m.color.b = 0.0;
+		arr.markers.push_back(m);
+		marker_pub_->publish(arr);
+	}
+
 	return BT::NodeStatus::RUNNING;
 }
 
@@ -151,7 +185,8 @@ BT::NodeStatus IKNavigateToPose::onRunning() {
 
 			twist.header.frame_id = base_frame_;
 
-			const float factor = -0.1;
+			// const float factor = -0.1;
+			const float factor = -0.5;
 
 			twist.twist.linear.x =
 			    (current_pose.position.x - pose.position.x) * factor;
@@ -160,6 +195,7 @@ BT::NodeStatus IKNavigateToPose::onRunning() {
 			twist.twist.linear.z =
 			    (current_pose.position.z - pose.position.z) * factor;
 
+			if (0)
 			{
 				// We want the end effector to be perpendicular to marker
 				tf2::Quaternion q;
@@ -182,21 +218,31 @@ BT::NodeStatus IKNavigateToPose::onRunning() {
 				// static_broadcaster_->sendTransform(transform);
 
 				twist.twist.angular = angularVelToTarget(current_pose.orientation, pose_copy.orientation);
+				twist.twist.angular.x *= 0.1;
+				twist.twist.angular.y *= 0.1;
+				twist.twist.angular.z *= 0.1;
 			}
 
 			const auto v = twist.twist.linear;
+			const auto a = twist.twist.angular;
+
+			const float a_threshold = 0.2;
+			const bool a_reached = (std::abs(a.x) < a_threshold) && (std::abs(a.y) < a_threshold) && (std::abs(a.z) < a_threshold);
 
 			const auto vec3mag = [](geometry_msgs::msg::Vector3 v) -> float {
 				return v.x * v.x + v.y * v.y + v.z * v.z;
 			};
-			const float magnitude = vec3mag(v);
-			if (magnitude < 1e-4) {
+			const float magnitude = vec3mag(v) / (factor * factor);
+			if ((magnitude < 1e-3) && a_reached) {
 				RCLCPP_INFO_STREAM(
 				    parent_->get_logger(), name() << "Returning SUCCESS"
 				);
 				return BT::NodeStatus::SUCCESS;
+			} else {
+				// twist.twist.angular = geometry_msgs::msg::Vector3{};
 			}
 
+			RCLCPP_ERROR_STREAM(parent_->get_logger(), name() << " sending twist " << geometry_msgs::msg::to_yaml(twist));
 			arm_pub_->publish(twist);
 		}
 

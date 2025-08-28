@@ -19,9 +19,11 @@ SetJaw::SetJaw(
 	    "target_pos/jaw", 10
 	);
 
-  using namespace std::placeholders;
+	using namespace std::placeholders;
 	sub_ = parent_->create_subscription<kalman_interfaces::msg::ArmValues>(
-	    "current_pos", 10, std::bind(&SetJaw::arm_callback, this, std::placeholders::_1)
+	    "current_pos",
+	    10,
+	    std::bind(&SetJaw::arm_callback, this, std::placeholders::_1)
 	);
 }
 
@@ -37,26 +39,39 @@ BT::NodeStatus SetJaw::onStart() {
 		);
 		return BT::NodeStatus::FAILURE;
 	}
-	target_jaw_angle = jaw_opt.value();
-  current_jaw_angle = {};
+	target_jaw_angle  = jaw_opt.value();
+	current_jaw_angle = {};
+	start_time_       = parent_->now();
 
 	return BT::NodeStatus::RUNNING;
 }
 
 BT::NodeStatus SetJaw::onRunning() {
-  if (!current_jaw_angle.has_value()){
-    RCLCPP_INFO_STREAM(parent_->get_logger(), name() << " waiting for jaw value");
-    return BT::NodeStatus::RUNNING;
-  }
-  const double current = current_jaw_angle.value();
-  const double target = target_jaw_angle;
-  const double dx = std::abs(current - target);
-  if (dx < 0.01) {
-    return BT::NodeStatus::SUCCESS;
-  }
-  kalman_interfaces::msg::ArmValues arm_vals;
-  arm_vals.jaw = target;
-  pub_->publish(arm_vals);
+	if (!current_jaw_angle.has_value()) {
+		RCLCPP_INFO_STREAM(
+		    parent_->get_logger(), name() << " waiting for jaw value"
+		);
+		return BT::NodeStatus::RUNNING;
+	}
+	const double current = current_jaw_angle.value();
+	const double target  = target_jaw_angle;
+	const double dx      = std::abs(current - target);
+	if (dx < 0.01) {
+		return BT::NodeStatus::SUCCESS;
+	}
+	kalman_interfaces::msg::ArmValues arm_vals;
+	arm_vals.jaw = target;
+	pub_->publish(arm_vals);
+
+	const auto time_since_start = parent_->now() - start_time_;
+	if (time_since_start > std::chrono::seconds{2}) {
+		RCLCPP_INFO_STREAM(
+		    parent_->get_logger(),
+		    name() << ": arm did not close withing 2 seconds. Fuck waiting and "
+		              "return true"
+		);
+		return BT::NodeStatus::SUCCESS;
+	}
 
 	return BT::NodeStatus::RUNNING;
 }
@@ -68,4 +83,3 @@ void SetJaw::arm_callback(
 ) {
 	current_jaw_angle = msg->jaw;
 }
-

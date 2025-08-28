@@ -111,6 +111,7 @@ geometry_msgs::msg::Pose GetNextGoal::uv_to_pose(size_t ix) const {
     );
 	geometry_msgs::msg::Pose target_pos;
 	target_pos.position.z = 0.3; // 30cm
+	// target_pos.position.y = -0.1;
 
 	tf2::Transform           T_to_base = toTf(T_marker_to_base.transform);
 	geometry_msgs::msg::Pose target_pos_in_base_frame =

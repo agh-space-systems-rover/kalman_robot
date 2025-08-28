@@ -328,8 +328,173 @@ class BuildUV : public BT::StatefulActionNode {
 			Eigen::Vector3d pred  = O3 + U_vec * UV(0, i) + V_vec * UV(1, i);
 			err2                 += (pred - P[i]).squaredNorm();
 		}
-		// rms_   = std::sqrt(err2 / N);
-		// valid_ = true;
+		const auto rms   = std::sqrt(err2 / N);
+		const auto valid = true;
+		RCLCPP_INFO_STREAM(logger, "RMS: " << rms << " valid: " << valid);
+		return true;
+	}
+
+	bool buildUnitScale_v4(
+	    const std::vector<UVAnchor> &anchors,
+	    tf2_ros::Buffer             &tf_buffer,
+	    const std::string           &base_frame,
+	    const std::string           &uv_board_frame,
+	    Eigen::Isometry3d           &T_base_to_board, // Output
+	    rclcpp::Logger logger = rclcpp::get_logger("UVtoXYZMapper"),
+	    const std::optional<Eigen::Vector3d> &normal_facing_hint = std::nullopt
+	) {
+		// reset_();
+		if (anchors.size() < 3) {
+			RCLCPP_ERROR(logger, "Need ≥3 anchors");
+			return false;
+		}
+
+		// 1) Fetch anchors
+		const int                    N = static_cast<int>(anchors.size());
+		std::vector<Eigen::Vector3d> P;
+		P.reserve(N);
+		Eigen::Matrix<double, 2, Eigen::Dynamic> UV(2, N);
+		try {
+			for (int i = 0; i < N; ++i) {
+				auto ts = tf_buffer.lookupTransform(
+				    base_frame, anchors[i].tf_name, tf2::TimePointZero
+				);
+				P.emplace_back(tf2::transformToEigen(ts).translation());
+				UV(0, i) = anchors[i].uv.x();
+				UV(1, i) = anchors[i].uv.y();
+			}
+		} catch (const tf2::TransformException &e) {
+			RCLCPP_ERROR(logger, "TF lookup failed: %s", e.what());
+			return false;
+		}
+
+		// 2) Plane PCA to get {e1,e2,n}
+		Eigen::Vector3d centroid = Eigen::Vector3d::Zero();
+		for (auto &p : P) {
+			centroid += p;
+		}
+		centroid          /= double(N);
+		Eigen::Matrix3d C  = Eigen::Matrix3d::Zero();
+		for (auto &p : P) {
+			auto d  = p - centroid;
+			C      += d * d.transpose();
+		}
+		Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es(C);
+		if (es.info() != Eigen::Success) {
+			RCLCPP_ERROR(logger, "Eigen fail");
+			return false;
+		}
+		Eigen::Vector3d n_hat = es.eigenvectors().col(0).normalized();
+		Eigen::Vector3d e1    = es.eigenvectors().col(2).normalized();
+		Eigen::Vector3d e2    = n_hat.cross(e1).normalized();
+
+		// 3) Project to plane coords S (meters)
+		Eigen::Matrix<double, 2, Eigen::Dynamic> S(2, N);
+		for (int i = 0; i < N; ++i) {
+			Eigen::Vector3d d = P[i] - centroid;
+			S(0, i)           = e1.dot(d);
+			S(1, i)           = e2.dot(d);
+		}
+
+		// 4) Centroid align
+		Eigen::Vector2d Umean = UV.rowwise().mean();
+		Eigen::Vector2d Smean = S.rowwise().mean();
+		Eigen::MatrixXd U0    = UV.colwise() - Umean; // 2xN
+		Eigen::MatrixXd S0    = S.colwise() - Smean;  // 2xN
+
+		// 5) Rotation from circular mean of per-pair angles (as before)
+		auto cross2 = [](const Eigen::Vector2d &a, const Eigen::Vector2d &b) {
+			return a.x() * b.y() - a.y() * b.x();
+		};
+		const double r_min     = 1e-6;
+		double       sum_w_sin = 0, sum_w_cos = 0, sum_w = 0;
+		for (int i = 0; i < N; ++i) {
+			Eigen::Vector2d u = U0.col(i), s = S0.col(i);
+			double          ru = u.norm(), rs = s.norm();
+			if (ru < r_min || rs < r_min) {
+				continue;
+			}
+			double c   = std::clamp(u.dot(s) / (ru * rs), -1.0, 1.0);
+			double sg  = cross2(u, s) / (ru * rs);
+			double w   = std::max(ru, rs);
+			sum_w_sin += w * sg;
+			sum_w_cos += w * c;
+			sum_w     += w;
+		}
+		if (sum_w <= 0) {
+			RCLCPP_ERROR(logger, "Degenerate after centering");
+			return false;
+		}
+		double          theta = std::atan2(sum_w_sin, sum_w_cos);
+		Eigen::Matrix2d R2;
+		double          ct = std::cos(theta), st = std::sin(theta);
+		R2 << ct, -st, st, ct;
+		Eigen::Vector2d t2 = Smean - R2 * Umean;
+
+		// 5b) *** Orientation disambiguation (avoid 180° flip) ***
+		// Score how well R2 maps U0 to S0 using weighted dot products.
+		auto score_of = [&](const Eigen::Matrix2d &R) {
+			double score = 0.0;
+			for (int i = 0; i < N; ++i) {
+				Eigen::Vector2d u = U0.col(i), s = S0.col(i);
+				double          ru = u.norm(), rs = s.norm();
+				if (ru < r_min || rs < r_min) {
+					continue;
+				}
+				double w = std::max(ru, rs);
+				score +=
+				    w * (R * u).dot(s); // positive if roughly same direction
+			}
+			return score;
+		};
+		double score = score_of(R2);
+		if (score < 0.0) {
+			R2 = -R2;                // rotate by 180° in-plane
+			t2 = Smean - R2 * Umean; // recompute translation
+		}
+
+		// 6) Lift to 3D
+		Eigen::Vector3d U_vec = e1 * R2(0, 0) + e2 * R2(1, 0);
+		Eigen::Vector3d V_vec = e1 * R2(0, 1) + e2 * R2(1, 1);
+		Eigen::Vector3d O3    = centroid + e1 * t2.x() + e2 * t2.y();
+
+		// Orthonormalize and apply normal-facing preference
+		U_vec.normalize();
+		V_vec = (n_hat.cross(U_vec)).normalized();
+		n_hat = U_vec.cross(V_vec).normalized();
+
+		if (normal_facing_hint) {
+			Eigen::Vector3d hint = normal_facing_hint->normalized();
+			if (n_hat.dot(hint) < 0.0) {
+				n_hat = -n_hat;
+				V_vec = -V_vec; // keep right-handed triad with same U
+			}
+		}
+
+		// 7) Pack transform and compute RMS
+		// base_frame_     = base_frame;
+		// uv_board_frame_ = uv_board_frame;
+		Eigen::Matrix3d R3;
+		R3.col(0) = U_vec;
+		R3.col(1) = V_vec;
+		R3.col(2) = n_hat;
+		T_base_to_board.setIdentity();
+		T_base_to_board.linear()      = R3;
+		T_base_to_board.translation() = O3;
+
+		// A_.col(0) = U_vec;
+		// A_.col(1) = V_vec;
+		// A_.col(2) = O3;
+
+		double err2 = 0;
+		for (int i = 0; i < N; ++i) {
+			Eigen::Vector3d pred  = O3 + U_vec * UV(0, i) + V_vec * UV(1, i);
+			err2                 += (pred - P[i]).squaredNorm();
+		}
+
+		const auto rms   = std::sqrt(err2 / N);
+		const auto valid = true;
+		RCLCPP_INFO_STREAM(logger, "RMS: " << rms << " valid: " << valid);
 		return true;
 	}
 };

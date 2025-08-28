@@ -20,6 +20,7 @@
 #include <tf2_ros/static_transform_broadcaster.h>
 #include <tf2_ros/transform_listener.h>
 #include <thread>
+#include <visualization_msgs/msg/marker_array.hpp>
 
 class IKNavigateToPose : public BT::StatefulActionNode {
   public:
@@ -41,6 +42,8 @@ class IKNavigateToPose : public BT::StatefulActionNode {
 	std::unique_ptr<tf2_ros::Buffer>                               tf_buffer_;
 	std::shared_ptr<tf2_ros::TransformListener>                    tf_listener_;
   geometry_msgs::msg::Pose pose;
+
+	rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr marker_pub_;
 
 	std::shared_ptr<tf2_ros::StaticTransformBroadcaster> static_broadcaster_;
 };

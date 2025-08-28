@@ -13,7 +13,6 @@
 #include <kdl/tree.hpp>
 #include <kdl/chain.hpp>
 #include <kdl/chainiksolvervel_wdls.hpp>
-#include <kdl/chainiksolvervel_pinv_nso.hpp>
 #include <kdl/jntarray.hpp>
 
 namespace kalman_arm2 {
@@ -40,7 +39,7 @@ public:
 
     // Kinematics
     KDL::Chain arm_chain;
-    std::unique_ptr<KDL::ChainIkSolverVel_pinv_nso> ik_solver;
+    std::unique_ptr<KDL::ChainIkSolverVel_wdls> ik_solver;
     KDL::JntArray current_joint_positions;
     bool joints_initialized;
     bool kinematics_ready;
@@ -125,22 +124,9 @@ public:
         joint_weights(3, 3) = 10.0;
         joint_weights(4, 4) = 0.5;
 
-        KDL::JntArray q_nom(arm_chain.getNrOfJoints());
-        for (unsigned i = 0; i < q_nom.rows(); ++i){
-          q_nom(i) = 0.0;
-        } 
-
-        ik_solver = std::make_unique<KDL::ChainIkSolverVel_pinv_nso>(arm_chain, 1e-6, 150, 0.2);
-        // ik_solver->setWeightJS(joint_weights);
-        // ik_solver->setLambda(0.5);
-        KDL::JntArray w(arm_chain.getNrOfJoints());
-        for (unsigned i = 0; i < w.rows(); ++i) w(i) = 1.0;
-        // example: damp the “trouble” joint a bit
-        w(3) = 2.0;
-        ik_solver->setWeights(w);
-        ik_solver->setOptPos(q_nom);     // <- breaks the symmetry
-        // ik_solver->setAlpha(0.8);        // <- gentle pull toward q_nom in the null space
-        ik_solver->setAlpha(0.8);        // <- gentle pull toward q_nom in the null space
+        ik_solver = std::make_unique<KDL::ChainIkSolverVel_wdls>(arm_chain);
+        ik_solver->setWeightJS(joint_weights);
+        ik_solver->setLambda(0.5);
 
         current_joint_positions.resize(arm_chain.getNrOfJoints());
         kinematics_ready = true;
@@ -265,7 +251,6 @@ public:
         for (size_t i = 0; i < joint_velocities.rows(); ++i) {
             vel_msg.joints[i] = joint_velocities(i);
         }
-
 
         joint_vel_pub->publish(vel_msg);
     }

@@ -126,11 +126,13 @@ class BTPanel : public rclcpp::Node {
 			if (get_parameter("enable_zmq_publisher").as_bool()) {
 				zmq_publisher_ = std::make_unique<BT::PublisherZMQ>(*tree_);
 			}
+			stop_requested_ = false;
 		} catch (const std::exception &e) {
 			RCLCPP_ERROR(get_logger(), "Failed to configure BT: %s", e.what());
 			tree_.reset();
+			stop_requested_ = true;
 		}
-		stop_requested_ = false;
+		// stop_requested_ = false;
 	}
 
   private:

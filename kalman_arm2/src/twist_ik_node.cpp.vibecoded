@@ -1,0 +1,408 @@
+// twist_pose_ik_node.cpp
+#include <rclcpp/rclcpp.hpp>
+#include <rclcpp_action/server_goal_handle.hpp>
+#include <rclcpp_components/register_node_macro.hpp>
+
+#include <geometry_msgs/msg/twist_stamped.hpp>
+#include <geometry_msgs/msg/pose_stamped.hpp>
+#include <std_msgs/msg/string.hpp>
+
+#include <kalman_interfaces/msg/arm_values.hpp>
+
+#include <tf2_ros/transform_listener.h>
+#include <tf2_ros/buffer.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
+
+#include <urdf/model.h>
+#include <kdl_parser/kdl_parser.hpp>
+
+#include <kdl/tree.hpp>
+#include <kdl/chain.hpp>
+#include <kdl/jntarray.hpp>
+#include <kdl/chainfksolverpos_recursive.hpp>
+#include <kdl/chainiksolvervel_pinv_nso.hpp>  // null-space optimized solver
+#include <kdl/frames.hpp>
+
+#include <Eigen/Dense>
+#include <mutex>
+
+namespace kalman_arm2 {
+
+class TwistIK : public rclcpp::Node {
+public:
+  // ROS interfaces
+  rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr twist_sub;
+  rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr  pose_sub;
+  rclcpp::Subscription<kalman_interfaces::msg::ArmValues>::SharedPtr joint_pos_sub;
+  rclcpp::Subscription<std_msgs::msg::String>::SharedPtr robot_description_sub;
+  rclcpp::Publisher<kalman_interfaces::msg::ArmValues>::SharedPtr joint_vel_pub;
+  rclcpp::TimerBase::SharedPtr compute_timer;
+
+  // TF2
+  std::shared_ptr<tf2_ros::TransformListener> tf_listener;
+  std::shared_ptr<tf2_ros::Buffer> tf_buffer;
+
+  // Parameters
+  std::string base_link;
+  std::string end_effector_link;
+  float  max_joint_vel;
+  double update_rate;
+  double control_timeout;
+
+  // Pose-servo parameters
+  double kp_lin;            // m/s per m of error
+  double kp_ang;            // rad/s per rad of error
+  double max_twist_lin;     // m/s cap
+  double max_twist_ang;     // rad/s cap
+  double goal_tol_pos;      // meters
+  double goal_tol_rot;      // radians
+  bool   stop_at_goal;      // publish zeros when converged
+
+  // Kinematics
+  KDL::Chain arm_chain;
+  std::unique_ptr<KDL::ChainFkSolverPos_recursive> fk_solver;
+  std::unique_ptr<KDL::ChainIkSolverVel_pinv_nso>  ik_solver;
+  KDL::JntArray current_joint_positions;
+  bool joints_initialized{false};
+  bool kinematics_ready{false};
+
+  // Null-space preferred posture
+  KDL::JntArray q_nom;
+
+  // Latest commands / targets
+  geometry_msgs::msg::TwistStamped::SharedPtr latest_twist;
+  geometry_msgs::msg::PoseStamped::SharedPtr  latest_pose;
+  std::mutex twist_mutex, pose_mutex;
+  rclcpp::Time last_twist_time;
+  rclcpp::Time last_pose_time;
+
+  TwistIK(const rclcpp::NodeOptions &options)
+    : Node("twist_ik", options),
+      last_twist_time(now()), last_pose_time(now()) {
+
+    // --- Parameters ---
+    this->declare_parameter<std::string>("base_link", "base_link");
+    this->declare_parameter<std::string>("end_effector_link", "arm_link_end");
+    this->declare_parameter<float>("max_joint_vel", 0.5f);
+    this->declare_parameter<double>("update_rate", 100.0);           // faster servo
+    this->declare_parameter<double>("control_timeout", 0.5);
+
+    this->declare_parameter<double>("kp_lin", 2.0);                  // gains
+    this->declare_parameter<double>("kp_ang", 2.0);
+    this->declare_parameter<double>("max_twist_lin", 0.2);           // caps
+    this->declare_parameter<double>("max_twist_ang", 0.8);
+    this->declare_parameter<double>("goal_tol_pos", 0.005);          // 5 mm
+    this->declare_parameter<double>("goal_tol_rot", 0.01);           // ~0.57 deg
+    this->declare_parameter<bool>("stop_at_goal", true);
+
+    this->get_parameter("base_link", base_link);
+    this->get_parameter("end_effector_link", end_effector_link);
+    this->get_parameter("max_joint_vel", max_joint_vel);
+    this->get_parameter("update_rate", update_rate);
+    this->get_parameter("control_timeout", control_timeout);
+    this->get_parameter("kp_lin", kp_lin);
+    this->get_parameter("kp_ang", kp_ang);
+    this->get_parameter("max_twist_lin", max_twist_lin);
+    this->get_parameter("max_twist_ang", max_twist_ang);
+    this->get_parameter("goal_tol_pos", goal_tol_pos);
+    this->get_parameter("goal_tol_rot", goal_tol_rot);
+    this->get_parameter("stop_at_goal", stop_at_goal);
+
+    // TF2
+    tf_buffer = std::make_shared<tf2_ros::Buffer>(get_clock());
+    tf_listener = std::make_shared<tf2_ros::TransformListener>(*tf_buffer);
+
+    // Pub/sub
+    joint_vel_pub = create_publisher<kalman_interfaces::msg::ArmValues>("target_vel", 10);
+
+    joint_pos_sub = create_subscription<kalman_interfaces::msg::ArmValues>(
+      "current_pos", 10, std::bind(&TwistIK::on_joint_positions, this, std::placeholders::_1));
+
+    twist_sub = create_subscription<geometry_msgs::msg::TwistStamped>(
+      "target_twist", 10, std::bind(&TwistIK::on_target_twist, this, std::placeholders::_1));
+
+    pose_sub = create_subscription<geometry_msgs::msg::PoseStamped>(
+      "target_pose", 10, std::bind(&TwistIK::on_target_pose, this, std::placeholders::_1));
+
+    // Timer
+    auto period = std::chrono::duration<double>(1.0 / update_rate);
+    compute_timer = create_wall_timer(period, std::bind(&TwistIK::compute_joint_velocities, this));
+
+    // robot_description (latched)
+    rclcpp::QoS robot_description_qos(1);
+    robot_description_qos.transient_local();
+    robot_description_qos.reliable();
+    robot_description_sub = create_subscription<std_msgs::msg::String>(
+      "/robot_description", robot_description_qos,
+      std::bind(&TwistIK::on_robot_description, this, std::placeholders::_1));
+
+    RCLCPP_INFO(get_logger(), "TwistIK ready. Waiting for /robot_description and targets.");
+  }
+
+  // --- Robot description -> KDL chain/solvers ---
+  void on_robot_description(const std_msgs::msg::String::SharedPtr msg) {
+    if (kinematics_ready) return;
+
+    urdf::Model model;
+    if (!model.initString(msg->data)) {
+      RCLCPP_ERROR(get_logger(), "Failed to parse URDF from /robot_description.");
+      return;
+    }
+
+    KDL::Tree kdl_tree;
+    if (!kdl_parser::treeFromUrdfModel(model, kdl_tree)) {
+      RCLCPP_ERROR(get_logger(), "Failed to create KDL tree from URDF.");
+      return;
+    }
+
+    if (!kdl_tree.getChain(base_link, end_effector_link, arm_chain)) {
+      RCLCPP_ERROR(get_logger(), "Failed to extract KDL chain from '%s' to '%s'.",
+                   base_link.c_str(), end_effector_link.c_str());
+      return;
+    }
+
+    // FK + IK solvers
+    fk_solver = std::make_unique<KDL::ChainFkSolverPos_recursive>(arm_chain);
+
+    ik_solver = std::make_unique<KDL::ChainIkSolverVel_pinv_nso>(arm_chain, 1e-6, 150, 0.2);
+    // Optional joint weights (downweight “problem” joints)
+    KDL::JntArray w(arm_chain.getNrOfJoints());
+    for (unsigned i = 0; i < w.rows(); ++i) w(i) = 1.0;
+    // Example tuning: damp joint 4 slightly, boost joint 5 a bit
+    if (w.rows() >= 5) { w(3) = 2.0; w(4) = 0.7; }
+    ik_solver->setWeights(w);
+
+    current_joint_positions.resize(arm_chain.getNrOfJoints());
+
+    // Preferred posture (zero / mid-range; can be parameterized)
+    q_nom = KDL::JntArray(arm_chain.getNrOfJoints());
+    for (unsigned i = 0; i < q_nom.rows(); ++i) q_nom(i) = 0.0;
+    ik_solver->setOptPos(q_nom);  // breaks symmetry for colinear axes
+
+    kinematics_ready = true;
+    RCLCPP_INFO(get_logger(), "Kinematic chain initialized with %d joints.", arm_chain.getNrOfJoints());
+  }
+
+  // --- State + target handlers ---
+  void on_joint_positions(const kalman_interfaces::msg::ArmValues::SharedPtr msg) {
+    if (!kinematics_ready) return;
+    if (msg->joints.size() < current_joint_positions.rows()) {
+      RCLCPP_WARN(get_logger(), "Received joint position size (%zu) < expected (%d).",
+                  msg->joints.size(), current_joint_positions.rows());
+      return;
+    }
+    for (size_t i = 0; i < current_joint_positions.rows(); ++i) {
+      current_joint_positions(i) = msg->joints[i];
+    }
+    joints_initialized = true;
+  }
+
+  void on_target_twist(const geometry_msgs::msg::TwistStamped::SharedPtr msg) {
+    std::lock_guard<std::mutex> lock(twist_mutex);
+    latest_twist = msg;
+    last_twist_time = now();
+  }
+
+  void on_target_pose(const geometry_msgs::msg::PoseStamped::SharedPtr msg) {
+    // store (we’ll transform to base in the control loop)
+    std::lock_guard<std::mutex> lock(pose_mutex);
+    latest_pose = msg;
+    last_pose_time = now();
+  }
+
+  // --- Helpers ---
+  geometry_msgs::msg::Pose transform_pose_to_base(const geometry_msgs::msg::PoseStamped &msg) {
+    geometry_msgs::msg::Pose base_pose = msg.pose;
+    if (!msg.header.frame_id.empty() && msg.header.frame_id != base_link) {
+      try {
+        geometry_msgs::msg::TransformStamped tf = tf_buffer->lookupTransform(
+          base_link, msg.header.frame_id, msg.header.stamp,
+          rclcpp::Duration::from_seconds(0.1)); // 100ms
+        geometry_msgs::msg::PoseStamped in = msg, out;
+        tf2::doTransform(in, out, tf);
+        base_pose = out.pose;
+      } catch (const tf2::TransformException &ex) {
+        RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 1000,
+          "Could not transform pose from '%s' to '%s': %s. Using pose as-is.",
+          msg.header.frame_id.c_str(), base_link.c_str(), ex.what());
+      }
+    }
+    return base_pose;
+  }
+
+  static KDL::Frame toKDL(const geometry_msgs::msg::Pose &p) {
+    const auto &q = p.orientation;
+    const auto &t = p.position;
+    KDL::Rotation R = KDL::Rotation::Quaternion(q.x, q.y, q.z, q.w);
+    return KDL::Frame(R, KDL::Vector(t.x, t.y, t.z));
+  }
+
+  static void saturateTwist(KDL::Twist &tw, double vmax_lin, double vmax_ang) {
+    // Limit translational norm
+    double lin_norm = tw.vel.Norm();
+    if (lin_norm > vmax_lin && lin_norm > 1e-9) {
+      double s = vmax_lin / lin_norm;
+      tw.vel = tw.vel * s;
+    }
+    // Limit rotational norm
+    double ang_norm = tw.rot.Norm();
+    if (ang_norm > vmax_ang && ang_norm > 1e-9) {
+      double s = vmax_ang / ang_norm;
+      tw.rot = tw.rot * s;
+    }
+  }
+
+  bool goalReached(const KDL::Frame &x_now, const KDL::Frame &x_des) const {
+    KDL::Vector dp = x_des.p - x_now.p;
+    double pos_err = dp.Norm();
+    // orientation error: angle of R_err
+    KDL::Rotation R_err = x_now.M.Inverse() * x_des.M;
+    double rx, ry, rz, angle;
+    KDL::Vector axis(rx, ry, rz);
+    R_err.GetRotAngle(axis, angle); // axis-angle
+    return (pos_err <= goal_tol_pos && std::fabs(angle) <= goal_tol_rot);
+  }
+
+  // --- Control loop ---
+  void compute_joint_velocities() {
+    if (!kinematics_ready || !joints_initialized) return;
+
+    // 1) Choose input: if an unexpired target pose exists, servo-to-pose; else if twist given, pass-through
+    const bool use_pose =
+      (latest_pose && (now() - last_pose_time).seconds() <= control_timeout);
+
+    KDL::Twist target_twist;  // built below
+
+    if (use_pose) {
+      // --- Servo to pose ---
+      geometry_msgs::msg::PoseStamped::SharedPtr pose_msg;
+      { std::lock_guard<std::mutex> lock(pose_mutex); pose_msg = latest_pose; }
+
+      // Transform desired pose into base frame
+      geometry_msgs::msg::Pose pose_b = transform_pose_to_base(*pose_msg);
+      KDL::Frame x_des = toKDL(pose_b);
+
+      // Current EE pose via FK
+      KDL::Frame x_now;
+      int fkret = fk_solver->JntToCart(current_joint_positions, x_now);
+      if (fkret < 0) {
+        RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 1000, "FK solver failed (%d).", fkret);
+        return;
+      }
+
+      if (goalReached(x_now, x_des)) {
+        if (stop_at_goal) {
+          publishZeros();
+        }
+        return;
+      }
+
+      // Pose error -> twist (1/s) then apply gains
+      KDL::Twist err = KDL::diff(x_now, x_des); // “velocity to reach in 1s”
+      // Scale component-wise by gains
+      err.vel = KDL::Vector(err.vel.x()*kp_lin, err.vel.y()*kp_lin, err.vel.z()*kp_lin);
+      err.rot = KDL::Vector(err.rot.x()*kp_ang, err.rot.y()*kp_ang, err.rot.z()*kp_ang);
+
+      // Cap twist magnitudes
+      saturateTwist(err, max_twist_lin, max_twist_ang);
+
+      target_twist = err;
+
+      // Keep NSO posture up-to-date (optional): bias toward q_nom
+      ik_solver->setOptPos(q_nom);
+
+    } else {
+      // --- Pass-through velocity twist if present and fresh ---
+      geometry_msgs::msg::TwistStamped::SharedPtr twist_msg;
+      {
+        std::lock_guard<std::mutex> lock(twist_mutex);
+        if (!latest_twist || (now() - last_twist_time).seconds() > control_timeout) return;
+        twist_msg = latest_twist;
+      }
+
+      // Transform twist to base frame if needed
+      geometry_msgs::msg::Twist base_twist = transform_twist_to_base_frame(twist_msg);
+      // Build KDL twist
+      target_twist.vel = KDL::Vector(base_twist.linear.x,  base_twist.linear.y,  base_twist.linear.z);
+      target_twist.rot = KDL::Vector(base_twist.angular.x, base_twist.angular.y, base_twist.angular.z);
+
+      // (Optional) cap incoming twist
+      saturateTwist(target_twist, max_twist_lin, max_twist_ang);
+    }
+
+    // 2) IK velocity: twist -> joint velocities
+    KDL::JntArray qdot(current_joint_positions.rows());
+    int ikret = ik_solver->CartToJnt(current_joint_positions, target_twist, qdot);
+    if (ikret < 0) {
+      RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 1000, "IK velocity solver failed (%d).", ikret);
+      return;
+    }
+
+    // 3) Joint velocity cap (use absolute max)
+    const double max_abs = qdot.data.cwiseAbs().maxCoeff();
+    if (max_abs > max_joint_vel && max_abs > 1e-9) {
+      qdot.data *= (max_joint_vel / max_abs);
+    }
+
+    // 4) Publish
+    auto vel_msg = kalman_interfaces::msg::ArmValues();
+    vel_msg.header.stamp = now();
+    // vel_msg.joints.resize(qdot.rows());
+    for (size_t i = 0; i < qdot.rows(); ++i) vel_msg.joints[i] = qdot(i);
+    joint_vel_pub->publish(vel_msg);
+  }
+
+  // Transform helper reused from your original code
+  geometry_msgs::msg::Twist transform_twist_to_base_frame(
+    const geometry_msgs::msg::TwistStamped::SharedPtr& msg) {
+
+    geometry_msgs::msg::Twist base_twist = msg->twist;
+
+    if (!msg->header.frame_id.empty() && msg->header.frame_id != base_link) {
+      try {
+        geometry_msgs::msg::TransformStamped transform = tf_buffer->lookupTransform(
+          base_link, msg->header.frame_id, msg->header.stamp,
+          rclcpp::Duration::from_seconds(0.1)); // 100ms timeout
+
+        tf2::Quaternion q(
+          transform.transform.rotation.x,
+          transform.transform.rotation.y,
+          transform.transform.rotation.z,
+          transform.transform.rotation.w);
+        q.normalize();
+
+        // Transform linear velocity
+        tf2::Vector3 lin(msg->twist.linear.x, msg->twist.linear.y, msg->twist.linear.z);
+        tf2::Vector3 lin_base = tf2::quatRotate(q, lin);
+
+        // Transform angular velocity (rvec)
+        tf2::Vector3 ang(msg->twist.angular.x, msg->twist.angular.y, msg->twist.angular.z);
+        tf2::Vector3 ang_base = tf2::quatRotate(q, ang);
+
+        base_twist.linear.x  = lin_base.x();
+        base_twist.linear.y  = lin_base.y();
+        base_twist.linear.z  = lin_base.z();
+        base_twist.angular.x = ang_base.x();
+        base_twist.angular.y = ang_base.y();
+        base_twist.angular.z = ang_base.z();
+      } catch (const tf2::TransformException &ex) {
+        RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 1000,
+          "Could not transform twist from '%s' to '%s': %s. Using twist as-is.",
+          msg->header.frame_id.c_str(), base_link.c_str(), ex.what());
+      }
+    }
+    return base_twist;
+  }
+
+  void publishZeros() {
+    auto vel_msg = kalman_interfaces::msg::ArmValues();
+    vel_msg.header.stamp = now();
+    // vel_msg.joints.assign(current_joint_positions.rows(), 0.0);
+    vel_msg.joints = {};
+    joint_vel_pub->publish(vel_msg);
+  }
+};
+
+} // namespace kalman_arm2
+
+RCLCPP_COMPONENTS_REGISTER_NODE(kalman_arm2::TwistIK)

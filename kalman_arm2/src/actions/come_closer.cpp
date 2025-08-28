@@ -72,7 +72,7 @@ BT::NodeStatus ComeCloser::onRunning() {
 	twist.header                       = last_aruco_pose->header;
 
 	// FIXME: Using time for collision detection is stupid and naive
-	constexpr std::chrono::milliseconds MAX_ARUCO_DETECTION_AGE{500};
+	constexpr std::chrono::milliseconds MAX_ARUCO_DETECTION_AGE{1000}; // Using higher number for simulation
 	const auto time_since_last_msg = parent_->now() - last_aruco_pose->header.stamp;
 	if (time_since_last_msg > MAX_ARUCO_DETECTION_AGE){
 		geometry_msgs::msg::TwistStamped zero_vel{};
