@@ -1,9 +1,8 @@
-from ament_index_python import get_package_share_path
 from launch import LaunchDescription
-from launch_ros.actions import Node, LoadComposableNodes
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
 from launch.substitutions import LaunchConfiguration
-from launch_ros.descriptions import ComposableNode
+
+from kalman_utils.launch import launch_node_or_load_component, load_standalone_config
 
 
 def launch_setup(context):
@@ -16,46 +15,27 @@ def launch_setup(context):
     dict = LaunchConfiguration("dict").perform(context)
     size = float(LaunchConfiguration("size").perform(context))
 
-    description = []
+    actions = []
 
     parameters = [
-        str(get_package_share_path("kalman_aruco") / "config" / f"aruco_tracker.yaml"),
+        load_standalone_config("kalman_aruco", "aruco_tracker.yaml"),
         {
             "marker_dict": dict,
             "marker_size": size,
         },
     ]
 
-    if component_container:
-        description += [
-            LoadComposableNodes(
-                target_container=component_container,
-                composable_node_descriptions=[
-                    ComposableNode(
-                        package="aruco_opencv",
-                        plugin="aruco_opencv::ArucoTrackerAutostart",
-                        namespace=rgbd_id,
-                        name="aruco_tracker",
-                        parameters=parameters,
-                        extra_arguments=[{"use_intra_process_comms": True}],
-                    )
-                    for rgbd_id in rgbd_ids
-                ],
-            )
-        ]
-    else:
-        description += [
-            Node(
-                package="aruco_opencv",
-                executable="aruco_tracker_autostart",
-                namespace=rgbd_id,
-                name="aruco_tracker",
-                parameters=parameters,
-            )
-            for rgbd_id in rgbd_ids
-        ]
+    actions += sum((launch_node_or_load_component(
+        component_container=component_container,
+        package="aruco_opencv",
+        executable="aruco_tracker_autostart",
+        plugin="aruco_opencv::ArucoTrackerAutostart",
+        namespace=rgbd_id,
+        name="aruco_tracker",
+        parameters=parameters,
+    ) for rgbd_id in rgbd_ids), [])
 
-    return description
+    return actions
 
 
 def generate_launch_description():
@@ -73,7 +53,12 @@ def generate_launch_description():
             DeclareLaunchArgument(
                 "dict",
                 default_value="4X4_50",
-                choices=[f"{x}X{x}_{s}" for x in [4, 5, 6, 7, 8] for s in [50, 100, 250, 1000]] + ["ARUCO_ORIGINAL"],
+                choices=[
+                    f"{x}X{x}_{s}"
+                    for x in [4, 5, 6, 7, 8]
+                    for s in [50, 100, 250, 1000]
+                ]
+                + ["ARUCO_ORIGINAL"],
                 description="Dictionary of markers to use.",
             ),
             DeclareLaunchArgument(

@@ -1,73 +1,14 @@
-from ament_index_python import get_package_share_path
 from launch import LaunchDescription
-from launch_ros.actions import Node, LoadComposableNodes
+from launch_ros.actions import Node
 from launch.actions import (
     DeclareLaunchArgument,
     OpaqueFunction,
 )
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
-from launch_ros.descriptions import ComposableNode
 from launch_ros.substitutions import FindPackageShare
 from launch_ros.parameter_descriptions import ParameterValue
 
-
-def node_or_component(
-    component_container,
-    package,
-    executable,
-    plugin=None,
-    name=None,
-    namespace=None,
-    parameters=[],
-    remappings=[],
-    **kwargs,
-):
-    if name is None:
-        name = executable
-
-    if component_container:
-        if plugin is None:
-            raise ValueError(f"Plugin name required for composable node {name}")
-
-        return [
-            LoadComposableNodes(
-                target_container=component_container,
-                composable_node_descriptions=[
-                    ComposableNode(
-                        package=package,
-                        plugin=plugin,
-                        name=name,
-                        namespace=namespace,
-                        parameters=parameters,
-                        remappings=remappings,
-                        extra_arguments=[{"use_intra_process_comms": True}],
-                        **kwargs,
-                    ),
-                ],
-            ),
-        ]
-    else:
-        return [
-            Node(
-                package=package,
-                executable=executable,
-                name=name,
-                namespace=namespace,
-                parameters=parameters,
-                remappings=remappings,
-                **kwargs,
-            ),
-        ]
-
-
-def remap_action(from_name, to_name):
-    return [
-        (f"{from_name}/_action/send_goal", f"{to_name}/_action/send_goal"),
-        (f"{from_name}/_action/cancel_goal", f"{to_name}/_action/cancel_goal"),
-        (f"{from_name}/_action/feedback", f"{to_name}/_action/feedback"),
-        (f"{from_name}/_action/get_result", f"{to_name}/_action/get_result"),
-        (f"{from_name}/_action/status", f"{to_name}/_action/status"),
-    ]
+from kalman_utils.launch import launch_node_or_load_component, remap_action
 
 
 def launch_setup(context):
@@ -76,20 +17,20 @@ def launch_setup(context):
     actions = []
 
     # Joint republisher
-    actions += [
-        Node(
-            package="kalman_arm2",
-            executable="joint_republisher",
-            namespace="arm",
-            remappings=[
-                ("current_pos", "current_pos"),
-                ("joint_states", "joint_states"),
-            ],
-        )
-    ]
+    actions += launch_node_or_load_component(
+        component_container=component_container,
+        package="kalman_arm2",
+        executable="joint_republisher",
+        plugin="kalman_arm2::JointRepublisher",
+        namespace="arm",
+        remappings=[
+            ("current_pos", "current_pos"),
+            ("joint_states", "joint_states"),
+        ],
+    )
 
     # Twist IK node
-    actions += node_or_component(
+    actions += launch_node_or_load_component(
         component_container=component_container,
         package="kalman_arm2",
         executable="twist_ik",
@@ -116,7 +57,7 @@ def launch_setup(context):
         )
     ]
 
-    actions += node_or_component(
+    actions += launch_node_or_load_component(
         component_container=component_container,
         package="kalman_arm2",
         executable="goto_joint_pose",
@@ -156,7 +97,7 @@ def launch_setup(context):
             ],
         )
 
-    actions += node_or_component(
+    actions += launch_node_or_load_component(
         component_container=component_container,
         package="kalman_arm2",
         executable="panel_layout",
@@ -192,7 +133,6 @@ def launch_setup(context):
         ("/gripper/command_incremental", "std_msgs/msg/Int8", "send"),
         ("/joy_compressed", "kalman_interfaces/msg/ArmCompressed", "send"),
     ]:
-        break
         actions += [
             Node(
                 package="kalman_arm2",
