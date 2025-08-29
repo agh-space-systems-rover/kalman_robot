@@ -7,7 +7,7 @@ const RATE = 10;
 window.addEventListener('ros-connect', () => {
   const sendDrillData = new Topic({
     ros: ros,
-    name: '/drill',
+    name: '/science/drill/cmd',
     messageType: 'kalman_interfaces/Drill'
   });
 

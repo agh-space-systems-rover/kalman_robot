@@ -16,7 +16,10 @@ import {
   faArrowUp,
   faStop,
   faDiagramProject,
-  faRuler
+  faRuler,
+  faRobot,
+  faOilWell,
+  faPlay
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useEffect, useState, useRef } from 'react';
@@ -30,8 +33,14 @@ const STORAGE_OPTIONS = [
   { name: 'Sand Storage', value: 'sand', icon: faFlask },
   { name: 'Rock Storage', value: 'rock', icon: faBox },
   { name: 'pH Probe', value: 'ph', icon: faDroplet },
-  { name: 'Magnetometer', value: 'magneto', icon: faMagnet }
+  { name: 'Magnetometer', value: 'magneto', icon: faMagnet },
+  { name: 'Drill', value: 'drill', icon: faOilWell },
 ];
+// Drill ROS clients
+let drillWeightTopic: any;
+let drillWeightService: any;
+let drillAutoStartService: any;
+let drillAutoStopService: any;
 
 // Global ROS clients
 let sandWeightTopic: any;
@@ -124,19 +133,49 @@ window.addEventListener('ros-connect', () => {
     serviceType: 'std_srvs/Trigger'
   });
 
+  // Drill topics/services
+  drillWeightTopic = new Topic({
+    ros,
+    name: '/science/drill/weight',
+    messageType: 'std_msgs/Float32'
+  });
+  drillWeightService = new Service({
+    ros,
+    name: '/science/drill/weight/req',
+    serviceType: 'std_srvs/Trigger'
+  });
+  drillAutoStartService = new Service({
+    ros,
+    name: '/science/drill/auto/start',
+    serviceType: 'std_srvs/Trigger'
+  });
+  drillAutoStopService = new Service({
+    ros,
+    name: '/science/drill/auto/stop',
+    serviceType: 'std_srvs/Trigger'
+  });
+
   window.dispatchEvent(new Event('science-subscribed'));
 });
+
 
 type SciencePanelProps = {
   props: {
     selectedStorage: string;
     sandTareHistory?: number[];
     rockTareHistory?: number[];
+    drillTareHistory?: number[];
   };
 };
 
+
 type StorageContainerProps = {
   selectedStorage: string;
+  tareHistory: number[];
+  onTareHistoryChange: (history: number[]) => void;
+};
+
+type DrillContainerProps = {
   tareHistory: number[];
   onTareHistoryChange: (history: number[]) => void;
 };
@@ -153,19 +192,27 @@ export default function Science({ props }: SciencePanelProps) {
   if (props.rockTareHistory === undefined) {
     props.rockTareHistory = [];
   }
+  if (props.drillTareHistory === undefined) {
+    props.drillTareHistory = [];
+  }
 
   const [selectedStorage, setSelectedStorage] = useState(props.selectedStorage);
   const [rerenderCount, setRerenderCount] = useState(0);
 
   const getTareHistory = () => {
-    return selectedStorage === 'sand' ? props.sandTareHistory : props.rockTareHistory;
+    if (selectedStorage === 'sand') return props.sandTareHistory;
+    if (selectedStorage === 'rock') return props.rockTareHistory;
+    if (selectedStorage === 'drill') return props.drillTareHistory;
+    return [];
   };
 
   const setTareHistory = (history: number[]) => {
     if (selectedStorage === 'sand') {
       props.sandTareHistory = history;
-    } else {
+    } else if (selectedStorage === 'rock') {
       props.rockTareHistory = history;
+    } else if (selectedStorage === 'drill') {
+      props.drillTareHistory = history;
     }
     setRerenderCount(rerenderCount + 1);
   };
@@ -193,6 +240,13 @@ export default function Science({ props }: SciencePanelProps) {
         {(selectedStorage === 'sand' || selectedStorage === 'rock') && (
           <StorageContainer
             selectedStorage={selectedStorage}
+            tareHistory={getTareHistory()}
+            onTareHistoryChange={setTareHistory}
+          />
+        )}
+
+        {selectedStorage === 'drill' && (
+          <DrillContainer
             tareHistory={getTareHistory()}
             onTareHistoryChange={setTareHistory}
           />
@@ -584,4 +638,156 @@ function Magnetometer() {
       </Button>
     </div>
   </>;
+}
+
+function DrillContainer({ tareHistory, onTareHistoryChange }: DrillContainerProps) {
+  const [weight, setWeight] = useState<number | null>(null);
+  const [rerenderCount, setRerenderCount] = useState(0);
+
+  // Rerender on science-subscribed event
+  useEffect(() => {
+    const updateScience = () => {
+      setRerenderCount((count) => count + 1);
+    };
+    window.addEventListener('science-subscribed', updateScience);
+    return () => {
+      window.removeEventListener('science-subscribed', updateScience);
+    };
+  }, []);
+
+  // Subscribe to drill weight topic
+  useEffect(() => {
+    setWeight(null);
+    if (!drillWeightTopic) return;
+    const cb = (msg: { data: number }) => {
+      setWeight(msg.data);
+    };
+    drillWeightTopic.subscribe(cb);
+    return () => drillWeightTopic.unsubscribe(cb);
+  }, [rerenderCount]);
+
+  // Service call helpers
+  function callDrillWeightService() {
+    if (drillWeightService) {
+      drillWeightService.callService({}, () => {});
+    }
+  }
+
+  function handleTare() {
+    if (weight !== null) {
+      const currentTareOffset = tareHistory.reduce((sum, value) => sum + value, 0);
+      const tareValue = weight - currentTareOffset;
+      const newHistory = [...tareHistory, tareValue];
+      onTareHistoryChange(newHistory);
+    }
+  }
+
+  function clearTareHistory() {
+    onTareHistoryChange([]);
+  }
+
+  function handleStartAutonomy() {
+    if (drillAutoStartService) {
+      drillAutoStartService.callService({}, () => {});
+    }
+  }
+
+  function handleStopAutonomy() {
+    if (drillAutoStopService) {
+      drillAutoStopService.callService({}, () => {});
+    }
+  }
+
+  const tareOffset = tareHistory.reduce((sum, value) => sum + value, 0);
+  const displayWeight = weight !== null ? weight - tareOffset : null;
+
+  const style = getComputedStyle(document.body);
+  const magentaBg = style.getPropertyValue('--magenta-background');
+  const greenBg = style.getPropertyValue('--green-background');
+  const darkBg = style.getPropertyValue('--dark-background');
+
+  return (
+    <>
+      <div className={styles['science-row']}>
+        <Label color={magentaBg}>
+          <FontAwesomeIcon icon={faRobot} />
+        </Label>
+        <Button
+          className={styles['science-row-item']}
+          tooltip='Start drill autonomy'
+          onClick={handleStartAutonomy}
+        >
+          <FontAwesomeIcon icon={faPlay} />
+          &nbsp;&nbsp;Start
+        </Button>
+        <Button
+          className={styles['science-row-item']}
+          tooltip='Stop drill autonomy'
+          onClick={handleStopAutonomy}
+        >
+          <FontAwesomeIcon icon={faStop} />
+          &nbsp;&nbsp;Stop
+        </Button>
+      </div>
+
+      <div className={styles['science-row']}>
+        <Label color={greenBg}>
+          <FontAwesomeIcon icon={faWeightHanging} />
+        </Label>
+        <Label color={darkBg} className={styles['science-row-item'] + ' ' + styles['science-selectable']}>
+          {displayWeight !== null ? `${displayWeight.toFixed(2)} g` : '---'}
+        </Label>
+        <Button tooltip='Refresh weight measurement' onClick={callDrillWeightService}>
+          <FontAwesomeIcon icon={faArrowRotateRight} />
+        </Button>
+      </div>
+
+      <div className={styles['science-row']}>
+        <Button
+          className={styles['science-row-item']}
+          tooltip='Set current weight as zero (tare)'
+          onClick={handleTare}
+          disabled={weight === null}
+        >
+          <FontAwesomeIcon icon={faWeightHanging} />
+          &nbsp;&nbsp;Tare
+        </Button>
+      </div>
+
+      <div className={styles['science-row']}>
+        <div className={styles['tare-history']}>
+          <div className={styles['science-row']}>
+            <Label className={styles['tare-history-header']}>
+              <FontAwesomeIcon icon={tareHistory.length > 0 ? faList : faBan} />
+              &nbsp; {tareHistory.length > 0 ? '' : 'No'} Tare History
+            </Label>
+          </div>
+          {tareHistory.map((tareValue, index) => (
+            <div key={index} className={styles['science-row']}>
+              <Label className={styles['tare-entry']}>
+                {index + 1}. {tareValue.toFixed(2)} g
+              </Label>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {tareHistory.length > 0 && (
+        <div className={styles['science-row']}>
+          <Button
+            className={styles['science-row-item']}
+            tooltip='Clear all tare history'
+            onClick={() => {
+              if (window.confirm('Are you sure you want to clear all tare history?')) {
+                clearTareHistory();
+              }
+            }}
+          >
+            <FontAwesomeIcon icon={faTrash} />
+            &nbsp;&nbsp;Clear History
+          </Button>
+        </div>
+      )}
+    </>
+  );
 }

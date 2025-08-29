@@ -106,7 +106,6 @@ class StorageDriver(Node):
             self.get_logger().warn("Received invalid scale response")
             return
 
-        # Pad data to 8 bytes to handle struct alignment
         padded_data = bytes(msg.data[:6])
         board_id, channel_id, value = struct.unpack("<BBi", padded_data)
 
