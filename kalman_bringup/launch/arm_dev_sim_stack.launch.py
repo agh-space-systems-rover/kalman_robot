@@ -14,5 +14,10 @@ def generate_launch_description():
             #     "rgbd_ids": "d455_arm",
             # },
             "arm2": {},
+            "aruco":{
+                "rgbd_ids": "d435_arm",
+                "dict": "5X5_50",
+                "size": "0.06",
+            },
         },
     )
