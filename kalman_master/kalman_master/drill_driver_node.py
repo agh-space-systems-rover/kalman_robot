@@ -15,7 +15,7 @@ MAX_ZEROFRAMES_SPAM = 5
 
 SCALE_DEVICES = [
     # (board, channel), ...
-    (0, 0), (0, 1)
+    (1, 2), (1, 3)
 ]
 WEIGHT_SCALES = [1.0, 1.0]
 WEIGHT_BIAS = 0.0
@@ -116,9 +116,11 @@ class DrillDriver(Node):
     def scale_res_cb(self, msg: MasterMessage):
         if msg.cmd == MasterMessage.SCALE_RES:
             board_id, channel_id, value = struct.unpack("<BBi", bytes(msg.data[:6]))
-            
+
             scale_idx = SCALE_DEVICES.index((board_id, channel_id))
             self.last_weight_readings[scale_idx] = value
+
+            self.get_logger().info(f"{self.last_weight_readings}")
 
             total_weight = sum(reading * scale for reading, scale in zip(self.last_weight_readings, WEIGHT_SCALES)) + WEIGHT_BIAS
             self.weight_pub.publish(Float32(data=total_weight))
