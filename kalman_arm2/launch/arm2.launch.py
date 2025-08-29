@@ -78,24 +78,24 @@ def launch_setup(context):
         [FindPackageShare("kalman_arm2"), "trees", "demo.xml"]
     )
 
-    if 1:
-        actions += node_or_component(
-            component_container=component_container,
-            package="kalman_arm2",
-            executable="bt_panel",
-            plugin="kalman_arm2::BTPanel",
-            namespace="arm",
-            remappings=[
-                ("current_pos", "current_pos"),
-                ("target_vel", "target_vel"),
-                *remap_action("goto_pose", "goto_pose"),
-            ],
-            parameters=[
-                {"layout_yaml": ParameterValue(panel_layout_file, value_type=str)},
-                {"tree_xml": ParameterValue(tree_xml_file, value_type=str)},
-                {"auto_start": ParameterValue(False, value_type=bool)},
-            ],
-        )
+    actions += launch_node_or_load_component(
+        component_container=component_container,
+        package="kalman_arm2",
+        executable="bt_panel",
+        plugin="kalman_arm2::BTPanel",
+        namespace="arm",
+        remappings=[
+            ("current_pos", "current_pos"),
+            ("target_vel", "target_vel"),
+            *remap_action("goto_pose", "goto_pose"),
+        ],
+        parameters=[
+            {"layout_yaml": ParameterValue(panel_layout_file, value_type=str)},
+            {"tree_xml": ParameterValue(tree_xml_file, value_type=str)},
+            {"auto_start": ParameterValue(False, value_type=bool)},
+            # {"auto_start": ParameterValue(True, value_type=bool)},
+        ],
+    )
 
     actions += launch_node_or_load_component(
         component_container=component_container,
