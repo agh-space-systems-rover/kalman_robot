@@ -92,6 +92,12 @@ export default function ArmAutonomy({ props }: Props) {
     setGoal_id(goal);
   };
 
+  const sendArmPointRequest = () => {
+      alertsRef.current?.pushAlert(
+        'I don\'t know how to talk to moveit',
+        'error');
+  };
+
   const cancelArmMissionRequest = () => {
     if (!armMissionService) {
       alertsRef.current?.pushAlert(
@@ -169,7 +175,7 @@ export default function ArmAutonomy({ props }: Props) {
             }
             disabled={selectedIndex == null}
             onClick={() => {
-              sendArmMissionRequest();
+              sendArmPointRequest();
             }}
           >
             Send
