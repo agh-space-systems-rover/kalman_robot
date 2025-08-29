@@ -227,4 +227,13 @@ export const SET_UEUOS_EFFECT_RAINBOW: number = 1;
 export type SetUeuosEffectRequest = {
   effect?: number;
 };
+
+export type ArmMissionRequest = {
+  command_id?: number;
+};
+
+export type ArmMissionFeedback = {
+  progress?: string;
+};
+
 // Response is empty.

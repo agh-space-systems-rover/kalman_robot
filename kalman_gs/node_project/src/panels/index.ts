@@ -20,11 +20,14 @@ import {
   faGear,
   faMobileScreenButton,
   faPalette,
-  faMicroscope
+  faMicroscope,
+  faMagicWandSparkles
 } from '@fortawesome/free-solid-svg-icons';
+import { Component } from 'react';
+import ArmAutonomy from './arm_autonomy';
 
 // Add new panels here:
-export type PanelID = 'imu' | 'wheels' | 'supervisor' | 'map' | 'feeds' | 'arm' | 'waypoints'| 'mobile' | 'ueuos' | 'science';
+export type PanelID = 'imu' | 'wheels' | 'supervisor' | 'map' | 'feeds' | 'arm' | 'waypoints'| 'mobile' | 'ueuos' | 'science' | 'arm_autonomy';
 export const defaultPanel: PanelID = 'map';
 export const panelInfos: Panels = {
   imu: {
@@ -77,6 +80,11 @@ export const panelInfos: Panels = {
     Component: Science,
     name: 'Science',
     icon: faMicroscope
+  },
+  arm_autonomy: {
+    Component: ArmAutonomy,
+    name: 'Arm Autonomy',
+    icon: faMagicWandSparkles
   }
 };
 
