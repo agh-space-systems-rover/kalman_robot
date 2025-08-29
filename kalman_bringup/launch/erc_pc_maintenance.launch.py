@@ -5,7 +5,7 @@ def generate_launch_description():
     return gen_launch(
         {
             "description": {
-                "layout": "autonomy",
+                "layout": "arm_autonomy",
             },
             "hardware": {
                 "master": "pc",
