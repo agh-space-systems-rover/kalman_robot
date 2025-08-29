@@ -21,7 +21,7 @@ import {
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useRef, useState } from 'react';
 import { HexColorPicker } from 'react-colorful';
-import { Action, Service } from 'roslib';
+import { Action, Service, Topic } from 'roslib';
 
 import Button from '../components/button';
 import Checkbox from '../components/checkbox';
@@ -54,7 +54,14 @@ type Props = {
   };
 };
 
+export type GeometryMsgsPoint = {
+  x?: number;
+  y?: number;
+  z?: number;
+};
+
 let armMissionService: Action<ArmMissionRequest, ArmMissionFeedback, {}> = null;
+let armPointTopic: Topic<GeometryMsgsPoint> = null
 
 window.addEventListener('ros-connect', () => {
   armMissionService = new Action<ArmMissionRequest, ArmMissionFeedback, {}>({
@@ -62,6 +69,11 @@ window.addEventListener('ros-connect', () => {
     name: '/arm/arm_mission',
     actionType: 'kalman_interfaces/action/ArmMission'
   });
+  armPointTopic = new Topic<GeometryMsgsPoint>({
+    ros,
+    name: '/arm/uv_point',
+    messageType: 'geometry_msgs/Point',
+  })
 });
 
 export default function ArmAutonomy({ props }: Props) {
@@ -93,9 +105,21 @@ export default function ArmAutonomy({ props }: Props) {
   };
 
   const sendArmPointRequest = () => {
+    if (!armPointTopic) {
       alertsRef.current?.pushAlert(
-        'I don\'t know how to talk to moveit',
-        'error');
+        'Failed to send arm point request. Please make sure that ROS is connected and /arm/us_point topic is available.',
+        'error'
+      );
+      return;
+    }
+    const selected_gizmo: Gizmo = DEFAULT_GIZMOS[selectedIndex];
+    
+    const msg: GeometryMsgsPoint = {
+      x: selected_gizmo.x,
+      y: selected_gizmo.y,
+      z: 0.2,
+    };
+    armPointTopic.publish(msg);
   };
 
   const cancelArmMissionRequest = () => {
