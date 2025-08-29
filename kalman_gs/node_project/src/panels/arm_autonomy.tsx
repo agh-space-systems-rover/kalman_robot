@@ -3,17 +3,7 @@ import styles from './arm_autonomy.module.css';
 import { alertsRef } from '../common/refs';
 import { ros } from '../common/ros';
 import {
-  SetUeuosColorRequest,
-  SetUeuosStateRequest,
-  SetUeuosEffectRequest,
-  ColorRGBA,
-  SET_UEUOS_STATE_OFF,
-  SET_UEUOS_EFFECT_BOOT,
-  SET_UEUOS_STATE_AUTONOMY,
-  SET_UEUOS_STATE_TELEOP,
-  SET_UEUOS_EFFECT_RAINBOW,
-  SET_UEUOS_STATE_FINISHED,
-  ArmMissionRequest, // ArmMission,
+  ArmMissionRequest, 
   ArmMissionFeedback
 } from '../common/ros-interfaces';
 import {
@@ -25,7 +15,8 @@ import {
   faHashtag,
   faRobot,
   faGamepad,
-  faFlagCheckered
+  faFlagCheckered,
+  faBullseye
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useRef, useState } from 'react';
@@ -38,6 +29,17 @@ import Dropdown from '../components/dropdown';
 import Input from '../components/input';
 import Label from '../components/label';
 
+import GizmoPanel, { Gizmo } from '../components/gizmo-panel';
+
+const DEFAULT_GIZMOS: Gizmo[] = [
+  { x: 0.15, y: 0.12, color: '#78c7ff' }, // top-left blue
+  { x: 0.50, y: 0.12, color: '#78c7ff' }, // top-mid blue
+  { x: 0.85, y: 0.12, color: '#78c7ff' }, // top-right blue
+  { x: 0.60, y: 0.80, color: '#ff9aa5' }, // bottom-right red 1
+  { x: 0.85, y: 0.80, color: '#ff9aa5' }, // bottom-right red 2
+];
+
+
 const PANEL_TYPES = ['color', 'state', 'effect'] as const;
 type PanelType = (typeof PANEL_TYPES)[number];
 
@@ -48,20 +50,13 @@ type Props = {
     state: number;
     effect: number;
     goal_id: string | null;
+    target?: { x: number; y: number } | null;
   };
 };
 
 let armMissionService: Action<ArmMissionRequest, ArmMissionFeedback, {}> = null;
 
-let setColorService: Service<SetUeuosColorRequest, {}> = null;
 window.addEventListener('ros-connect', () => {
-  // FIXME: remove when no longer useful as a reference
-  setColorService = new Service<SetUeuosColorRequest, {}>({
-    ros: ros,
-    name: '/ueuos/set_color',
-    serviceType: 'kalman_interfaces/SetColor'
-  });
-
   armMissionService = new Action<ArmMissionRequest, ArmMissionFeedback, {}>({
     ros,
     name: '/arm/arm_mission',
@@ -69,106 +64,13 @@ window.addEventListener('ros-connect', () => {
   });
 });
 
-function hexToColorRGB(hexColor: string): ColorRGBA {
-  let raw = hexColor.trim().replace(/^#/, '').toUpperCase();
-
-  if (raw.length === 3) {
-    const [r3, g3, b3] = raw;
-    return {
-      r: parseInt(r3 + r3, 16) / 255,
-      g: parseInt(g3 + g3, 16) / 255,
-      b: parseInt(b3 + b3, 16) / 255
-    };
-  }
-
-  if (raw.length === 6) {
-    return {
-      r: parseInt(raw.slice(0, 2), 16) / 255,
-      g: parseInt(raw.slice(2, 4), 16) / 255,
-      b: parseInt(raw.slice(4, 6), 16) / 255
-    };
-  }
-
-  throw new Error(`Hex color code ("${hexColor}") is invalid.`);
-}
-
-function hexToGrayscaleReversed(hexColor: string): string {
-  let raw = hexColor.trim().replace(/^#/, '').toUpperCase();
-
-  let r, g, b;
-  if (raw.length === 3) {
-    const [r3, g3, b3] = raw;
-    r = parseInt(r3 + r3, 16);
-    g = parseInt(g3 + g3, 16);
-    b = parseInt(b3 + b3, 16);
-  } else if (raw.length === 6) {
-    r = parseInt(raw.slice(0, 2), 16);
-    g = parseInt(raw.slice(2, 4), 16);
-    b = parseInt(raw.slice(4, 6), 16);
-  }
-
-  // Compute luminance (brightness)
-  let brightness = 0.299 * r + 0.587 * g + 0.114 * b;
-
-  // If bright, return gray; otherwise, return white
-  return brightness > 128 ? '#111111' : '#EEEEEE';
-}
-
 export default function ArmAutonomy({ props }: Props) {
-  if (props.panelType === undefined) {
-    props.panelType = 'color';
-  }
-  if (props.color === undefined) {
-    props.color = '#000080';
-  }
-  if (props.state === undefined) {
-    props.state = SET_UEUOS_STATE_OFF;
-  }
-  if (props.effect === undefined) {
-    props.effect = SET_UEUOS_EFFECT_BOOT;
-  }
-
-  const colorInputRef = useRef<Input>();
-
-  const [panelType, setPanelType] = useState(props.panelType);
-
-  const [color, setColor] = useState(props.color);
-  const [effect, setEffect] = useState(props.effect);
-  const [state, setState] = useState(props.state);
   const [goal_id, setGoal_id] = useState(props.goal_id);
 
-  const [colorInputValue, setColorInputValue] = useState(color.replace('#', ''));
+  // const [selectedTarget, setSelectedTarget] = useState<{ x: number; y: number } | null>(props.target ?? null);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   const [automaticallySynchronized, setAutomaticallySynchronized] = useState(false);
-
-  const sendUeuosRequest = () => {
-    if (!setColorService) {
-      alertsRef.current?.pushAlert(
-        'Failed to update the UEUOS. Please make sure that ROS is connected and "/ueuos" services are available.',
-        'error'
-      );
-      return;
-    }
-
-    if (panelType === 'color') {
-      // Parse string from input to color object
-      let colorObject: ColorRGBA;
-      try {
-        colorObject = hexToColorRGB(color);
-      } catch (e) {
-        alertsRef.current?.pushAlert(e.message ?? "Failed to set UEUOS's color:\n" + e, 'error');
-        return;
-      }
-
-      // Send it to ROS
-      const req: SetUeuosColorRequest = { color: colorObject };
-      setColorService.callService(
-        req,
-        () => (props.color = color),
-        (e) => alertsRef.current?.pushAlert("Failed to set UEUOS's color:\n" + e, 'error')
-      );
-    }
-  };
 
   const sendArmMissionRequest = () => {
     // FIXME: re-starting mission after it's finished once throws this error
@@ -210,60 +112,6 @@ export default function ArmAutonomy({ props }: Props) {
     setGoal_id(null);
   };
 
-  const handleHexColorInput = (value: string) => {
-    const hexRegex = /^[A-Fa-f0-9]{0,6}$/;
-    const hexColorRegex = /^([A-Fa-f0-9]{3}|[A-Fa-f0-9]{6})$/;
-
-    if (hexRegex.test(value)) {
-      setColorInputValue(value);
-    } else {
-      colorInputRef.current?.setValue(colorInputValue);
-    }
-
-    if (hexColorRegex.test(value)) {
-      setColor('#' + value);
-
-      if (automaticallySynchronized) {
-        sendUeuosRequest();
-      }
-    }
-  };
-
-  const STATES: any = [
-    {
-      icon: faPowerOff,
-      text: 'OFF',
-      value: SET_UEUOS_STATE_OFF
-    },
-    {
-      icon: faRobot,
-      text: 'AUTONOMY',
-      value: SET_UEUOS_STATE_AUTONOMY
-    },
-    {
-      icon: faGamepad,
-      text: 'TELEOP',
-      value: SET_UEUOS_STATE_TELEOP
-    },
-    {
-      icon: faFlagCheckered,
-      text: 'FINISHED',
-      value: SET_UEUOS_STATE_FINISHED
-    }
-  ];
-  const EFFECTS: any = [
-    {
-      icon: faPowerOff,
-      text: 'BOOT',
-      value: SET_UEUOS_EFFECT_BOOT
-    },
-    {
-      icon: faRainbow,
-      text: 'RAINBOW',
-      value: SET_UEUOS_EFFECT_RAINBOW
-    }
-  ];
-
   return (
     <div className={styles['ueuos']}>
       <div className={styles['ueuos-rows']}>
@@ -274,7 +122,6 @@ export default function ArmAutonomy({ props }: Props) {
               className={
                 styles['ueuos-row-item']
               }
-              // disabled={automaticallySynchronized}
               onClick={() => {
                 sendArmMissionRequest();
               }}
@@ -301,111 +148,16 @@ export default function ArmAutonomy({ props }: Props) {
             </Button>
           </div>
         ) }
+        <br/>
+
+        {/* Have a picker here, xy center shall be in the top-left corner */}
         <div className={styles['ueuos-row']}>
-          <Dropdown
-            className={styles['ueuos-row-item']}
-            tooltip='Select UEUOS settings panel.'
-            items={[
-              {
-                icon: faFillDrip,
-                text: 'Color',
-                value: 'color' as PanelType
-              },
-              {
-                icon: faCube,
-                text: 'State',
-                value: 'state' as PanelType
-              },
-              {
-                icon: faMagic,
-                text: 'Effect',
-                value: 'effect' as PanelType
-              }
-            ]}
-            defaultItemIndex={PANEL_TYPES.indexOf(panelType)}
-            onChange={(i, v) => {
-              setPanelType(v);
-              props.panelType = v;
-            }}
-          />
-        </div>
-
-        {panelType === 'color' && (
-          <>
-            <div className={styles['ueuos-row']}>
-              <HexColorPicker
-                className={`${styles['ueuos-row-item']} ${styles['ueuos-color-picker']}`}
-                color={color}
-                onChange={(value) => {
-                  setColor(value);
-                  colorInputRef.current?.setValue(value.replace('#', ''));
-
-                  if (automaticallySynchronized) {
-                    sendUeuosRequest();
-                  }
-                }}
-              />
-            </div>
-            <div className={styles['ueuos-row']}>
-              <Label
-                className={styles['ueuos-hex-label']}
-                style={{ backgroundColor: color, color: hexToGrayscaleReversed(color) }}
-              >
-                <FontAwesomeIcon icon={faHashtag} />
-              </Label>
-              <Input
-                ref={colorInputRef}
-                defaultValue={color.replace('#', '')}
-                maxLength={6}
-                onChange={handleHexColorInput}
-                onSubmit={() => sendUeuosRequest()}
-                onBlur={() => colorInputRef.current?.setValue(color.replace('#', ''))}
-              />
-            </div>
-          </>
-        )}
-
-        {panelType === 'state' && (
-          <div className={styles['ueuos-row']}>
-            <Dropdown
-              className={styles['ueuos-row-item']}
-              tooltip='Select UEUOS state.'
-              items={STATES}
-              defaultItemIndex={STATES.findIndex((s) => s.value === state)}
-              onChange={(i, value) => {
-                setState(value);
-
-                if (automaticallySynchronized) {
-                  sendUeuosRequest();
-                }
-              }}
-            />
-          </div>
-        )}
-
-        {panelType === 'effect' && (
-          <div className={styles['ueuos-row']}>
-            <Dropdown
-              className={styles['ueuos-row-item']}
-              tooltip='Select UEUOS effect.'
-              items={EFFECTS}
-              defaultItemIndex={EFFECTS.findIndex((e) => e.value === effect)}
-              onChange={(i, value) => {
-                setEffect(value);
-
-                if (automaticallySynchronized) {
-                  sendUeuosRequest();
-                }
-              }}
-            />
-          </div>
-        )}
-
-        <div className={styles['ueuos-row']}>
-          <Checkbox
-            checked={automaticallySynchronized}
-            onChange={(newChecked) => setAutomaticallySynchronized(newChecked)}
-            label={'Auto-Update UEUOS'}
+          <GizmoPanel
+            width={360}
+            height={260}
+            gizmos={DEFAULT_GIZMOS /* or a JSON string */}
+            selectedIndex={selectedIndex}
+            onSelect={setSelectedIndex}
           />
         </div>
 
@@ -413,9 +165,9 @@ export default function ArmAutonomy({ props }: Props) {
           <Button
             tooltip='Send data to change the UEUOS color'
             className={
-              styles['ueuos-row-item'] + (automaticallySynchronized ? ` ${styles['ueuos-button-disabled']}` : '')
+              styles['ueuos-row-item']
             }
-            disabled={automaticallySynchronized}
+            disabled={selectedIndex == null}
             onClick={() => {
               sendArmMissionRequest();
             }}
