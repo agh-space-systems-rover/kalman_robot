@@ -94,7 +94,7 @@ window.addEventListener('ros-connect', () => {
     messageType: 'geometry_msgs/Point',
   })
 
-  armToPointService: new Action<ToPointMsg, {}, {}>({
+  armToPointService = new Action<ToPointMsg, {}, {}>({
     ros,
     name: '/arm/goto_point',
     actionType: 'kalman_interfaces/action/ArmGoToPoint'
@@ -207,12 +207,12 @@ export default function ArmAutonomy({ props }: Props) {
     }
 
     const g = gizmos[selectedIndex];
-    const req: ToPointMsg = { target: {header: {frame_id: 'uv_board'}, pose: {position: {x: g.x, y: g.y, z: 0.25}}} };
+    const req: ToPointMsg = { target: {header: {frame_id: 'marker_0_avg'}, pose: {position: {x: g.x, y: -g.y, z: 0.2}}} };
     let goal: string = armToPointService.sendGoal(
       req,
       // () => (setGoal_id(null)),
       () => ({}), // TODO: add proper handling of the result
-      ({}) => (alertsRef.current?.pushAlert('Feedback', 'warning')),
+      ({}) => ({}),
       (error) => (alertsRef.current?.pushAlert('Error: ' + error, 'warning')),
     );
     setGoal_point(goal);

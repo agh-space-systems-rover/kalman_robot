@@ -11,7 +11,7 @@ Panels:
         - /TF1
         - /TF1/Frames1
       Splitter Ratio: 0.5
-    Tree Height: 363
+    Tree Height: 853
   - Class: rviz_common/Selection
     Name: Selection
   - Class: rviz_common/Tool Properties
@@ -74,33 +74,6 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        body_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        arm_link_end:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        flange:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        gripper_fixed:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        gripper_moving:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
         arm_link_1:
           Alpha: 1
           Show Axes: false
@@ -126,21 +99,75 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        link5_ext:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
         arm_link_6:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        link6_ext:
+        arm_link_end:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        link6_to_gripper:
+        arm_link_jaw:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        base_footprint:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        body_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        d435_arm_bottom_screw_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        d435_arm_color_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        d435_arm_color_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        d435_arm_depth_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        d435_arm_depth_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        d435_arm_infra1_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        d435_arm_infra1_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        d435_arm_infra2_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        d435_arm_infra2_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        d435_arm_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        imu_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -194,10 +221,6 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        world:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
       Mass Properties:
         Inertia: false
         Mass: false
@@ -213,18 +236,6 @@ Visualization Manager:
         All Enabled: false
         arm_link:
           Value: true
-        base_link:
-          Value: false
-        body_link:
-          Value: false
-        arm_link_end:
-          Value: true
-        flange:
-          Value: true
-        gripper_fixed:
-          Value: true
-        gripper_moving:
-          Value: true
         arm_link_1:
           Value: true
         arm_link_2:
@@ -235,13 +246,59 @@ Visualization Manager:
           Value: true
         arm_link_5:
           Value: true
-        link5_ext:
-          Value: true
         arm_link_6:
           Value: true
-        link6_ext:
+        arm_link_end:
           Value: true
-        link6_to_gripper:
+        arm_link_jaw:
+          Value: true
+        aruco_board:
+          Value: true
+        base_footprint:
+          Value: true
+        base_link:
+          Value: false
+        body_link:
+          Value: false
+        d435_arm_bottom_screw_frame:
+          Value: true
+        d435_arm_color_frame:
+          Value: true
+        d435_arm_color_optical_frame:
+          Value: true
+        d435_arm_depth_frame:
+          Value: true
+        d435_arm_depth_optical_frame:
+          Value: true
+        d435_arm_infra1_frame:
+          Value: true
+        d435_arm_infra1_optical_frame:
+          Value: true
+        d435_arm_infra2_frame:
+          Value: true
+        d435_arm_infra2_optical_frame:
+          Value: true
+        d435_arm_link:
+          Value: true
+        imu_link:
+          Value: true
+        marker_0:
+          Value: true
+        marker_0_avg:
+          Value: true
+        marker_1:
+          Value: true
+        marker_1_avg:
+          Value: true
+        marker_2:
+          Value: true
+        marker_2_avg:
+          Value: true
+        model_marker_0:
+          Value: true
+        model_marker_1:
+          Value: true
+        model_marker_2:
           Value: true
         suspension_l_link:
           Value: false
@@ -255,6 +312,8 @@ Visualization Manager:
           Value: false
         swivel_fr_link:
           Value: false
+        uv_board:
+          Value: true
         wheel_bl_link:
           Value: false
         wheel_br_link:
@@ -263,49 +322,90 @@ Visualization Manager:
           Value: false
         wheel_fr_link:
           Value: false
-        world:
-          Value: false
       Marker Scale: 0.75
       Name: TF
       Show Arrows: true
       Show Axes: true
       Show Names: false
       Tree:
-        world:
-          flange:
-            arm_link:
-              base_link:
-                body_link:
-                  suspension_l_link:
-                    swivel_bl_link:
-                      wheel_bl_link:
-                        {}
-                    swivel_fl_link:
-                      wheel_fl_link:
-                        {}
-                  suspension_r_link:
-                    swivel_br_link:
-                      wheel_br_link:
-                        {}
-                    swivel_fr_link:
-                      wheel_fr_link:
-                        {}
-              arm_link_1:
-                arm_link_2:
-                  arm_link_3:
-                    arm_link_4:
-                      arm_link_5:
-                        link5_ext:
-                          arm_link_6:
-                            link6_ext:
-                              arm_link_end:
+        base_link:
+          arm_link:
+            arm_link_1:
+              arm_link_2:
+                arm_link_3:
+                  arm_link_4:
+                    arm_link_5:
+                      arm_link_6:
+                        arm_link_end:
+                          {}
+                        arm_link_jaw:
+                          {}
+                        d435_arm_bottom_screw_frame:
+                          d435_arm_link:
+                            d435_arm_color_frame:
+                              d435_arm_color_optical_frame:
+                                marker_0:
+                                  {}
+                                marker_1:
+                                  {}
+                                marker_2:
+                                  {}
+                            d435_arm_depth_frame:
+                              d435_arm_depth_optical_frame:
                                 {}
-                              link6_to_gripper:
-                                gripper_fixed:
-                                  {}
-                                gripper_moving:
-                                  {}
+                            d435_arm_infra1_frame:
+                              d435_arm_infra1_optical_frame:
+                                {}
+                            d435_arm_infra2_frame:
+                              d435_arm_infra2_optical_frame:
+                                {}
+          aruco_board:
+            model_marker_0:
+              {}
+            model_marker_1:
+              {}
+            model_marker_2:
+              {}
+          base_footprint:
+            {}
+          body_link:
+            suspension_l_link:
+              swivel_bl_link:
+                wheel_bl_link:
+                  {}
+              swivel_fl_link:
+                wheel_fl_link:
+                  {}
+            suspension_r_link:
+              swivel_br_link:
+                wheel_br_link:
+                  {}
+              swivel_fr_link:
+                wheel_fr_link:
+                  {}
+          imu_link:
+            {}
+          marker_0_avg:
+            {}
+          marker_1_avg:
+            {}
+          marker_2_avg:
+            {}
+          uv_board:
+            {}
       Update Interval: 0
+      Value: true
+    - Class: rviz_default_plugins/MarkerArray
+      Enabled: true
+      Name: MarkerArray
+      Namespaces:
+        {}
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /arm/debug_markers
       Value: true
   Enabled: true
   Global Options:
@@ -353,7 +453,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 2.2605953216552734
+      Distance: 1.4746007919311523
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -368,10 +468,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.5197972655296326
+      Pitch: 0.4897972345352173
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz_default_plugins)
-      Yaw: 1.3773707151412964
+      Yaw: 2.6023716926574707
     Saved: ~
 Window Geometry:
   Displays:
