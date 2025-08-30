@@ -171,6 +171,16 @@
       <ShowBoard mission_helper="{state}" />
 
       <Say message="I am done, entering infinite loop ..." />
+
+      <!-- <RetryUntilSuccessful num_attempts="-1">
+        <ForceFailure>
+          <Sequence>
+            <WaitForUVRequest target_pose="{target_pose}" />
+            <IKNavigateToPose pose="{target_pose}" />
+          </Sequence>
+        </ForceFailure>
+      </RetryUntilSuccessful> -->
+
     </Sequence>
   </BehaviorTree>
 </root>

@@ -100,6 +100,25 @@ def launch_setup(context):
     actions += launch_node_or_load_component(
         component_container=component_container,
         package="kalman_arm2",
+        executable="ik_navigate_to_pose",
+        plugin="kalman_arm2::IKNavigateToPoseActionServer",
+        namespace="arm",
+        remappings=[
+            ("current_pos", "current_pos"),
+            ("target_vel", "target_vel"),
+            *remap_action("goto_pose", "goto_pose"),
+        ],
+        # parameters=[
+        #     {"layout_yaml": ParameterValue(panel_layout_file, value_type=str)},
+        #     {"tree_xml": ParameterValue(tree_xml_file, value_type=str)},
+        #     {"auto_start": ParameterValue(False, value_type=bool)},
+        #     # {"auto_start": ParameterValue(True, value_type=bool)},
+        # ],
+    )
+
+    actions += launch_node_or_load_component(
+        component_container=component_container,
+        package="kalman_arm2",
         executable="panel_layout",
         plugin="kalman_arm2::PanelLayout",
         namespace="arm",
@@ -133,6 +152,7 @@ def launch_setup(context):
         ("/gripper/command_incremental", "std_msgs/msg/Int8", "send"),
         ("/joy_compressed", "kalman_interfaces/msg/ArmCompressed", "send"),
     ]:
+        break
         actions += [
             Node(
                 package="kalman_arm2",

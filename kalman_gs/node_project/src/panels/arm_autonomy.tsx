@@ -4,7 +4,8 @@ import { alertsRef } from '../common/refs';
 import { ros } from '../common/ros';
 import {
   ArmMissionRequest,
-  ArmMissionFeedback
+  ArmMissionFeedback,
+  Header
 } from '../common/ros-interfaces';
 import {
   faArrowDown,
@@ -51,6 +52,7 @@ const INITIAL_GIZMOS: Gizmo[] = [
 type Props = {
   props: {
     goal_id: string | null;
+    goal_point: string | null;
   };
 };
 
@@ -64,6 +66,22 @@ export type GeometryMsgsPoint = {
 let armMissionService: Action<ArmMissionRequest, ArmMissionFeedback, {}> = null;
 let armPointTopic: Topic<GeometryMsgsPoint> = null
 
+
+export type Pose = {
+  position?: GeometryMsgsPoint;
+};
+
+export type PoseStamped = {
+  header?: Header;
+  pose?: Pose;
+};
+
+export type ToPointMsg = {
+  target?: PoseStamped;
+};
+
+let armToPointService: Action<ToPointMsg, {}, {}> = null;
+
 window.addEventListener('ros-connect', () => {
   armMissionService = new Action<ArmMissionRequest, ArmMissionFeedback, {}>({
     ros,
@@ -75,10 +93,17 @@ window.addEventListener('ros-connect', () => {
     name: '/arm/uv_point',
     messageType: 'geometry_msgs/Point',
   })
+
+  armToPointService: new Action<ToPointMsg, {}, {}>({
+    ros,
+    name: '/arm/goto_point',
+    actionType: 'kalman_interfaces/action/ArmGoToPoint'
+  })
 });
 
 export default function ArmAutonomy({ props }: Props) {
   const [goal_id, setGoal_id] = useState(props.goal_id);
+  const [goal_point, setGoal_point] = useState(props.goal_point);
 
   const [gizmos, setGizmos] = useState<Gizmo[]>(INITIAL_GIZMOS);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
@@ -164,6 +189,53 @@ export default function ArmAutonomy({ props }: Props) {
     const msg: GeometryMsgsPoint = { x: g.x, y: g.y, z: 0.2 };
     armPointTopic.publish(msg);
     alertsRef.current?.pushAlert(`Sent point: u=${g.x.toFixed(3)}, v=${g.y.toFixed(3)}`, 'success');
+  };
+
+  const sendArmPoseRequest = () => {
+    // FIXME: re-starting mission after it's finished once throws this error
+    if (!armToPointService) {
+      alertsRef.current?.pushAlert(
+        'Failed to send arm mission request. Please make sure that ROS is connected and /arm/goto_point services are available.',
+        'error'
+      );
+      return;
+    }
+
+    if (selectedIndex == null) {
+      alertsRef.current?.pushAlert('Select a gizmo first.', 'warning');
+      return;
+    }
+
+    const g = gizmos[selectedIndex];
+    const req: ToPointMsg = { target: {header: {frame_id: 'uv_board'}, pose: {position: {x: g.x, y: g.y, z: 0.25}}} };
+    let goal: string = armToPointService.sendGoal(
+      req,
+      // () => (setGoal_id(null)),
+      () => ({}), // TODO: add proper handling of the result
+      ({}) => (alertsRef.current?.pushAlert('Feedback', 'warning')),
+      (error) => (alertsRef.current?.pushAlert('Error: ' + error, 'warning')),
+    );
+    setGoal_point(goal);
+  };
+
+  const cancelArmPoseRequest = () => {
+    if (!armToPointService) {
+      alertsRef.current?.pushAlert(
+        'Failed to send arm mission request. Please make sure that ROS is connected and /arm/goto_point services are available.',
+        'error'
+      );
+      return;
+    }
+    if (goal_id == null) {
+      alertsRef.current?.pushAlert(
+        'Failed to cancel arm mission goal. Goal handle is null',
+        'error'
+      );
+      return;
+
+    }
+    armMissionService.cancelGoal(goal_point);
+    setGoal_point(null);
   };
 
 

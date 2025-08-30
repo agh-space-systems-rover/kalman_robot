@@ -83,8 +83,16 @@ rclcpp_components_register_node(
 target_link_libraries(bt_panel_node yaml-cpp)
 # target_compile_features(bt_panel_node PUBLIC cxx_std_20)
 
+add_library(ik_navigate_to_pose_node SHARED src/ik_navigate_to_pose_action_server.cpp)
+ament_target_dependencies(ik_navigate_to_pose_node rclcpp rclcpp_components kalman_interfaces geometry_msgs std_msgs tf2_ros tf2_geometry_msgs aruco_opencv_msgs behaviortree_cpp_v3 std_srvs tf2_eigen visualization_msgs yaml-cpp)
+rclcpp_components_register_node(
+  ik_navigate_to_pose_node
+  PLUGIN "kalman_arm2::IKNavigateToPoseActionServer"
+  EXECUTABLE ik_navigate_to_pose
+)
+
 ament_export_targets(kalman_arm2-targets)
-install(TARGETS twist_ik_node goto_joint_pose_node panel_layout_node bt_panel_node
+install(TARGETS twist_ik_node goto_joint_pose_node panel_layout_node bt_panel_node ik_navigate_to_pose_node
   EXPORT kalman_arm2-targets
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
