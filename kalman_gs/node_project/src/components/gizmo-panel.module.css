@@ -1,60 +1,44 @@
 .container {
-  position: relative;
-  border-radius: 12px;
-  overflow: hidden;
-  isolation: isolate;
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    isolation: isolate;
 }
 
 .back {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
-  pointer-events: none;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
 }
 
 .overlay {
-  position: absolute;
-  inset: 8px; /* inner padding */
-  z-index: 1;
+    position: absolute;
+    inset: 0;
+    z-index: 1;
 }
 
-/* Real HTML buttons placed absolutely in overlay */
 .gizmoBtn {
-  position: absolute;
-  transform: translate(-50%, -50%); /* center at (x,y) */
-  width: 44px;
-  height: 44px;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: transform 120ms ease, filter 120ms ease, box-shadow 120ms ease;
-  filter: saturate(0.55) brightness(0.95);
-  box-shadow: 0 0 0 1px rgba(0,0,0,0.45) inset, 0 1px 2px rgba(0,0,0,0.25);
-  outline: none;
+    position: absolute;
+    transform: translate(-50%, -50%);
+    border: 0;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: transform 120ms ease, filter 120ms ease, box-shadow 120ms ease;
+    filter: saturate(0.55) brightness(0.95);
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.45) inset, 0 1px 2px rgba(0, 0, 0, 0.25);
 }
 
 .gizmoBtn:hover,
 .gizmoBtn:focus-visible {
-  transform: translate(-50%, -52%); /* tiny lift */
-  filter: saturate(0.9) brightness(1.0);
-  box-shadow: 0 0 0 2px rgba(255,255,255,0.08) inset, 0 4px 12px rgba(0,0,0,0.35);
+    transform: translate(-50%, -52%);
+    filter: saturate(0.9) brightness(1.0);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.08) inset, 0 4px 12px rgba(0, 0, 0, 0.35);
 }
 
 .selected {
-  filter: saturate(1.35) brightness(1.05) contrast(1.05);
-  box-shadow:
-    0 0 0 2px rgba(255,255,255,0.12) inset,
-    0 8px 18px rgba(0,0,0,0.45),
-    0 0 0 2px rgba(0,170,255,0.7); /* focus ring */
-}
-
-.label {
-  color: white;
-  font-weight: 600;
-  font-size: 0.85rem;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-  user-select: none;
-  pointer-events: none;
+    filter: saturate(1.35) brightness(1.05) contrast(1.05);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.12) inset, 0 8px 18px rgba(0, 0, 0, 0.45), 0 0 0 2px rgba(0, 170, 255, 0.7);
 }

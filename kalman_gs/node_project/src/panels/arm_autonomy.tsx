@@ -3,22 +3,10 @@ import styles from './arm_autonomy.module.css';
 import { alertsRef } from '../common/refs';
 import { ros } from '../common/ros';
 import {
-  ArmMissionRequest, 
+  ArmMissionRequest,
   ArmMissionFeedback
 } from '../common/ros-interfaces';
 import {
-  faFillDrip,
-  faMagic,
-  faCube,
-  faRainbow,
-  faPowerOff,
-  faHashtag,
-  faRobot,
-  faGamepad,
-  faFlagCheckered,
-  faBullseye,
-  faArrowsUpDown,
-  faArrowsLeftRight,
   faArrowDown,
   faArrowRight
 } from '@fortawesome/free-solid-svg-icons';
@@ -35,26 +23,34 @@ import Label from '../components/label';
 
 import GizmoPanel, { Gizmo } from '../components/gizmo-panel';
 
+/*
+The panel is a grid:
+
++    0.0 -- 0.13 -- 0.25
+0.10
+0.20
+0.31
+
+*/
+
+
 const INITIAL_GIZMOS: Gizmo[] = [
-  { x: 0.15, y: 0.12, color: '#78c7ff' }, // top-left blue
-  { x: 0.50, y: 0.12, color: '#78c7ff' }, // top-mid blue
-  { x: 0.85, y: 0.12, color: '#78c7ff' }, // top-right blue
-  { x: 0.60, y: 0.80, color: '#ff9aa5' }, // bottom-right red 1
-  { x: 0.85, y: 0.80, color: '#ff9aa5' }, // bottom-right red 2
+  // Breakers
+  { x: 0.0, y: 0.1, color: '#78c7ff' },
+  { x: 0.125, y: 0.1, color: '#78c7ff' },
+  { x: 0.25, y: 0.1, color: '#78c7ff' },
+
+  // black rotary switches
+  { x: 0.125, y: 0.2, color: '#ff8800ff' },
+
+  // Red rotary switches
+  { x: 0.125, y: 0.31, color: '#ff9aa5' },
+  { x: 0.25, y: 0.31, color: '#ff9aa5' },
 ];
-
-
-const PANEL_TYPES = ['color', 'state', 'effect'] as const;
-type PanelType = (typeof PANEL_TYPES)[number];
 
 type Props = {
   props: {
-    panelType: PanelType;
-    color: string;
-    state: number;
-    effect: number;
     goal_id: string | null;
-    target?: { x: number; y: number } | null;
   };
 };
 
@@ -205,19 +201,20 @@ export default function ArmAutonomy({ props }: Props) {
           </div>
         )}
 
-        <br/>
+        <br />
 
         <div className={styles['ueuos-row']}>
           <GizmoPanel
-            width={360}
-            height={260}
+            // width={360}
+            // height={260}
             gizmos={gizmos}
             selectedIndex={selectedIndex}
             onSelect={handleGizmoSelect}
+            buttonSize={40}
           />
         </div>
 
-      {/* Inputs control layout */}
+        {/* Inputs control layout */}
         <div className={styles['ueuos-row']}>
           <Label className={styles['latlon-label']}><FontAwesomeIcon icon={faArrowDown} /></Label>
           <Input
