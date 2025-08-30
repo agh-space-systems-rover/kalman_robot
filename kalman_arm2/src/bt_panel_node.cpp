@@ -71,6 +71,12 @@ class BTPanel : public rclcpp::Node {
 	}
 
 	void configure() {
+		mission_helper_ = std::make_shared<MissionHelper>(
+		    // FIXME: assumption that the panel layout was read successfully
+		    MissionState{
+		        PanelLayout::read_yaml(panel_layout_yaml_path_, get_logger())
+		            .value()
+		    });
 		const auto tree_xml = get_parameter("tree_xml").as_string();
 		// Load XML (supports package:// if you use BT factory helpers)
 
