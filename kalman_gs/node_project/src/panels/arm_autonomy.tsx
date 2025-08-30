@@ -16,7 +16,11 @@ import {
   faRobot,
   faGamepad,
   faFlagCheckered,
-  faBullseye
+  faBullseye,
+  faArrowsUpDown,
+  faArrowsLeftRight,
+  faArrowDown,
+  faArrowRight
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useRef, useState } from 'react';
@@ -31,7 +35,7 @@ import Label from '../components/label';
 
 import GizmoPanel, { Gizmo } from '../components/gizmo-panel';
 
-const DEFAULT_GIZMOS: Gizmo[] = [
+const INITIAL_GIZMOS: Gizmo[] = [
   { x: 0.15, y: 0.12, color: '#78c7ff' }, // top-left blue
   { x: 0.50, y: 0.12, color: '#78c7ff' }, // top-mid blue
   { x: 0.85, y: 0.12, color: '#78c7ff' }, // top-right blue
@@ -54,6 +58,7 @@ type Props = {
   };
 };
 
+// TODO: move this type somewhere else
 export type GeometryMsgsPoint = {
   x?: number;
   y?: number;
@@ -79,10 +84,33 @@ window.addEventListener('ros-connect', () => {
 export default function ArmAutonomy({ props }: Props) {
   const [goal_id, setGoal_id] = useState(props.goal_id);
 
-  // const [selectedTarget, setSelectedTarget] = useState<{ x: number; y: number } | null>(props.target ?? null);
+  const [gizmos, setGizmos] = useState<Gizmo[]>(INITIAL_GIZMOS);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
-  const [automaticallySynchronized, setAutomaticallySynchronized] = useState(false);
+  const posVRef = useRef<Input>(); // v = vertical = y
+  const posURef = useRef<Input>(); // u = horizontal = x
+
+  const handleGizmoSelect = (i: number) => {
+    setSelectedIndex(i);
+    const g = gizmos[i];
+    posURef.current?.setValue(g.x);
+    posVRef.current?.setValue(g.y);
+  };
+
+  const handleInputsToLayout = () => {
+    if (selectedIndex == null) return;
+    const uStr = posURef.current?.getValue?.();
+    const vStr = posVRef.current?.getValue?.();
+    const u = parseFloat(String(uStr));
+    const v = parseFloat(String(vStr));
+    if (!Number.isFinite(u) || !Number.isFinite(v)) return;
+
+    setGizmos((prev) =>
+      prev.map((g, i) =>
+        i === selectedIndex ? { ...g, x: u, y: v } : g
+      )
+    );
+  };
 
   const sendArmMissionRequest = () => {
     // FIXME: re-starting mission after it's finished once throws this error
@@ -102,24 +130,6 @@ export default function ArmAutonomy({ props }: Props) {
       (error) => (alertsRef.current?.pushAlert('Error: ' + error, 'warning')),
     );
     setGoal_id(goal);
-  };
-
-  const sendArmPointRequest = () => {
-    if (!armPointTopic) {
-      alertsRef.current?.pushAlert(
-        'Failed to send arm point request. Please make sure that ROS is connected and /arm/us_point topic is available.',
-        'error'
-      );
-      return;
-    }
-    const selected_gizmo: Gizmo = DEFAULT_GIZMOS[selectedIndex];
-    
-    const msg: GeometryMsgsPoint = {
-      x: selected_gizmo.x,
-      y: selected_gizmo.y,
-      z: 0.2,
-    };
-    armPointTopic.publish(msg);
   };
 
   const cancelArmMissionRequest = () => {
@@ -142,10 +152,29 @@ export default function ArmAutonomy({ props }: Props) {
     setGoal_id(null);
   };
 
+  const sendArmPointRequest = () => {
+    if (!armPointTopic) {
+      alertsRef.current?.pushAlert(
+        'Failed to send arm point. Ensure ROS is connected and /arm/uv_point is available.',
+        'error'
+      );
+      return;
+    }
+    if (selectedIndex == null) {
+      alertsRef.current?.pushAlert('Select a gizmo first.', 'warning');
+      return;
+    }
+    const g = gizmos[selectedIndex];
+    const msg: GeometryMsgsPoint = { x: g.x, y: g.y, z: 0.2 };
+    armPointTopic.publish(msg);
+    alertsRef.current?.pushAlert(`Sent point: u=${g.x.toFixed(3)}, v=${g.y.toFixed(3)}`, 'success');
+  };
+
+
   return (
     <div className={styles['ueuos']}>
       <div className={styles['ueuos-rows']}>
-        {goal_id == null && (
+        {goal_id == null ? (
           <div className={styles['ueuos-row']}>
             <Button
               tooltip='Trigger panel location mission'
@@ -159,9 +188,7 @@ export default function ArmAutonomy({ props }: Props) {
               Locate panel
             </Button>
           </div>
-        )}
-
-        {goal_id != null && (
+        ) : (
           // TODO : I would prefer if at mission trigger, the LocatePanel button split into two, one for cancel, second for re-trigger
           <div className={styles['ueuos-row']}>
             <Button
@@ -169,7 +196,6 @@ export default function ArmAutonomy({ props }: Props) {
               className={
                 styles['ueuos-row-item']
               }
-              // disabled={automaticallySynchronized}
               onClick={() => {
                 cancelArmMissionRequest();
               }}
@@ -177,30 +203,47 @@ export default function ArmAutonomy({ props }: Props) {
               Cancel locate panel
             </Button>
           </div>
-        ) }
+        )}
+
         <br/>
 
-        {/* Have a picker here, xy center shall be in the top-left corner */}
         <div className={styles['ueuos-row']}>
           <GizmoPanel
             width={360}
             height={260}
-            gizmos={DEFAULT_GIZMOS /* or a JSON string */}
+            gizmos={gizmos}
             selectedIndex={selectedIndex}
-            onSelect={setSelectedIndex}
+            onSelect={handleGizmoSelect}
+          />
+        </div>
+
+      {/* Inputs control layout */}
+        <div className={styles['ueuos-row']}>
+          <Label className={styles['latlon-label']}><FontAwesomeIcon icon={faArrowDown} /></Label>
+          <Input
+            type="float"
+            placeholder="Vertical (v)"
+            ref={posVRef}
+            disabled={selectedIndex == null}
+            step={0.01 as any}
+            onChange={handleInputsToLayout}
+          />
+          <Label className={styles['latlon-label']}><FontAwesomeIcon icon={faArrowRight} /></Label>
+          <Input
+            type="float"
+            placeholder="Horizontal (u)"
+            ref={posURef}
+            disabled={selectedIndex == null}
+            step={0.01 as any}
+            onChange={handleInputsToLayout}
           />
         </div>
 
         <div className={styles['ueuos-row']}>
           <Button
-            tooltip='Send data to change the UEUOS color'
-            className={
-              styles['ueuos-row-item']
-            }
+            className={styles['ueuos-row-item']}
             disabled={selectedIndex == null}
-            onClick={() => {
-              sendArmPointRequest();
-            }}
+            onClick={sendArmPointRequest}
           >
             Send
           </Button>
