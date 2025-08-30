@@ -497,4 +497,200 @@ class BuildUV : public BT::StatefulActionNode {
 		RCLCPP_INFO_STREAM(logger, "RMS: " << rms << " valid: " << valid);
 		return true;
 	}
+
+	bool buildUnitScaleAnchored(
+	    const std::vector<UVAnchor> &anchors,
+	    tf2_ros::Buffer             &tf_buffer,
+	    const std::string           &base_frame,
+	    const std::string           &uv_board_frame,
+	    Eigen::Isometry3d           &T_base_to_board, // Output
+	    rclcpp::Logger logger = rclcpp::get_logger("UVtoXYZMapper"),
+	    const std::optional<Eigen::Vector3d> &normal_facing_hint = std::nullopt
+	) {
+		if (anchors.size() < 3) {
+			RCLCPP_ERROR(logger, "Need ≥3 anchors");
+			return false;
+		}
+
+		// --- Fetch anchors (3D and UV) ---
+		const int                    N = static_cast<int>(anchors.size());
+		std::vector<Eigen::Vector3d> P;
+		P.reserve(N);
+		Eigen::Matrix<double, 2, Eigen::Dynamic> UV(2, N);
+
+		try {
+			for (int i = 0; i < N; ++i) {
+				const auto &a  = anchors[i];
+				auto        ts = tf_buffer.lookupTransform(
+                    base_frame, a.tf_name, tf2::TimePointZero
+                );
+				P.emplace_back(tf2::transformToEigen(ts).translation());
+				UV(0, i) = a.uv.x();
+				UV(1, i) = a.uv.y();
+			}
+		} catch (const tf2::TransformException &e) {
+			RCLCPP_ERROR(logger, "TF lookup failed: %s", e.what());
+			return false;
+		}
+
+		// --- (1) Choose anchor nearest to UV (0,0) ---
+		int    k    = 0;
+		double best = (UV.col(0)).norm();
+		for (int i = 1; i < N; ++i) {
+			double n = UV.col(i).norm();
+			if (n < best) {
+				best = n;
+				k    = i;
+			}
+		}
+		const Eigen::Vector2d uv_k =
+		    UV.col(k); // we will treat this as (0,0) in the board UV frame
+		const Eigen::Vector3d Pk = P[k];
+
+		// --- (2) Plane fit (PCA) to get the normal; translation is fixed at Pk
+		// ---
+		Eigen::Vector3d centroid = Eigen::Vector3d::Zero();
+		for (auto &p : P) {
+			centroid += p;
+		}
+		centroid /= double(N);
+
+		Eigen::Matrix3d C = Eigen::Matrix3d::Zero();
+		for (auto &p : P) {
+			Eigen::Vector3d d  = p - centroid;
+			C                 += d * d.transpose();
+		}
+
+		Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es(C);
+		if (es.info() != Eigen::Success) {
+			RCLCPP_ERROR(logger, "Eigen fail");
+			return false;
+		}
+		Eigen::Vector3d n_hat =
+		    es.eigenvectors()
+		        .col(0)
+		        .normalized(); // smallest eigenvector (plane normal)
+
+		// pick any stable in-plane basis from PCA
+		Eigen::Vector3d e1 =
+		    es.eigenvectors().col(2).normalized(); // dominant in-plane
+		Eigen::Vector3d e2 = n_hat.cross(e1).normalized();
+
+		// --- (3) Build paired vectors from the anchor (translation-free) ---
+		// UV deltas: u_i' = UV_i - UV_k (2D),  Plane deltas: s_i' = projection
+		// of (P_i - Pk) onto {e1,e2}
+		std::vector<Eigen::Vector2d> Uv;
+		Uv.reserve(N - 1);
+		std::vector<Eigen::Vector2d> Sv;
+		Sv.reserve(N - 1);
+		double max_baseline = 0.0;
+		int    j_long       = -1;
+
+		for (int i = 0; i < N; ++i) {
+			if (i != k) {
+				Eigen::Vector2d u = UV.col(i) - uv_k;
+				Eigen::Vector3d d = P[i] - Pk;
+				// project onto plane then express in (e1,e2)
+				Eigen::Vector3d d_proj = d - n_hat * (d.dot(n_hat));
+				Eigen::Vector2d s(e1.dot(d_proj), e2.dot(d_proj));
+
+				Uv.push_back(u);
+				Sv.push_back(s);
+
+				double w = std::max(u.norm(), s.norm());
+				if (w > max_baseline) {
+					max_baseline = w;
+					j_long       = static_cast<int>(Uv.size()) - 1;
+				}
+			}
+		}
+
+		if (Uv.size() < 2) {
+			RCLCPP_ERROR(logger, "Not enough baselines from anchor");
+			return false;
+		}
+
+		// --- (4) Estimate rotation θ by circular mean of per-pair angles ---
+		auto cross2 = [](const Eigen::Vector2d &a, const Eigen::Vector2d &b) {
+			return a.x() * b.y() - a.y() * b.x();
+		};
+		const double r_min = 1e-6;
+		double       sum_s = 0.0, sum_c = 0.0;
+		for (size_t t = 0; t < Uv.size(); ++t) {
+			const auto &u  = Uv[t];
+			const auto &s  = Sv[t];
+			double      ru = u.norm(), rs = s.norm();
+			if (ru < r_min || rs < r_min) {
+				continue;
+			}
+			double c   = std::clamp(u.dot(s) / (ru * rs), -1.0, 1.0);
+			double sg  = cross2(u, s) / (ru * rs);
+			double w   = std::max(ru, rs);
+			sum_c     += w * c;
+			sum_s     += w * sg;
+		}
+		if (sum_c == 0 && sum_s == 0) {
+			RCLCPP_ERROR(logger, "Degenerate baselines");
+			return false;
+		}
+		double          theta = std::atan2(sum_s, sum_c);
+		double          ct = std::cos(theta), st = std::sin(theta);
+		Eigen::Matrix2d R2;
+		R2 << ct, -st, st, ct;
+
+		// --- (5) Disambiguate π flip by longest baseline alignment ---
+		if (j_long >= 0) {
+			const auto &uL = Uv[j_long];
+			const auto &sL = Sv[j_long];
+			if ((R2 * uL).dot(sL) < 0.0) {
+				R2 = -R2; // rotate by 180° in-plane
+			}
+		}
+
+		// --- (6) Lift to 3D with fixed origin at Pk ---
+		Eigen::Vector3d U_vec = e1 * R2(0, 0) + e2 * R2(1, 0); // +u axis
+		Eigen::Vector3d V_vec = e1 * R2(0, 1) + e2 * R2(1, 1); // +v axis
+		Eigen::Vector3d O3    = Pk; // exact origin at anchor
+
+		// Orthonormalize (tiny drift guard) and apply optional normal facing
+		U_vec.normalize();
+		V_vec = (n_hat.cross(U_vec)).normalized();
+		n_hat = U_vec.cross(V_vec).normalized();
+
+		if (normal_facing_hint) {
+			Eigen::Vector3d hint = normal_facing_hint->normalized();
+			if (n_hat.dot(hint) < 0.0) {
+				n_hat = -n_hat;
+				V_vec = -V_vec;
+			}
+		}
+
+		// --- (7) Pack transform: base -> uv_board ---
+		//   base_frame_ = base_frame; uv_board_frame_ = uv_board_frame;
+		Eigen::Matrix3d R3;
+		R3.col(0) = U_vec;
+		R3.col(1) = V_vec;
+		R3.col(2) = n_hat;
+
+		T_base_to_board.setIdentity();
+		T_base_to_board.linear()      = R3;
+		T_base_to_board.translation() = O3;
+
+		// Store mapping columns and UV shift (so to_xyz uses (u-uv_k.x,
+		// v-uv_k.y))
+		//   A_.col(0)=U_vec; A_.col(1)=V_vec; A_.col(2)=O3;
+		//   uv0_shift_ = uv_k;
+
+		// --- (8) RMS (diagnostic): uses shifted UV relative to the anchor ---
+		double err2 = 0.0;
+		for (int i = 0; i < N; ++i) {
+			Eigen::Vector2d u     = UV.col(i) - uv_k;
+			Eigen::Vector3d pred  = O3 + U_vec * u.x() + V_vec * u.y();
+			err2                 += (pred - P[i]).squaredNorm();
+		}
+
+		const auto rms = std::sqrt(err2 / N);
+		RCLCPP_INFO_STREAM(logger, "RMS: " << rms);
+		return true;
+	}
 };
