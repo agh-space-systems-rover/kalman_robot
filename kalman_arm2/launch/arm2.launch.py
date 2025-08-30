@@ -131,17 +131,17 @@ def launch_setup(context):
     )
 
     # Joy node
-    actions += [
-        Node(
-            package="joy_linux",
-            executable="joy_linux_node",
-            parameters=[
-                {
-                    "dev_name": "Logitech Gamepad",
-                }
-            ],
-        )
-    ]
+    # actions += [
+    #     Node(
+    #         package="joy_linux",
+    #         executable="joy_linux_node",
+    #         parameters=[
+    #             {
+    #                 "dev_name": "Logitech Gamepad",
+    #             }
+    #         ],
+    #     )
+    # ]
 
     # Share topics from RPi
     for topic, msg_type, mode in [
@@ -152,7 +152,6 @@ def launch_setup(context):
         ("/gripper/command_incremental", "std_msgs/msg/Int8", "send"),
         ("/joy_compressed", "kalman_interfaces/msg/ArmCompressed", "send"),
     ]:
-        break
         actions += [
             Node(
                 package="kalman_arm2",

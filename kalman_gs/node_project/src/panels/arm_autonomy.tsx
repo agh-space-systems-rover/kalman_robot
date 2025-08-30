@@ -312,7 +312,7 @@ export default function ArmAutonomy({ props }: Props) {
           <Button
             className={styles['ueuos-row-item']}
             disabled={selectedIndex == null}
-            onClick={sendArmPointRequest}
+            onClick={sendArmPoseRequest}
           >
             Send
           </Button>
