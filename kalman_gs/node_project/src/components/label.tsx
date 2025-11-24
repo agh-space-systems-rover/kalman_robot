@@ -16,13 +16,14 @@ export default function Label({
   tooltip,
   color = 'red',
   className,
+  style,
   ...props
 }: Props) {
   if (tooltip === undefined) {
     return (
       <div
         className={styles['label'] + (className ? ` ${className}` : '')}
-        style={{ backgroundColor: color }}
+        style={{ backgroundColor: color, ...style }}
         {...props}
       >
         {children}

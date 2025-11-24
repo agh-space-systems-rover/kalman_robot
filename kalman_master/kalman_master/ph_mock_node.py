@@ -5,7 +5,7 @@ from rclpy.node import Node
 from kalman_interfaces.msg import MasterMessage
 
 BOARD_ID = 0
-DEVICE_ID = 0
+CHANNEL_ID = 0
 
 class PHMockNode(Node):
     def __init__(self):
@@ -22,17 +22,17 @@ class PHMockNode(Node):
     def cb_req(self, msg: MasterMessage):
         if msg.cmd != MasterMessage.PH_REQ:
             return
-        # Unpack board/device id
+        # Unpack board/channel id
         if len(msg.data) < 2:
             return
-        board_id, device_id = struct.unpack("BB", msg.data[:2])
-        if board_id != BOARD_ID or device_id != DEVICE_ID:
+        board_id, channel_id = struct.unpack("BB", msg.data[:2])
+        if board_id != BOARD_ID or channel_id != CHANNEL_ID:
             return
         # Generate random value
         ph_value = random.randint(0, 1000)
         res_msg = MasterMessage()
         res_msg.cmd = MasterMessage.PH_RES
-        res_msg.data = struct.pack("BBH", board_id, device_id, ph_value)
+        res_msg.data = struct.pack("BBH", board_id, channel_id, ph_value)
         self.res_pub.publish(res_msg)
 
 def main():

@@ -9,6 +9,7 @@ import { mapMarker, setMapMarkerLatLon } from '../common/map-marker';
 import { Quaternion, Vector3, quatConj, quatTimesVec } from '../common/mini-math-lib';
 import { waypoints } from '../common/waypoints';
 import erc2024Overlay from '../media/erc2024-overlay.png';
+import erc2025Overlay from '../media/erc2025-overlay.png';
 import Leaflet from 'leaflet';
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
@@ -173,12 +174,20 @@ export default class Map extends Component<Props> {
             maxZoom={23}
             minZoom={3}
           />
-          <ImageOverlay
+          {/*<ImageOverlay
             url={erc2024Overlay}
             bounds={[
               // Order of points does not matter as long as they are diagonally opposite corners of the image:
               [50.0663741908217, 19.9130491956501],
               [50.0659224467215, 19.9137533400464]
+            ]}
+          />*/}
+          <ImageOverlay
+            url={erc2025Overlay}
+            bounds={[
+              // Order of points does not matter as long as they are diagonally opposite corners of the image:
+              [50.065971191749, 19.9130887981378],
+              [50.066363153534, 19.9137014499564]
             ]}
           />
           <Marker

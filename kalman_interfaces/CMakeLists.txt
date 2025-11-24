@@ -8,6 +8,8 @@ find_package(geometry_msgs REQUIRED)
 find_package(geographic_msgs REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
+  "action/ArmGotoJointPose.action"
+  "action/ArmMission.action"
   "action/SupervisorGpsArUcoSearch.action"
   "action/SupervisorGpsGoal.action"
   "action/SupervisorGpsYoloSearch.action"
@@ -17,6 +19,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/ArmCompressed.msg"
   "msg/ArmFkCommand.msg"
   "msg/ArmGoalStatus.msg"
+  "msg/ArmValues.msg"
   "msg/ArmPoseSelect.msg"
   "msg/ArmState.msg"
   "msg/ArmTrajectorySelect.msg"
