@@ -73,6 +73,47 @@ export type Twist = {
   angular?: Vector3;
 };
 
+export type Bool = {
+  data?: boolean;
+};
+
+export type Pose = {
+  position?: Point;
+  orientation?: Quaternion;
+};
+
+export type PoseWithCovariance = {
+  pose?: Pose;
+  covariance?: number[];
+};
+
+export type TwistWithCovariance = {
+  twist?: Twist;
+  covariance?: number[];
+};
+
+export type Odometry = {
+  header?: Header;
+  pose?: PoseWithCovariance;
+  twist?: TwistWithCovariance;
+};
+
+// std_srvs/SetBool
+export type SetBoolRequest = {
+  data?: boolean;
+};
+export type SetBoolResponse = {
+  success?: boolean;
+  message?: string;
+};
+
+export type ColorRGBA = {
+  r?: number;
+  g?: number;
+  b?: number;
+  a?: number;
+};
+
 // kalman_interfaces
 
 export type SupervisorTfGoal = {
@@ -113,6 +154,10 @@ export type SupervisorGpsYoloSearchFeedback = {
 };
 // Result is empty.
 
+export type GeoPath = {
+  points: GeoPoint[];
+};
+
 export type WheelState = {
   velocity?: number;
   angle?: number;
@@ -122,6 +167,16 @@ export type WheelStates = {
   front_right?: WheelState;
   back_left?: WheelState;
   back_right?: WheelState;
+};
+export type WheelTemperature = {
+  motor?: number;
+  swivel?: number;
+};
+export type WheelTemperatures = {
+  front_left?: WheelTemperature;
+  front_right?: WheelTemperature;
+  back_left?: WheelTemperature;
+  back_right?: WheelTemperature;
 };
 
 export type SetFeedRequest = {
@@ -180,18 +235,26 @@ export type ArmAxesLocks = {
   yaw?: boolean;
 };
 
-// UEUOS interfaces
-export type SetColorRequest = {
-  color: ColorRGB;
+export type SetUeuosColorRequest = {
+  color?: ColorRGBA;
 };
+// Response is empty.
 
-export type SetStateRequest = {
-  state: number;
+export const SET_UEUOS_STATE_OFF: number = 0;
+export const SET_UEUOS_STATE_AUTONOMY: number = 1;
+export const SET_UEUOS_STATE_TELEOP: number = 2;
+export const SET_UEUOS_STATE_FINISHED: number = 3;
+export type SetUeuosStateRequest = {
+  state?: number;
 };
+// Response is empty.
 
-export type SetEffectRequest = {
-  effect: number;
+export const SET_UEUOS_EFFECT_BOOT: number = 0;
+export const SET_UEUOS_EFFECT_RAINBOW: number = 1;
+export type SetUeuosEffectRequest = {
+  effect?: number;
 };
+// Response is empty.
 
 export type ColorRGB = {
   r: number;

@@ -2,7 +2,7 @@ import { alertsRef } from './refs';
 import { Ros } from 'roslib';
 
 const ros = new Ros({
-  url: 'ws://localhost:9065'
+  url: `ws://${window.location.hostname}:9065`
 });
 // ros.on('connection', () => {
 //   console.log('ROSLIB connected.');
@@ -34,10 +34,7 @@ setInterval(() => {
       // alertsRef.current?.pushAlert('Connected with ROS.', 'success');
       window.dispatchEvent(new Event('ros-connect'));
     } else if (lastLoggedConnectionState === false) {
-      alertsRef.current?.pushAlert(
-        'Re-established connection with ROS.',
-        'success'
-      );
+      alertsRef.current?.pushAlert('Re-established connection with ROS.', 'success');
       window.dispatchEvent(new Event('ros-connect'));
     }
     lastLoggedConnectionState = true;

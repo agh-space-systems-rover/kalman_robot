@@ -1,0 +1,12 @@
+image: erc2025.png
+resolution: 0.04296875 # meters/pixel
+# the origin of the map is at the bottom left corner of the image; [m, m, rad]
+# NOTE: Image should be aligned with north because map frame is aligned +Y=North, +X=East, +Z=Up.
+origin: [-8, -29, 0.0]
+negate: 0
+# If p > occupied_thresh, output the value 100 to indicate the cell is occupied.
+occupied_thresh: 0.7
+# If p < free_thresh, output the value 0 to indicate the cell is free.
+free_thresh: 0.0
+# Otherwise, output the value -1 to indicate the cell is unknown.
+mode: trinary

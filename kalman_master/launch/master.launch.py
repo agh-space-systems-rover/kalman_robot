@@ -11,11 +11,18 @@ BAUD_RATES = {
     "arm": 2000000,
 }
 
-PORTS = {"pc": "/tmp/ttyV2"}
+# PORTS = {"pc": "/tmp/ttyV2"}
+PORTS = {}
 
 
 def start_ros_link(side: str, rover_endpoint: str) -> Node:
     return Node(
+        name=f"ros_link_"
+        + (
+            "gs_to_" + rover_endpoint
+            if side == "station"
+            else rover_endpoint + "_to_gs"
+        ),
         package="kalman_master",
         executable="ros_link",
         parameters=[
@@ -28,7 +35,6 @@ def start_ros_link(side: str, rover_endpoint: str) -> Node:
                 "rover_endpoint": rover_endpoint,  # arm or pc
             },
         ],
-        name=f"ros_link_{rover_endpoint}"
     )
 
 
@@ -88,6 +94,22 @@ def launch_setup(context):
             package="kalman_master",
             executable="drill_driver",
         ),
+        "estop_driver": Node(
+            package="kalman_master",
+            executable="estop_driver",
+        ),
+        "rfid_driver": Node(
+            package="kalman_master",
+            executable="rfid_driver",
+        ),
+        "storage_driver": Node(
+            package="kalman_master",
+            executable="storage_driver",
+        ),
+        "ph_driver": Node(
+            package="kalman_master",
+            executable="ph_driver",
+        ),
     }
 
     mode_configs = {
@@ -97,7 +119,6 @@ def launch_setup(context):
             "wheel_driver",
             "ueuos_driver",
             "autonomy_spammer",
-            "tunnel_client",
         ],
         "gs": [
             "master_com",
@@ -108,6 +129,11 @@ def launch_setup(context):
             "feed_driver",
             "arm_twist_driver",
             "drill_driver",
+            "estop_driver",
+            "rfid_driver",
+            "tunnel_client",
+            "storage_driver",
+            "ph_driver",
         ],
         "arm": [
             "master_com",

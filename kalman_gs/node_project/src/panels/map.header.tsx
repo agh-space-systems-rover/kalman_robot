@@ -7,6 +7,7 @@ import { ros } from '../common/ros';
 import { NavSatFix, SpoofGpsRequest } from '../common/ros-interfaces';
 import Map from './map';
 import {
+  faArrowsSpin,
   faCopy,
   faJetFighterUp,
   faLocationDot,
@@ -17,14 +18,7 @@ import {
   faUpDownLeftRight
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-  MutableRefObject,
-  createRef,
-  useCallback,
-  useEffect,
-  useRef,
-  useState
-} from 'react';
+import { MutableRefObject, createRef, useCallback, useEffect, useRef, useState } from 'react';
 import { Service, Topic } from 'roslib';
 
 import Button from '../components/button';
@@ -32,11 +26,17 @@ import Input from '../components/input';
 import Label from '../components/label';
 
 let spoofGpsSrv: Service<SpoofGpsRequest, {}> = null;
+let spoofGpsLookAtSrv: Service<SpoofGpsRequest, {}> = null;
 window.addEventListener('ros-connect', () => {
   spoofGpsSrv = new Service<SpoofGpsRequest, {}>({
     ros: ros,
     name: '/spoof_gps',
-    serviceType: 'kalman_robot/SupervisorGpsSpoof'
+    serviceType: 'kalman_interfaces/SpoofGps'
+  });
+  spoofGpsLookAtSrv = new Service<SpoofGpsRequest, {}>({
+    ros: ros,
+    name: '/spoof_gps/look_at',
+    serviceType: 'kalman_interfaces/SpoofGps'
   });
 });
 
@@ -44,9 +44,7 @@ type Props = {
   panelRef: MutableRefObject<Map>;
 };
 
-async function parseLatLong(
-  query: string
-): Promise<[number, number] | undefined> {
+async function parseLatLong(query: string): Promise<[number, number] | undefined> {
   // Attempt to parse the query as a latitude and longitude pair.
   // If a trimmed query begins with a number and ends with another number with punctuation in between, it is likely a latitude and longitude pair.
   // 0. Check if the query does not contain alphabetic characters.
@@ -54,9 +52,7 @@ async function parseLatLong(
     // 1. Trim the query to remove leading and trailing whitespace.
     const trimmedQuery = query.trim();
     // 2. Replace non-numerics with spaces to then check for numbers.
-    const numericQuery = trimmedQuery
-      .replace(/[^0-9. -]/g, ' ')
-      .replaceAll(/\s+/g, ' ');
+    const numericQuery = trimmedQuery.replace(/[^0-9. -]/g, ' ').replaceAll(/\s+/g, ' ');
     // 3. Split the query into numbers.
     const numbers = numericQuery
       .split(' ')
@@ -69,9 +65,7 @@ async function parseLatLong(
   }
 
   // Geocode the query using a free and open source Photon API.
-  const res = await fetch(
-    `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}`
-  );
+  const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}`);
 
   // If the request failed, log the response and return undefined.
   if (!res.ok) {
@@ -86,10 +80,7 @@ async function parseLatLong(
   }
 
   // Return the latitude and longitude of the first result.
-  return [
-    data.features[0].geometry.coordinates[1] as number,
-    data.features[0].geometry.coordinates[0] as number
-  ];
+  return [data.features[0].geometry.coordinates[1] as number, data.features[0].geometry.coordinates[0] as number];
 }
 
 export default function MapHeader({ panelRef }: Props) {
@@ -111,9 +102,7 @@ export default function MapHeader({ panelRef }: Props) {
         alert('No results found.');
       }
     } catch (err) {
-      alertsRef.current?.pushAlert(
-        'Failed to reach the Geocoding service. Please check your internet connection.'
-      );
+      alertsRef.current?.pushAlert('Failed to reach the Geocoding service. Please check your internet connection.');
     }
   }, [panelRef]);
 
@@ -127,16 +116,8 @@ export default function MapHeader({ panelRef }: Props) {
   return (
     <div className={styles['map-header']}>
       <div className={styles['section'] + ' ' + styles['search-section']}>
-        <Input
-          ref={inputRef}
-          placeholder='Search for a location...'
-          onSubmit={goToGeocode}
-          onChange={rerender}
-        />
-        <Button
-          onClick={goToGeocode}
-          disabled={!(inputRef.current?.isEmpty() === false)}
-        >
+        <Input ref={inputRef} placeholder='Search for a location...' onSubmit={goToGeocode} onChange={rerender} />
+        <Button onClick={goToGeocode} disabled={!(inputRef.current?.isEmpty() === false)}>
           <FontAwesomeIcon icon={faSearch} />
         </Button>
       </div>
@@ -147,11 +128,7 @@ export default function MapHeader({ panelRef }: Props) {
         <Button
           tooltip='Fly to the rover.'
           onClick={() => {
-            panelRef.current?.goToLocation(
-              gpsCoords.latitude,
-              gpsCoords.longitude,
-              true
-            );
+            panelRef.current?.goToLocation(gpsCoords.latitude, gpsCoords.longitude, true);
           }}
           disabled={!gpsCoords.latitude || !gpsCoords.longitude}
         >
@@ -161,9 +138,7 @@ export default function MapHeader({ panelRef }: Props) {
           tooltip='Set rover location on the marker.\nThis is useful when navigating without GPS.'
           onClick={() => {
             if (!spoofGpsSrv) {
-              alertsRef.current?.pushAlert(
-                'Failed to set rover location. ROS connection is not established.'
-              );
+              alertsRef.current?.pushAlert('Failed to set rover location. ROS connection is not established.');
               return;
             }
 
@@ -174,20 +149,37 @@ export default function MapHeader({ panelRef }: Props) {
               }
             };
             spoofGpsSrv.callService(req, undefined, (error: string) => {
-              alertsRef.current?.pushAlert(
-                'Failed to set rover location. ' + error
-              );
+              alertsRef.current?.pushAlert('Failed to set rover location. ' + error);
             });
           }}
         >
           <FontAwesomeIcon icon={faUpDownLeftRight} />
         </Button>
         <Button
+          tooltip='Set rover rotation to look at the marker.\nThis is useful when navigating without magnetometer.'
+          onClick={() => {
+            if (!spoofGpsLookAtSrv) {
+              alertsRef.current?.pushAlert('Failed to set rover rotation. ROS connection is not established.');
+              return;
+            }
+
+            const req: SpoofGpsRequest = {
+              location: {
+                latitude: mapMarker.latitude,
+                longitude: mapMarker.longitude
+              }
+            };
+            spoofGpsLookAtSrv.callService(req, undefined, (error: string) => {
+              alertsRef.current?.pushAlert('Failed to set rover rotation. ' + error);
+            });
+          }}
+        >
+          <FontAwesomeIcon icon={faArrowsSpin} />
+        </Button>
+        <Button
           tooltip='Copy rover coordinates to clipboard.'
           onClick={() => {
-            navigator.clipboard.writeText(
-              `${gpsCoords.latitude.toFixed(8)}, ${gpsCoords.longitude.toFixed(8)}`
-            );
+            navigator.clipboard.writeText(`${gpsCoords.latitude.toFixed(8)}, ${gpsCoords.longitude.toFixed(8)}`);
           }}
           disabled={!gpsCoords.latitude || !gpsCoords.longitude}
         >
@@ -201,11 +193,7 @@ export default function MapHeader({ panelRef }: Props) {
         <Button
           tooltip='Fly to the marker.'
           onClick={() => {
-            panelRef.current?.goToLocation(
-              mapMarker.latitude,
-              mapMarker.longitude,
-              true
-            );
+            panelRef.current?.goToLocation(mapMarker.latitude, mapMarker.longitude, true);
           }}
         >
           <FontAwesomeIcon icon={faPaperPlane} />
@@ -224,9 +212,7 @@ export default function MapHeader({ panelRef }: Props) {
         <Button
           tooltip='Copy marker coordinates to clipboard.'
           onClick={() => {
-            navigator.clipboard.writeText(
-              `${mapMarker.latitude.toFixed(8)}, ${mapMarker.longitude.toFixed(8)}`
-            );
+            navigator.clipboard.writeText(`${mapMarker.latitude.toFixed(8)}, ${mapMarker.longitude.toFixed(8)}`);
           }}
         >
           <FontAwesomeIcon icon={faCopy} />

@@ -1,0 +1,21 @@
+/**:
+    ros__parameters:
+        subscribe_rgb: True
+        subscribe_depth: True
+        subscribe_rgbd: False
+        subscribe_stereo: False
+        subscribe_scan: False
+        subscribe_scan_cloud: False
+        subscribe_user_data: False
+        subscribe_odom_info: False
+
+        frame_id: base_link
+        map_frame_id: map
+        odom_frame_id: odom
+        publish_tf: True
+
+        # RTAB-Map params
+
+        Rtabmap/DetectionRate: "3"  # update Hz
+        Rtabmap/LoopThr: "0.02"
+        # Grid/CellSize: "0.1"  # resolution of occupancy grid; default is 0.05

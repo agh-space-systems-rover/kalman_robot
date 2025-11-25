@@ -1,6 +1,5 @@
 from ament_index_python import get_package_share_path
-from launch_ros.actions import Node, LoadComposableNodes
-from launch_ros.descriptions import ComposableNode
+from launch_ros.actions import Node
 from launch import LaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.actions import (
@@ -13,6 +12,8 @@ import yaml
 import os
 import jinja2
 import copy
+
+from kalman_utils.launch import launch_node_or_load_component, load_standalone_config
 
 
 NAV_CONTAINER_NAME = "nav2_container"
@@ -39,10 +40,12 @@ def render_jinja_config(template_path, **kwargs):
     config = yaml.load(config_str, Loader=yaml.FullLoader)
     return config
 
+
 def find_available_maps() -> set[str]:
     maps_dir = get_package_share_path("kalman_nav2") / "maps"
     maps = [f.stem for f in maps_dir.glob("*.yaml")]
     return set(maps)
+
 
 def render_nav2_config(rgbd_ids, static_map):
     # Render core Nav2 params.
@@ -95,53 +98,35 @@ def launch_setup(context):
         if x != ""
     ]
     static_map = LaunchConfiguration("static_map").perform(context)
+    driving_mode = LaunchConfiguration("driving_mode").perform(context)
 
-    description = []
+    actions = []
 
     # obstacle detection
-    if component_container:
-        if rgbd_ids:
-            description += [
-                LoadComposableNodes(
-                    target_container=component_container,
-                    composable_node_descriptions=[
-                        ComposableNode(
-                            package="point_cloud_utils",
-                            plugin="point_cloud_utils::ObstacleDetection",
-                            namespace=camera_id,
-                            remappings={
-                                "input": "point_cloud",
-                                "output": "point_cloud/obstacles",
-                            }.items(),
-                        )
-                        for camera_id in rgbd_ids
-                    ],
-                ),
-            ]
-    else:
-        description += [
-            Node(
+    actions += sum(
+        (
+            launch_node_or_load_component(
+                component_container=component_container,
                 package="point_cloud_utils",
                 executable="obstacle_detection",
+                plugin="point_cloud_utils::ObstacleDetection",
                 namespace=camera_id,
                 parameters=[
-                    str(
-                        get_package_share_path("kalman_nav2")
-                        / "config"
-                        / "obstacle_detection.yaml"
-                    ),
+                    load_standalone_config("kalman_nav2", "obstacle_detection.yaml"),
                 ],
-                remappings={
-                    "input": "point_cloud",
-                    "output": "point_cloud/obstacles",
-                }.items(),
-            )
-            for camera_id in rgbd_ids
-        ]
+                remappings=[
+                    ("input", "point_cloud"),
+                    ("output", "point_cloud/obstacles"),
+                ],
+                extra_arguments=[{"use_intra_process_comms": False}],
+            ) for camera_id in rgbd_ids
+        ),
+        [],
+    )
 
     # static map
     if static_map:
-        description += [
+        actions += [
             Node(
                 package="nav2_map_server",
                 executable="map_server",
@@ -174,7 +159,7 @@ def launch_setup(context):
         # We need to spawn a separate container for Nav2.
         # It is not possible to load Nav2 parameters into an
         # existing container without having access to its Node definition.
-        description += [
+        actions += [
             Node(
                 package="rclcpp_components",
                 executable="component_container_mt",
@@ -183,7 +168,7 @@ def launch_setup(context):
                 # See: https://github.com/ros-planning/navigation2/issues/4011
             ),
         ]
-    description += [
+    actions += [
         # Nav2
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
@@ -203,7 +188,7 @@ def launch_setup(context):
 
     # path follower
     # This is a Python module and it does not support composition.
-    description += [
+    actions += [
         Node(
             package="kalman_nav2",
             executable="path_follower",
@@ -213,11 +198,28 @@ def launch_setup(context):
                     / "config"
                     / "path_follower.yaml"
                 ),
+                {
+                    "driving_mode": driving_mode,
+                },
             ],
         ),
     ]
 
-    return description
+    # geo-path converter
+    # Maps Nav2 Path visualization to GPS coordinates.
+    actions += [
+        Node(
+            package="kalman_nav2",
+            executable="geo_path_converter",
+            remappings={
+                "fix": "gps/filtered",
+                "path": "plan_smoothed",
+                "geo_path": "plan/gps",
+            }.items(),
+        ),
+    ]
+
+    return actions
 
 
 def generate_launch_description():
@@ -238,6 +240,12 @@ def generate_launch_description():
                 default_value="",
                 choices=["", *find_available_maps()],
                 description="Name of the static map to use. Maps are stored in kalman_nav2/maps. Empty by default to disable static map.",
+            ),
+            DeclareLaunchArgument(
+                "driving_mode",
+                default_value="hybrid",
+                choices=["hybrid", "forward", "backward"],
+                description="Direction to drive in. The default 'hybrid' mode allows driving in both directions.",
             ),
             OpaqueFunction(function=launch_setup),
         ]

@@ -2,6 +2,17 @@
 
 rover: # or 'station'
   topics: # topics published by the rover and subscribed by the GS
+    # - name: test_string
+    #   type: example_interfaces/msg/String
+    #   string_enum:
+    #     fallback: unknown
+    #     values:
+    #       - teleop
+    #       - prepare
+    #       - travel
+    #       - stop_to_teleop
+    #       - stop_to_finished
+    #       - finished
     - name: imu/data
       type: sensor_msgs/msg/Imu
       max_rate: 5
@@ -47,18 +58,33 @@ rover: # or 'station'
             min: -180.0
             max: 180.0
             bytes: 4 # precision = 0.0000001 degrees = 1 cm
-    # - name: test_string
-    #   type: example_interfaces/msg/String
-    #   string_enum:
-    #     fallback: unknown
-    #     values:
-    #       - teleop
-    #       - prepare
-    #       - travel
-    #       - stop_to_teleop
-    #       - stop_to_finished
-    #       - finished
+    - name: odometry/global
+      type: nav_msgs/msg/Odometry
+      max_rate: 2
+      fields:
+        - path: pose.pose.orientation
+          min: -1.0
+          max: 1.0
+          bytes: 1
+    # For now keep it commented out. Paths take too much space to be sent over radio like this.
+    # - name: plan/gps
+    #   type: kalman_interfaces/msg/GeoPath
+    #   max_rate: 0.25
+    #   fields:
+    #     - path: points.*.latitude
+    #       float_range:
+    #         min: -90.0
+    #         max: 90.0
+    #         bytes: 4 # precision = 0.00000005 degrees = 0.5 cm
+    #     - path: points.*.longitude
+    #       float_range:
+    #         min: -180.0
+    #         max: 180.0
+    #         bytes: 4 # precision = 0.0000001 degrees = 1 cm
   services:
+    # - name: add_two_ints
+    #   type: example_interfaces/srv/AddTwoInts
+    #   retry_rate: 5
     - name: spoof_gps
       type: kalman_interfaces/srv/SpoofGps
       request_fields:
@@ -72,9 +98,19 @@ rover: # or 'station'
             min: -180.0
             max: 180.0
             bytes: 4 # precision = 0.0000001 degrees = 1 cm
-    # - name: add_two_ints
-    #   type: example_interfaces/srv/AddTwoInts
-    #   retry_rate: 5
+    - name: spoof_gps/look_at
+      type: kalman_interfaces/srv/SpoofGps
+      request_fields:
+        - path: location.latitude
+          float_range:
+            min: -90.0
+            max: 90.0
+            bytes: 4 # precision = 0.00000005 degrees = 0.5 cm
+        - path: location.longitude
+          float_range:
+            min: -180.0
+            max: 180.0
+            bytes: 4 # precision = 0.0000001 degrees = 1 cm
   actions: # actions served by the rover and used by the GS
     # - name: fibonacci
     #   type: example_interfaces/action/Fibonacci

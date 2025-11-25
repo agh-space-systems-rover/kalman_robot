@@ -1,0 +1,5 @@
+kalman_interfaces/SupervisorMappingGoal[] goals
+---
+---
+string state
+uint8 current_goal

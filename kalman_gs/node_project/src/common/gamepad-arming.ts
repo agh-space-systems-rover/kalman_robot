@@ -1,3 +1,4 @@
+import { audioLoop } from '../indicators/interstellar';
 import { GamepadInput } from './gamepad-compat';
 import { readGamepads } from './gamepads';
 import { ros } from './ros';
@@ -51,7 +52,7 @@ const jointInputMapping: JointMapping = {
   joint_1: {
     type: AxisType.AXIS,
     input: { axisId: 'left-x' },
-    mapping: invertedMapping
+    mapping: noMapping
   },
   joint_2: {
     type: AxisType.AXIS,
@@ -108,6 +109,7 @@ function translateGamepadToCommand({ type, input, mapping }: JointBind) {
 }
 
 let previousArmButtons = new Map<GamepadInput, number>();
+let dpadLeftDown = false;
 
 export let armJointsLocks = {
   'joint_1': false,
@@ -175,10 +177,10 @@ window.addEventListener('ros-connect', () => {
       currentAxisLockFocus = ((currentAxisLockFocus + 4) % 6) + 1;
     }
     if (readGamepads('x-button', 'arm') > 0.5 && previousArmButtons['x-button'] <= 0.5) {
-      fastclickTopic.publish({ data: 255 });
+      fastclickTopic.publish({ data: 0 });
     }
     if (readGamepads('b-button', 'arm') > 0.5 && previousArmButtons['b-button'] <= 0.5) {
-      fastclickTopic.publish({ data: 0 });
+      fastclickTopic.publish({ data: 255 });
     }
 
     previousArmButtons['right-shoulder'] = readGamepads('right-shoulder', 'arm');
@@ -188,5 +190,11 @@ window.addEventListener('ros-connect', () => {
 
     msg = resetLockedJoints(msg);
     fkTopic.publish(msg);
+
+    // Extra stupid feature for ARCh 2025
+    if (readGamepads('dpad-left', 'arm') == 1 && !dpadLeftDown) {
+      audioLoop.togglePlayback();
+    }
+    dpadLeftDown = readGamepads('dpad-left', 'arm') > 0.5;
   }, 1000 / RATE);
 });

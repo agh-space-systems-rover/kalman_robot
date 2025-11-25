@@ -6,34 +6,44 @@ import { gpsCoords } from '../common/gps';
 import { imuRotation } from '../common/imu';
 import '../common/leaflet-rotated-marker-plugin';
 import { mapMarker, setMapMarkerLatLon } from '../common/map-marker';
-import { Quaternion, Vector3, quatTimesVec } from '../common/mini-math-lib';
+import { Quaternion, Vector3, quatConj, quatTimesVec } from '../common/mini-math-lib';
+import { ros } from '../common/ros';
+import { GeoPoint, GeoPath, WheelStates } from '../common/ros-interfaces';
 import { waypoints } from '../common/waypoints';
 import erc2024Overlay from '../media/erc2024-overlay.png';
+import erc2025Overlay from '../media/erc2025-overlay.png';
 import Leaflet from 'leaflet';
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 import 'leaflet/dist/leaflet.css';
 import { Component, createRef } from 'react';
-import {
-  ImageOverlay,
-  MapContainer,
-  Marker,
-  ScaleControl,
-  TileLayer,
-  Tooltip
-} from 'react-leaflet';
+import { ImageOverlay, MapContainer, Marker, ScaleControl, TileLayer, Tooltip, Polyline } from 'react-leaflet';
+import { Topic } from 'roslib';
 
 const GO_TO_LOCATION_ZOOM = 19;
 const DEFAULT_LAT = 51.477928;
 const DEFAULT_LONG = -0.001545;
 const DEFAULT_ZOOM = 18;
 const PROPS_UPDATE_INTERVAL = 100;
-const ROS_IMU_LINK_YAW = 1.57;
 
 Leaflet.Marker.prototype.options.icon = Leaflet.icon({
   iconUrl: icon,
   shadowUrl: iconShadow,
   iconAnchor: [12, 41]
+});
+
+let geoPathArray: GeoPoint[] = [];
+window.addEventListener('ros-connect', () => {
+  const geoPathTopic = new Topic({
+    ros: ros,
+    name: '/plan/gps',
+    messageType: 'kalman_interfaces/GeoPath'
+  });
+
+  geoPathTopic.subscribe((msg: GeoPath) => {
+    geoPathArray = msg.points;
+    window.dispatchEvent(new Event('map-geo-points-update'));
+  });
 });
 
 type Props = {
@@ -44,20 +54,25 @@ type Props = {
   };
 };
 
-function rosYawFromQuat(q: Quaternion): number {
-  const heading: Vector3 = {
+function headingFromRoverRot(baseToMap: Quaternion): number {
+  const northMap: Vector3 = {
     x: 0,
     y: 1,
     z: 0
-  }; // north
-  const rotatedHeading = quatTimesVec(q, heading);
-  return Math.atan2(rotatedHeading.y, rotatedHeading.x);
+  }; // north in map frame
+  const northBase = quatTimesVec(quatConj(baseToMap), northMap);
+  const angleFromHeadingToNorth = Math.atan2(northBase.y, northBase.x);
+  // angle to north vector will increase when turning right
+  // heading shall behave the same way
+  const heading = (angleFromHeadingToNorth * 180) / Math.PI;
+  return heading;
 }
 
 export default class Map extends Component<Props> {
   private mapRef = createRef<Leaflet.Map>();
   private mapMarkerRef = createRef<Leaflet.Marker>();
   private kalmanMarkerRef = createRef<Leaflet.Marker>();
+  private polylineRef = createRef<Leaflet.Polyline>();
   private propsUpdateTimer: NodeJS.Timeout | null = null;
 
   private updateProps = () => {
@@ -75,29 +90,25 @@ export default class Map extends Component<Props> {
   };
 
   private onMapMarkerMoved = () => {
-    this.mapMarkerRef.current?.setLatLng([
-      mapMarker.latitude,
-      mapMarker.longitude
-    ]);
+    this.mapMarkerRef.current?.setLatLng([mapMarker.latitude, mapMarker.longitude]);
   };
 
   private onImuUpdated = () => {
     // Here we use our custom injected method to set the rotation angle of the marker.
     // Cast to any because the type definitions are not up to date.
-    (this.kalmanMarkerRef.current as any)?.setRotationAngle(
-      -((rosYawFromQuat(imuRotation) - ROS_IMU_LINK_YAW) * 180) / Math.PI
-    );
+    (this.kalmanMarkerRef.current as any)?.setRotationAngle(headingFromRoverRot(imuRotation));
   };
 
   private onGpsUpdated = () => {
-    this.kalmanMarkerRef.current?.setLatLng([
-      gpsCoords.latitude,
-      gpsCoords.longitude
-    ]);
+    this.kalmanMarkerRef.current?.setLatLng([gpsCoords.latitude, gpsCoords.longitude]);
   };
 
   private onWaypointsUpdated = () => {
     this.forceUpdate();
+  };
+
+  private onMapgeoPathUpdated = () => {
+    this.polylineRef.current?.setLatLngs(geoPathArray.map((point) => [point.latitude, point.longitude]));
   };
 
   componentDidMount() {
@@ -108,6 +119,7 @@ export default class Map extends Component<Props> {
       window.addEventListener('imu-update', this.onImuUpdated);
       window.addEventListener('gps-update', this.onGpsUpdated);
       window.addEventListener('waypoints-update', this.onWaypointsUpdated);
+      window.addEventListener('map-geo-points-update', this.onMapgeoPathUpdated);
     }
 
     this.propsUpdateTimer = setInterval(() => {
@@ -127,6 +139,7 @@ export default class Map extends Component<Props> {
       window.removeEventListener('resize', this.onResized);
       window.removeEventListener('any-panel-resize', this.onResized);
       window.removeEventListener('waypoints-update', this.onWaypointsUpdated);
+      window.removeEventListener('map-geo-points-update', this.onMapgeoPathUpdated);
     }
   }
 
@@ -185,20 +198,25 @@ export default class Map extends Component<Props> {
             maxZoom={23}
             minZoom={3}
           />
-          <ImageOverlay
+          {/*<ImageOverlay
             url={erc2024Overlay}
             bounds={[
               // Order of points does not matter as long as they are diagonally opposite corners of the image:
               [50.0663741908217, 19.9130491956501],
               [50.0659224467215, 19.9137533400464]
             ]}
+          />*/}
+          <ImageOverlay
+            url={erc2025Overlay}
+            bounds={[
+              // Order of points does not matter as long as they are diagonally opposite corners of the image:
+              [50.065971191749, 19.9130887981378],
+              [50.066363153534, 19.9137014499564]
+            ]}
           />
           <Marker
             ref={this.kalmanMarkerRef}
-            position={[
-              gpsCoords.latitude || 1000000,
-              gpsCoords.longitude || 1000000
-            ]}
+            position={[gpsCoords.latitude || 1000000, gpsCoords.longitude || 1000000]}
             interactive={false}
             icon={Leaflet.icon({
               className: styles['kalman-marker'],
@@ -245,6 +263,14 @@ export default class Map extends Component<Props> {
             riseOnHover
           />
           <ScaleControl imperial={false} maxWidth={200} />
+
+          <Polyline
+            ref={this.polylineRef}
+            positions={geoPathArray.map((point) => [point.latitude, point.longitude])}
+            color={'darkblue'}
+            weight={5}
+            opacity={0.8}
+          />
         </MapContainer>
       </div>
     );

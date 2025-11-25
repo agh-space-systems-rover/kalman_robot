@@ -5,9 +5,9 @@ from rclpy.node import Node
 from kalman_interfaces.srv import SetFeed
 from kalman_interfaces.msg import MasterMessage
 
-NUMBER_OF_RETRIES_PER_CALL = 3
-PUBLISH_RATE = 30  # NOTE: only published when there are messages to send
-MAX_MESSAGES_IN_QUEUE = 100  # About 3 seconds to process a full queue
+NUMBER_OF_RETRIES_PER_CALL = 1
+PUBLISH_RATE = 10  # NOTE: only published when there are messages to send
+MAX_MESSAGES_IN_QUEUE = 30  # About 3 seconds to process a full queue
 
 
 class FeedDriver(Node):
@@ -65,7 +65,7 @@ class FeedDriver(Node):
             msgs.append(
                 MasterMessage(
                     cmd=MasterMessage.FEED_SET_POWER,
-                    data=[req.feed, req.power],  # Firmware indexes power from 1.
+                    data=[req.feed, req.power - 1],  # Firmware indexes power from 0.
                 )
             )
 

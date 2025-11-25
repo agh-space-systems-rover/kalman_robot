@@ -9,11 +9,5 @@
   "printWidth": 120,
   "plugins": ["@trivago/prettier-plugin-sort-imports"],
   "importOrderSeparation": true,
-  "importOrder": [
-    "^\\./.+\\.css$",
-    "<THIRD_PARTY_MODULES>",
-    "/components.*",
-    "/modules.*",
-    "/panels.*"
-  ]
+  "importOrder": ["^\\./.+\\.css$", "<THIRD_PARTY_MODULES>", "/components.*", "/modules.*", "/panels.*"]
 }

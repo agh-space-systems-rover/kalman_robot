@@ -63,7 +63,32 @@ class GS(Node):
 
             # If line reads "Starting the development server...", open the browser
             if "Starting the development server..." in line:
-                webbrowser.open("http://localhost:3000")
+                # But if it is not the first time the user started the node,
+                # and the browser is already open, we assume
+                # that the ground station is already running.
+
+                # Check if this is the first ever run on this machine.
+                first_run_marker = os.path.expanduser(
+                    "~/.cache/kalman/first_gs_run.txt"
+                )
+                if not os.path.isfile(first_run_marker):
+                    os.makedirs(os.path.dirname(first_run_marker), exist_ok=True)
+                    with open(first_run_marker, "w") as f:
+                        f.write(
+                            "Existence of this file indicates that the ground station was already started once, and the user will know to open the browser manually."
+                        )
+
+                    # Open the browser
+                    webbrowser.open("http://localhost:3000")
+                else:
+                    # If this is not the first run, see if the browser is open.
+                    browser_is_open = False
+                    for proc in sp.Popen(["ps", "aux"], stdout=sp.PIPE).stdout:
+                        if "firefox" in str(proc) or "chromium" in str(proc):
+                            browser_is_open = True
+                            break
+                    if not browser_is_open:
+                        webbrowser.open("http://localhost:3000")
 
             if line:
                 self.get_logger().info(line.strip())

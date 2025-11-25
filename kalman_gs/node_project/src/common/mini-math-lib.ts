@@ -60,24 +60,11 @@ export function quatTimesVec(lhs: Quaternion, rhs: Vector3): Vector3 {
 
 export function quatTimesQuat(lhs: Quaternion, rhs: Quaternion): Quaternion {
   return {
-    w:
-      lhs.w * rhs.w - lhs.v.x * rhs.v.x - lhs.v.y * rhs.v.y - lhs.v.z * rhs.v.z,
+    w: lhs.w * rhs.w - lhs.v.x * rhs.v.x - lhs.v.y * rhs.v.y - lhs.v.z * rhs.v.z,
     v: {
-      x:
-        lhs.w * rhs.v.x +
-        lhs.v.x * rhs.w +
-        lhs.v.y * rhs.v.z -
-        lhs.v.z * rhs.v.y,
-      y:
-        lhs.w * rhs.v.y -
-        lhs.v.x * rhs.v.z +
-        lhs.v.y * rhs.w +
-        lhs.v.z * rhs.v.x,
-      z:
-        lhs.w * rhs.v.z +
-        lhs.v.x * rhs.v.y -
-        lhs.v.y * rhs.v.x +
-        lhs.v.z * rhs.w
+      x: lhs.w * rhs.v.x + lhs.v.x * rhs.w + lhs.v.y * rhs.v.z - lhs.v.z * rhs.v.y,
+      y: lhs.w * rhs.v.y - lhs.v.x * rhs.v.z + lhs.v.y * rhs.w + lhs.v.z * rhs.v.x,
+      z: lhs.w * rhs.v.z + lhs.v.x * rhs.v.y - lhs.v.y * rhs.v.x + lhs.v.z * rhs.w
     }
   };
 }
@@ -88,6 +75,10 @@ export function quatFromAxisAngle(axis: Vector3, angle: number): Quaternion {
     w: Math.cos(halfAngle),
     v: scaleVec(normalizeVec(axis), Math.sin(halfAngle))
   };
+}
+
+export function quatConj(q: Quaternion): Quaternion {
+  return { w: q.w, v: scaleVec(q.v, -1) };
 }
 
 export function vecFromCssColor(color: string): Vector3 {

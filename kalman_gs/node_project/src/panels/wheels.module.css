@@ -1,3 +1,24 @@
+[data-theme='dark'] {
+  --danger-wheel-filter: opacity(1) invert(48%) sepia(12%) saturate(3130%) hue-rotate(315deg) brightness(83%)
+    contrast(71%);
+  --warn-wheel-filter: opacity(1) brightness(0) saturate(100%) invert(57%) sepia(90%) saturate(344%) hue-rotate(2deg)
+    brightness(92%) contrast(90%);
+}
+
+[data-theme='light'] {
+  --danger-wheel-filter: opacity(1) brightness(0) saturate(100%) invert(71%) sepia(29%) saturate(7307%)
+    hue-rotate(320deg) brightness(104%) contrast(98%);
+  --warn-wheel-filter: opacity(1) brightness(0) saturate(100%) invert(93%) sepia(39%) saturate(2580%) hue-rotate(310deg)
+    brightness(104%) contrast(101%);
+}
+
+[data-theme='berry'] {
+  --danger-wheel-filter: opacity(1) invert(48%) sepia(12%) saturate(3130%) hue-rotate(315deg) brightness(83%)
+    contrast(71%);
+  --warn-wheel-filter: opacity(1) brightness(0) saturate(100%) invert(57%) sepia(90%) saturate(344%) hue-rotate(2deg)
+    brightness(92%) contrast(90%);
+}
+
 .wheels {
   width: 100%;
   height: 100%;
@@ -10,6 +31,7 @@
 .rover {
   width: 100%;
   height: 100%;
+  padding: 0 15px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -18,11 +40,16 @@
 
 .rover img {
   filter: brightness(0.5);
+  transition: filter 0.15s;
 }
 
-/* .rover:not(:global(.show-target)) {
-  margin-left: -100%;
-} */
+.rover img:global(.wheel-danger) {
+  filter: var(--danger-wheel-filter) !important;
+}
+
+.rover img:global(.wheel-warn) {
+  filter: var(--warn-wheel-filter) !important;
+}
 
 .rover:global(.show-target) {
   /* opacity: 0.5; */
@@ -76,11 +103,58 @@
   transform: rotate(180deg);
 }
 
+.wheel-temperatures {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+
+.wheel-temperatures p {
+  margin: 0;
+  color: var(--weak-foreground);
+  text-wrap: nowrap;
+}
+
+.wheel-temperatures.fl {
+  top: 0;
+  right: 110%;
+}
+
+.wheel-temperatures.fr {
+  top: 0;
+  left: 110%;
+}
+
+.wheel-temperatures.bl {
+  bottom: 0;
+  right: 110%;
+}
+
+.wheel-temperatures.br {
+  bottom: 0;
+  left: 110%;
+}
+
+.wheel-temperatures-measurement {
+  color: var(--strong-foreground);
+  font-weight: bold;
+}
+
+.wheel-temperatures-measurement:global(.warn) {
+  color: var(--yellow-foreground);
+}
+
+.wheel-temperatures-measurement:global(.danger) {
+  color: var(--red-foreground);
+}
+
 .wheel-image {
   position: absolute;
   right: 0;
   height: 100%;
   aspect-ratio: 0.935;
+  filter: invert(48%) sepia(13%) saturate(3207%) hue-rotate(130deg) brightness(95%) contrast(80%);
 }
 
 .body {

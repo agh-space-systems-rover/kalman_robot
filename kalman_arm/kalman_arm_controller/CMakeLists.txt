@@ -5,6 +5,12 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+# Check ROS distro and set up humble compatibility
+if(DEFINED ENV{ROS_DISTRO} AND "$ENV{ROS_DISTRO}" STREQUAL "humble")
+  message(STATUS "Detected ROS Humble - enabling compatibility headers")
+  set(HUMBLE_COMPAT_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/humble_compat")
+endif()
+
 # find dependencies
 set(HW_IF_INCLUDE_DEPENDS
   pluginlib
@@ -31,7 +37,8 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
     tf2_eigen
     kalman_interfaces
     example_interfaces
-    trajectory_msgs)
+    trajectory_msgs
+    yaml_cpp_vendor)
 
 set(TWIST_REPUB_DEPS
     control_msgs
@@ -68,6 +75,11 @@ set(SERVO_PUBLISHER servo_publisher)
 add_library(${SERVO_PUBLISHER} SHARED scripts/servo_publisher.cpp)
 target_compile_features(${SERVO_PUBLISHER} PUBLIC cxx_std_20)
 ament_target_dependencies(${SERVO_PUBLISHER} ${THIS_PACKAGE_INCLUDE_DEPENDS})
+if(DEFINED HUMBLE_COMPAT_INCLUDE_DIR)
+  target_include_directories(${SERVO_PUBLISHER} BEFORE PRIVATE ${HUMBLE_COMPAT_INCLUDE_DIR})
+  target_sources(${SERVO_PUBLISHER} PRIVATE 
+    ${HUMBLE_COMPAT_INCLUDE_DIR}/moveit_msgs/srv/servo_command_type.cpp)
+endif()
 rclcpp_components_register_nodes(${SERVO_PUBLISHER} "arm_master::MasterToServo")
 
 set(EXTRA_CAN extra_can)
@@ -86,13 +98,26 @@ rclcpp_components_register_nodes(${EXTRA_CAN} "kalman_arm::ExtraCanNode")
 
 add_executable(servo_keyboard_input scripts/servo_keyboard_input.cpp)
 target_include_directories(servo_keyboard_input PUBLIC include)
+if(DEFINED HUMBLE_COMPAT_INCLUDE_DIR)
+  target_include_directories(servo_keyboard_input BEFORE PRIVATE ${HUMBLE_COMPAT_INCLUDE_DIR})
+  target_sources(servo_keyboard_input PRIVATE 
+    ${HUMBLE_COMPAT_INCLUDE_DIR}/moveit_msgs/srv/servo_command_type.cpp)
+endif()
 ament_target_dependencies(servo_keyboard_input ${THIS_PACKAGE_INCLUDE_DEPENDS})
+
+set(CAN_BRIDGE can_bridge)
+add_library(${CAN_BRIDGE} SHARED src/configurable_can_bridge.cpp)
+target_compile_features(${CAN_BRIDGE} PUBLIC cxx_std_20)
+ament_target_dependencies(${CAN_BRIDGE} ${THIS_PACKAGE_INCLUDE_DEPENDS})
+target_link_libraries(${CAN_BRIDGE} yaml-cpp)
+rclcpp_components_register_nodes(${CAN_BRIDGE} "configurable_can_bridge::CANBridge")
 
 # add_executable(monitor_planning_scene scripts/planning_scene_tutorial.cpp)
 # target_include_directories(monitor_planning_scene PUBLIC include)
 # ament_target_dependencies(monitor_planning_scene ${THIS_PACKAGE_INCLUDE_DEPENDS})
 
 include_directories(hardware/include)
+include_directories(include)
 
 
 add_library(
@@ -126,7 +151,7 @@ pluginlib_export_plugin_description_file(hardware_interface kalman_arm_controlle
 
 # INSTALL
 install(
-  DIRECTORY hardware/include/
+  DIRECTORY hardware/include/ include/
   DESTINATION include/kalman_arm_controller
 )
 
@@ -139,6 +164,7 @@ install(TARGETS servo_keyboard_input
 install(TARGETS kalman_arm_controller
     ${SERVO_PUBLISHER}
     ${EXTRA_CAN}
+    ${CAN_BRIDGE}
   EXPORT export_kalman_arm_controller
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib

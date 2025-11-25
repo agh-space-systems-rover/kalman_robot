@@ -13,6 +13,7 @@
 #include <string>
 #include "std_msgs/msg/int8.hpp"
 #include "std_msgs/msg/u_int8.hpp"
+#include "std_msgs/msg/u_int16.hpp"
 extern "C" {
 #include "kalman_arm_controller/can_libs/can_driver.hpp"
 }
@@ -36,7 +37,22 @@ private:
   rclcpp::TimerBase::SharedPtr read_timer_;
 
   rclcpp::Subscription<std_msgs::msg::Int8>::SharedPtr gripper_sub_;
-  rclcpp::Subscription<std_msgs::msg::UInt8>::SharedPtr fastclick_sub_;
+  //   rclcpp::Subscription<std_msgs::msg::UInt8>::SharedPtr fastclick_sub_;
+
+  rclcpp::Subscription<std_msgs::msg::UInt16>::SharedPtr gripper_absolute_sub_;
+
+  uint16_t set_gripper_position(uint16_t position)
+  {
+    // Clamp the absolute position to min/max
+    if (position > max_gripper_) {
+      gripper_position_ = max_gripper_;
+    } else if (position < min_gripper_) {
+      gripper_position_ = min_gripper_;
+    } else {
+      gripper_position_ = position;
+    }
+    return gripper_position_;
+  }
 
   uint16_t calculate_gripper_position(int8_t position)
   {
@@ -73,9 +89,15 @@ public:
           CAN_driver::write_gripper_position(&extra_driver_, calculate_gripper_position(msg->data));
         });
 
-    fastclick_sub_ = this->create_subscription<std_msgs::msg::UInt8>(
-        "fastclick", rclcpp::SystemDefaultsQoS(),
-        [this](const std_msgs::msg::UInt8::SharedPtr msg) { CAN_driver::write_fastclick(&extra_driver_, msg->data); });
+    gripper_absolute_sub_ = this->create_subscription<std_msgs::msg::UInt16>(
+        "gripper/command_absolute", rclcpp::SystemDefaultsQoS(), [this](const std_msgs::msg::UInt16::SharedPtr msg) {
+          CAN_driver::write_gripper_position(&extra_driver_, set_gripper_position(msg->data));
+        });
+
+    // fastclick_sub_ = this->create_subscription<std_msgs::msg::UInt8>(
+    //     "fastclick", rclcpp::SystemDefaultsQoS(),
+    //     [this](const std_msgs::msg::UInt8::SharedPtr msg) { CAN_driver::write_fastclick(&extra_driver_, msg->data);
+    //     });
   }
 
   ~ExtraCanNode() override = default;

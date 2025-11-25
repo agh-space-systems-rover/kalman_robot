@@ -22,14 +22,8 @@ export default function RosHealth() {
   return (
     <Tooltip
       key={connected ? 1 : 0}
-      text={
-        connected
-          ? 'ROS is connected.'
-          : 'ROS network is not available. Please wait for connection.'
-      }
-      className={
-        styles['ros-health'] + (connected ? ' connected' : ' disconnected')
-      }
+      text={connected ? 'ROS is connected.' : 'ROS network is not available. Please wait for connection.'}
+      className={styles['ros-health'] + (connected ? ' connected' : ' disconnected')}
     >
       <FontAwesomeIcon icon={faRobot} />
     </Tooltip>
