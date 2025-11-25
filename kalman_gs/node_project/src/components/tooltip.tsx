@@ -4,7 +4,7 @@ import Popup from './popup';
 import { ReactNode, useRef } from 'react';
 
 type Props = {
-  text: string;
+  text: string | ReactNode;
   children?: ReactNode;
   className?: string;
   [key: string]: any;
@@ -14,9 +14,9 @@ export default function Tooltip({ text, children, className, ...props }: Props) 
   const showTimeout = useRef<any>(null);
   const popupRef = useRef<Popup>(null);
 
-  // Replace \n with <br> for newlines
+  // Replace \n with <br> for newlines if text is a string
   let multilineText: ReactNode;
-  if (text.includes('\\n')) {
+  if (typeof text === 'string' && text.includes('\\n')) {
     multilineText = (
       <>
         {text.split('\\n').map((line, i) => (
