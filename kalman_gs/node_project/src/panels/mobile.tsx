@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
 import styles from './mobile.module.css';
-import { Drive } from '../common/ros-interfaces';
-import { Topic } from 'roslib';
+
 import { ros } from '../common/ros';
+import { Drive } from '../common/ros-interfaces';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Topic } from 'roslib';
 
 const RATE = 30;
 const SPEED = 1.0;
@@ -88,14 +89,14 @@ export default function Mobile() {
 
       // Limit the length of x,y
       const length = Math.sqrt(x * x + y * y);
-      x = x / length * Math.min(length, 0.7);
-      y = y / length * Math.min(length, 0.7);
+      x = (x / length) * Math.min(length, 0.7);
+      y = (y / length) * Math.min(length, 0.7);
 
       handle.style.left = `${(x * 0.5 + 0.5) * 100}%`;
       handle.style.top = `${(y * 0.5 + 0.5) * 100}%`;
 
-      x = clamp(x / 0.7 * 1.3, -1, 1)
-      y = clamp(y / 0.7 * 1.3, -1, 1)
+      x = clamp((x / 0.7) * 1.3, -1, 1);
+      y = clamp((y / 0.7) * 1.3, -1, 1);
 
       xy = { x, y };
     } else if (holdingControl.current === 2) {
@@ -104,16 +105,16 @@ export default function Mobile() {
       if (!slider || !sliderHandle) return;
 
       let x = (event.clientX - slider.getBoundingClientRect().left) / slider.clientWidth;
-      
+
       x = x * 2 - 1;
 
       // Limit the length of x
       const length = Math.abs(x);
-      x = x / length * Math.min(length, 0.85);
+      x = (x / length) * Math.min(length, 0.85);
 
       sliderHandle.style.left = `${(x * 0.5 + 0.5) * 100}%`;
 
-      x = clamp(x / 0.85 * 1.3, -1, 1)
+      x = clamp((x / 0.85) * 1.3, -1, 1);
 
       rotation = x;
     }
@@ -121,7 +122,8 @@ export default function Mobile() {
 
   return (
     <div className={styles['mobile']}>
-      <div className={styles['mouse-catcher']}
+      <div
+        className={styles['mouse-catcher']}
         ref={mouseCatcherRef}
         onMouseUp={() => {
           setHoldingControl(0);
@@ -138,11 +140,11 @@ export default function Mobile() {
         <div className={styles['joystick-v']}> */}
       <div
         className={styles['joystick']}
-        onMouseDown={event => {
+        onMouseDown={(event) => {
           setHoldingControl(1);
           updateControl(event);
         }}
-        onTouchStart={event => {
+        onTouchStart={(event) => {
           setHoldingControl(1);
           updateControl(event.touches[0]);
         }}
@@ -162,11 +164,11 @@ export default function Mobile() {
       </div>
       <div
         className={styles['slider']}
-        onMouseDown={event => {
+        onMouseDown={(event) => {
           setHoldingControl(2);
           updateControl(event);
         }}
-        onTouchStart={event => {
+        onTouchStart={(event) => {
           setHoldingControl(2);
           updateControl(event.touches[0]);
         }}

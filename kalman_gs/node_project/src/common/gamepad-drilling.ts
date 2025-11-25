@@ -12,16 +12,13 @@ window.addEventListener('ros-connect', () => {
   });
 
   setInterval(() => {
-    let armAxis = readGamepads('left-y', 'drill') ;
+    let armAxis = readGamepads('left-y', 'drill');
     let rackAxis = readGamepads('right-y', 'drill');
-    let drilling = readGamepads('right-trigger', 'drill')  - readGamepads('left-trigger', 'drill');
+    let drilling = readGamepads('right-trigger', 'drill') - readGamepads('left-trigger', 'drill');
 
-    if(Number.isNaN(armAxis))
-        armAxis = 0;
-    if(Number.isNaN(rackAxis))
-        rackAxis = 0;
-    if(Number.isNaN(drilling))
-        drilling = 0;
+    if (Number.isNaN(armAxis)) armAxis = 0;
+    if (Number.isNaN(rackAxis)) rackAxis = 0;
+    if (Number.isNaN(drilling)) drilling = 0;
 
     const drillData = { arm: armAxis, rack: rackAxis, drill: drilling };
     sendDrillData.publish(drillData);

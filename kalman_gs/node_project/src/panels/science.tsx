@@ -34,7 +34,7 @@ const STORAGE_OPTIONS = [
   { name: 'Rock Storage', value: 'rock', icon: faBox },
   { name: 'pH Probe', value: 'ph', icon: faDroplet },
   { name: 'Magnetometer', value: 'magneto', icon: faMagnet },
-  { name: 'Drill', value: 'drill', icon: faOilWell },
+  { name: 'Drill', value: 'drill', icon: faOilWell }
 ];
 // Drill ROS clients
 let drillWeightTopic: any;
@@ -158,7 +158,6 @@ window.addEventListener('ros-connect', () => {
   window.dispatchEvent(new Event('science-subscribed'));
 });
 
-
 type SciencePanelProps = {
   props: {
     selectedStorage: string;
@@ -167,7 +166,6 @@ type SciencePanelProps = {
     drillTareHistory?: number[];
   };
 };
-
 
 type StorageContainerProps = {
   selectedStorage: string;
@@ -246,10 +244,7 @@ export default function Science({ props }: SciencePanelProps) {
         )}
 
         {selectedStorage === 'drill' && (
-          <DrillContainer
-            tareHistory={getTareHistory()}
-            onTareHistoryChange={setTareHistory}
-          />
+          <DrillContainer tareHistory={getTareHistory()} onTareHistoryChange={setTareHistory} />
         )}
 
         {selectedStorage === 'ph' && <PHProbe />}
@@ -473,97 +468,96 @@ function PHProbe({}: PHProbeProps) {
   const greenBg = style.getPropertyValue('--green-background');
   const blueBg = style.getPropertyValue('--blue-background');
   const darkBg = style.getPropertyValue('--dark-background');
-  const bgColor  = style.getPropertyValue('--background');
+  const bgColor = style.getPropertyValue('--background');
   const activeColor = style.getPropertyValue('--active');
 
-  return <>
-    <div className={styles['science-row']}>
-      <Label color={blueBg}>
-        <FontAwesomeIcon icon={faDroplet} />
-      </Label>
-      <Label color={darkBg} className={styles['science-row-item'] + ' ' + styles['science-selectable']}>
-        {phValue !== null ? `${phValue.toFixed(2)} pH` : '---'}
-      </Label>
-    </div>
-    <div className={styles['science-row']}>
-      <Button className={styles['science-row-item']} tooltip='Request new pH measurement' onClick={requestPhMeasurement}>
-        <FontAwesomeIcon icon={faArrowRotateRight} />
-        &nbsp;&nbsp;
-        <span style={{ marginTop: '2px' }}>Refresh</span>
-      </Button>
-    </div>
-    <div className={styles['science-row']}>
-    <div className={styles['tare-history']}>
+  return (
+    <>
       <div className={styles['science-row']}>
-        <Label color={darkBg} className={styles['science-row-item']}>
-          <FontAwesomeIcon icon={faDiagramProject} />
-          &nbsp;&nbsp;
-          Movement Speed
+        <Label color={blueBg}>
+          <FontAwesomeIcon icon={faDroplet} />
+        </Label>
+        <Label color={darkBg} className={styles['science-row-item'] + ' ' + styles['science-selectable']}>
+          {phValue !== null ? `${phValue.toFixed(2)} pH` : '---'}
         </Label>
       </div>
       <div className={styles['science-row']}>
-        {Array.from({ length: MAX_MOVE_SPEED * 2 + 1 }, (_, i) => {
-          const speed = -MAX_MOVE_SPEED + i;
-          const isActive = speed === moveSpeed;
-          let color;
-          if (isActive) {
-            color = speed > 0 ? greenBg : speed < 0 ? redBg : activeColor;
-          } else {
-            color = bgColor;
-          }
-          // Saturation modifier: more extreme values get more saturated color
-          const saturation = Math.abs(speed) / MAX_MOVE_SPEED;
-          console.log(saturation);
-          const style = isActive && speed !== 0
-            ? { filter: `saturate(${saturation})` }
-            : {};
-
-          return (
-            <Label
-              key={speed}
-              color={color}
-              className={styles['science-row-item']}
-              style={style}
-            >
-              {null}
-            </Label>
-          );
-        })}
+        <Button
+          className={styles['science-row-item']}
+          tooltip='Request new pH measurement'
+          onClick={requestPhMeasurement}
+        >
+          <FontAwesomeIcon icon={faArrowRotateRight} />
+          &nbsp;&nbsp;
+          <span style={{ marginTop: '2px' }}>Refresh</span>
+        </Button>
       </div>
       <div className={styles['science-row']}>
-        <Button
-          className={styles['science-row-item']}
-          tooltip="Decrease movement speed"
-          onClick={() => setMoveSpeed((speed) => Math.max(-MAX_MOVE_SPEED, speed - 1))}
-        >
-          <FontAwesomeIcon icon={faArrowDown} />
-          &nbsp;&nbsp;
-          <span style={{ marginTop: '2px' }}>Down</span>
-        </Button>
-        <Button
-          className={styles['science-row-item']}
-          tooltip="Stop movement"
-          onClick={() => {
-            setMoveSpeed(0);
-            sentZerosRef.current = 0;
-          }}
-        >
-          <FontAwesomeIcon icon={faStop} />
-          &nbsp;&nbsp;
-          <span style={{ marginTop: '2px' }}>Stop</span>
-        </Button>
-        <Button
-          className={styles['science-row-item']}
-          tooltip="Increase movement speed"
-          onClick={() => setMoveSpeed((speed) => Math.min(MAX_MOVE_SPEED, speed + 1))}
-        >
-          <FontAwesomeIcon icon={faArrowUp} />
-          &nbsp;&nbsp;
-          <span style={{ marginTop: '2px' }}>Up</span>
-        </Button>
+        <div className={styles['tare-history']}>
+          <div className={styles['science-row']}>
+            <Label color={darkBg} className={styles['science-row-item']}>
+              <FontAwesomeIcon icon={faDiagramProject} />
+              &nbsp;&nbsp; Movement Speed
+            </Label>
+          </div>
+          <div className={styles['science-row']}>
+            {Array.from({ length: MAX_MOVE_SPEED * 2 + 1 }, (_, i) => {
+              const speed = -MAX_MOVE_SPEED + i;
+              const isActive = speed === moveSpeed;
+              let color;
+              if (isActive) {
+                color = speed > 0 ? greenBg : speed < 0 ? redBg : activeColor;
+              } else {
+                color = bgColor;
+              }
+              // Saturation modifier: more extreme values get more saturated color
+              const saturation = Math.abs(speed) / MAX_MOVE_SPEED;
+              console.log(saturation);
+              const style = isActive && speed !== 0 ? { filter: `saturate(${saturation})` } : {};
+
+              return (
+                <Label key={speed} color={color} className={styles['science-row-item']} style={style}>
+                  {null}
+                </Label>
+              );
+            })}
+          </div>
+          <div className={styles['science-row']}>
+            <Button
+              className={styles['science-row-item']}
+              tooltip='Decrease movement speed'
+              onClick={() => setMoveSpeed((speed) => Math.max(-MAX_MOVE_SPEED, speed - 1))}
+            >
+              <FontAwesomeIcon icon={faArrowDown} />
+              &nbsp;&nbsp;
+              <span style={{ marginTop: '2px' }}>Down</span>
+            </Button>
+            <Button
+              className={styles['science-row-item']}
+              tooltip='Stop movement'
+              onClick={() => {
+                setMoveSpeed(0);
+                sentZerosRef.current = 0;
+              }}
+            >
+              <FontAwesomeIcon icon={faStop} />
+              &nbsp;&nbsp;
+              <span style={{ marginTop: '2px' }}>Stop</span>
+            </Button>
+            <Button
+              className={styles['science-row-item']}
+              tooltip='Increase movement speed'
+              onClick={() => setMoveSpeed((speed) => Math.min(MAX_MOVE_SPEED, speed + 1))}
+            >
+              <FontAwesomeIcon icon={faArrowUp} />
+              &nbsp;&nbsp;
+              <span style={{ marginTop: '2px' }}>Up</span>
+            </Button>
+          </div>
+        </div>
       </div>
-    </div></div>
     </>
+  );
 }
 
 function Magnetometer() {
@@ -588,7 +582,7 @@ function Magnetometer() {
         x: msg.magnetic_field.x,
         y: msg.magnetic_field.y,
         z: msg.magnetic_field.z,
-        abs: Math.sqrt(msg.magnetic_field.x**2 + msg.magnetic_field.y**2 + msg.magnetic_field.z**2), 
+        abs: Math.sqrt(msg.magnetic_field.x ** 2 + msg.magnetic_field.y ** 2 + msg.magnetic_field.z ** 2)
       });
     };
     magnetometerTopic.subscribe(cb);
@@ -608,36 +602,42 @@ function Magnetometer() {
   const magentaBg = style.getPropertyValue('--magenta-background');
   const darkBg = style.getPropertyValue('--dark-background');
 
-  return <>
-    <div className={styles['science-row']}>
-      <Label  color={redBg}>X</Label>
-      <Label color={darkBg} className={styles['science-row-item'] + ' ' + styles['science-selectable']}>
-        {magField ? magField.x.toFixed(2) : '---'}
-      </Label>
-      <Label color={greenBg}>Y</Label>
-      <Label color={darkBg} className={styles['science-row-item'] + ' ' + styles['science-selectable']}>
-        {magField ? magField.y.toFixed(2) : '---'}
-      </Label>
-      <Label color={blueBg}>Z</Label>
-      <Label color={darkBg} className={styles['science-row-item'] + ' ' + styles['science-selectable']}>
-        {magField ? magField.z.toFixed(2) : '---'}
-      </Label>
-    </div>
-    <div className={styles['science-row']}>
-      <Label color={magentaBg}>
-        <FontAwesomeIcon icon={faRuler} />
-      </Label>
-      <Label color={darkBg} className={styles['science-row-item'] + ' ' + styles['science-selectable']}>
-        {magField ? magField.abs.toFixed(2) : '---'}
-      </Label>
-    </div>
-    <div className={styles['science-row']}>
-      <Button className={styles['science-row-item']} tooltip='Request new magnetometer measurement' onClick={requestMagnetometerMeasurement}>
-        <FontAwesomeIcon icon={faArrowRotateRight} />
-        &nbsp;&nbsp;<span style={{ marginTop: '2px' }}>Refresh</span>
-      </Button>
-    </div>
-  </>;
+  return (
+    <>
+      <div className={styles['science-row']}>
+        <Label color={redBg}>X</Label>
+        <Label color={darkBg} className={styles['science-row-item'] + ' ' + styles['science-selectable']}>
+          {magField ? magField.x.toFixed(2) : '---'}
+        </Label>
+        <Label color={greenBg}>Y</Label>
+        <Label color={darkBg} className={styles['science-row-item'] + ' ' + styles['science-selectable']}>
+          {magField ? magField.y.toFixed(2) : '---'}
+        </Label>
+        <Label color={blueBg}>Z</Label>
+        <Label color={darkBg} className={styles['science-row-item'] + ' ' + styles['science-selectable']}>
+          {magField ? magField.z.toFixed(2) : '---'}
+        </Label>
+      </div>
+      <div className={styles['science-row']}>
+        <Label color={magentaBg}>
+          <FontAwesomeIcon icon={faRuler} />
+        </Label>
+        <Label color={darkBg} className={styles['science-row-item'] + ' ' + styles['science-selectable']}>
+          {magField ? magField.abs.toFixed(2) : '---'}
+        </Label>
+      </div>
+      <div className={styles['science-row']}>
+        <Button
+          className={styles['science-row-item']}
+          tooltip='Request new magnetometer measurement'
+          onClick={requestMagnetometerMeasurement}
+        >
+          <FontAwesomeIcon icon={faArrowRotateRight} />
+          &nbsp;&nbsp;<span style={{ marginTop: '2px' }}>Refresh</span>
+        </Button>
+      </div>
+    </>
+  );
 }
 
 function DrillContainer({ tareHistory, onTareHistoryChange }: DrillContainerProps) {
@@ -712,19 +712,11 @@ function DrillContainer({ tareHistory, onTareHistoryChange }: DrillContainerProp
         <Label color={magentaBg}>
           <FontAwesomeIcon icon={faRobot} />
         </Label>
-        <Button
-          className={styles['science-row-item']}
-          tooltip='Start drill autonomy'
-          onClick={handleStartAutonomy}
-        >
+        <Button className={styles['science-row-item']} tooltip='Start drill autonomy' onClick={handleStartAutonomy}>
           <FontAwesomeIcon icon={faPlay} />
           &nbsp;&nbsp;Start
         </Button>
-        <Button
-          className={styles['science-row-item']}
-          tooltip='Stop drill autonomy'
-          onClick={handleStopAutonomy}
-        >
+        <Button className={styles['science-row-item']} tooltip='Stop drill autonomy' onClick={handleStopAutonomy}>
           <FontAwesomeIcon icon={faStop} />
           &nbsp;&nbsp;Stop
         </Button>

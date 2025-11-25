@@ -37,11 +37,7 @@
   background-color: var(--red-background) !important;
 }
 .colored-button:global(.red):hover {
-  background-color: color-mix(
-    in srgb,
-    var(--red-background),
-    var(--red-foreground) 50%
-  ) !important;
+  background-color: color-mix(in srgb, var(--red-background), var(--red-foreground) 50%) !important;
 }
 .colored-button:global(.red):active {
   background-color: var(--red-foreground) !important;
@@ -51,11 +47,7 @@
   background-color: var(--yellow-background) !important;
 }
 .colored-button:global(.yellow):hover {
-  background-color: color-mix(
-    in srgb,
-    var(--yellow-background),
-    var(--yellow-foreground) 50%
-  ) !important;
+  background-color: color-mix(in srgb, var(--yellow-background), var(--yellow-foreground) 50%) !important;
 }
 .colored-button:global(.yellow):active {
   background-color: var(--yellow-foreground) !important;
@@ -65,11 +57,7 @@
   background-color: var(--green-background) !important;
 }
 .colored-button:global(.green):hover {
-  background-color: color-mix(
-    in srgb,
-    var(--green-background),
-    var(--green-foreground) 50%
-  ) !important;
+  background-color: color-mix(in srgb, var(--green-background), var(--green-foreground) 50%) !important;
 }
 .colored-button:global(.green):active {
   background-color: var(--green-foreground) !important;
@@ -79,11 +67,7 @@
   background-color: var(--cyan-background) !important;
 }
 .colored-button:global(.cyan):hover {
-  background-color: color-mix(
-    in srgb,
-    var(--cyan-background),
-    var(--cyan-foreground) 50%
-  ) !important;
+  background-color: color-mix(in srgb, var(--cyan-background), var(--cyan-foreground) 50%) !important;
 }
 .colored-button:global(.cyan):active {
   background-color: var(--cyan-foreground) !important;
@@ -93,11 +77,7 @@
   background-color: var(--blue-background) !important;
 }
 .colored-button:global(.blue):hover {
-  background-color: color-mix(
-    in srgb,
-    var(--blue-background),
-    var(--blue-foreground) 50%
-  ) !important;
+  background-color: color-mix(in srgb, var(--blue-background), var(--blue-foreground) 50%) !important;
 }
 .colored-button:global(.blue):active {
   background-color: var(--blue-foreground) !important;
@@ -107,11 +87,7 @@
   background-color: var(--magenta-background) !important;
 }
 .colored-button:global(.magenta):hover {
-  background-color: color-mix(
-    in srgb,
-    var(--magenta-background),
-    var(--magenta-foreground) 50%
-  ) !important;
+  background-color: color-mix(in srgb, var(--magenta-background), var(--magenta-foreground) 50%) !important;
 }
 .colored-button:global(.magenta):active {
   background-color: var(--magenta-foreground) !important;

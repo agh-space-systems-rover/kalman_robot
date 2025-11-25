@@ -34,10 +34,7 @@ setInterval(() => {
       // alertsRef.current?.pushAlert('Connected with ROS.', 'success');
       window.dispatchEvent(new Event('ros-connect'));
     } else if (lastLoggedConnectionState === false) {
-      alertsRef.current?.pushAlert(
-        'Re-established connection with ROS.',
-        'success'
-      );
+      alertsRef.current?.pushAlert('Re-established connection with ROS.', 'success');
       window.dispatchEvent(new Event('ros-connect'));
     }
     lastLoggedConnectionState = true;

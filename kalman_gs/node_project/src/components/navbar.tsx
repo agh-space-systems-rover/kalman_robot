@@ -34,10 +34,7 @@ export default function Navbar() {
 
   return (
     <div className={styles['navbar']}>
-      <div
-        className={styles['logo']}
-        onClick={() => splashRef.current?.show()}
-      />
+      <div className={styles['logo']} onClick={() => splashRef.current?.show()} />
       <div className={styles['layout-selector']}>
         {Object.keys(panelLayouts.layouts).map((layoutName) => {
           return (
@@ -57,20 +54,14 @@ export default function Navbar() {
                     text: 'Delete',
                     onClick: () => {
                       if (Object.keys(panelLayouts.layouts).length === 1) {
-                        alert(
-                          'You cannot delete all layouts. Please create a new layout before deleting this one.'
-                        );
+                        alert('You cannot delete all layouts. Please create a new layout before deleting this one.');
                         return;
                       }
-                      const confirmation = confirm(
-                        'Are you sure you want to delete this layout?'
-                      );
+                      const confirmation = confirm('Are you sure you want to delete this layout?');
                       if (confirmation) {
                         delete panelLayouts.layouts[layoutName];
                         if (panelLayouts.currentLayout === layoutName) {
-                          panelLayouts.currentLayout = Object.keys(
-                            panelLayouts.layouts
-                          )[0];
+                          panelLayouts.currentLayout = Object.keys(panelLayouts.layouts)[0];
                         }
                         rerenderNavbarAndPanelManager();
                       }
@@ -80,12 +71,9 @@ export default function Navbar() {
                     icon: faEdit,
                     text: 'Rename',
                     onClick: () => {
-                      const newLayoutName = prompt(
-                        'Choose a new name for the layout:'
-                      );
+                      const newLayoutName = prompt('Choose a new name for the layout:');
                       if (newLayoutName) {
-                        panelLayouts.layouts[newLayoutName] =
-                          panelLayouts.layouts[layoutName];
+                        panelLayouts.layouts[newLayoutName] = panelLayouts.layouts[layoutName];
                         delete panelLayouts.layouts[layoutName];
                         if (panelLayouts.currentLayout === layoutName) {
                           panelLayouts.currentLayout = newLayoutName;
@@ -98,9 +86,7 @@ export default function Navbar() {
                 ]}
               >
                 {layoutName === panelLayouts.currentLayout ? (
-                  <div className={styles['layout'] + ' ' + styles['active']}>
-                    {layoutName}
-                  </div>
+                  <div className={styles['layout'] + ' ' + styles['active']}>{layoutName}</div>
                 ) : (
                   <div className={styles['layout']}>{layoutName}</div>
                 )}

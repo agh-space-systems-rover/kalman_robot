@@ -1,4 +1,4 @@
-import { GamepadInput, readGamepad } from "./gamepad-compat";
+import { GamepadInput, readGamepad } from './gamepad-compat';
 
 type GamepadMode = 'none' | 'wheels' | 'arm' | 'drill';
 const gamepadModes: GamepadMode[] = ['none', 'wheels', 'arm', 'drill'];
@@ -9,26 +9,22 @@ const oldModeButtonState: Map<Gamepad, number> = new Map();
 const ARDUINO_GAMEPAD_ID = '2341-8036-Arduino LLC Arduino Leonardo';
 const defaultMode: GamepadMode = 'none';
 
-
 const connectGamepads = () => {
-  
-  const connectedGamepads = navigator
-    .getGamepads()
-    .filter((pad) => pad !== null);
+  const connectedGamepads = navigator.getGamepads().filter((pad) => pad !== null);
   // Add new gamepads.
   for (const pad of connectedGamepads) {
     if (!gamepads.has(pad) && pad.id !== ARDUINO_GAMEPAD_ID) {
       gamepads.set(pad, defaultMode);
     }
-    
-    if(readGamepad(pad, 'select')) {
+
+    if (readGamepad(pad, 'select')) {
       gamepads.set(pad, 'arm');
     }
-    if(readGamepad(pad, 'start')) {
+    if (readGamepad(pad, 'start')) {
       gamepads.set(pad, 'wheels');
     }
 
-    if(readGamepad(pad, 'mode') && !oldModeButtonState.get(pad)) {
+    if (readGamepad(pad, 'mode') && !oldModeButtonState.get(pad)) {
       const currentMode = gamepads.get(pad);
       const nextIndex = (gamepadModes.indexOf(currentMode ?? 'none') + 1) % gamepadModes.length;
       gamepads.set(pad, gamepadModes[nextIndex]);
@@ -67,9 +63,4 @@ function readGamepads(input: GamepadInput, mode: GamepadMode): number {
   return value / Math.max(numPads, 1);
 }
 
-export {
-  gamepads,
-  GamepadMode,
-  setGamepadMode,
-  readGamepads
-};
+export { gamepads, GamepadMode, setGamepadMode, readGamepads };

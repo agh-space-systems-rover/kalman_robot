@@ -11,14 +11,7 @@ type Props = {
   [key: string]: any;
 };
 
-export default function Label({
-  children,
-  tooltip,
-  color = 'red',
-  className,
-  style,
-  ...props
-}: Props) {
+export default function Label({ children, tooltip, color = 'red', className, style, ...props }: Props) {
   if (tooltip === undefined) {
     return (
       <div
@@ -33,12 +26,7 @@ export default function Label({
     return (
       <Tooltip
         text={tooltip}
-        className={
-          styles['label'] +
-          ' ' +
-          styles['help'] +
-          (className ? ` ${className}` : '')
-        }
+        className={styles['label'] + ' ' + styles['help'] + (className ? ` ${className}` : '')}
         style={{ backgroundColor: color }}
         {...props}
       >
