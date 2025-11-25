@@ -1,16 +1,22 @@
 [data-theme='dark'] {
-  --danger-wheel-filter: opacity(0.75) invert(48%) sepia(12%) saturate(3130%) hue-rotate(315deg) brightness(83%) contrast(71%);
-  --warn-wheel-filter: opacity(0.75) brightness(0) saturate(100%) invert(57%) sepia(90%) saturate(344%) hue-rotate(2deg) brightness(92%) contrast(90%);
+  --danger-wheel-filter: opacity(1) invert(48%) sepia(12%) saturate(3130%) hue-rotate(315deg) brightness(83%)
+    contrast(71%);
+  --warn-wheel-filter: opacity(1) brightness(0) saturate(100%) invert(57%) sepia(90%) saturate(344%) hue-rotate(2deg)
+    brightness(92%) contrast(90%);
 }
 
-[data-theme='ligth'] {
-  --danger-wheel-filter: opacity(0.75) brightness(0) saturate(100%) invert(71%) sepia(29%) saturate(7307%) hue-rotate(320deg) brightness(104%) contrast(98%);
-  --warn-wheel-filter: opacity(0.75) brightness(0) saturate(100%) invert(93%) sepia(39%) saturate(2580%) hue-rotate(310deg) brightness(104%) contrast(101%);
+[data-theme='light'] {
+  --danger-wheel-filter: opacity(1) brightness(0) saturate(100%) invert(71%) sepia(29%) saturate(7307%)
+    hue-rotate(320deg) brightness(104%) contrast(98%);
+  --warn-wheel-filter: opacity(1) brightness(0) saturate(100%) invert(93%) sepia(39%) saturate(2580%) hue-rotate(310deg)
+    brightness(104%) contrast(101%);
 }
 
 [data-theme='berry'] {
-  --danger-wheel-filter: opacity(0.75) invert(48%) sepia(12%) saturate(3130%) hue-rotate(315deg) brightness(83%) contrast(71%);
-  --warn-wheel-filter: opacity(0.75) brightness(0) saturate(100%) invert(57%) sepia(90%) saturate(344%) hue-rotate(2deg) brightness(92%) contrast(90%);
+  --danger-wheel-filter: opacity(1) invert(48%) sepia(12%) saturate(3130%) hue-rotate(315deg) brightness(83%)
+    contrast(71%);
+  --warn-wheel-filter: opacity(1) brightness(0) saturate(100%) invert(57%) sepia(90%) saturate(344%) hue-rotate(2deg)
+    brightness(92%) contrast(90%);
 }
 
 .wheels {
@@ -132,6 +138,7 @@
 
 .wheel-temperatures-measurement {
   color: var(--strong-foreground);
+  font-weight: bold;
 }
 
 .wheel-temperatures-measurement:global(.warn) {

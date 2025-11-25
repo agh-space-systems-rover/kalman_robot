@@ -6,6 +6,8 @@ import kalmanLeftWheel from '!!url-loader!../media/kalman-wheel.svg';
 import { alertsRef } from '../common/refs';
 import { ros } from '../common/ros';
 import { WheelStates, WheelTemperatures } from '../common/ros-interfaces';
+import { faGear, faRotate } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Topic } from 'roslib';
 
@@ -65,8 +67,7 @@ type ArrowProps = {
 
 function parseKelvinToCelsius(kelvin: number): string {
   const celsius = kelvin - KELVIN_OFFSET;
-  const toFixedValue = (document.querySelector('.' + styles['wheels']) as HTMLElement).offsetWidth > 600 ? 1 : 0;
-  return `${celsius.toFixed(toFixedValue)}°C`;
+  return `${celsius.toFixed(0)}°C`;
 }
 
 function Arrow({ velocity, angle, thickness }: ArrowProps) {
@@ -160,9 +161,8 @@ function Wheel({
                 : { fontSize: '9px' }
             }
           >
-            {(document.querySelector('.' + styles['wheels']) as HTMLElement)?.offsetWidth > 600 && <>Motor: </>}
             <span className={styles['wheel-temperatures-measurement'] + additionalMotorTemperatureClass}>
-              {parseKelvinToCelsius(motorTemperature)}
+              <FontAwesomeIcon icon={faGear} /> {parseKelvinToCelsius(motorTemperature)}
             </span>
           </p>
           <p
@@ -172,9 +172,8 @@ function Wheel({
                 : { fontSize: '9px' }
             }
           >
-            {(document.querySelector('.' + styles['wheels']) as HTMLElement)?.offsetWidth > 600 && <>Swivel: </>}
             <span className={styles['wheel-temperatures-measurement'] + additionalSwivelTemperatureClass}>
-              {parseKelvinToCelsius(swivelTemperature)}
+              <FontAwesomeIcon icon={faRotate} /> {parseKelvinToCelsius(swivelTemperature)}
             </span>
           </p>
         </div>
