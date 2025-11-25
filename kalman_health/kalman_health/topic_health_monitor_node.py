@@ -1,74 +1,63 @@
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import UInt8
-from kalman_interfaces.msg import Device
-from kalman_interfaces.srv import GetDevices
 import yaml
-
-Device_Status = [0, 0, 0, 0, 0, 0, 0, 0]
 
 
 class StatusClass(Node):
     def __init__(self):
         super().__init__("topic_health_monitor")
         self.timer_list = {}
-        self.status_pub = self.create_publisher(
-            UInt8, '/topic_health_status', 10)
-        filename = self.declare_parameter("config_path").value
+        filename = self.declare_parameter("config_path", "").value
 
         with open(filename, "r") as f:
-            self.Device_List = yaml.safe_load(f)
+            self.config = yaml.safe_load(f)
 
-        self.create_service(GetDevices, "topic_health_status/get_devices", self.get_devices)
+        self.statuses = [0] * len(self.config["devices"])
+
+        self.status_pub = self.create_publisher(UInt8, "topic_health_status", 10)
 
         self.publish_data_timer = self.create_timer(
-            self.Device_List["frequency"], self.publish_data)
+            self.config["frequency"], self.publish_data
+        )
         self.import_interfaces()
 
     def import_interfaces(self) -> None:
-        for key, device in self.Device_List["devices"].items():
-            _id = device["id"]
-            msg_type = device["msg_type"]
+        for i, device in enumerate(self.config["devices"]):
             topic = device["topic"]
+            topic_type = device["topic_type"]
             timeout = device["timeout"]
 
-            path_items = msg_type.split("/")
+            path_items = topic_type.split("/")
             package = ".".join(path_items[:-1])
             class_name = path_items[-1]
 
             # Import the interface and save it in the cache.
             module = __import__(package, fromlist=[class_name])
-            interface = getattr(
-                module, class_name)
+            interface = getattr(module, class_name)
 
             self.create_subscription(
-                interface, topic,
-                lambda msg, id=_id: self.is_data_received(id),
+                interface,
+                topic,
+                lambda msg, idx=i: self.is_data_received(idx),
                 10,
             )
-            self.timer_list[_id] = self.create_timer(
-                timeout, lambda id=_id: self.timeout_callback(id))
+            self.timer_list[i] = self.create_timer(
+                timeout, lambda idx=i: self.timeout_callback(idx)
+            )
 
-    def is_data_received(self, id: int):
-        Device_Status[id] = 1
-        self.timer_list[id].reset()
+    def is_data_received(self, idx: int):
+        self.statuses[idx] = 1
+        self.timer_list[idx].reset()
 
-    def timeout_callback(self, id: int):
-        Device_Status[id] = 0
+    def timeout_callback(self, idx: int):
+        self.statuses[idx] = 0
 
     def publish_data(self):
-        msg = UInt8()
-        list_to_byte = int(''.join(map(str, Device_Status)), 2)
-        msg.data = list_to_byte
-        self.status_pub.publish(msg)
-
-    def get_devices(self, req: GetDevices.Request, res: GetDevices.Response):
-        res.devices = [
-            Device(id=device["id"], device_name=device["device_name"])
-            for key, device in self.Device_List["devices"].items()
-        ]
-
-        return res
+        status_byte = 0
+        for status in self.statuses:
+            status_byte = (status_byte << 1) | status
+        self.status_pub.publish(UInt8(data=status_byte))
 
 
 def main():

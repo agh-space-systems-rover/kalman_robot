@@ -2,176 +2,161 @@ import styles from './health-status.module.css';
 
 import { alertsRef } from '../common/refs';
 import { ros } from '../common/ros';
-import { UInt8 } from '../common/ros-interfaces';
-import { faCamera, faCar, faCompass, faInfo, faSatellite } from '@fortawesome/free-solid-svg-icons';
+import { ReadPkgConfigFileRequest, ReadPkgConfigFileResponse, UInt8 } from '../common/ros-interfaces';
+import { faCamera, faCar, faChartSimple, faCompass, faSatellite } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import yaml from 'js-yaml';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Service, Topic } from 'roslib';
 
 import Tooltip from '../components/tooltip';
 
-const TOPIC_INACTIVITY_SECONDS = 15;
+const INACTIVITY_TIMEOUT_SECONDS = 15;
 
-type Devices = {
-  devices: Device[];
+type MonitorsConfig = {
+  frequency: number;
+  devices: DeviceConfig[];
+};
+
+type DeviceConfig = {
+  name: string;
+  topic: string;
+  topic_type: string;
+  timeout: number;
 };
 
 type Device = {
   id: number;
-  device_name: string;
+  name: string;
 };
 
-const deviceIcon: Record<number, any> = {
-  0: faCompass, // IMU
-  1: faSatellite, // GPS
-  2: faCar, // Master
-  3: faCamera, // d455_front
-  4: faCamera, // d455_left
-  5: faCamera, // d455_back
-  6: faCamera // d455_right
+const DEVICE_ICONS: Record<string, any> = {
+  IMU: faCompass,
+  GPS: faSatellite,
+  Master: faCar,
+  'D455 Front': faCamera,
+  'D455 Left': faCamera,
+  'D455 Back': faCamera,
+  'D455 Right': faCamera
 };
 
-// Services:
-let healthDevicesService: Service<{}, Devices> = null;
-
-// Topic variables:
-let healthStatusValue: UInt8 | null = null;
+let configReaderService: Service<ReadPkgConfigFileRequest, ReadPkgConfigFileResponse> | null = null;
+let latestHealthStatus: UInt8 | null = null;
 
 window.addEventListener('ros-connect', () => {
-  healthDevicesService = new Service({
+  configReaderService = new Service({
     ros: ros,
-    name: '/topic_health_status/get_devices',
-    serviceType: 'kalman_interfaces/GetDevices'
+    name: '/read_pkg_config_file',
+    serviceType: 'kalman_interfaces/ReadPkgConfigFile'
   });
 
-  const healthTopic = new Topic({
+  const healthStatusTopic = new Topic({
     ros: ros,
     name: '/topic_health_status',
     messageType: 'std_msgs/UInt8'
   });
 
-  healthTopic.subscribe((msg: UInt8) => {
-    healthStatusValue = msg;
+  healthStatusTopic.subscribe((msg: UInt8) => {
+    latestHealthStatus = msg;
     window.dispatchEvent(new Event('health-status-update'));
   });
 });
 
 export default function HealthStatus() {
-  const [healthDevices, setHealthDevices] = useState(null);
-  const [healthStatuses, setHealthStatuses] = useState(null);
-  const [showIcon, setShowIcon] = useState(false);
-  const [showDevices, setShowDevices] = useState(false);
-  const [healthDeviceError, setHealthDeviceError] = useState(false);
+  const [devices, setDevices] = useState<Device[] | null>(null);
+  const [statuses, setStatuses] = useState<number[] | null>(null);
+  const [isVisible, setIsVisible] = useState(false);
+  const [hasError, setHasError] = useState(false);
 
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const updateTopicHealthMonitors = useCallback(() => {
-    if (healthStatusValue !== null) {
-      const binaryString = healthStatusValue.data.toString(2).padStart(8, '0');
-      const statusesArray = Array.from(binaryString).map((bit) => Number(bit));
+  const handleHealthStatusUpdate = useCallback(() => {
+    if (!latestHealthStatus) return;
 
-      // Set timeout to hide the info panel after 20 seconds of inactivity
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-      }
-      timerRef.current = setTimeout(() => {
-        setShowIcon(false);
-      }, TOPIC_INACTIVITY_SECONDS * 1000);
+    const binaryString = latestHealthStatus.data.toString(2).padStart(8, '0');
+    const statusArray = Array.from(binaryString).map((bit) => Number(bit));
 
-      // Check for any inactive device, then set error
-      if (healthDevices === null) {
-        healthDevicesService.callService({}, (data: Devices) => setHealthDevices(data.devices), undefined);
-      } else {
-        let errorStatement = false;
-        healthDevices.forEach((device: Device) => {
-          if (healthStatuses[device.id] === 0) {
-            errorStatement = true;
+    // Reset hide timeout
+    if (hideTimeoutRef.current) {
+      clearTimeout(hideTimeoutRef.current);
+    }
+    hideTimeoutRef.current = setTimeout(() => {
+      setIsVisible(false);
+    }, INACTIVITY_TIMEOUT_SECONDS * 1000);
+
+    // Load device configuration on first update
+    if (devices === null && configReaderService) {
+      configReaderService.callService(
+        { pkg: 'kalman_health', path: 'config/monitors.yaml' },
+        (response: ReadPkgConfigFileResponse) => {
+          if (response.success) {
+            try {
+              const config = yaml.load(response.content) as MonitorsConfig;
+              const deviceList: Device[] = config.devices.map((device, index) => ({
+                id: index,
+                name: device.name
+              }));
+              setDevices(deviceList);
+            } catch (error) {
+              console.error('Failed to parse monitor config:', error);
+              alertsRef.current?.pushAlert('Failed to parse health monitor config.', 'error');
+            }
+          } else {
+            alertsRef.current?.pushAlert('Failed to read health monitor config.', 'error');
           }
-        });
-        setHealthDeviceError(errorStatement);
+        },
+        (error) => {
+          console.error('Config reader service error:', error);
+          alertsRef.current?.pushAlert('Failed to call config reader service.', 'error');
+        }
+      );
+    } else if (devices) {
+      // Check if any device has an error
+      const hasAnyError = devices.some((device) => statusArray[device.id] === 0);
+      setHasError(hasAnyError);
+    }
+
+    setIsVisible(true);
+    setStatuses(statusArray);
+  }, [devices]);
+
+  useEffect(() => {
+    window.addEventListener('health-status-update', handleHealthStatusUpdate);
+    return () => {
+      window.removeEventListener('health-status-update', handleHealthStatusUpdate);
+      if (hideTimeoutRef.current) {
+        clearTimeout(hideTimeoutRef.current);
       }
-
-      setShowIcon(true);
-      setHealthStatuses(statusesArray);
-    }
-  }, [healthDevices, healthStatuses, healthDeviceError]);
-
-  useEffect(() => {
-    window.addEventListener('health-status-update', updateTopicHealthMonitors);
-    return () => {
-      window.removeEventListener('health-status-update', updateTopicHealthMonitors);
     };
-  }, [updateTopicHealthMonitors]);
+  }, [handleHealthStatusUpdate]);
 
-  const handleClickOutside = (event: MouseEvent) => {
-    const targetElement = event.target as HTMLElement;
-
-    if (targetElement.closest(`.${styles['health-status']}`)) return;
-
-    if (!targetElement.className.includes('health-status-modal')) {
-      setShowDevices(false);
+  const renderTooltipContent = () => {
+    if (!devices || !statuses) {
+      return 'Loading device health status...';
     }
+
+    return (
+      <div className={styles['health-status-tooltip']}>
+        <div className={styles['health-status-tooltip-header']}>Device Health Status</div>
+        {devices.map((device) => (
+          <div key={device.id} className={styles['health-status-tooltip-device']}>
+            <FontAwesomeIcon
+              icon={DEVICE_ICONS[device.name] || faChartSimple}
+              className={styles['health-status-tooltip-icon'] + (statuses[device.id] ? ' connected' : ' disconnected')}
+            />
+            <span>{device.name}</span>
+          </div>
+        ))}
+      </div>
+    );
   };
-
-  const handleKeyDown = (event: KeyboardEvent) => {
-    if (event.key === 'Escape') {
-      setShowDevices(false);
-    }
-  };
-
-  useEffect(() => {
-    if (showDevices) {
-      document.addEventListener('mouseup', handleClickOutside);
-      document.addEventListener('keydown', handleKeyDown);
-    } else {
-      document.removeEventListener('mouseup', handleClickOutside);
-      document.removeEventListener('keydown', handleKeyDown);
-    }
-
-    return () => {
-      document.removeEventListener('mouseup', handleClickOutside);
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [showDevices]);
 
   return (
-    <>
-      <Tooltip
-        text='Show devices healthchecks.'
-        className={
-          styles['health-status'] + (showIcon ? '' : ' no-display') + (healthDeviceError ? ' error' : '')
-        }
-        onClick={() => {
-          if (healthStatuses === null) {
-            alertsRef.current?.pushAlert(`Cannot get list of devices statuses.`, 'error');
-            return;
-          }
-
-          setShowDevices((prev) => !prev);
-        }}
-      >
-        <FontAwesomeIcon icon={faInfo} />
-      </Tooltip>
-
-      {healthDevices !== null && (
-        <div className={styles['health-status-modal'] + (showDevices ? ' shown' : '')}>
-          <div className={styles['health-status-modal-content']}>
-            <h3 className={styles['health-status-modal-header']}>Health statuses</h3>
-            {healthDevices.map((device: Device) => (
-              <p className={styles['health-status-modal-device']} key={device.id}>
-                <FontAwesomeIcon
-                  icon={deviceIcon[device.id]}
-                  className={
-                    styles['health-status-modal-device-icon'] +
-                    (healthStatuses[device.id] ? ' connected' : ' disconnected')
-                  }
-                />
-                {device.device_name}
-              </p>
-            ))}
-          </div>
-        </div>
-      )}
-    </>
+    <Tooltip
+      text={renderTooltipContent()}
+      className={styles['health-status'] + (isVisible ? '' : ' no-display') + (hasError ? ' error' : ' connected')}
+    >
+      <FontAwesomeIcon icon={faChartSimple} style={{ pointerEvents: 'none' }} />
+    </Tooltip>
   );
 }

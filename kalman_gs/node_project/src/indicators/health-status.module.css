@@ -4,7 +4,9 @@
   padding: 3px;
   border-radius: 5px;
   cursor: pointer;
-  transition: transform 0.1s, 0.2s;
+  transition:
+    transform 0.1s,
+    0.2s;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -12,6 +14,10 @@
 
 .health-status:global(.no-display) {
   display: none;
+}
+
+.health-status:global(.connected) svg {
+  color: var(--green-foreground);
 }
 
 .health-status:global(.error) svg {
@@ -28,53 +34,38 @@
   transition: background-color 0s;
 }
 
-.health-status-modal {
-  min-width: 175px;
-  position: absolute;
-  top: 75px;
-  right: 10px;
-  background-color: var(--background);
-  border-radius: 10px;
+.health-status-tooltip {
   display: flex;
   flex-direction: column;
-  cursor: auto;
-  z-index: 1;
-  opacity: 0;
-  transition: opacity 0.3s;
+  gap: 6px;
+  min-width: 180px;
 }
 
-.health-status-modal:global(.shown) {
-  opacity: 1;
+.health-status-tooltip-header {
+  font-weight: bold;
+  font-size: 0.95em;
+  margin-bottom: 4px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--interactive);
 }
 
-.health-status-modal-content {
-  padding: 10px;
-  height: calc(100% - 20px);
-  color: var(--foreground);
-  flex: 1;
+.health-status-tooltip-device {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9em;
 }
 
-.health-status-modal-header {
-  margin: 10px 5px;
-  width: 100%;
-  text-align: center;
+.health-status-tooltip-icon {
+  width: 16px;
+  display: inline-block;
 }
 
-.health-status-modal-device {
-  margin: 4px 0;
-}
-
-.health-status-modal-device-icon {
-  margin-right: 10px;
-}
-
-.health-status-modal-device-icon:global(.connected) {
+.health-status-tooltip-icon:global(.connected) {
   color: var(--green-foreground);
 }
 
-.health-status-modal-device-icon:global(.disconnected) {
+.health-status-tooltip-icon:global(.disconnected) {
   color: var(--red-foreground);
 }
 

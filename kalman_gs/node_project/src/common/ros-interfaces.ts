@@ -137,6 +137,15 @@ export type SpoofGpsRequest = {
 };
 // Response is empty.
 
+export type ReadPkgConfigFileRequest = {
+  pkg?: string;
+  path?: string;
+};
+export type ReadPkgConfigFileResponse = {
+  content?: string;
+  success?: boolean;
+};
+
 export type JointState = {
   header?: Header;
   name?: string[];

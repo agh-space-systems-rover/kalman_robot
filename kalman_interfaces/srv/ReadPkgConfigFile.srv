@@ -1,0 +1,5 @@
+string pkg
+string path
+---
+string content
+bool success
