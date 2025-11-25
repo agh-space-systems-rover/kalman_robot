@@ -16,11 +16,7 @@ import {
   toggleArmAxisLock,
   armAxesLocks
 } from '../common/arm';
-import {
-  armJointsLocks,
-  currentAxisLockFocus,
-  toggleArmJointLock
-} from '../common/gamepad-arming';
+import { armJointsLocks, currentAxisLockFocus, toggleArmJointLock } from '../common/gamepad-arming';
 import predefinedPoses from '../common/predefined-arm-poses';
 import '../common/predefined-arm-trajectories';
 import predefinedArmTrajectories from '../common/predefined-arm-trajectories';
@@ -81,20 +77,12 @@ function getNamesAndValues() {
   return namesAndValues.slice(0, 6);
 }
 
-function isCloseEnough(
-  jointsA: number[],
-  jointsB: number[],
-  maxDistance: number,
-  checkedJoints: number[] = []
-) {
+function isCloseEnough(jointsA: number[], jointsB: number[], maxDistance: number, checkedJoints: number[] = []) {
   if (jointsA.length !== jointsB.length) {
     return false;
   }
   for (let i = 0; i < jointsA.length; i++) {
-    if (
-      i + 1 in checkedJoints &&
-      Math.abs(jointsA[i] - jointsB[i]) > maxDistance
-    ) {
+    if (i + 1 in checkedJoints && Math.abs(jointsA[i] - jointsB[i]) > maxDistance) {
       return false;
     }
   }
@@ -103,12 +91,8 @@ function isCloseEnough(
 
 function ArmStatus() {
   const [rerenderCount, setRerenderCount] = useState(0);
-  const [linearScale, setLinearScale] = useState<number | null>(
-    lastServoLinearScale
-  );
-  const [rotationalScale, setRotationalScale] = useState<number | null>(
-    lastServoRotationalScale
-  );
+  const [linearScale, setLinearScale] = useState<number | null>(lastServoLinearScale);
+  const [rotationalScale, setRotationalScale] = useState<number | null>(lastServoRotationalScale);
 
   const rerender = useCallback(() => {
     setRerenderCount((count) => count + 1);
@@ -139,9 +123,7 @@ function ArmStatus() {
     }
   };
 
-  const handleRotationalScaleChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleRotationalScaleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseFloat(e.target.value);
     if (!isNaN(value) && value >= 0 && value <= 1) {
       setRotationalScale(value);
@@ -163,10 +145,7 @@ function ArmStatus() {
 
   const distancesFromLimits = namesAndValues.map((joint, i) => {
     if (i > 5) return 0;
-    return Math.min(
-      joint.value - jointLimitsRad[i].min,
-      jointLimitsRad[i].max - joint.value
-    );
+    return Math.min(joint.value - jointLimitsRad[i].min, jointLimitsRad[i].max - joint.value);
   });
 
   const stylesFromLimits = distancesFromLimits.map((distance) => {
@@ -180,12 +159,7 @@ function ArmStatus() {
   });
 
   const jointValues = Array.from({ length: 6 }, (_, i) => (
-    <div
-      className={
-        (stylesFromLimits[i] ? stylesFromLimits[i] : '') + styles['joint-value']
-      }
-      key={i}
-    >
+    <div className={(stylesFromLimits[i] ? stylesFromLimits[i] : '') + styles['joint-value']} key={i}>
       {lastJointState ? rad2deg(namesAndValues[i].value).toFixed(0) : 'N/A'}
     </div>
   ));
@@ -204,25 +178,13 @@ function ArmStatus() {
         toggleArmJointLock(`joint_${i + 1}`);
       }}
     >
-      {armJointsLocks[`joint_${i + 1}`] ? (
-        <FontAwesomeIcon icon={faLock} />
-      ) : (
-        <FontAwesomeIcon icon={faLockOpen} />
-      )}
+      {armJointsLocks[`joint_${i + 1}`] ? <FontAwesomeIcon icon={faLock} /> : <FontAwesomeIcon icon={faLockOpen} />}
     </div>
   ));
 
   const getAxisLockIcon = (axis: string) => (
-    <div
-      className={`${styles['joint-lock']}`}
-      key={axis + armAxesLocks[axis]}
-      onClick={() => toggleArmAxisLock(axis)}
-    >
-      {armAxesLocks[axis] ? (
-        <FontAwesomeIcon icon={faLock} />
-      ) : (
-        <FontAwesomeIcon icon={faLockOpen} />
-      )}
+    <div className={`${styles['joint-lock']}`} key={axis + armAxesLocks[axis]} onClick={() => toggleArmAxisLock(axis)}>
+      {armAxesLocks[axis] ? <FontAwesomeIcon icon={faLock} /> : <FontAwesomeIcon icon={faLockOpen} />}
     </div>
   );
 
@@ -230,19 +192,11 @@ function ArmStatus() {
     <div className={styles['arm-status']}>
       <h1 className={styles['status-header']}>Arm Status</h1>
       <div className={styles['status']}>
-        <div className={styles['joint-column'] + ' ' + styles['align-left']}>
-          {jointLocks}
-        </div>
-        <div className={styles['joint-column'] + ' ' + styles['align-left']}>
-          {jointNames}
-        </div>
-        <div className={styles['joint-column'] + ' ' + styles['align-left']}>
-          {jointRangeLeft}
-        </div>
+        <div className={styles['joint-column'] + ' ' + styles['align-left']}>{jointLocks}</div>
+        <div className={styles['joint-column'] + ' ' + styles['align-left']}>{jointNames}</div>
+        <div className={styles['joint-column'] + ' ' + styles['align-left']}>{jointRangeLeft}</div>
         <div className={styles['joint-column']}>{jointValues}</div>
-        <div className={styles['joint-column'] + ' ' + styles['align-right']}>
-          {jointRangeRight}
-        </div>
+        <div className={styles['joint-column'] + ' ' + styles['align-right']}>{jointRangeRight}</div>
       </div>
       <h3 className={styles['scales-header']}>Scales</h3>
       <div className={styles['scales']}>
@@ -251,10 +205,7 @@ function ArmStatus() {
           <div className={styles['scale-name']}>Rotational scale:</div>
         </div>
         <div className={styles['scale-column']}>
-          <div
-            className={styles['scale-value-holder']}
-            key={lastServoLinearScale}
-          >
+          <div className={styles['scale-value-holder']} key={lastServoLinearScale}>
             <input
               type='range'
               min='0'
@@ -263,15 +214,10 @@ function ArmStatus() {
               value={linearScale || 0}
               onChange={handleLinearScaleChange}
             />
-            <div className={styles['scale-value'] + ' ' + styles['blink']}>
-              {linearScale?.toFixed(2)}
-            </div>
+            <div className={styles['scale-value'] + ' ' + styles['blink']}>{linearScale?.toFixed(2)}</div>
           </div>
 
-          <div
-            className={styles['scale-value-holder']}
-            key={lastServoRotationalScale + 10}
-          >
+          <div className={styles['scale-value-holder']} key={lastServoRotationalScale + 10}>
             <input
               type='range'
               min='0'
@@ -280,9 +226,7 @@ function ArmStatus() {
               value={rotationalScale || 0}
               onChange={handleRotationalScaleChange}
             />
-            <div className={styles['scale-value'] + ' ' + styles['blink']}>
-              {rotationalScale?.toFixed(2)}
-            </div>
+            <div className={styles['scale-value'] + ' ' + styles['blink']}>{rotationalScale?.toFixed(2)}</div>
           </div>
         </div>
       </div>
@@ -317,9 +261,7 @@ function ArmStatus() {
 function poseJoints(jointValues) {
   return (
     <div className={styles['status']}>
-      <div className={styles['joint-column'] + ' ' + styles['align-left']}>
-        {getJointNames()}
-      </div>
+      <div className={styles['joint-column'] + ' ' + styles['align-left']}>{getJointNames()}</div>
       <div className={styles['joint-column']}>{jointValues}</div>
     </div>
   );
@@ -327,6 +269,7 @@ function poseJoints(jointValues) {
 
 function PoseRequester() {
   const [rerenderCount, setRerenderCount] = useState(0);
+  const [keepAlive, setKeepAlive] = useState(false);
   const rerender = useCallback(() => {
     setRerenderCount((count) => count + 1);
   }, [setRerenderCount]);
@@ -342,7 +285,12 @@ function PoseRequester() {
 
   useEffect(() => {
     const intervalId = setInterval(() => {
-      keepAlivePose();
+      if (keepAlive) {
+        keepAlivePose();
+      }
+      if (lastStatusPose === 'ABORT_RECEIVED') {
+        setKeepAlive(false);
+      }
     }, 200);
 
     // Cleanup interval on component unmount
@@ -353,13 +301,10 @@ function PoseRequester() {
     for (let i = 0; i < safePreviousPoses.length; i++) {
       if (
         isCloseEnough(
-          predefinedPoses.POSES_JOINTS[
-            predefinedPoses.PREDEFINED_POSES.poses[safePreviousPoses[i]].name
-          ],
+          predefinedPoses.POSES_JOINTS[predefinedPoses.PREDEFINED_POSES.poses[safePreviousPoses[i]].name],
           namesAndValues.map((joint) => joint.value),
           predefinedPoses.PREDEFINED_POSES.max_distance_rad,
-          predefinedPoses.PREDEFINED_POSES.poses[safePreviousPoses[i]]
-            .joints_checked
+          predefinedPoses.PREDEFINED_POSES.poses[safePreviousPoses[i]].joints_checked
         )
       ) {
         return true;
@@ -373,63 +318,52 @@ function PoseRequester() {
   const namesAndValues = getNamesAndValues();
 
   const predefinedJointValues =
-    predefinedPoses.POSES_JOINTS[
-      predefinedPoses.PREDEFINED_POSES.poses[currentPoseId].name
-    ];
+    predefinedPoses.POSES_JOINTS[predefinedPoses.PREDEFINED_POSES.poses[currentPoseId].name];
 
-  const posesToSelect = predefinedPoses.PREDEFINED_POSES.poses.map(
-    (pose, i) => (
+  const posesToSelect = predefinedPoses.PREDEFINED_POSES.poses.map((pose, i) => (
+    <div
+      key={pose.id}
+      className={`${styles['pose-button']} ${styles['pose-option']} ${pose.id === currentPoseId ? styles['pose-selected'] : ''}`}
+      onClick={() => {
+        setCurrentPoseId(pose.id);
+      }}
+    >
+      <div className={styles['pose-name']}>{pose.name}</div>
       <div
-        key={pose.id}
-        className={`${styles['pose-button']} ${styles['pose-option']} ${pose.id === currentPoseId ? styles['pose-selected'] : ''}`}
-        onClick={() => {
-          setCurrentPoseId(pose.id);
-        }}
-      >
-        <div className={styles['pose-name']}>{pose.name}</div>
-        <div
-          className={`${styles['pose-indicator']} ${
-            isCloseEnough(
-              predefinedPoses.POSES_JOINTS[
-                predefinedPoses.PREDEFINED_POSES.poses[i].name
-              ],
-              namesAndValues.map((joint) => joint.value),
-              predefinedPoses.PREDEFINED_POSES.max_distance_rad,
-              predefinedPoses.PREDEFINED_POSES.poses[i].joints_checked
-            ) || isStartingFromSafePose(pose.safe_previous_poses)
-              ? styles['pose-ready']
-              : styles['pose-not-ready']
-          }`}
-        />
-      </div>
-    )
-  );
+        className={`${styles['pose-indicator']} ${
+          isCloseEnough(
+            predefinedPoses.POSES_JOINTS[predefinedPoses.PREDEFINED_POSES.poses[i].name],
+            namesAndValues.map((joint) => joint.value),
+            predefinedPoses.PREDEFINED_POSES.max_distance_rad,
+            predefinedPoses.PREDEFINED_POSES.poses[i].joints_checked
+          ) || isStartingFromSafePose(pose.safe_previous_poses)
+            ? styles['pose-ready']
+            : styles['pose-not-ready']
+        }`}
+      />
+    </div>
+  ));
 
   let isJointSet: boolean[] = Array(6).fill(false);
   let isJointClose: boolean[] = Array(6).fill(false);
   let isJointChecked: boolean[] = Array(6).fill(false);
 
-  predefinedPoses.PREDEFINED_POSES.poses[currentPoseId].joints_set.forEach(
-    (value) => {
-      isJointSet[value - 1] = true;
-    }
-  );
+  predefinedPoses.PREDEFINED_POSES.poses[currentPoseId].joints_set.forEach((value) => {
+    isJointSet[value - 1] = true;
+  });
 
   isJointClose = isJointClose.map((_, i) =>
     namesAndValues.length
       ? Math.abs(
-          predefinedPoses.POSES_JOINTS[
-            predefinedPoses.PREDEFINED_POSES.poses[currentPoseId].name
-          ][i] - namesAndValues[i].value
+          predefinedPoses.POSES_JOINTS[predefinedPoses.PREDEFINED_POSES.poses[currentPoseId].name][i] -
+            namesAndValues[i].value
         ) <= predefinedPoses.PREDEFINED_POSES.max_distance_rad
       : false
   );
 
-  predefinedPoses.PREDEFINED_POSES.poses[currentPoseId].joints_checked.forEach(
-    (value) => {
-      isJointChecked[value - 1] = true;
-    }
-  );
+  predefinedPoses.PREDEFINED_POSES.poses[currentPoseId].joints_checked.forEach((value) => {
+    isJointChecked[value - 1] = true;
+  });
 
   const PoseJoints = poseJoints(
     Array.from({ length: 6 }, (_, i) => (
@@ -444,16 +378,11 @@ function PoseRequester() {
 
   const closeEnough =
     isCloseEnough(
-      predefinedPoses.POSES_JOINTS[
-        predefinedPoses.PREDEFINED_POSES.poses[currentPoseId].name
-      ],
+      predefinedPoses.POSES_JOINTS[predefinedPoses.PREDEFINED_POSES.poses[currentPoseId].name],
       namesAndValues.map((joint) => joint.value),
       predefinedPoses.PREDEFINED_POSES.max_distance_rad,
       predefinedPoses.PREDEFINED_POSES.poses[currentPoseId].joints_checked
-    ) ||
-    isStartingFromSafePose(
-      predefinedPoses.PREDEFINED_POSES.poses[currentPoseId].safe_previous_poses
-    );
+    ) || isStartingFromSafePose(predefinedPoses.PREDEFINED_POSES.poses[currentPoseId].safe_previous_poses);
   return (
     <div className={styles['pose-requester']}>
       <h2 className={styles['pose-header']}>Pose Requester</h2>
@@ -468,6 +397,8 @@ function PoseRequester() {
           }`}
           onClick={() => {
             if (closeEnough) {
+              setKeepAlive(true);
+              keepAlivePose();
               sendPoseRequest(currentPoseId);
             }
           }}
@@ -490,6 +421,7 @@ function PoseRequester() {
 
 function TrajectoryRequester() {
   const [rerenderCount, setRerenderCount] = useState(0);
+  const [keepAlive, setKeepAlive] = useState(false);
   const rerender = useCallback(() => {
     setRerenderCount((count) => count + 1);
   }, [setRerenderCount]);
@@ -505,7 +437,12 @@ function TrajectoryRequester() {
 
   useEffect(() => {
     const intervalId = setInterval(() => {
-      keepAliveTrajectory();
+      if (keepAlive) {
+        keepAliveTrajectory();
+      }
+      if (lastStatusTrajectory === 'ABORT_RECEIVED') {
+        setKeepAlive(false);
+      }
     }, 200);
 
     // Cleanup interval on component unmount
@@ -518,41 +455,34 @@ function TrajectoryRequester() {
 
   const predefinedJointValues =
     predefinedArmTrajectories.START_JOINTS[
-      predefinedArmTrajectories.PREDEFINED_TRAJECTORIES.trajectories[
-        currentTrajectoryId
-      ].name
+      predefinedArmTrajectories.PREDEFINED_TRAJECTORIES.trajectories[currentTrajectoryId].name
     ];
 
-  const trajectoriesToSelect =
-    predefinedArmTrajectories.PREDEFINED_TRAJECTORIES.trajectories.map(
-      (trajectory, i) => (
-        <div
-          key={trajectory.id}
-          className={`${styles['pose-button']} ${styles['pose-option']} ${trajectory.id === currentTrajectoryId ? styles['pose-selected'] : ''}`}
-          onClick={() => {
-            setCurrentTrajectoryId(trajectory.id);
-          }}
-        >
-          <div className={styles['pose-name']}>{trajectory.name}</div>
-          <div
-            className={`${styles['pose-indicator']} ${
-              isCloseEnough(
-                predefinedArmTrajectories.START_JOINTS[
-                  predefinedArmTrajectories.PREDEFINED_TRAJECTORIES
-                    .trajectories[i].name
-                ],
-                namesAndValues.map((joint) => joint.value),
-                predefinedArmTrajectories.PREDEFINED_TRAJECTORIES
-                  .max_distance_rad,
-                [1, 2, 3, 4, 5, 6]
-              )
-                ? styles['pose-ready']
-                : styles['pose-not-ready']
-            }`}
-          />
-        </div>
-      )
-    );
+  const trajectoriesToSelect = predefinedArmTrajectories.PREDEFINED_TRAJECTORIES.trajectories.map((trajectory, i) => (
+    <div
+      key={trajectory.id}
+      className={`${styles['pose-button']} ${styles['pose-option']} ${trajectory.id === currentTrajectoryId ? styles['pose-selected'] : ''}`}
+      onClick={() => {
+        setCurrentTrajectoryId(trajectory.id);
+      }}
+    >
+      <div className={styles['pose-name']}>{trajectory.name}</div>
+      <div
+        className={`${styles['pose-indicator']} ${
+          isCloseEnough(
+            predefinedArmTrajectories.START_JOINTS[
+              predefinedArmTrajectories.PREDEFINED_TRAJECTORIES.trajectories[i].name
+            ],
+            namesAndValues.map((joint) => joint.value),
+            predefinedArmTrajectories.PREDEFINED_TRAJECTORIES.max_distance_rad,
+            [1, 2, 3, 4, 5, 6]
+          )
+            ? styles['pose-ready']
+            : styles['pose-not-ready']
+        }`}
+      />
+    </div>
+  ));
 
   let isJointClose: boolean[] = Array(6).fill(false);
 
@@ -560,9 +490,7 @@ function TrajectoryRequester() {
     namesAndValues.length
       ? Math.abs(
           predefinedArmTrajectories.START_JOINTS[
-            predefinedArmTrajectories.PREDEFINED_TRAJECTORIES.trajectories[
-              currentTrajectoryId
-            ].name
+            predefinedArmTrajectories.PREDEFINED_TRAJECTORIES.trajectories[currentTrajectoryId].name
           ][i] - namesAndValues[i].value
         ) <= predefinedArmTrajectories.PREDEFINED_TRAJECTORIES.max_distance_rad
       : false
@@ -570,10 +498,7 @@ function TrajectoryRequester() {
 
   const trajectoryJoints = poseJoints(
     Array.from({ length: 6 }, (_, i) => (
-      <div
-        className={`${styles['joint-value']} ${!isJointClose[i] ? styles['warn'] : ''}`}
-        key={i}
-      >
+      <div className={`${styles['joint-value']} ${!isJointClose[i] ? styles['warn'] : ''}`} key={i}>
         {rad2deg(predefinedJointValues[i]).toFixed(0)}
       </div>
     ))
@@ -581,9 +506,7 @@ function TrajectoryRequester() {
 
   const closeEnough = isCloseEnough(
     predefinedArmTrajectories.START_JOINTS[
-      predefinedArmTrajectories.PREDEFINED_TRAJECTORIES.trajectories[
-        currentTrajectoryId
-      ].name
+      predefinedArmTrajectories.PREDEFINED_TRAJECTORIES.trajectories[currentTrajectoryId].name
     ],
     namesAndValues.map((joint) => joint.value),
     predefinedArmTrajectories.PREDEFINED_TRAJECTORIES.max_distance_rad,
@@ -603,6 +526,8 @@ function TrajectoryRequester() {
           }`}
           onClick={() => {
             if (closeEnough) {
+              setKeepAlive(true);
+              keepAliveTrajectory();
               sendTrajectoryRequest(currentTrajectoryId);
             }
           }}
@@ -618,9 +543,7 @@ function TrajectoryRequester() {
           Abort
         </div>
       </div>
-      <div className={styles['pose-status']}>
-        Status: {lastStatusTrajectory}
-      </div>
+      <div className={styles['pose-status']}>Status: {lastStatusTrajectory}</div>
     </div>
   );
 }

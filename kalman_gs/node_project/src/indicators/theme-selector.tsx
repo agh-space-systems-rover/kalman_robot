@@ -2,11 +2,7 @@ import styles from './theme-selector.module.css';
 
 import { setTheme } from '../common/themes';
 import { faRaspberryPi } from '@fortawesome/free-brands-svg-icons';
-import {
-  faCloudMoon,
-  faGlasses,
-  faSun
-} from '@fortawesome/free-solid-svg-icons';
+import { faCloudMoon, faGlasses, faSun } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import ContextMenu from '../components/context-menu';

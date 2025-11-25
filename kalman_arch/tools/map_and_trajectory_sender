@@ -1,0 +1,194 @@
+#!/usr/bin/env python3
+
+import argparse
+import struct
+import numpy as np
+import rclpy
+from rclpy.node import Node
+from sensor_msgs.msg import PointCloud2, PointField
+from geometry_msgs.msg import PoseStamped
+from nav_msgs.msg import Path
+import yaml
+from plyfile import PlyData
+
+
+class MapAndTrajectoryBridge(Node):
+    def __init__(self, ply_file_path, yaml_file_path):
+        super().__init__("map_and_trajectory_bridge")
+
+        # Initialize message templates just once
+        self.points_cloud_msg = self._create_pointcloud_template()
+        self.path_msg = self._create_path_template()
+
+        # Load data - optimized with numpy for faster processing
+        self.get_logger().info("Loading PLY file...")
+        self.points_data = self._read_ply_file_optimized(ply_file_path)
+
+        self.get_logger().info("Loading YAML file...")
+        self.path_data = self._read_yaml_file(yaml_file_path)
+
+        # Create publishers
+        self.pc_pub = self.create_publisher(PointCloud2, "/map", 10)
+        self.path_pub = self.create_publisher(Path, "/path", 10)
+
+        # Generate message data once
+        self._prepare_point_cloud_data()
+        self._prepare_path_data()
+
+        self.get_logger().info("Map and Trajectory Bridge initialized")
+
+        # Publish immediately then set up timer
+        self.publish_pc_and_path()
+        self.timer = self.create_timer(1, self.publish_pc_and_path)
+
+    def _create_pointcloud_template(self):
+        """Create a template PointCloud2 message with fixed fields"""
+        msg = PointCloud2()
+        msg.header.frame_id = "map"
+
+        # Define fields once
+        msg.fields = [
+            PointField(name="x", offset=0, datatype=PointField.FLOAT32, count=1),
+            PointField(name="y", offset=4, datatype=PointField.FLOAT32, count=1),
+            PointField(name="z", offset=8, datatype=PointField.FLOAT32, count=1),
+            PointField(name="rgb", offset=12, datatype=PointField.FLOAT32, count=1),
+        ]
+
+        msg.is_bigendian = False
+        msg.point_step = 16
+        msg.height = 1
+        msg.is_dense = True
+
+        return msg
+
+    def _create_path_template(self):
+        """Create a template Path message"""
+        path_msg = Path()
+        path_msg.header.frame_id = "map"
+        return path_msg
+
+    def _read_ply_file_optimized(self, ply_file_path):
+        """Read PLY file and return optimized data structure"""
+        cloud = PlyData.read(ply_file_path)
+        vertex = cloud["vertex"]
+
+        # Get data as numpy arrays directly - much faster than iterating
+        point_count = len(vertex.data)
+
+        # Create structured data
+        points_data = {
+            "xyz": np.column_stack((vertex["x"], vertex["y"], vertex["z"])).astype(
+                np.float32
+            ),
+            "rgb": np.column_stack(
+                (vertex["red"], vertex["green"], vertex["blue"])
+            ).astype(np.uint8),
+        }
+
+        self.get_logger().info(f"Loaded {point_count} points from PLY file")
+        return points_data
+
+    def _read_yaml_file(self, yaml_file_path):
+        """Read path data from a YAML file"""
+        path_data = []
+        try:
+            with open(yaml_file_path, "r") as file:
+                data = yaml.safe_load(file)
+
+            # Pre-allocate poses list for better memory efficiency
+            poses = []
+            for entry in data["poses"]:
+                pose = PoseStamped()
+                pose.header.frame_id = "map"
+                pose.pose.position.x = entry["position"]["x"]
+                pose.pose.position.y = entry["position"]["y"]
+                pose.pose.position.z = entry["position"]["z"]
+                pose.pose.orientation.x = entry["orientation"]["x"]
+                pose.pose.orientation.y = entry["orientation"]["y"]
+                pose.pose.orientation.z = entry["orientation"]["z"]
+                pose.pose.orientation.w = entry["orientation"]["w"]
+                poses.append(pose)
+
+            self.get_logger().info(f"Loaded {len(poses)} poses from YAML file")
+            return poses
+
+        except Exception as e:
+            self.get_logger().error(f"Error reading YAML file: {e}")
+            return []
+
+    def _prepare_point_cloud_data(self):
+        """Pre-compute point cloud binary data once"""
+        point_count = len(self.points_data["xyz"])
+
+        # Update the message properties
+        self.points_cloud_msg.width = point_count
+        self.points_cloud_msg.row_step = self.points_cloud_msg.point_step * point_count
+
+        # Pre-compute binary data - this is computationally expensive, so do it once
+        # Create a structured array for binary packing
+        rgb_array = self.points_data["rgb"]
+        rgb_packed = (
+            rgb_array[:, 0].astype(np.uint32) << 16
+            | rgb_array[:, 1].astype(np.uint32) << 8
+            | rgb_array[:, 2].astype(np.uint32)
+        )
+
+        # Reinterpret as float32 (same as the struct.unpack approach but vectorized)
+        rgb_float = rgb_packed.view(np.float32)
+
+        # Stack XYZ and RGB into the final point data format
+        points_packed = np.column_stack((self.points_data["xyz"], rgb_float))
+
+        # Convert to bytes once (avoid doing this on every publish)
+        self.points_binary_data = points_packed.tobytes()
+        self.points_cloud_msg.data = self.points_binary_data
+
+        self.get_logger().info(f"Prepared PointCloud2 data with {point_count} points")
+
+    def _prepare_path_data(self):
+        """Prepare path message data"""
+        self.path_msg.poses = self.path_data
+        self.get_logger().info(f"Prepared Path data with {len(self.path_data)} poses")
+
+    def publish_pc_and_path(self):
+        """Publish point cloud and path data"""
+        self.get_logger().info("Publishing point cloud and path")
+
+        # Just update timestamps
+        current_time = self.get_clock().now().to_msg()
+        self.points_cloud_msg.header.stamp = current_time
+        self.path_msg.header.stamp = current_time
+
+        # Update timestamps in path poses if needed
+        for pose in self.path_msg.poses:
+            pose.header.stamp = current_time
+
+        # Publish messages
+        self.get_logger().info("Publishing point cloud")
+        self.pc_pub.publish(self.points_cloud_msg)
+        self.get_logger().info("Publishing path")
+        self.path_pub.publish(self.path_msg)
+        self.get_logger().debug("Published point cloud and path")
+
+
+def main(args=None):
+    parser = argparse.ArgumentParser(description="Map and Trajectory Bridge")
+    parser.add_argument("--ply", type=str, required=True, help="Path to PLY file")
+    parser.add_argument("--yaml", type=str, required=True, help="Path to YAML file")
+
+    rclpy.init(args=args)
+    parsed_args = parser.parse_args()
+
+    bridge = MapAndTrajectoryBridge(parsed_args.ply, parsed_args.yaml)
+
+    try:
+        rclpy.spin(bridge)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        bridge.destroy_node()
+        rclpy.shutdown()
+
+
+if __name__ == "__main__":
+    main()

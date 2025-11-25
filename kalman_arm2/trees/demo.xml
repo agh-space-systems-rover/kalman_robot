@@ -1,0 +1,52 @@
+<root main_tree_to_execute="MainTree">
+  <BehaviorTree ID="MainTree">
+    <Sequence>
+      <Parallel name="Run goal guard" success_threshold="1" failure_threshold="2">
+        <ArmNavigateToPose j0="0.0" j1="-1.2" j2="2.9" j3="0" j4="0.2" j5="0.0" jaw="0.0" />
+        <RetryUntilSuccessful num_attempts="-1">
+          <IsRecentDetection max_age_ms="500" first_marker_position="{first_marker_pos}"
+            first_marker_id="{first_marker_id}" />
+        </RetryUntilSuccessful>
+      </Parallel>
+      <ComeCloser aruco_position="{first_marker_pos}" aruco_id="{first_marker_id}" />
+      <AveragePose mission_helper="{state}" aruco_id="{first_marker_id}" />
+
+      <!-- One marker pose is known, let's find the rest -->
+      <RetryUntilSuccessful num_attempts="-1">
+        <Inverter>
+          <WhileDoElse name="LoopUntilEmpty">
+            <HasNextGoal mission_helper="{state}" />
+
+            <Sequence name="OneIteration">
+              <GetNextGoal mission_helper="{state}" next_marker_pose="{next_marker_pose}"
+                aruco_id="{first_marker_id}" />
+              <Say message="GetNextGoal did not fail" />
+              <IKNavigateToPose pose="{next_marker_pose}" />
+              <Say message="IK did not fail" />
+              <ComeCloser aruco_id="{first_marker_id}" />
+              <Say message="ComeCloser did not fail" />
+              <AveragePose mission_helper="{state}" aruco_id="{first_marker_id}" />
+              <Say message="AveragePose did not fail" />
+            </Sequence>
+
+            <!-- Return false, so inverter produces success -->
+            <AlwaysFailure />
+          </WhileDoElse>
+        </Inverter>
+      </RetryUntilSuccessful>
+
+      <Say message="All markers detected, calculating plane" />
+      <BuildUV mission_helper="{state}" />
+      <ShowBoard mission_helper="{state}" />
+
+      <Say message="I am done, entering infinite loop ..." />
+
+      <!-- Infinite loop at the end -->
+      <!-- <RetryUntilSuccessful num_attempts="-1">
+        <ForceFailure>
+          <SetBlackboard output_key="the_answer" value="The answer is 42" />
+        </ForceFailure>
+      </RetryUntilSuccessful> -->
+    </Sequence>
+  </BehaviorTree>
+</root>

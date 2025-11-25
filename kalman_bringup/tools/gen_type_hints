@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 import os
+import xml
+from xml.etree import ElementTree
 from ament_index_python import (
     get_package_share_path,
     PackageNotFoundError,
@@ -16,6 +18,26 @@ def capitalize_module_name(name: str) -> str:
     return "".join(word)
 
 
+def get_pkg_desc(pkg: str) -> str:
+    try:
+        pkg_path = get_package_share_path(pkg)
+    except PackageNotFoundError:
+        return ""
+    try:
+        pkg_xml = pkg_path / "package.xml"
+        with open(pkg_xml, "r") as f:
+            pkg_xml = f.read()
+        pkg_xml = ElementTree.fromstring(pkg_xml)
+        text = pkg_xml.find("description").text
+        text = text.replace("\n", " ").replace("\t", " ")
+        while "  " in text:
+            text = text.replace("  ", " ")
+        return text
+    except Exception as e:
+        print(e)
+        return ""
+
+
 if __name__ == "__main__":
     paths = [
         p
@@ -23,10 +45,11 @@ if __name__ == "__main__":
         if ("/opt/ros/" not in p and "kalman_bringup" not in p)
     ]
     module_pkgs = [(x.split("/")[-1]) for x in paths]
+    module_pkgs = sorted(module_pkgs)
 
     launch_args = (
         {}
-    )  # module_name -> [(arg1_name, arg1_choices), (arg2_name, arg2_choices), ...]
+    )  # module_name -> [(arg1_name, arg1_desc, arg1_choices), (arg2_name, ...]
 
     for pkg in module_pkgs:
         module_name = pkg if not pkg.startswith("kalman_") else pkg[7:]
@@ -39,9 +62,7 @@ if __name__ == "__main__":
             continue
 
         if os.path.exists(launch_path):
-            launch_args[module_name] = [
-                (name, choices) for name, _, choices in get_arg_decls(launch_path)
-            ]
+            launch_args[module_name] = get_arg_decls(launch_path)
             if len(launch_args[module_name]) == 0:
                 launch_args[module_name] = []
 
@@ -50,18 +71,24 @@ if __name__ == "__main__":
     print()
     print("from typing import Literal, TypedDict\n\n")
 
-    for module_name, args in launch_args.items():
+    launch_args_items = sorted(launch_args.items(), key=lambda x: x[0])
+    for module_name, args in launch_args_items:
         print(f"class {capitalize_module_name(module_name)}(TypedDict):")
         if args:
-            for arg_name, choices in args:
+            for arg_name, desc, choices in args:
                 if choices:
-                    print(f"    {arg_name}: Literal{list(choices)}".replace("'", '"'))
+                    print(f"    {arg_name}: Literal{sorted(choices)}".replace("'", '"'))
                 else:
                     print(f"    {arg_name}: str")
+                print(f'    "{desc}"')
         else:
             print("    pass")
         print("\n")
 
     print("class BringupConfig(TypedDict):")
-    for module_name in launch_args.keys():
+    launch_args_keys = sorted(launch_args.keys())
+    for module_name in launch_args_keys:
         print(f"    {module_name}: {capitalize_module_name(module_name)}")
+        desc = get_pkg_desc(f"kalman_{module_name}")
+        if desc:
+            print(f'    "{desc}"')

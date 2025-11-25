@@ -33,11 +33,11 @@ type GamepadInputMap = {
 
 const xInputFirefox: GamepadInputMap = {
   'left-x': { index: 0, axis: true },
-  'left-y': { index: 1, axis: true, remap: v => -v },
+  'left-y': { index: 1, axis: true, remap: (v) => -v },
   'right-x': { index: 2, axis: true },
-  'right-y': { index: 3, axis: true, remap: v => -v },
-  'left-trigger': { index: 4, axis: true, remap: v => v * 0.5 + 0.5 },
-  'right-trigger': { index: 5, axis: true, remap: v => v * 0.5 + 0.5 },
+  'right-y': { index: 3, axis: true, remap: (v) => -v },
+  'left-trigger': { index: 4, axis: true, remap: (v) => v * 0.5 + 0.5 },
+  'right-trigger': { index: 5, axis: true, remap: (v) => v * 0.5 + 0.5 },
   'left-shoulder': { index: 4 },
   'right-shoulder': { index: 5 },
   'left-stick': { index: 10 },
@@ -52,13 +52,13 @@ const xInputFirefox: GamepadInputMap = {
   'dpad-right': { index: 15 },
   'mode': { index: 16 },
   'select': { index: 8 },
-  'start': { index: 9 },
+  'start': { index: 9 }
 };
 const directInputFirefox = {
   'left-x': { index: 0, axis: true },
-  'left-y': { index: 1, axis: true, remap: v => -v },
+  'left-y': { index: 1, axis: true, remap: (v) => -v },
   'right-x': { index: 4, axis: true },
-  'right-y': { index: 5, axis: true, remap: v => -v },
+  'right-y': { index: 5, axis: true, remap: (v) => -v },
   'left-trigger': { index: 4 },
   'right-trigger': { index: 5 },
   'left-shoulder': { index: 2 },
@@ -75,8 +75,7 @@ const directInputFirefox = {
   'dpad-right': { index: 15 },
   'mode': { index: 16 },
   'select': { index: 6 },
-  'start': { index: 7 },
-  
+  'start': { index: 7 }
 };
 const inputChromium: GamepadInputMap = {
   ...xInputFirefox,
@@ -93,7 +92,7 @@ function readGamepad(pad: Gamepad, input: GamepadInput): number {
   // Determine Firefox or Chromium.
   // On chromium there are 4 axes instead of 6 in both XInput and DirectInput.
   const chromium = pad.axes.length === 4;
-  
+
   // Choose the right mapping for the platform.
   let mapping: GamepadInputMap;
   if (chromium) {
@@ -101,7 +100,7 @@ function readGamepad(pad: Gamepad, input: GamepadInput): number {
   } else {
     mapping = xInput ? xInputFirefox : directInputFirefox;
   }
-  
+
   // Read and remap the value.
   const { index, axis, remap } = mapping[input];
   let value;
@@ -129,8 +128,15 @@ function readGamepad(pad: Gamepad, input: GamepadInput): number {
   }
 
   // Apply small deadzone to sticks.
-  if (input === 'left-x' || input === 'left-y' || input === 'right-x' || input === 'right-y' || input === 'left-trigger' || input === 'right-trigger') {
-    value = Math.sign(value) * Math.max(Math.abs(value) - DEADZONE, 0) / (1 - DEADZONE);
+  if (
+    input === 'left-x' ||
+    input === 'left-y' ||
+    input === 'right-x' ||
+    input === 'right-y' ||
+    input === 'left-trigger' ||
+    input === 'right-trigger'
+  ) {
+    value = (Math.sign(value) * Math.max(Math.abs(value) - DEADZONE, 0)) / (1 - DEADZONE);
   }
 
   return value;

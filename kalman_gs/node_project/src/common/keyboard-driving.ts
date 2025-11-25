@@ -84,14 +84,9 @@ window.addEventListener('ros-connect', () => {
   });
 
   setInterval(() => {
-    const forward =
-      readKey(getKeybind('Drive Forward')) -
-      readKey(getKeybind('Drive Backward')); // positive = forward
-    let turn =
-      readKey(getKeybind('Turn Left')) - readKey(getKeybind('Turn Right')); // positive = left
-    const rotateInPlace =
-      readKey(getKeybind('Rotate Left in Place')) -
-      readKey(getKeybind('Rotate Right in Place')); // positive = left
+    const forward = readKey(getKeybind('Drive Forward')) - readKey(getKeybind('Drive Backward')); // positive = forward
+    let turn = readKey(getKeybind('Turn Left')) - readKey(getKeybind('Turn Right')); // positive = left
+    const rotateInPlace = readKey(getKeybind('Rotate Left in Place')) - readKey(getKeybind('Rotate Right in Place')); // positive = left
 
     const msg: Drive = {
       speed: forward * SPEEDS[speedI],

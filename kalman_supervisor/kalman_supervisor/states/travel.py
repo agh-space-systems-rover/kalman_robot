@@ -21,7 +21,6 @@ class Travel(State):
                 self.supervisor.nav.send_gps_goal(mission.init_lat, mission.init_lon)
             elif isinstance(mission, Missions.GpsYoloSearch):
                 self.supervisor.nav.send_gps_goal(mission.init_lat, mission.init_lon)
-        self.mission_canceled = False
 
     def tick(self) -> str | None:
         # Cancel the navigation if missions was ended early.

@@ -10,12 +10,7 @@ type Props = {
   [key: string]: any;
 };
 
-export default function Tooltip({
-  text,
-  children,
-  className,
-  ...props
-}: Props) {
+export default function Tooltip({ text, children, className, ...props }: Props) {
   const showTimeout = useRef<any>(null);
   const popupRef = useRef<Popup>(null);
 
@@ -40,9 +35,7 @@ export default function Tooltip({
     <Popup
       ref={popupRef}
       popup={<div className={styles['tooltip-popup']}>{multilineText}</div>}
-      className={
-        styles['tooltip-container'] + (className ? ` ${className}` : '')
-      }
+      className={styles['tooltip-container'] + (className ? ` ${className}` : '')}
       {...props}
     >
       <div

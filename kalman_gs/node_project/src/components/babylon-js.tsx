@@ -19,12 +19,7 @@ export default function BabylonJS({
 
     if (!canvas) return;
 
-    const engine = new Engine(
-      canvas,
-      antialias,
-      engineOptions,
-      adaptToDeviceRatio
-    );
+    const engine = new Engine(canvas, antialias, engineOptions, adaptToDeviceRatio);
     const scene = new Scene(engine, sceneOptions);
     if (scene.isReady()) {
       onSceneReady(scene);
@@ -54,14 +49,7 @@ export default function BabylonJS({
         window.removeEventListener('any-panel-resize', resize);
       }
     };
-  }, [
-    antialias,
-    engineOptions,
-    adaptToDeviceRatio,
-    sceneOptions,
-    onRender,
-    onSceneReady
-  ]);
+  }, [antialias, engineOptions, adaptToDeviceRatio, sceneOptions, onRender, onSceneReady]);
 
   return <canvas ref={reactCanvas} {...rest} />;
 }

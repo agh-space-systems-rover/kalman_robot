@@ -1,24 +1,15 @@
-[submodule "unity_sim"]
+[submodule "vendor/unity_sim"]
 	path = vendor/unity_sim
 	url = ../../agh-space-systems-rover/unity_sim.git
 [submodule "kalman_yolo"]
 	path = kalman_yolo
 	url = ../../agh-space-systems-rover/kalman_yolo.git
-[submodule "joy_linux"]
+[submodule "vendor/joy_linux"]
 	path = vendor/joy_linux
 	url = ../../agh-space-systems-rover/joy_linux.git
-[submodule "rosbridge_suite"]
-	path = vendor/rosbridge_suite
-	url = ../../RobotWebTools/rosbridge_suite.git
-[submodule "compressed_depth_image_transport"]
+[submodule "vendor/compressed_depth_image_transport"]
 	path = vendor/compressed_depth_image_transport
 	url = ../../agh-space-systems-rover/compressed_depth_image_transport.git
-[submodule "rtabmap_odom"]
-	path = vendor/rtabmap_odom
-	url = ../../agh-space-systems-rover/rtabmap_odom.git
-[submodule "moveit_msgs"]
-	path = vendor/moveit_msgs
-	url = ../../moveit/moveit_msgs.git
 [submodule "vendor/service_based_nav2_controller"]
 	path = vendor/service_based_nav2_controller
 	url = ../../agh-space-systems-rover/service_based_nav2_controller.git
@@ -30,5 +21,5 @@
 	url = ../../agh-space-systems-rover/point_cloud_utils.git
 [submodule "vendor/bio_ik"]
 	path = vendor/bio_ik
-	url = git@github.com:PickNikRobotics/bio_ik.git
+	url = ../../PickNikRobotics/bio_ik.git
 	branch = ros2

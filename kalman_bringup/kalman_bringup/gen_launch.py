@@ -15,7 +15,7 @@ from launch_ros.actions import Node
 from kalman_bringup.utils import get_arg_decls, is_kalman_composable
 
 # If type checking, import the right TypedDict instead of using regular dict
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 if TYPE_CHECKING:
     from kalman_bringup.type_hints import BringupConfig
@@ -23,20 +23,23 @@ else:
     BringupConfig = dict
 
 COMPONENT_CONTAINER_NAME = "kalman_container"
+CompositionMode = Literal["none", "start_container", "existing_container"]
 
 
-def gen_launch(config: BringupConfig, composition=False) -> LaunchDescription:
+def gen_launch(
+    config: BringupConfig, composition: CompositionMode = "none"
+) -> LaunchDescription:
     desc = []
     installed_packages = [x.split("/")[-1] for x in get_search_paths()]
 
-    if composition:
+    if composition == "start_container":
         # Spawn the component container
         desc += [
             Node(
                 package="rclcpp_components",
                 executable="component_container_mt",
                 name=COMPONENT_CONTAINER_NAME,
-                # arguments=["--ros-args", "--log-level", "warn"],
+                arguments=["--ros-args", "--log-level", "warn"],
             )
         ]
 
@@ -60,8 +63,8 @@ def gen_launch(config: BringupConfig, composition=False) -> LaunchDescription:
             raise ValueError(f"Launch file {launch_path} not found")
 
         # Add component_container argument if composition is enabled
-        launch_arguments = args.items()
-        if composition and is_kalman_composable(launch_path):
+        launch_arguments = list(args.items())
+        if composition != "none" and is_kalman_composable(launch_path):
             launch_arguments += [("component_container", COMPONENT_CONTAINER_NAME)]
 
         # Verify if arguments are valid:

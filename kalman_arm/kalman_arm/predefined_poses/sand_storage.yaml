@@ -40,32 +40,32 @@ request:
         - name: ""
           joint_constraints:
               - joint_name: arm_joint_1
-                position: -2.5112
+                position: -2.47
                 tolerance_above: 0.01
                 tolerance_below: 0.01
                 weight: 1.0
               - joint_name: arm_joint_2
-                position: -0.6651
+                position: 0.08
                 tolerance_above: 0.01
                 tolerance_below: 0.01
                 weight: 1.0
               - joint_name: arm_joint_3
-                position: 2.7647
+                position: 1.69
                 tolerance_above: 0.01
                 tolerance_below: 0.01
                 weight: 1.0
               - joint_name: arm_joint_4
-                position: -0.3163
+                position: 0.6
                 tolerance_above: 0.01
                 tolerance_below: 0.01
                 weight: 1.0
               - joint_name: arm_joint_5
-                position: -0.7137
+                position: 0.98
                 tolerance_above: 0.01
                 tolerance_below: 0.01
                 weight: 1.0
               - joint_name: arm_joint_6
-                position: 2.0451
+                position: -0.88
                 tolerance_above: 0.01
                 tolerance_below: 0.01
                 weight: 1.0

@@ -62,10 +62,7 @@ export default class Input extends Component<Props> {
     } = this.props;
 
     return (
-      <div
-        className={styles['input'] + (className ? ` ${className}` : '')}
-        {...props}
-      >
+      <div className={styles['input'] + (className ? ` ${className}` : '')} {...props}>
         <input
           ref={this.ref}
           placeholder={placeholder}
@@ -76,10 +73,7 @@ export default class Input extends Component<Props> {
           onChange={(e) => {
             if (type === 'float') {
               console.log(e.target.value);
-              this.ref.current.value = this.ref.current.value.replace(
-                /[^\d.-]/g,
-                ''
-              );
+              this.ref.current.value = this.ref.current.value.replace(/[^\d.-]/g, '');
               console.log(this.ref.current.value);
             }
             onChange?.(e.target.value);

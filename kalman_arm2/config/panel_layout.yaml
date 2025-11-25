@@ -1,0 +1,12 @@
+# (0,0) --> (u)
+#   |
+#   |
+#   v
+#  (v)
+markers:
+  0: {u: 0.0, v: 0.0}          # top-left is (0,0)
+  1: {u: 0.26, v: 0.0, yaw_deg: 0}
+  2: {u: 0.0, v: 0.383}
+marker_size: 0.050   # meters (edge length)
+board_width: 0.400   # meters
+board_height: 0.600  # meters

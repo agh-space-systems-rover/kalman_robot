@@ -3,7 +3,8 @@
 <package format="3">
   <name>kalman_hardware</name>
   <version>0.0.0</version>
-  <description>drivers, tools and launch scripts for the physical hardware onboard; Only to be run separately from the simulation on a physical robot.</description>
+  <description>drivers, tools and launch scripts for the physical hardware onboard; Only to be run
+    separately from the simulation on a physical robot.</description>
   <maintainer email="63957587+rayferric@users.noreply.github.com">rayferric</maintainer>
   <license>MIT</license>
 
@@ -11,6 +12,14 @@
   <buildtool_depend>ament_cmake_python</buildtool_depend>
 
   <depend>libphidget22</depend> <!-- libphidget22 is required to build compasscal. -->
+
+  <depend>rclcpp</depend>
+  <depend>rclcpp_components</depend>
+  <depend>sensor_msgs</depend>
+  <depend>image_transport</depend>
+  <depend>message_filters</depend>
+  <depend>cv_bridge</depend>
+
   <exec_depend>ros2launch</exec_depend>
   <exec_depend>realsense2_camera</exec_depend>
   <exec_depend>geometry_msgs</exec_depend>
@@ -20,6 +29,8 @@
   <exec_depend>python-transforms3d-pip</exec_depend> <!-- required by nmea_navsat_driver -->
   <exec_depend>python3-numpy</exec_depend>
   <exec_depend>python3-matplotlib</exec_depend>
+
+  <exec_depend>kalman_utils</exec_depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

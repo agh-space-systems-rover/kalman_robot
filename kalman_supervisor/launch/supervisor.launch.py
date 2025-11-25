@@ -25,7 +25,8 @@ def launch_setup(context):
         if x != ""
     ]
     aruco_deactivate_unused = (
-        LaunchConfiguration("aruco_deactivate_unused").perform(context).lower() == "true"
+        LaunchConfiguration("aruco_deactivate_unused").perform(context).lower()
+        == "true"
     )
     yolo_enabled = (
         LaunchConfiguration("yolo_enabled").perform(context).lower() == "true"
@@ -33,6 +34,11 @@ def launch_setup(context):
     yolo_deactivate_unused = (
         LaunchConfiguration("yolo_deactivate_unused").perform(context).lower() == "true"
     )
+    arch_camera_ids = [
+        x
+        for x in LaunchConfiguration("arch_camera_ids").perform(context).split(" ")
+        if x != ""
+    ]
 
     remappings = []
 
@@ -53,6 +59,7 @@ def launch_setup(context):
         *remap_action("missions/gps_goal", "supervisor/gps_goal"),
         *remap_action("missions/gps_aruco_search", "supervisor/gps_aruco_search"),
         *remap_action("missions/gps_yolo_search", "supervisor/gps_yolo_search"),
+        *remap_action("missions/mapping_goals", "supervisor/mapping_goals"),
         *remap_action("nav/navigate_to_pose", "navigate_to_pose"),
         ("ueuos/set_state", "ueuos/set_state"),
         ("yolo/get_state", "yolo_detect/get_state"),
@@ -61,6 +68,9 @@ def launch_setup(context):
         ("search/path_follower/set_parameters", "path_follower/set_parameters"),
         ("search/path_follower/get_parameters", "path_follower/get_parameters"),
     ]
+
+    for i, camera_id in enumerate(arch_camera_ids):
+        remappings += [(f"arch/take_photo{i}", f"{camera_id}/take_picture")]
 
     return [
         Node(
@@ -81,6 +91,9 @@ def launch_setup(context):
                     "yolo": {
                         "enabled": yolo_enabled,
                         "deactivate_unused": yolo_deactivate_unused,
+                    },
+                    "arch": {
+                        "num_cameras": len(arch_camera_ids),
                     },
                 },
             ],
@@ -114,6 +127,11 @@ def generate_launch_description():
                 default_value="false",
                 choices=["true", "false"],
                 description="Deactivate YOLO detection when supervisor is not actively looking for objects.",
+            ),
+            DeclareLaunchArgument(
+                "arch_camera_ids",
+                default_value="",
+                description="Space-separated IDs of the cameras to take photos with during the ARCh 2025 mapping mission.",
             ),
             OpaqueFunction(function=launch_setup),
         ]

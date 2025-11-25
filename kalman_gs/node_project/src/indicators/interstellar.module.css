@@ -1,0 +1,40 @@
+.interstellar {
+  position: relative;
+  width: calc(1em + 4px);
+  height: calc(1em + 4px);
+  padding: 3px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: transform 0.1s;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: background-color 0.2s;
+}
+
+.interstellar:hover {
+  background-color: var(--background);
+}
+
+.interstellar:active {
+  background-color: var(--interactive);
+  transition: background-color 0s;
+}
+
+.overlay-icon {
+  position: absolute;
+  width: 40%;
+  height: 40%;
+  bottom: 10%;
+  left: 10%;
+  filter: drop-shadow(1px -1px 0 var(--dark-background));
+  pointer-events: none;
+}
+
+.overlay-icon.play {
+  color: var(--green-foreground);
+}
+
+.overlay-icon.stop {
+  color: var(--red-foreground);
+}
