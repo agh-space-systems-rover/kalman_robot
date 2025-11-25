@@ -205,6 +205,20 @@ def launch_setup(context):
         ),
     ]
 
+    # geo-path converter
+    # Maps Nav2 Path visualization to GPS coordinates.
+    actions += [
+        Node(
+            package="kalman_nav2",
+            executable="geo_path_converter",
+            remappings={
+                "fix": "gps/filtered",
+                "path": "plan_smoothed",
+                "geo_path": "plan/gps",
+            }.items(),
+        ),
+    ]
+
     return actions
 
 

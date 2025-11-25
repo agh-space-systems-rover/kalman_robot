@@ -7,6 +7,8 @@ import { imuRotation } from '../common/imu';
 import '../common/leaflet-rotated-marker-plugin';
 import { mapMarker, setMapMarkerLatLon } from '../common/map-marker';
 import { Quaternion, Vector3, quatConj, quatTimesVec } from '../common/mini-math-lib';
+import { ros } from '../common/ros';
+import { GeoPoint, GeoPath, WheelStates } from '../common/ros-interfaces';
 import { waypoints } from '../common/waypoints';
 import erc2024Overlay from '../media/erc2024-overlay.png';
 import erc2025Overlay from '../media/erc2025-overlay.png';
@@ -15,7 +17,8 @@ import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 import 'leaflet/dist/leaflet.css';
 import { Component, createRef } from 'react';
-import { ImageOverlay, MapContainer, Marker, ScaleControl, TileLayer, Tooltip } from 'react-leaflet';
+import { ImageOverlay, MapContainer, Marker, ScaleControl, TileLayer, Tooltip, Polyline } from 'react-leaflet';
+import { Topic } from 'roslib';
 
 const GO_TO_LOCATION_ZOOM = 19;
 const DEFAULT_LAT = 51.477928;
@@ -27,6 +30,20 @@ Leaflet.Marker.prototype.options.icon = Leaflet.icon({
   iconUrl: icon,
   shadowUrl: iconShadow,
   iconAnchor: [12, 41]
+});
+
+let geoPathArray: GeoPoint[] = [];
+window.addEventListener('ros-connect', () => {
+  const geoPathTopic = new Topic({
+    ros: ros,
+    name: '/plan/gps',
+    messageType: 'kalman_interfaces/GeoPath'
+  });
+
+  geoPathTopic.subscribe((msg: GeoPath) => {
+    geoPathArray = msg.points;
+    window.dispatchEvent(new Event('map-geo-points-update'));
+  });
 });
 
 type Props = {
@@ -55,6 +72,7 @@ export default class Map extends Component<Props> {
   private mapRef = createRef<Leaflet.Map>();
   private mapMarkerRef = createRef<Leaflet.Marker>();
   private kalmanMarkerRef = createRef<Leaflet.Marker>();
+  private polylineRef = createRef<Leaflet.Polyline>();
   private propsUpdateTimer: NodeJS.Timeout | null = null;
 
   private updateProps = () => {
@@ -89,6 +107,10 @@ export default class Map extends Component<Props> {
     this.forceUpdate();
   };
 
+  private onMapgeoPathUpdated = () => {
+    this.polylineRef.current?.setLatLngs(geoPathArray.map((point) => [point.latitude, point.longitude]));
+  };
+
   componentDidMount() {
     if (window) {
       window.addEventListener('resize', this.onResized);
@@ -97,6 +119,7 @@ export default class Map extends Component<Props> {
       window.addEventListener('imu-update', this.onImuUpdated);
       window.addEventListener('gps-update', this.onGpsUpdated);
       window.addEventListener('waypoints-update', this.onWaypointsUpdated);
+      window.addEventListener('map-geo-points-update', this.onMapgeoPathUpdated);
     }
 
     this.propsUpdateTimer = setInterval(() => {
@@ -116,6 +139,7 @@ export default class Map extends Component<Props> {
       window.removeEventListener('resize', this.onResized);
       window.removeEventListener('any-panel-resize', this.onResized);
       window.removeEventListener('waypoints-update', this.onWaypointsUpdated);
+      window.removeEventListener('map-geo-points-update', this.onMapgeoPathUpdated);
     }
   }
 
@@ -239,6 +263,14 @@ export default class Map extends Component<Props> {
             riseOnHover
           />
           <ScaleControl imperial={false} maxWidth={200} />
+
+          <Polyline
+            ref={this.polylineRef}
+            positions={geoPathArray.map((point) => [point.latitude, point.longitude])}
+            color={'darkblue'}
+            weight={5}
+            opacity={0.8}
+          />
         </MapContainer>
       </div>
     );

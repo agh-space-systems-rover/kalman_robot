@@ -7,6 +7,7 @@ find_package(ament_cmake_python REQUIRED)
 ament_python_install_package(${PROJECT_NAME})
 
 install(PROGRAMS
+  scripts/geo_path_converter
   scripts/path_follower
   DESTINATION lib/${PROJECT_NAME}
 )
