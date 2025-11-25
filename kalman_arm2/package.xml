@@ -22,6 +22,7 @@
   <depend>orocos_kdl_vendor</depend>
   <depend>tf2_ros</depend>
   <depend>tf2_geometry_msgs</depend>
+  <depend>behaviortree_cpp_v3</depend>
 
   <!-- RPi compat deps -->
   <depend>control_msgs</depend>
@@ -29,6 +30,7 @@
   <exec_depend>rosbridge_server</exec_depend>
   
   <depend>kalman_interfaces</depend>
+  <exec_depend>kalman_utils</exec_depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

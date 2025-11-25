@@ -6,24 +6,36 @@ from std_msgs.msg import Float32, Empty
 from std_srvs.srv import Trigger
 
 storage = {
-    "sand": {
+    "sand": [{
         "board": 0,
-        "device": 3,
+        "channel": 3,
         # calibration coeffs
-        "scale": 1.0,
-        "bias": 0.0,
+        "scale": 23739.0 / 1310000.0,
+        "bias": - 44568183.0 / 1310000.0,
         # safe angles for the servo
-        "open_angle": 0,
-        "close_angle": 180,
-    },
-    "rock": {
-        "board": 0,
-        "device": 1,
-        "scale": 1.0,
-        "bias": 0.0,
-        "open_angle": 0,
-        "close_angle": 180,
-    },
+        "open_angle": 180,
+        "close_angle": 0,
+    }],
+    "rock": [
+        {
+            "board": 0,
+            "channel": 0,
+            "scale": 23739.0 / 1425700.0,
+            "bias": -447639993.0 / 712850.0,
+            "open_angle": 180,
+            "close_angle": 0,
+        },
+        {
+            "board": 0,
+            "channel": 2,
+            "scale": 23739.0 / 1425700.0,
+            "bias": 0.0, 
+            "open_angle": 180,
+            "close_angle": 0,
+        },
+
+    ]
+    ,
 }
 
 class StorageDriver(Node):
@@ -68,18 +80,22 @@ class StorageDriver(Node):
                 Trigger, close_srv_name, lambda req, resp, name=storage_name: self.handle_servo(name, False, resp)
             )
 
+        # Track last values to sum them up for multi-channel storages
+        self.last_values = {name: [0.0]*len(infos) for name, infos in storage.items()}
+
     def handle_value_req(self, storage_name, response):
-        storage_info = storage[storage_name]
-        board_id = storage_info["board"]
-        device_id = storage_info["device"]
+        storage_infos = storage[storage_name]
+        for storage_info in storage_infos:
+            board_id = storage_info["board"]
+            channel_id = storage_info["channel"]
 
-        # Create the request message
-        req_msg = MasterMessage()
-        req_msg.cmd = MasterMessage.SCALE_REQ
-        req_msg.data = struct.pack("BB", board_id, device_id)
+            # Create the request message
+            req_msg = MasterMessage()
+            req_msg.cmd = MasterMessage.SCALE_REQ
+            req_msg.data = struct.pack("BB", board_id, channel_id)
 
-        # Publish the request to the master
-        self.master_pub.publish(req_msg)
+            # Publish the request to the master
+            self.master_pub.publish(req_msg)
 
         response.success = True
         response.message = f"Requested value for {storage_name}"
@@ -90,39 +106,48 @@ class StorageDriver(Node):
             self.get_logger().warn("Received invalid scale response")
             return
 
-        # Pad data to 8 bytes to handle struct alignment
-        padded_data = bytes(msg.data[:6]) + b'\x00\x00'
-        board_id, device_id, value = struct.unpack("BBi", padded_data)
-        storage_name = next(
-            (
-                name
-                for name, info in storage.items()
-                if info["board"] == board_id and info["device"] == device_id
-            ),
-            None,
-        )
+        padded_data = bytes(msg.data[:6])
+        board_id, channel_id, value = struct.unpack("<BBi", padded_data)
 
-        # Apply linear mapping
-        value = value * storage[storage_name]["scale"] + storage[storage_name]["bias"]
+        self.get_logger().info(f"{channel_id} = {value}")
         
+        # Find which storage this corresponds to
+        storage_name = None
+        info_idx = 0
+        for name, infos in storage.items():
+            for idx, info in enumerate(infos):
+                if info["board"] == board_id and info["channel"] == channel_id:
+                    storage_name = name
+                    info_idx = idx
+                    break
+            if storage_name:
+                break
+
         # Publish the value
         if storage_name:
-            self.api_pubs[storage_name].publish(Float32(data=float(value)))
+            # Apply linear mapping
+            value = value * storage[storage_name][info_idx]["scale"] + storage[storage_name][info_idx]["bias"]
+            self.last_values[storage_name][info_idx] = value
+            total_value = sum(self.last_values[storage_name])
+
+            self.get_logger().info(f"{self.last_values}")
+            self.api_pubs[storage_name].publish(Float32(data=float(total_value)))
         else:
             self.get_logger().warn(
-                f"Unknown storage response: board_id={board_id}, device_id={device_id}"
+                f"Unknown storage response: board_id={board_id}, channel_id={channel_id}"
             )
 
     def handle_servo(self, storage_name, open_flag, response):
-        storage_info = storage[storage_name]
-        board_id = storage_info["board"]
-        device_id = storage_info["device"]
-        angle = storage_info["open_angle"] if open_flag else storage_info["close_angle"]
+        storage_infos = storage[storage_name]
+        for storage_info in storage_infos:
+            board_id = storage_info["board"]
+            channel_id = storage_info["channel"]
+            angle = storage_info["open_angle"] if open_flag else storage_info["close_angle"]
 
-        msg = MasterMessage()
-        msg.cmd = MasterMessage.SERVO_SET
-        msg.data = struct.pack("BBB", board_id, device_id, angle)
-        self.master_pub.publish(msg)
+            msg = MasterMessage()
+            msg.cmd = MasterMessage.SERVO_SET
+            msg.data = struct.pack("BBB", board_id, channel_id, angle)
+            self.master_pub.publish(msg)
 
         response.success = True
         response.message = f"{'Opened' if open_flag else 'Closed'} {storage_name} (angle={angle})"

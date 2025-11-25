@@ -17,22 +17,22 @@ def generate_launch_description():
             "clouds": {
                 "rgbd_ids": RGBD_IDS,
             },
-            "slam": {
-                "rgbd_ids": RGBD_IDS,
-                "gps_datum": "50.06623534 19.9132241",  # ERC2024 Marsyard S1, Kraków
-                "fiducials": "terc2025",
-                "use_mag": "true",
-            },
-            "nav2": {
-                "rgbd_ids": RGBD_IDS,
-                # "static_map": "erc2024",
-            },
-            "wheels": {},
             "aruco": {
                 "rgbd_ids": RGBD_IDS,
                 "dict": "5X5_100",
                 "size": "0.15",
             },
+            "slam": {
+                "rgbd_ids": RGBD_IDS,
+                "gps_datum": "50.06622974 19.91320048",  # ERC2025 Marsyard S1, Kraków
+                "fiducials": "erc2025",
+                "use_mag": "true",
+            },
+            "nav2": {
+                "rgbd_ids": RGBD_IDS,
+                "static_map": "erc2025",
+            },
+            "wheels": {},
             "supervisor": {},
         }
     )

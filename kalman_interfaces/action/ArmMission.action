@@ -1,0 +1,8 @@
+# Mission ID, currently only 1 is implemented
+uint8 command_id
+---
+# Result of mission (0 - fail, 1 - success)
+bool result
+---
+# Feedback
+string progress

@@ -2,7 +2,7 @@
 import rclpy
 from rclpy.node import Node
 from control_msgs.msg import JointJog
-from kalman_interfaces.msg import ArmValues
+from kalman_interfaces.msg import ArmValues, ArmCompressed
 from sensor_msgs.msg import JointState
 from std_msgs.msg import Int8, UInt16
 import math
@@ -38,6 +38,7 @@ class Arm1MoveitCompatNode(Node):
         self.last_target_vel_jaw_time = self.get_clock().now()
         self.last_joint_state = JointState()
         self.last_gripper_pos = UInt16()
+        self.was_commanding = False  # Track if we were sending commands last cycle
 
         # Control publishers/subscribers
         self.target_pos_jaw_sub = self.create_subscription(
@@ -60,6 +61,9 @@ class Arm1MoveitCompatNode(Node):
         )
         self.gripper_cmd_abs_pub = self.create_publisher(
             UInt16, "old/gripper/command_absolute", 10
+        )
+        self.joy_compressed_pub = self.create_publisher(
+            ArmCompressed, "old/joy_compressed", 10
         )
         self.control_timer = self.create_timer(
             1.0 / self.control_rate, self.control_timer_cb
@@ -98,10 +102,22 @@ class Arm1MoveitCompatNode(Node):
     def control_timer_cb(self):
         now = self.get_clock().now()
 
-        # 6-DoF
-        if (
+        # Check if we should be commanding joints or gripper
+        joints_active = (
             now - self.last_target_vel_joints_time
-        ).nanoseconds / 1e9 < self.control_timeout:
+        ).nanoseconds / 1e9 < self.control_timeout
+
+        # Send joy_compressed message to trigger servo mode when commands start
+        if joints_active and not self.was_commanding:
+            joy_msg = ArmCompressed()
+            joy_msg.joints_mask = 0  # Empty mask
+            joy_msg.joints_data = []
+            self.joy_compressed_pub.publish(joy_msg)
+
+        self.was_commanding = joints_active
+
+        # 6-DoF
+        if joints_active:
             jog_msg = JointJog()
             jog_msg.header.stamp = now.to_msg()
             jog_msg.joint_names = [

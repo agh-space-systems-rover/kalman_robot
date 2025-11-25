@@ -11,6 +11,8 @@ import jinja2
 import yaml
 import os
 
+from kalman_utils.launch import launch_node_or_load_component, load_standalone_config
+
 
 def load_ekf_config(name, **kwargs) -> str:
     # Load EKF config template
@@ -70,60 +72,32 @@ def launch_setup(context):
     description = []
 
     # visual odometry
-    if component_container:
-        if rgbd_ids:
-            description += [
-                LoadComposableNodes(
-                    target_container=component_container,
-                    composable_node_descriptions=[
-                        ComposableNode(
-                            package="rtabmap_odom",
-                            plugin="rtabmap_odom::RGBDOdometry",
-                            namespace=camera_id,
-                            parameters=[
-                                str(
-                                    get_package_share_path("kalman_slam")
-                                    / "config"
-                                    / "rgbd_odometry.yaml"
-                                )
-                            ],
-                            remappings=[
-                                ("rgb/image", "color/image_raw"),
-                                ("depth/image", "depth/image_raw"),
-                                ("rgb/camera_info", "color/camera_info"),
-                            ],
-                            extra_arguments=[{"use_intra_process_comms": True}],
-                        )
-                        for camera_id in rgbd_ids
-                    ],
-                ),
-            ]
-    else:
-        description += [
-            Node(
-                namespace=f"{camera_id}",
+    if rgbd_ids:
+        for camera_id in rgbd_ids:
+            description += launch_node_or_load_component(
+                component_container=component_container,
                 package="rtabmap_odom",
                 executable="rgbd_odometry",
+                plugin="rtabmap_odom::RGBDOdometry",
+                namespace=camera_id,
                 parameters=[
-                    str(
-                        get_package_share_path("kalman_slam")
-                        / "config"
-                        / "rgbd_odometry.yaml"
+                    load_standalone_config("kalman_slam", "rgbd_odometry.yaml"),
+                    (
+                        {
+                            "rgb_transport": "compressed",
+                            "depth_transport": "compressedDepth",
+                        }
+                        if not component_container
+                        else {}
                     ),
-                    {
-                        "rgb_transport": "compressed",
-                        "depth_transport": "compressedDepth",
-                    },
                 ],
                 remappings=[
                     ("rgb/image", "color/image_raw"),
                     ("depth/image", "depth/image_raw"),
                     ("rgb/camera_info", "color/camera_info"),
                 ],
-                arguments=["--ros-args", "--log-level", "error"],
+                arguments=["--ros-args", "--log-level", "error"] if not component_container else None,
             )
-            for camera_id in rgbd_ids
-        ]
 
     if len(slam_rgbd_ids) == 0:
         # Fuse odometry from multiple cameras.
@@ -246,6 +220,11 @@ def launch_setup(context):
 
     # SLAM
     if len(slam_rgbd_ids) > 1:
+        if not component_container:
+            raise ValueError(
+                "SLAM with multiple cameras requires a composition."
+            )
+
         description += [
             LoadComposableNodes(
                 target_container=component_container,

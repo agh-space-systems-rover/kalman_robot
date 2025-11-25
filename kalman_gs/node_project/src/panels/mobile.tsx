@@ -80,8 +80,8 @@ export default function Mobile() {
       const handle = handleRef.current;
       if (!joystick || !handle) return;
 
-      let x = (event.clientX - joystick.offsetLeft - 5) / joystick.clientWidth;
-      let y = (event.clientY - joystick.offsetTop - 35) / joystick.clientHeight;
+      let x = (event.clientX - joystick.getBoundingClientRect().left) / joystick.clientWidth;
+      let y = (event.clientY - joystick.getBoundingClientRect().top) / joystick.clientHeight;
 
       x = x * 2 - 1;
       y = y * 2 - 1;
@@ -103,7 +103,7 @@ export default function Mobile() {
       const sliderHandle = sliderHandleRef.current;
       if (!slider || !sliderHandle) return;
 
-      let x = (event.clientX - slider.offsetLeft - 5) / slider.clientWidth;
+      let x = (event.clientX - slider.getBoundingClientRect().left) / slider.clientWidth;
       
       x = x * 2 - 1;
 
