@@ -126,51 +126,6 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        d435_arm_bottom_screw_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        d435_arm_color_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        d435_arm_color_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        d435_arm_depth_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        d435_arm_depth_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        d435_arm_infra1_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        d435_arm_infra1_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        d435_arm_infra2_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        d435_arm_infra2_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        d435_arm_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        imu_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
         suspension_l_link:
           Alpha: 1
           Show Axes: false
@@ -252,54 +207,12 @@ Visualization Manager:
           Value: true
         arm_link_jaw:
           Value: true
-        aruco_board:
-          Value: true
         base_footprint:
           Value: true
         base_link:
           Value: false
         body_link:
           Value: false
-        d435_arm_bottom_screw_frame:
-          Value: true
-        d435_arm_color_frame:
-          Value: true
-        d435_arm_color_optical_frame:
-          Value: true
-        d435_arm_depth_frame:
-          Value: true
-        d435_arm_depth_optical_frame:
-          Value: true
-        d435_arm_infra1_frame:
-          Value: true
-        d435_arm_infra1_optical_frame:
-          Value: true
-        d435_arm_infra2_frame:
-          Value: true
-        d435_arm_infra2_optical_frame:
-          Value: true
-        d435_arm_link:
-          Value: true
-        imu_link:
-          Value: true
-        marker_0:
-          Value: true
-        marker_0_avg:
-          Value: true
-        marker_1:
-          Value: true
-        marker_1_avg:
-          Value: true
-        marker_2:
-          Value: true
-        marker_2_avg:
-          Value: true
-        model_marker_0:
-          Value: true
-        model_marker_1:
-          Value: true
-        model_marker_2:
-          Value: true
         suspension_l_link:
           Value: false
         suspension_r_link:
@@ -340,32 +253,6 @@ Visualization Manager:
                           {}
                         arm_link_jaw:
                           {}
-                        d435_arm_bottom_screw_frame:
-                          d435_arm_link:
-                            d435_arm_color_frame:
-                              d435_arm_color_optical_frame:
-                                marker_0:
-                                  {}
-                                marker_1:
-                                  {}
-                                marker_2:
-                                  {}
-                            d435_arm_depth_frame:
-                              d435_arm_depth_optical_frame:
-                                {}
-                            d435_arm_infra1_frame:
-                              d435_arm_infra1_optical_frame:
-                                {}
-                            d435_arm_infra2_frame:
-                              d435_arm_infra2_optical_frame:
-                                {}
-          aruco_board:
-            model_marker_0:
-              {}
-            model_marker_1:
-              {}
-            model_marker_2:
-              {}
           base_footprint:
             {}
           body_link:
@@ -383,16 +270,6 @@ Visualization Manager:
               swivel_fr_link:
                 wheel_fr_link:
                   {}
-          imu_link:
-            {}
-          marker_0_avg:
-            {}
-          marker_1_avg:
-            {}
-          marker_2_avg:
-            {}
-          uv_board:
-            {}
       Update Interval: 0
       Value: true
     - Class: rviz_default_plugins/MarkerArray
@@ -476,10 +353,10 @@ Visualization Manager:
 Window Geometry:
   Displays:
     collapsed: true
-  Height: 1043
+  Height: 1163
   Hide Left Dock: true
   Hide Right Dock: false
-  QMainWindow State: 000000ff00000000fd0000000400000000000001d9000003e0fc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c0061007900730000000016000003e0000000c900fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000010f000002f4fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003d000002f4000000a400fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000004b00000003efc0100000002fb0000000800540069006d00650000000000000004b0000002fb00fffffffb0000000800540069006d00650100000000000004500000000000000000000003c0000003e000000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730000000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000400000000000001d9000003e0fc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c0061007900730000000016000003e0000000c900fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000010f000002f4fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003d000002f4000000a400fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000004b00000003efc0100000002fb0000000800540069006d00650000000000000004b0000002fb00fffffffb0000000800540069006d00650100000000000004500000000000000000000003c00000045800000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730000000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:
