@@ -16,7 +16,7 @@ import Leaflet from 'leaflet';
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 import 'leaflet/dist/leaflet.css';
-import { Component, createRef } from 'react';
+import { Component, createRef, useState, useEffect, useCallback } from 'react';
 import { ImageOverlay, MapContainer, Marker, ScaleControl, TileLayer, Tooltip, Polyline } from 'react-leaflet';
 import { Topic } from 'roslib';
 
@@ -67,7 +67,34 @@ function headingFromRoverRot(baseToMap: Quaternion): number {
   const heading = (angleFromHeadingToNorth * 180) / Math.PI;
   return heading;
 }
+/**
+ * displaying gps coordinates
+ */
+function GpsCoordinatesDisplay() {
+  const [lat, setLat] = useState(gpsCoords.latitude || DEFAULT_LAT);
+  const [long, setLong] = useState(gpsCoords.longitude || DEFAULT_LONG);
+  
+  const onGpsUpdated = useCallback(() => {
+    setLat(gpsCoords.latitude);
+    setLong(gpsCoords.longitude);
+  }, []);
 
+  useEffect(() => {
+    window.addEventListener('gps-update', onGpsUpdated);
+    // Cleanup
+    return () => {
+      window.removeEventListener('gps-update', onGpsUpdated);
+    };
+  }, [onGpsUpdated]);
+  const latStr = lat ? lat.toFixed(6) : 'N/A';
+  const longStr = long ? long.toFixed(6) : 'N/A';
+
+  return (
+    <div className={styles['gps-display-control']}>
+      {`Lat: ${latStr} \nLon: ${longStr}`}
+    </div>
+  );
+}
 export default class Map extends Component<Props> {
   private mapRef = createRef<Leaflet.Map>();
   private mapMarkerRef = createRef<Leaflet.Marker>();
@@ -272,6 +299,7 @@ export default class Map extends Component<Props> {
             opacity={0.8}
           />
         </MapContainer>
+        <GpsCoordinatesDisplay />
       </div>
     );
   }

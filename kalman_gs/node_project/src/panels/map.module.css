@@ -78,3 +78,24 @@
   opacity: 0.8 !important;
   text-align: center !important;
 }
+.gps-display-control {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  z-index: 1000;
+  
+  background-color: var(--dark-background) !important;
+  border: none !important;
+  border-radius: 5px;
+  color: var(--foreground) !important;
+  font-family: 'Roboto', sans-serif !important;
+  padding: 10px !important;
+  font-weight: normal !important;
+  text-shadow: none !important;
+  box-shadow: 0 0 10px black !important;
+  font-size: 1em !important;
+  opacity: 0.8 !important;
+  text-align: center !important;
+
+  white-space: pre;
+}
