@@ -69,6 +69,7 @@ plugins: [
   {% if rgbd_ids %}
   "stvl",
   {% endif %}
+  "yolo_layer",
   "inflation_layer"
 ]
 # default: ["static_layer", "obstacle_layer", "inflation_layer"]
@@ -146,6 +147,29 @@ stvl:
     decay_acceleration: 0.1     # default 0, 1/s^2. If laser scanner MUST be 0
 {% endfor %}
 {% endif %}
+################# experimental ##################
+yolo_layer:
+  plugin: "nav2_costmap_2d::ObstacleLayer"
+  enabled: true
+  observation_sources: yolo_cloud
+  yolo_cloud:
+    topic: /yolo_clouds
+    
+    # Take frame from the message header
+    sensor_frame: ""
+    data_type: "PointCloud2"
+
+    clearing: false
+    marking: true
+  
+    # keep the detections for 2 seconds before removing
+    observation_persistence: 0.7  # seconds
+    min_z: 0.5                  # default 0, meters
+    max_z: 5.0                 # default 10, meters
+    obstacle_range: 5.0          # trust detections up to 3 meters
+    min_obstacle_height: 0.0     # meters
+    max_obstacle_height: 1.0   # meters
+################# experimental ##################
 
 # This layer places an exponential decay functions around obstacles to increase cost to traverse near collision. It also places a lethal cost around obstacles within the robot's fully inscribed radius - even if a robot is non-circular for optimized first-order collision checking.
 inflation_layer:
