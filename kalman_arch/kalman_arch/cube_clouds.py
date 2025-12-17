@@ -13,7 +13,6 @@ from tf2_geometry_msgs import do_transform_pose_stamped
 
 import sensor_msgs_py.point_cloud2 as pc2
 
-# Generate fake point clouds from yolo detections
 class CubeClouds(Node):
     def __init__(self):
         super().__init__('cube_clouds_node')
@@ -61,14 +60,13 @@ class CubeClouds(Node):
     
     def generate_cube_cloud(self, cx, cy, cz, rad):
         points = []
-        resolution = 0.1  # 
-        height_min = -0.2 # Względem środka obiektu
+        resolution = 0.1   
+        height_min = -0.2 
         height_max = 0.2
 
         # generate fake cloud
         for x in np.arange(-rad, rad + 0.01, resolution):
             for y in np.arange(-rad, rad + 0.01, resolution):
-                # check if the point is inside the circle
                 for z in np.arange(height_min, height_max, resolution):
                     points.append([cx + x, cy + y, cz + z])
 
