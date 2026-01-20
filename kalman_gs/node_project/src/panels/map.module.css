@@ -94,7 +94,7 @@
   border-radius: 5px;
   color: var(--foreground) !important;
   font-family: 'Roboto', sans-serif !important;
-  padding: 10px !important;
+  padding: 2px 2px 2px 6px !important;
   font-weight: normal !important;
   text-shadow: none !important;
   box-shadow: 0 0 10px black !important;
@@ -103,6 +103,4 @@
   text-align: center !important;
 
   white-space: pre;
-
-  
 }
