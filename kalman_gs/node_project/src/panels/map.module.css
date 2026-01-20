@@ -84,6 +84,11 @@
   right: 10px;
   z-index: 1000;
   
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  user-select: none;
   background-color: var(--dark-background) !important;
   border: none !important;
   border-radius: 5px;
@@ -98,4 +103,6 @@
   text-align: center !important;
 
   white-space: pre;
+
+  
 }

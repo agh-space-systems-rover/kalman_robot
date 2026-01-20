@@ -19,6 +19,9 @@ import 'leaflet/dist/leaflet.css';
 import { Component, createRef, useState, useEffect, useCallback } from 'react';
 import { ImageOverlay, MapContainer, Marker, ScaleControl, TileLayer, Tooltip, Polyline } from 'react-leaflet';
 import { Topic } from 'roslib';
+import { faGlobe, faCopy } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import Button from '../components/button';
 
 const GO_TO_LOCATION_ZOOM = 19;
 const DEFAULT_LAT = 51.477928;
@@ -91,7 +94,17 @@ function GpsCoordinatesDisplay() {
 
   return (
     <div className={styles['gps-display-control']}>
-      {`Lat: ${latStr} \nLon: ${longStr}`}
+        <FontAwesomeIcon icon={faGlobe} />
+        {` ${latStr}, ${longStr}`}
+
+      <Button
+        tooltip='Copy marker coordinates to clipboard.'
+        onClick={() => {
+          if (lat && long) {
+            navigator.clipboard.writeText(`${latStr}, ${longStr}`);
+          }
+        }}
+      ><FontAwesomeIcon icon={faCopy} /></Button>
     </div>
   );
 }
