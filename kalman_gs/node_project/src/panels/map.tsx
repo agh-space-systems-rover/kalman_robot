@@ -74,33 +74,36 @@ function headingFromRoverRot(baseToMap: Quaternion): number {
  * displaying gps coordinates
  */
 function GpsCoordinatesDisplay() {
-  const [lat, setLat] = useState(gpsCoords.latitude || DEFAULT_LAT);
-  const [long, setLong] = useState(gpsCoords.longitude || DEFAULT_LONG);
-  
-  const onGpsUpdated = useCallback(() => {
-    setLat(gpsCoords.latitude);
-    setLong(gpsCoords.longitude);
+  const [coords, setCoords] = useState({
+    lat: mapMarker.latitude,
+    long: mapMarker.longitude
+  });
+
+  const onMarkerUpdated = useCallback(() => {
+    setCoords({
+      lat: mapMarker.latitude,
+      long: mapMarker.longitude
+    });
   }, []);
 
   useEffect(() => {
-    window.addEventListener('gps-update', onGpsUpdated);
+    window.addEventListener('map-marker-move', onMarkerUpdated);
     // Cleanup
     return () => {
-      window.removeEventListener('gps-update', onGpsUpdated);
+      window.removeEventListener('map-marker-move', onMarkerUpdated);
     };
-  }, [onGpsUpdated]);
-  const latStr = lat ? lat.toFixed(6) : 'N/A';
-  const longStr = long ? long.toFixed(6) : 'N/A';
+  }, [onMarkerUpdated]);
+  const latStr = coords.lat ? coords.lat.toFixed(6) : 'N/A';
+  const longStr = coords.long ? coords.long.toFixed(6) : 'N/A';
 
   return (
     <div className={styles['gps-display-control']}>
         <FontAwesomeIcon icon={faGlobe} />
-        {` ${latStr}, ${longStr}`}
-
+        {`${latStr}, ${longStr}`}
       <Button
         tooltip='Copy marker coordinates to clipboard.'
         onClick={() => {
-          if (lat && long) {
+          if (coords.lat && coords.long) {
             navigator.clipboard.writeText(`${latStr}, ${longStr}`);
           }
         }}
