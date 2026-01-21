@@ -98,8 +98,10 @@ function GpsCoordinatesDisplay() {
 
   return (
     <div className={styles['gps-display-control']}>
-        <FontAwesomeIcon icon={faGlobe} />
+      <FontAwesomeIcon icon={faGlobe} />
+      <div className={styles['gps-coords-text']}>
         {`${latStr}, ${longStr}`}
+      </div>
       <Button
         tooltip='Copy marker coordinates to clipboard.'
         onClick={() => {

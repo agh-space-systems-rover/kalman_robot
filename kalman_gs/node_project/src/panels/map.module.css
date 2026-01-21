@@ -104,3 +104,10 @@
 
   white-space: pre;
 }
+.gps-coords-text {
+  font-size: 0.85em;
+  opacity: 0.8;
+}
+:global([data-theme='light']) .gps-display-control :last-child {
+  filter: brightness(1.4);
+}
