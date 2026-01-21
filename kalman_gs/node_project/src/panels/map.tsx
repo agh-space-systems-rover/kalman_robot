@@ -103,9 +103,7 @@ function GpsCoordinatesDisplay() {
       <Button
         tooltip='Copy marker coordinates to clipboard.'
         onClick={() => {
-          if (coords.lat && coords.long) {
-            navigator.clipboard.writeText(`${latStr}, ${longStr}`);
-          }
+          navigator.clipboard.writeText(`${mapMarker.latitude.toFixed(8)}, ${mapMarker.longitude.toFixed(8)}`);
         }}
       ><FontAwesomeIcon icon={faCopy} /></Button>
     </div>
