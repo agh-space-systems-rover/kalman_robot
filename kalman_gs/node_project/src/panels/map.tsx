@@ -16,9 +16,12 @@ import Leaflet from 'leaflet';
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 import 'leaflet/dist/leaflet.css';
-import { Component, createRef } from 'react';
+import { Component, createRef, useState, useEffect, useCallback } from 'react';
 import { ImageOverlay, MapContainer, Marker, ScaleControl, TileLayer, Tooltip, Polyline } from 'react-leaflet';
 import { Topic } from 'roslib';
+import { faGlobe, faCopy } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import Button from '../components/button';
 
 const GO_TO_LOCATION_ZOOM = 19;
 const DEFAULT_LAT = 51.477928;
@@ -67,7 +70,47 @@ function headingFromRoverRot(baseToMap: Quaternion): number {
   const heading = (angleFromHeadingToNorth * 180) / Math.PI;
   return heading;
 }
+/**
+ * displaying gps coordinates
+ */
+function GpsCoordinatesDisplay() {
+  const [coords, setCoords] = useState({
+    lat: mapMarker.latitude,
+    long: mapMarker.longitude
+  });
 
+  const onMarkerUpdated = useCallback(() => {
+    setCoords({
+      lat: mapMarker.latitude,
+      long: mapMarker.longitude
+    });
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener('map-marker-move', onMarkerUpdated);
+    // Cleanup
+    return () => {
+      window.removeEventListener('map-marker-move', onMarkerUpdated);
+    };
+  }, [onMarkerUpdated]);
+  const latStr = coords.lat ? coords.lat.toFixed(6) : 'N/A';
+  const longStr = coords.long ? coords.long.toFixed(6) : 'N/A';
+
+  return (
+    <div className={styles['gps-display-control']}>
+      <FontAwesomeIcon icon={faGlobe} />
+      <div className={styles['gps-coords-text']}>
+        {`${latStr}, ${longStr}`}
+      </div>
+      <Button
+        tooltip='Copy marker coordinates to clipboard.'
+        onClick={() => {
+          navigator.clipboard.writeText(`${mapMarker.latitude.toFixed(8)}, ${mapMarker.longitude.toFixed(8)}`);
+        }}
+      ><FontAwesomeIcon icon={faCopy} /></Button>
+    </div>
+  );
+}
 export default class Map extends Component<Props> {
   private mapRef = createRef<Leaflet.Map>();
   private mapMarkerRef = createRef<Leaflet.Marker>();
@@ -272,6 +315,7 @@ export default class Map extends Component<Props> {
             opacity={0.8}
           />
         </MapContainer>
+        <GpsCoordinatesDisplay />
       </div>
     );
   }
