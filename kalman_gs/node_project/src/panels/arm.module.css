@@ -16,6 +16,12 @@
   margin-top: 0;
   font-weight: 600;
 }
+.header-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+}
 
 .status-header,
 .pose-header {
@@ -128,7 +134,8 @@ input[type='range']::-moz-range-track {
   min-height: 30px;
 }
 
-.joint-lock {
+.joint-lock,
+.save-pose-button {
   display: flex;
   align-items: center;
   justify-content: center;

@@ -22,12 +22,22 @@ import '../common/predefined-arm-trajectories';
 import predefinedArmTrajectories from '../common/predefined-arm-trajectories';
 import { ros } from '../common/ros';
 import { JointState } from '../common/ros-interfaces';
-import { faLock, faLockOpen } from '@fortawesome/free-solid-svg-icons';
+import { faLock, faLockOpen, faSave } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useState, useEffect, useCallback } from 'react';
 import { Topic } from 'roslib';
 
 let lastJointState: JointState | null = null;
+
+interface ArmPose{
+  id: number;
+  name: string;
+  path: string;
+  joints_set: number[];
+  joints_checked: number[];
+  joints_reversed?: number[];
+  safe_previous_poses: number[];
+};
 
 window.addEventListener('ros-connect', () => {
   const jointTopic = new Topic({
@@ -188,9 +198,40 @@ function ArmStatus() {
     </div>
   );
 
+  const saveCurrentPose = () => {
+    const poseName = prompt("Give the name of new pose:", `Poza ${new Date().toLocaleTimeString()}`);
+    if (!poseName) return;
+
+    const currentValues = namesAndValues.map(joint => joint.value);
+    
+    const savedPosesRaw = localStorage.getItem('custom_arm_poses');
+    const savedPoses = savedPosesRaw ? JSON.parse(savedPosesRaw) : [];
+    
+    
+    const newPose: ArmPose= {
+      id: Date.now(), // FIXME unique ID
+      name: poseName,
+      path: "TODO", // TODO generowanie pliku yaml z pozycją 
+      joints_set: [1, 2, 3, 4, 5, 6],
+      joints_checked: [1, 2, 3, 4, 5, 6],
+      safe_previous_poses: []
+    };
+
+    localStorage.setItem('custom_arm_poses', JSON.stringify([...savedPoses, newPose]));
+    localStorage.setItem(`joint_val_${newPose.name}`, JSON.stringify(currentValues));
+    
+    window.dispatchEvent(new Event('local-poses-update'));
+    alert("Pose saved!");
+  };
+
   return (
     <div className={styles['arm-status']}>
-      <h1 className={styles['status-header']}>Arm Status</h1>
+      <div className={styles['header-container']}>
+        <h1 className={styles['status-header']}>Arm Status</h1>
+        <button className={styles['save-pose-button']} onClick={saveCurrentPose}>
+          <FontAwesomeIcon icon={faSave}/>
+        </button>
+      </div>
       <div className={styles['status']}>
         <div className={styles['joint-column'] + ' ' + styles['align-left']}>{jointLocks}</div>
         <div className={styles['joint-column'] + ' ' + styles['align-left']}>{jointNames}</div>
@@ -267,7 +308,7 @@ function poseJoints(jointValues) {
   );
 }
 
-function PoseRequester() {
+function PoseRequester() { // MARK -- POSE REQUESTER
   const [rerenderCount, setRerenderCount] = useState(0);
   const [keepAlive, setKeepAlive] = useState(false);
   const rerender = useCallback(() => {
@@ -403,7 +444,8 @@ function PoseRequester() {
             }
           }}
         >
-          {closeEnough ? 'Send Pose' : 'Cannot Send'}
+          {closeEnough ? 'Send Pose' : 'Cannot Send'} 
+          {/* MARK #test sending pose */}
         </div>
         <div
           className={`${styles['pose-button']} ${styles['pose-abort']}`}
@@ -419,7 +461,7 @@ function PoseRequester() {
   );
 }
 
-function TrajectoryRequester() {
+function TrajectoryRequester() { // MARK -- TRAJECTORY REQUESTER
   const [rerenderCount, setRerenderCount] = useState(0);
   const [keepAlive, setKeepAlive] = useState(false);
   const rerender = useCallback(() => {
@@ -533,6 +575,7 @@ function TrajectoryRequester() {
           }}
         >
           {closeEnough ? 'Send Pose' : 'Cannot Send'}
+          {/* MARK sending tra */}
         </div>
         <div
           className={`${styles['pose-button']} ${styles['pose-abort']}`}
