@@ -22,7 +22,7 @@ import '../common/predefined-arm-trajectories';
 import predefinedArmTrajectories from '../common/predefined-arm-trajectories';
 import { ros } from '../common/ros';
 import { JointState } from '../common/ros-interfaces';
-import { faLock, faLockOpen, faSave } from '@fortawesome/free-solid-svg-icons';
+import { faDownload, faLock, faLockOpen, faSave, faTrash, faUpload } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useState, useEffect, useCallback } from 'react';
 import { Topic } from 'roslib';
@@ -471,10 +471,65 @@ function PoseRequester({ // MARK -- POSE REQUESTER
           currentPose.joints_checked
       ) || isStartingFromSafePose(currentPose.safe_previous_poses)
   ) : false;
-      
+
+  const handleImportSinglePose = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const importedData = JSON.parse(event.target?.result as string);
+        
+        const importedArray = Array.isArray(importedData) ? importedData : [importedData];
+        
+        const savedPosesRaw = localStorage.getItem('custom_arm_poses');
+        let existingPoses: ArmPose[] = savedPosesRaw ? JSON.parse(savedPosesRaw) : [];
+
+        importedArray.forEach((newPose) => {
+          const poseToAdd: ArmPose = { ...newPose, isCustom: true };
+
+          while (existingPoses.some(p => p.id === poseToAdd.id)) {
+            poseToAdd.id = Date.now();
+          }
+
+          if (existingPoses.some(p => p.name === poseToAdd.name)) {
+            poseToAdd.name = `${poseToAdd.name} (Imported)`;
+          }
+
+          existingPoses.push(poseToAdd);
+        });
+
+        localStorage.setItem('custom_arm_poses', JSON.stringify(existingPoses));
+        
+        window.dispatchEvent(new Event('local-poses-update'));
+        alert(`Successfully imported ${importedArray.length} pose(s).`);
+      } catch (err) {
+        alert("Error: Invalid JSON format.");
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
   return (
     <div className={styles['pose-requester']}>
-      <h2 className={styles['pose-header']}>Pose Requester</h2>
+      <div className={styles['header-container']}>
+        <h2 className={styles['pose-header']}>Pose Requester</h2>
+        
+        {editMode && (<label className={styles['import-label']}>
+          <input 
+            type="file" 
+            accept=".json" 
+            style={{ display: 'none' }} 
+            onChange={handleImportSinglePose} 
+          />
+          <div className={styles['export-poses-button']} title="Import Pose JSON">
+            <FontAwesomeIcon icon={faDownload} />
+          </div>
+        </label>)}
+      </div>
+
       <div className={styles['pose-panel']}>
         {PoseJoints}
         <div className={styles['pose-options']}>{posesToSelect}</div>
@@ -658,6 +713,26 @@ function EditPanel({
   }
   const isReadOnly = !pose.isCustom;
 
+  const exportToFile = () => {
+    if (!pose) return;
+
+    const {isCustom, ...poseData} = pose;
+
+    const dataStr = JSON.stringify(poseData, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `arm_pose_${pose.name.replace(/\s+/g, '_')}.json`;
+    
+    document.body.appendChild(link);
+    link.click();
+
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const handleDelete = () => {
     if (window.confirm(`Are you sure you want to delete "${pose.name}"?`)) {
       const saved = JSON.parse(localStorage.getItem('custom_arm_poses') || '[]');
@@ -677,9 +752,14 @@ function EditPanel({
       ) : (
         <div className={styles['edit-actions']}>
           {/* <Button onClick={handleRename}>Rename</Button> */}
-          <Button onClick={handleDelete} className={styles['btn-danger']}>Delete</Button>
+          <Button onClick={handleDelete} className={styles['btn-danger']}>
+            <FontAwesomeIcon icon={faTrash} /> Delete
+          </Button>
         </div>
       )}
+      <Button onClick={exportToFile}>
+        <FontAwesomeIcon icon={faUpload} /> Export Pose
+      </Button>
       
       {/* TODO editing panel */}
     </div>
