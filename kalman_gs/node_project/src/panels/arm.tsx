@@ -33,6 +33,7 @@ interface ArmPose{
   id: number;
   name: string;
   path: string;
+  joints: number[];
   joints_set: number[];
   joints_checked: number[];
   joints_reversed?: number[];
@@ -99,7 +100,8 @@ function isCloseEnough(jointsA: number[], jointsB: number[], maxDistance: number
   return true;
 }
 
-function ArmStatus() {
+function ArmStatus() { // MARK -- ARM STATUS
+  const [isEditMode, setIsEditMode] = useState(false);
   const [rerenderCount, setRerenderCount] = useState(0);
   const [linearScale, setLinearScale] = useState<number | null>(lastServoLinearScale);
   const [rotationalScale, setRotationalScale] = useState<number | null>(lastServoRotationalScale);
@@ -111,12 +113,15 @@ function ArmStatus() {
   }, []);
 
   useEffect(() => {
+    const handler = (e: any) => setIsEditMode(e.detail.enabled);
+    window.addEventListener('arm-edit-mode', handler);
     window.addEventListener('joint-state', rerender);
     window.addEventListener('servo-linear-scale', rerender);
     window.addEventListener('servo-rotational-scale', rerender);
     window.addEventListener('arm-axis-lock-update', rerender);
     window.addEventListener('arm-joint-lock-update', rerender);
     return () => {
+      window.removeEventListener('arm-edit-mode', handler);
       window.removeEventListener('joint-state', rerender);
       window.removeEventListener('servo-linear-scale', rerender);
       window.removeEventListener('servo-rotational-scale', rerender);
@@ -211,15 +216,15 @@ function ArmStatus() {
     const newPose: ArmPose= {
       id: Date.now(), // FIXME unique ID
       name: poseName,
-      path: "TODO", // TODO generowanie pliku yaml z pozycją 
+      path: "TODO", // TODO generating yaml with pose data
+      joints: currentValues,
       joints_set: [1, 2, 3, 4, 5, 6],
       joints_checked: [1, 2, 3, 4, 5, 6],
       safe_previous_poses: []
     };
 
     localStorage.setItem('custom_arm_poses', JSON.stringify([...savedPoses, newPose]));
-    localStorage.setItem(`joint_val_${newPose.name}`, JSON.stringify(currentValues));
-    
+
     window.dispatchEvent(new Event('local-poses-update'));
     alert("Pose saved!");
   };
@@ -228,9 +233,10 @@ function ArmStatus() {
     <div className={styles['arm-status']}>
       <div className={styles['header-container']}>
         <h1 className={styles['status-header']}>Arm Status</h1>
+        {isEditMode &&
         <button className={styles['save-pose-button']} onClick={saveCurrentPose}>
           <FontAwesomeIcon icon={faSave}/>
-        </button>
+        </button>}
       </div>
       <div className={styles['status']}>
         <div className={styles['joint-column'] + ' ' + styles['align-left']}>{jointLocks}</div>
@@ -591,6 +597,19 @@ function TrajectoryRequester() { // MARK -- TRAJECTORY REQUESTER
   );
 }
 export default function Arms() {
+  const [isEditMode, setIsEditMode] = useState(false);
+  const rerender = useCallback(() => {
+    setIsEditMode((prev) => prev);
+  }, []);
+
+  useEffect(() => {
+    const handler = (e: any) => setIsEditMode(e.detail.enabled);
+    window.addEventListener('arm-edit-mode', handler);
+    return () => {
+      window.removeEventListener('arm-edit-mode', handler);
+    };
+  }, []);
+
   return (
     <div className={styles['arm-panel']}>
       <ArmStatus />
