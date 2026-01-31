@@ -33,7 +33,7 @@ interface ArmPose{
   id: number;
   name: string;
   path: string;
-  joints: number[];
+  joints?: number[];
   joints_set: number[];
   joints_checked: number[];
   joints_reversed?: number[];
@@ -100,8 +100,11 @@ function isCloseEnough(jointsA: number[], jointsB: number[], maxDistance: number
   return true;
 }
 
-function ArmStatus() { // MARK -- ARM STATUS
-  const [isEditMode, setIsEditMode] = useState(false);
+function ArmStatus({ // MARK -- ARM STATUS
+    editMode
+  }: { 
+    editMode: boolean 
+  }) {
   const [rerenderCount, setRerenderCount] = useState(0);
   const [linearScale, setLinearScale] = useState<number | null>(lastServoLinearScale);
   const [rotationalScale, setRotationalScale] = useState<number | null>(lastServoRotationalScale);
@@ -113,15 +116,12 @@ function ArmStatus() { // MARK -- ARM STATUS
   }, []);
 
   useEffect(() => {
-    const handler = (e: any) => setIsEditMode(e.detail.enabled);
-    window.addEventListener('arm-edit-mode', handler);
     window.addEventListener('joint-state', rerender);
     window.addEventListener('servo-linear-scale', rerender);
     window.addEventListener('servo-rotational-scale', rerender);
     window.addEventListener('arm-axis-lock-update', rerender);
     window.addEventListener('arm-joint-lock-update', rerender);
     return () => {
-      window.removeEventListener('arm-edit-mode', handler);
       window.removeEventListener('joint-state', rerender);
       window.removeEventListener('servo-linear-scale', rerender);
       window.removeEventListener('servo-rotational-scale', rerender);
@@ -233,10 +233,10 @@ function ArmStatus() { // MARK -- ARM STATUS
     <div className={styles['arm-status']}>
       <div className={styles['header-container']}>
         <h1 className={styles['status-header']}>Arm Status</h1>
-        {isEditMode &&
+        {editMode && (
         <button className={styles['save-pose-button']} onClick={saveCurrentPose}>
           <FontAwesomeIcon icon={faSave}/>
-        </button>}
+        </button>)}
       </div>
       <div className={styles['status']}>
         <div className={styles['joint-column'] + ' ' + styles['align-left']}>{jointLocks}</div>
@@ -314,12 +314,36 @@ function poseJoints(jointValues) {
   );
 }
 
-function PoseRequester() { // MARK -- POSE REQUESTER
+function PoseRequester({ // MARK -- POSE REQUESTER
+    editMode,
+    onSelectPose
+  }: {
+    editMode: boolean;
+    onSelectPose: (pose: ArmPose) => void;
+  }) {
   const [rerenderCount, setRerenderCount] = useState(0);
   const [keepAlive, setKeepAlive] = useState(false);
+  const [customPoses, setCustomPoses] = useState<ArmPose[]>([]); // własne pozy
+
+
   const rerender = useCallback(() => {
     setRerenderCount((count) => count + 1);
   }, [setRerenderCount]);
+
+  useEffect(() => {
+    const loadCustomPoses = () => {
+      const savedPosesRaw = localStorage.getItem('custom_arm_poses');
+      const savedPoses: ArmPose[] = savedPosesRaw ? JSON.parse(savedPosesRaw) : [];
+      setCustomPoses(savedPoses);
+    };
+
+    loadCustomPoses();
+    window.addEventListener('local-poses-update', loadCustomPoses);
+
+    return () => {
+      window.removeEventListener('local-poses-update', loadCustomPoses);
+    };
+  }, []);
 
   useEffect(() => {
     window.addEventListener('joint-state', rerender);
@@ -360,30 +384,46 @@ function PoseRequester() { // MARK -- POSE REQUESTER
     return false;
   };
 
+  const allPoses: ArmPose[] = [
+    ...predefinedPoses.PREDEFINED_POSES.poses.map((p) => ({ 
+      ...p, 
+      joints: predefinedPoses.POSES_JOINTS[p.name], 
+      isCustom: false 
+    })),
+    ...customPoses.map((p) => ({ 
+      ...p, 
+      isCustom: true 
+    }))
+  ];
+
   const [currentPoseId, setCurrentPoseId] = useState(0);
 
   const namesAndValues = getNamesAndValues();
 
-  const predefinedJointValues =
-    predefinedPoses.POSES_JOINTS[predefinedPoses.PREDEFINED_POSES.poses[currentPoseId].name];
+  const currentPose = allPoses.find((p) => p.id === currentPoseId)!;
 
-  const posesToSelect = predefinedPoses.PREDEFINED_POSES.poses.map((pose, i) => (
+  const predefinedJointValues = currentPose.joints ?? 
+      predefinedPoses.POSES_JOINTS[currentPose.name] ?? 
+      [0, 0, 0, 0, 0, 0];
+
+  const posesToSelect = allPoses.map((pose) => (
     <div
       key={pose.id}
       className={`${styles['pose-button']} ${styles['pose-option']} ${pose.id === currentPoseId ? styles['pose-selected'] : ''}`}
       onClick={() => {
         setCurrentPoseId(pose.id);
+        if (editMode && pose.joints) onSelectPose(pose);
       }}
     >
       <div className={styles['pose-name']}>{pose.name}</div>
       <div
         className={`${styles['pose-indicator']} ${
           isCloseEnough(
-            predefinedPoses.POSES_JOINTS[predefinedPoses.PREDEFINED_POSES.poses[i].name],
-            namesAndValues.map((joint) => joint.value),
+            predefinedPoses.POSES_JOINTS[pose.name] ?? pose.joints ?? [],
+            namesAndValues.map((j) => j.value),
             predefinedPoses.PREDEFINED_POSES.max_distance_rad,
-            predefinedPoses.PREDEFINED_POSES.poses[i].joints_checked
-          ) || isStartingFromSafePose(pose.safe_previous_poses)
+            pose.joints_checked
+          )
             ? styles['pose-ready']
             : styles['pose-not-ready']
         }`}
@@ -395,22 +435,21 @@ function PoseRequester() { // MARK -- POSE REQUESTER
   let isJointClose: boolean[] = Array(6).fill(false);
   let isJointChecked: boolean[] = Array(6).fill(false);
 
-  predefinedPoses.PREDEFINED_POSES.poses[currentPoseId].joints_set.forEach((value) => {
-    isJointSet[value - 1] = true;
-  });
+  if (currentPose) {
+    currentPose.joints_set.forEach((value) => {
+        isJointSet[value - 1] = true;
+    });
 
-  isJointClose = isJointClose.map((_, i) =>
-    namesAndValues.length
-      ? Math.abs(
-          predefinedPoses.POSES_JOINTS[predefinedPoses.PREDEFINED_POSES.poses[currentPoseId].name][i] -
-            namesAndValues[i].value
-        ) <= predefinedPoses.PREDEFINED_POSES.max_distance_rad
-      : false
-  );
+    isJointClose = isJointClose.map((_, i) =>
+        namesAndValues.length && predefinedJointValues
+            ? Math.abs(predefinedJointValues[i] - namesAndValues[i].value) <= predefinedPoses.PREDEFINED_POSES.max_distance_rad
+            : false
+    );
 
-  predefinedPoses.PREDEFINED_POSES.poses[currentPoseId].joints_checked.forEach((value) => {
-    isJointChecked[value - 1] = true;
-  });
+    currentPose.joints_checked.forEach((value) => {
+        isJointChecked[value - 1] = true;
+    });
+  }
 
   const PoseJoints = poseJoints(
     Array.from({ length: 6 }, (_, i) => (
@@ -423,13 +462,15 @@ function PoseRequester() { // MARK -- POSE REQUESTER
     ))
   );
 
-  const closeEnough =
-    isCloseEnough(
-      predefinedPoses.POSES_JOINTS[predefinedPoses.PREDEFINED_POSES.poses[currentPoseId].name],
-      namesAndValues.map((joint) => joint.value),
-      predefinedPoses.PREDEFINED_POSES.max_distance_rad,
-      predefinedPoses.PREDEFINED_POSES.poses[currentPoseId].joints_checked
-    ) || isStartingFromSafePose(predefinedPoses.PREDEFINED_POSES.poses[currentPoseId].safe_previous_poses);
+  const closeEnough = currentPose && namesAndValues.length > 0 ? (
+      isCloseEnough(
+          predefinedJointValues,
+          namesAndValues.map((joint) => joint.value),
+          predefinedPoses.PREDEFINED_POSES.max_distance_rad,
+          currentPose.joints_checked
+      ) || isStartingFromSafePose(currentPose.safe_previous_poses)
+  ) : false;
+      
   return (
     <div className={styles['pose-requester']}>
       <h2 className={styles['pose-header']}>Pose Requester</h2>
@@ -596,8 +637,46 @@ function TrajectoryRequester() { // MARK -- TRAJECTORY REQUESTER
     </div>
   );
 }
+
+function EditPanel({
+  pose,
+  onChangePose
+}: {
+  pose: (ArmPose & { isCustom?: boolean }) | null;
+  onChangePose: (pose: ArmPose) => void;
+}) {
+  if (!pose || !pose.joints) {
+    return (
+      <div className={styles['edit-panel']}>
+        <h2 className={styles['edit-header']}>Edit Panel</h2>
+        <div className={styles['edit-content']}>
+          {pose ? 'Predefined pose selected, cannot edit joints' : 'Select a pose to edit'}
+        </div>
+      </div>
+    );
+  }
+  const isReadOnly = !pose.isCustom;
+
+  return (
+    <div className={styles['edit-panel']}>
+      {/* TODO input import */}
+      <h2>{isReadOnly ? 'View Pose:' : 'Edit Pose:'} {pose.name}</h2>
+      {isReadOnly && (
+        <p className={styles['warn-text']}>
+          ⚠️ Predefined poses cannot be modified.
+        </p>
+      )}
+      
+      {/* TODO editing panel */}
+    </div>
+  );
+}
+
+
 export default function Arms() {
   const [isEditMode, setIsEditMode] = useState(false);
+  const [selectedPose, setSelectedPose] = useState<ArmPose | null>(null);
+
   const rerender = useCallback(() => {
     setIsEditMode((prev) => prev);
   }, []);
@@ -612,12 +691,21 @@ export default function Arms() {
 
   return (
     <div className={styles['arm-panel']}>
-      <ArmStatus />
+      <ArmStatus editMode={isEditMode} />
       <div className={styles['trajectory-and-pose']}>
-        <PoseRequester />
+        <PoseRequester 
+          editMode={isEditMode}
+          onSelectPose={(pose) => setSelectedPose(pose)}
+        />
         <div className={styles['extra-space']} />
         <TrajectoryRequester />
       </div>
+      {isEditMode && (
+        <EditPanel
+          pose={selectedPose}
+          onChangePose={setSelectedPose} 
+        />
+      )}
     </div>
   );
 }
