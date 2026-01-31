@@ -26,6 +26,7 @@ import { faLock, faLockOpen, faSave } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useState, useEffect, useCallback } from 'react';
 import { Topic } from 'roslib';
+import Button from '../components/button';
 
 let lastJointState: JointState | null = null;
 
@@ -400,7 +401,7 @@ function PoseRequester({ // MARK -- POSE REQUESTER
 
   const namesAndValues = getNamesAndValues();
 
-  const currentPose = allPoses.find((p) => p.id === currentPoseId)!;
+  const currentPose = allPoses.find((p) => p.id === currentPoseId) || allPoses[0];
 
   const predefinedJointValues = currentPose.joints ?? 
       predefinedPoses.POSES_JOINTS[currentPose.name] ?? 
@@ -643,7 +644,7 @@ function EditPanel({
   onChangePose
 }: {
   pose: (ArmPose & { isCustom?: boolean }) | null;
-  onChangePose: (pose: ArmPose) => void;
+  onChangePose: (pose: ArmPose | null) => void;
 }) {
   if (!pose || !pose.joints) {
     return (
@@ -657,14 +658,27 @@ function EditPanel({
   }
   const isReadOnly = !pose.isCustom;
 
+  const handleDelete = () => {
+    if (window.confirm(`Are you sure you want to delete "${pose.name}"?`)) {
+      const saved = JSON.parse(localStorage.getItem('custom_arm_poses') || '[]');
+      const newList = saved.filter((p: ArmPose) => p.id !== pose.id);
+      localStorage.setItem('custom_arm_poses', JSON.stringify(newList));
+      window.dispatchEvent(new Event('local-poses-update'));
+      onChangePose(null);
+    }
+  };
+  
   return (
     <div className={styles['edit-panel']}>
       {/* TODO input import */}
       <h2>{isReadOnly ? 'View Pose:' : 'Edit Pose:'} {pose.name}</h2>
-      {isReadOnly && (
-        <p className={styles['warn-text']}>
-          ⚠️ Predefined poses cannot be modified.
-        </p>
+      {isReadOnly ? (
+        <p className={styles['warn-text']}>⚠️ Predefined poses cannot be modified.</p>
+      ) : (
+        <div className={styles['edit-actions']}>
+          {/* <Button onClick={handleRename}>Rename</Button> */}
+          <Button onClick={handleDelete} className={styles['btn-danger']}>Delete</Button>
+        </div>
       )}
       
       {/* TODO editing panel */}
@@ -703,7 +717,9 @@ export default function Arms() {
       {isEditMode && (
         <EditPanel
           pose={selectedPose}
-          onChangePose={setSelectedPose} 
+          onChangePose={(newPose) => {
+            setSelectedPose(newPose);
+          }}
         />
       )}
     </div>
