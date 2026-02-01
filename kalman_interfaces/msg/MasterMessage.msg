@@ -32,9 +32,9 @@ uint8 FEED_SET_POWER = 0xB3
 
 uint8 ARM_SEND_SPACEMOUSE = 0xB4
 
-uint8 DRILL_ARM = 0xD0
-uint8 DRILL_RACK = 0xD1
-uint8 DRILL_DRILL = 0xD2
+
+uint8 DRILL_RACK = 0x53
+uint8 DRILL_DRILL = 0x51
 
 
 # command number
