@@ -34,7 +34,7 @@ interface ArmPose{
   id: number;
   name: string;
   path: string;
-  joints?: number[];
+  joints: number[];
   joints_set: number[];
   joints_checked: number[];
   joints_reversed?: number[];
@@ -373,10 +373,10 @@ function PoseRequester({ // MARK -- POSE REQUESTER
     for (let i = 0; i < safePreviousPoses.length; i++) {
       if (
         isCloseEnough(
-          predefinedPoses.POSES_JOINTS[predefinedPoses.PREDEFINED_POSES.poses[safePreviousPoses[i]].name],
+          predefinedPoses.poses[safePreviousPoses[i]].joints,
           namesAndValues.map((joint) => joint.value),
-          predefinedPoses.PREDEFINED_POSES.max_distance_rad,
-          predefinedPoses.PREDEFINED_POSES.poses[safePreviousPoses[i]].joints_checked
+          predefinedPoses.max_distance_rad,
+          predefinedPoses.poses[safePreviousPoses[i]].joints_checked
         )
       ) {
         return true;
@@ -386,9 +386,8 @@ function PoseRequester({ // MARK -- POSE REQUESTER
   };
 
   const allPoses: ArmPose[] = [
-    ...predefinedPoses.PREDEFINED_POSES.poses.map((p) => ({ 
+    ...predefinedPoses.poses.map((p) => ({ 
       ...p, 
-      joints: predefinedPoses.POSES_JOINTS[p.name], 
       isCustom: false 
     })),
     ...customPoses.map((p) => ({ 
@@ -398,14 +397,11 @@ function PoseRequester({ // MARK -- POSE REQUESTER
   ];
 
   const [currentPoseId, setCurrentPoseId] = useState(0);
-
   const namesAndValues = getNamesAndValues();
 
   const currentPose = allPoses.find((p) => p.id === currentPoseId) || allPoses[0];
 
-  const predefinedJointValues = currentPose.joints ?? 
-      predefinedPoses.POSES_JOINTS[currentPose.name] ?? 
-      [0, 0, 0, 0, 0, 0];
+  const predefinedJointValues = currentPose.joints ?? [0, 0, 0, 0, 0, 0];
 
   const posesToSelect = allPoses.map((pose) => (
     <div
@@ -420,9 +416,9 @@ function PoseRequester({ // MARK -- POSE REQUESTER
       <div
         className={`${styles['pose-indicator']} ${
           isCloseEnough(
-            predefinedPoses.POSES_JOINTS[pose.name] ?? pose.joints ?? [],
+            pose.joints ?? [],
             namesAndValues.map((j) => j.value),
-            predefinedPoses.PREDEFINED_POSES.max_distance_rad,
+            predefinedPoses.max_distance_rad,
             pose.joints_checked
           )
             ? styles['pose-ready']
@@ -443,7 +439,7 @@ function PoseRequester({ // MARK -- POSE REQUESTER
 
     isJointClose = isJointClose.map((_, i) =>
         namesAndValues.length && predefinedJointValues
-            ? Math.abs(predefinedJointValues[i] - namesAndValues[i].value) <= predefinedPoses.PREDEFINED_POSES.max_distance_rad
+            ? Math.abs(predefinedJointValues[i] - namesAndValues[i].value) <= predefinedPoses.max_distance_rad
             : false
     );
 
@@ -467,7 +463,7 @@ function PoseRequester({ // MARK -- POSE REQUESTER
       isCloseEnough(
           predefinedJointValues,
           namesAndValues.map((joint) => joint.value),
-          predefinedPoses.PREDEFINED_POSES.max_distance_rad,
+          predefinedPoses.max_distance_rad,
           currentPose.joints_checked
       ) || isStartingFromSafePose(currentPose.safe_previous_poses)
   ) : false;
