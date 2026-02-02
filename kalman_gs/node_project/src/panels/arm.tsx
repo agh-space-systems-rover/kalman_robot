@@ -738,24 +738,96 @@ function EditPanel({
       onChangePose(null);
     }
   };
-  
+  const updatePoseField = (field: keyof ArmPose, value: any) => {
+    if (!pose || !pose.isCustom) return;
+
+    const saved = JSON.parse(localStorage.getItem('custom_arm_poses') || '[]');
+    const poseIndex = saved.findIndex((p: ArmPose) => p.id === pose.id);
+    
+    if (poseIndex !== -1) {
+      const updatedPose = { ...saved[poseIndex], [field]: value };
+      saved[poseIndex] = updatedPose;
+      
+      localStorage.setItem('custom_arm_poses', JSON.stringify(saved));
+      window.dispatchEvent(new Event('local-poses-update'));
+      onChangePose({ ...pose, [field]: value });
+    }
+  };
+  const handleRename = () => {
+    const newName = prompt("Enter new name for the pose:", pose.name);
+    if (!newName) return;
+    updatePoseField('name', newName);
+  };
+
+  const toggleInArray = (field: 'joints_set' | 'joints_checked' | 'joints_reversed', jointIdx: number) => {
+    const currentArray = pose[field] || [];
+    const jointNum = jointIdx + 1;
+    const newArray = currentArray.includes(jointNum)
+      ? currentArray.filter(n => n !== jointNum)
+      : [...currentArray, jointNum].sort((a, b) => a - b);
+    
+    updatePoseField(field, newArray);
+  };
+  function JointGrid(){
+    interface Jointsprops {
+      data: any; 
+      name: string;
+    };
+    const JointCheckbox = ({data, name}: Jointsprops) => {
+      return (
+        <>{Array.from({ length: 6 }, (_, i) => (<input
+          key={i}
+          type="checkbox"
+          disabled={isReadOnly}
+          checked={data.includes(i + 1)}
+          onChange={() => toggleInArray(name as any, i)}
+        />))}</>
+      );
+    };
+    return (
+      <div className={styles['joints-edit-grid-horizontal']}>
+        <div className={styles['grid-row']}>
+          <div className={styles['row-label']}>Joint</div>
+          {Array.from({ length: 6 }, (_, i) => (
+            <div key={i} className={styles['column-header']}>#{i + 1}</div>
+          ))}
+        </div>
+        <div className={styles['grid-row']}>
+          <div className={styles['row-label']}>Set</div>
+          <JointCheckbox data={pose.joints_set} name="joints_set" />
+        </div>
+
+        <div className={styles['grid-row']}>
+          <div className={styles['row-label']}>Checked</div>
+          <JointCheckbox data={pose.joints_checked} name="joints_checked" />
+        </div>
+
+        <div className={styles['grid-row']}>
+          <div className={styles['row-label']}>Reversed</div>
+          <JointCheckbox data={pose.joints_reversed || []} name="joints_reversed" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={styles['edit-panel']}>
       {/* TODO input import */}
-      <h2>{isReadOnly ? 'View Pose:' : 'Edit Pose:'} {pose.name}</h2>
+      <h2 className={styles['pose-header']}>{isReadOnly ? 'View Pose' : 'Edit Pose'}</h2>
       {isReadOnly ? (
-        <p className={styles['warn-text']}>⚠️ Predefined poses cannot be modified.</p>
+        <p className={styles['warn']}>⚠️ Predefined poses cannot be modified.</p>
       ) : (
         <div className={styles['edit-actions']}>
-          {/* <Button onClick={handleRename}>Rename</Button> */}
-          <Button onClick={handleDelete} className={styles['btn-danger']}>
+          <Button onClick={handleRename}>Rename</Button>
+          <Button onClick={handleDelete}>
             <FontAwesomeIcon icon={faTrash} /> Delete
           </Button>
         </div>
       )}
-      <Button onClick={exportToFile}>
+      <Button onClick={exportToFile} className={styles['edit-actions']}>
         <FontAwesomeIcon icon={faUpload} /> Export Pose
       </Button>
+      <JointGrid />
       
       {/* TODO editing panel */}
     </div>

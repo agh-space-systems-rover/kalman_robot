@@ -340,6 +340,36 @@ input[type='range']::-moz-range-track {
   margin-top: 20px;
 }
 
+/* grid */
+.joints-edit-grid-horizontal {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+}
+
+.grid-row {
+  display: grid;
+  grid-template-columns: 100px repeat(6, 20px);
+  align-items: center;
+  gap: 10px;
+}
+.column-header {
+  text-align: center;
+  font-family: monospace;
+  font-weight: bold;
+}
+.grid-row input[type="checkbox"] {
+  justify-self: center;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+.grid-row input[type="checkbox"]:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
 @keyframes blink-animation {
   0% {
     opacity: 1;
