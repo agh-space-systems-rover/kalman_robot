@@ -26,7 +26,6 @@ import { faDownload, faLock, faLockOpen, faSave, faTrash, faUpload } from '@fort
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useState, useEffect, useCallback } from 'react';
 import { Topic } from 'roslib';
-import Button from '../components/button';
 
 let lastJointState: JointState | null = null;
 
@@ -205,7 +204,7 @@ function ArmStatus({ // MARK -- ARM STATUS
   );
 
   const saveCurrentPose = () => {
-    const poseName = prompt("Give the name of new pose:", `Poza ${new Date().toLocaleTimeString()}`);
+    const poseName = prompt("Give the name of new pose:", `Pose ${new Date().toLocaleTimeString()}`);
     if (!poseName) return;
 
     const currentValues = namesAndValues.map(joint => joint.value);
@@ -235,9 +234,9 @@ function ArmStatus({ // MARK -- ARM STATUS
       <div className={styles['header-container']}>
         <h1 className={styles['status-header']}>Arm Status</h1>
         {editMode && (
-        <button className={styles['save-pose-button']} onClick={saveCurrentPose}>
-          <FontAwesomeIcon icon={faSave}/>
-        </button>)}
+        <div className={`${styles['joint-lock']}`} style={{border: 'none'}} onClick={saveCurrentPose}>
+          <FontAwesomeIcon icon={faSave} />
+        </div>)}
       </div>
       <div className={styles['status']}>
         <div className={styles['joint-column'] + ' ' + styles['align-left']}>{jointLocks}</div>
@@ -520,7 +519,7 @@ function PoseRequester({ // MARK -- POSE REQUESTER
             style={{ display: 'none' }} 
             onChange={handleImportSinglePose} 
           />
-          <div className={styles['export-poses-button']} title="Import Pose JSON">
+          <div className={styles['joint-lock']} title="Import Pose JSON">
             <FontAwesomeIcon icon={faDownload} />
           </div>
         </label>)}
@@ -785,7 +784,7 @@ function EditPanel({
       );
     };
     return (
-      <div className={styles['joints-edit-grid-horizontal']}>
+      <div>
         <div className={styles['grid-row']}>
           <div className={styles['row-label']}>Joint</div>
           {Array.from({ length: 6 }, (_, i) => (
@@ -814,20 +813,18 @@ function EditPanel({
     <div className={styles['edit-panel']}>
       {/* TODO input import */}
       <h2 className={styles['pose-header']}>{isReadOnly ? 'View Pose' : 'Edit Pose'}</h2>
-      {isReadOnly ? (
-        <p className={styles['warn']}>⚠️ Predefined poses cannot be modified.</p>
-      ) : (
-        <div className={styles['edit-actions']}>
-          <Button onClick={handleRename}>Rename</Button>
-          <Button onClick={handleDelete}>
-            <FontAwesomeIcon icon={faTrash} /> Delete
-          </Button>
-        </div>
-      )}
-      <Button onClick={exportToFile} className={styles['edit-actions']}>
+      <div onClick={exportToFile} className={styles['edit-button']}>
         <FontAwesomeIcon icon={faUpload} /> Export Pose
-      </Button>
+      </div>
       <JointGrid />
+      <p className={styles['warn']} style={{ visibility: isReadOnly ? 'visible' : 'hidden' }}>⚠️ Predefined poses cannot be modified.</p>
+      
+      <div className={styles['edit-actions']} style={{ opacity: isReadOnly ? 0.3 : 1, pointerEvents: isReadOnly ? 'none' : 'auto' }}>
+        <div onClick={handleRename} className={styles['edit-button']}>Rename</div>
+        <div onClick={handleDelete} className={styles['edit-button']}>
+          <FontAwesomeIcon icon={faTrash} /> Delete
+        </div>
+      </div>
       
       {/* TODO editing panel */}
     </div>

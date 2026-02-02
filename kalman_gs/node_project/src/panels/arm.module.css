@@ -134,9 +134,7 @@ input[type='range']::-moz-range-track {
   min-height: 30px;
 }
 
-.joint-lock,
-.save-pose-button,
-.export-poses-button{
+.joint-lock{
   display: flex;
   align-items: center;
   justify-content: center;
@@ -340,35 +338,63 @@ input[type='range']::-moz-range-track {
   margin-top: 20px;
 }
 
-/* grid */
-.joints-edit-grid-horizontal {
+/* Edit Panel */
+.edit-panel {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 10px;
+  align-items: stretch;
+  justify-content: center;
+  margin-left: 10px;
 }
-
-.grid-row {
-  display: grid;
-  grid-template-columns: 100px repeat(6, 20px);
-  align-items: center;
+.edit-actions {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
   gap: 10px;
+  margin-bottom: 10px;
 }
-.column-header {
-  text-align: center;
-  font-family: monospace;
-  font-weight: bold;
-}
-.grid-row input[type="checkbox"] {
-  justify-self: center;
-  width: 20px;
-  height: 20px;
+.edit-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+  margin-bottom: 5px;
   cursor: pointer;
+  padding: 8px 12px;  
+  background-color: var(--interactive);
 }
-.grid-row input[type="checkbox"]:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
+.edit-button:hover {
+  background-color: var(--dark-background);
 }
+  /* grid */
+  .joints-edit-grid-horizontal {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .grid-row {
+    display: grid;
+    grid-template-columns: 100px repeat(6, 20px);
+    align-items: center;
+    gap: 10px;
+  }
+  .column-header {
+    text-align: center;
+    font-family: monospace;
+    font-weight: bold;
+  }
+  .grid-row input[type="checkbox"] {
+    justify-self: center;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+  }
+  .grid-row input[type="checkbox"]:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
 
 @keyframes blink-animation {
   0% {
