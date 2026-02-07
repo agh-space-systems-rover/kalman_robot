@@ -122,22 +122,22 @@ window.addEventListener('ros-connect', () => {
 
   setLinearScale.subscribe((msg: { data: number }) => {
     lastServoLinearScale = msg.data;
-    window.dispatchEvent(new Event('servo-linear-scale'));
+    window.dispatchEvent(new CustomEvent('servo-linear-scale'));
   });
 
   setRotationalScale.subscribe((msg: { data: number }) => {
     lastServoRotationalScale = msg.data;
-    window.dispatchEvent(new Event('servo-rotational-scale'));
+    window.dispatchEvent(new CustomEvent('servo-rotational-scale'));
   });
 
   statusPoseTopic.subscribe((msg: { status: number }) => {
     lastStatusPose = ARM_STATUSES[msg.status];
-    window.dispatchEvent(new Event('pose-status'));
+    window.dispatchEvent(new CustomEvent('pose-status'));
   });
 
   statusTrajectoryTopic.subscribe((msg: { status: number }) => {
     lastStatusTrajectory = ARM_STATUSES[msg.status];
-    window.dispatchEvent(new Event('trajectory-status'));
+    window.dispatchEvent(new CustomEvent('trajectory-status'));
   });
 
   setLinearScaleTo(lastServoLinearScale);
@@ -198,7 +198,7 @@ function keepAliveTrajectory() {
 export function toggleArmAxisLock(axis: string) {
   armAxesLocks[axis] = !armAxesLocks[axis];
   armAxesLocksTopic?.publish(armAxesLocks);
-  window.dispatchEvent(new Event('arm-axis-lock-update'));
+  window.dispatchEvent(new CustomEvent('arm-axis-lock-update'));
 }
 
 window.addEventListener('keydown', (event) => {

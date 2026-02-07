@@ -155,7 +155,7 @@ window.addEventListener('ros-connect', () => {
     serviceType: 'std_srvs/Trigger'
   });
 
-  window.dispatchEvent(new Event('science-subscribed'));
+  window.dispatchEvent(new CustomEvent('science-subscribed'));
 });
 
 type SciencePanelProps = {
@@ -512,7 +512,6 @@ function PHProbe({}: PHProbeProps) {
               }
               // Saturation modifier: more extreme values get more saturated color
               const saturation = Math.abs(speed) / MAX_MOVE_SPEED;
-              console.log(saturation);
               const style = isActive && speed !== 0 ? { filter: `saturate(${saturation})` } : {};
 
               return (

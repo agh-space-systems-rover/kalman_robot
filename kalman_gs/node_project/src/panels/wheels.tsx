@@ -33,7 +33,7 @@ window.addEventListener('ros-connect', () => {
 
   stateTopic.subscribe((msg: WheelStates) => {
     lastWheelStates = msg;
-    window.dispatchEvent(new Event('wheel-states'));
+    window.dispatchEvent(new CustomEvent('wheel-states'));
   });
 
   const stateReturnTopic = new Topic({
@@ -44,7 +44,7 @@ window.addEventListener('ros-connect', () => {
 
   stateReturnTopic.subscribe((msg: WheelStates) => {
     lastWheelStatesReturn = msg;
-    window.dispatchEvent(new Event('wheel-states-return'));
+    window.dispatchEvent(new CustomEvent('wheel-states-return'));
   });
 
   const temperatureTopic = new Topic({
@@ -55,7 +55,7 @@ window.addEventListener('ros-connect', () => {
 
   temperatureTopic.subscribe((msg: WheelTemperatures) => {
     lastWheelTemperatures = msg;
-    window.dispatchEvent(new Event('wheel-temps'));
+    window.dispatchEvent(new CustomEvent('wheel-temps'));
   });
 });
 
