@@ -2,8 +2,6 @@ const { app, BrowserWindow, screen } = require('electron');
 
 const DEV_URL = 'http://localhost:3000';
 
-app.setName('DISTOBEE Ground Station');
-
 function createWindow() {
   const window = new BrowserWindow({
     show: false,
@@ -13,7 +11,7 @@ function createWindow() {
     webPreferences: {}
   });
 
-  window.loadURL(DEV_URL).then(response => {
+  window.loadURL(DEV_URL).then((response) => {
     // nothing to do
   });
 
