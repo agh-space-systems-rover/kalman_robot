@@ -93,8 +93,8 @@ function GpsCoordinatesDisplay() {
       window.removeEventListener('map-marker-move', onMarkerUpdated);
     };
   }, [onMarkerUpdated]);
-  const latStr = coords.lat ? coords.lat.toFixed(6) : 'N/A';
-  const longStr = coords.long ? coords.long.toFixed(6) : 'N/A';
+  const latStr = coords.lat != null ? coords.lat.toFixed(6) : 'N/A';
+  const longStr = coords.long != null ? coords.long.toFixed(6) : 'N/A';
 
   return (
     <div className={styles['gps-display-control']}>
