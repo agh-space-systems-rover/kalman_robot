@@ -122,7 +122,7 @@ export let armJointsLocks = {
 
 export function toggleArmJointLock(axis: string) {
   armJointsLocks[axis] = !armJointsLocks[axis];
-  window.dispatchEvent(new Event('arm-joint-lock-update'));
+  window.dispatchEvent(new CustomEvent('arm-joint-lock-update'));
 }
 
 export let currentAxisLockFocus = 1;

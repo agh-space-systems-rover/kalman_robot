@@ -38,7 +38,7 @@ const connectGamepads = () => {
       gamepads.delete(pad);
     }
   }
-  window.dispatchEvent(new Event('gamepads-connect'));
+  window.dispatchEvent(new CustomEvent('gamepads-connect'));
 };
 
 window.addEventListener('gamepadconnected', connectGamepads);
@@ -47,7 +47,7 @@ setInterval(connectGamepads, 100);
 
 function setGamepadMode(pad: Gamepad, mode: GamepadMode) {
   gamepads.set(pad, mode);
-  window.dispatchEvent(new Event('gamepads-connect'));
+  window.dispatchEvent(new CustomEvent('gamepads-connect'));
 }
 
 function readGamepads(input: GamepadInput, mode: GamepadMode): number {

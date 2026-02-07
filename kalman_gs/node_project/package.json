@@ -28,8 +28,15 @@
     "typescript": "^4.4.2",
     "url-loader": "^4.1.1"
   },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "cross-env": "^7",
+    "electron": "^30.5.1",
+    "wait-on": "^7"
+  },
   "scripts": {
-    "start": "BROWSER=none react-scripts start",
+    "web": "react-scripts start",
+    "electron": "concurrently \"npm run web\" \"wait-on http://localhost:3000 && electron ./electron/main.js\"",
     "format": "prettier --write ."
   },
   "browserslist": {

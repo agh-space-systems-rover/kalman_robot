@@ -23,7 +23,7 @@ setInterval(() => {
 function setMapMarkerLatLon(lat: number, lon: number) {
   mapMarker.latitude = lat;
   mapMarker.longitude = lon;
-  window.dispatchEvent(new Event('map-marker-move'));
+  window.dispatchEvent(new CustomEvent('map-marker-move'));
 }
 
 export { mapMarker, setMapMarkerLatLon };

@@ -39,7 +39,7 @@ window.addEventListener('ros-connect', () => {
     }
     gpsCoords.latitude = msg.latitude;
     gpsCoords.longitude = msg.longitude;
-    window.dispatchEvent(new Event('gps-update'));
+    window.dispatchEvent(new CustomEvent('gps-update'));
   };
 
   gps.subscribe((msg: NavSatFix) => {

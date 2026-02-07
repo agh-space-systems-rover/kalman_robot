@@ -1,23 +1,19 @@
 import styles from './feeds.module.css';
 
+
+
 import CHANNELS from '../common/feed-channels';
-import { feedCameras, feedChannels, feedPowers } from '../common/feeds';
-import {
-  IconDefinition,
-  fa1,
-  fa2,
-  faCamera,
-  faCheck,
-  faDisplay,
-  faTowerBroadcast,
-  faWaveSquare
-} from '@fortawesome/free-solid-svg-icons';
+import { FeedUpdateDetail, feedCameras, feedChannels, feedPowers } from '../common/feeds';
+import { IconDefinition, fa1, fa2, faCamera, faCheck, faDisplay, faTowerBroadcast, faWaveSquare } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useCallback, useEffect, useRef, useState } from 'react';
+
+
 
 import Button from '../components/button';
 import Input from '../components/input';
 import Label from '../components/label';
+
 
 type IntegerSelectorProps = {
   labelColor: string;
@@ -127,7 +123,14 @@ function Feed({ feedIndex }: FeedProps) {
         defaultValue={feedCameras[feedIndex]}
         onSet={(value) => {
           feedCameras[feedIndex] = value;
-          window.dispatchEvent(new Event('feeds-updated'));
+          window.dispatchEvent(
+            new CustomEvent<FeedUpdateDetail>('feeds-updated', {
+              detail: {
+                feed: feedIndex,
+                camera: value
+              }
+            })
+          );
         }}
         key={feedCameras[feedIndex]}
       />
@@ -140,7 +143,14 @@ function Feed({ feedIndex }: FeedProps) {
         defaultValue={feedChannels[feedIndex]}
         onSet={(value) => {
           feedChannels[feedIndex] = value;
-          window.dispatchEvent(new Event('feeds-updated'));
+          window.dispatchEvent(
+            new CustomEvent<FeedUpdateDetail>('feeds-updated', {
+              detail: {
+                feed: feedIndex,
+                channel: value
+              }
+            })
+          );
         }}
         customNames={CHANNELS}
         key={feedChannels[feedIndex] + 100}
@@ -154,7 +164,14 @@ function Feed({ feedIndex }: FeedProps) {
         defaultValue={feedPowers[feedIndex]}
         onSet={(value) => {
           feedPowers[feedIndex] = value;
-          window.dispatchEvent(new Event('feeds-updated'));
+          window.dispatchEvent(
+            new CustomEvent<FeedUpdateDetail>('feeds-updated', {
+              detail: {
+                feed: feedIndex,
+                power: value
+              }
+            })
+          );
         }}
         key={feedPowers[feedIndex] + 200}
       />

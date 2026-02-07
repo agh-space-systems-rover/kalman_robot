@@ -23,20 +23,20 @@ window.addEventListener('waypoints-update', () => {
 
 function addWaypoint(waypoint: Waypoint) {
   waypoints.push(waypoint);
-  window.dispatchEvent(new Event('waypoints-update'));
+  window.dispatchEvent(new CustomEvent('waypoints-update'));
 }
 
 function removeWaypoint(waypoint: Waypoint) {
   const index = waypoints.indexOf(waypoint);
   if (index !== -1) {
     waypoints.splice(index, 1);
-    window.dispatchEvent(new Event('waypoints-update'));
+    window.dispatchEvent(new CustomEvent('waypoints-update'));
   }
 }
 
 function removeAllWaypoints() {
   waypoints.splice(0, waypoints.length);
-  window.dispatchEvent(new Event('waypoints-update'));
+  window.dispatchEvent(new CustomEvent('waypoints-update'));
 }
 
 function exportWaypointsAsText(): string {
@@ -129,7 +129,7 @@ function importWaypointsFromText(text: string, defaultColor: WaypointColor = way
     console.error(error);
     alert('Failed to import waypoints:\n' + error);
   }
-  window.dispatchEvent(new Event('waypoints-update'));
+  window.dispatchEvent(new CustomEvent('waypoints-update'));
 }
 
 export {

@@ -38,7 +38,7 @@ window.addEventListener('ros-connect', () => {
 
   jointTopic.subscribe((msg: JointState) => {
     lastJointState = msg;
-    window.dispatchEvent(new Event('joint-state'));
+    window.dispatchEvent(new CustomEvent('joint-state'));
   });
 });
 

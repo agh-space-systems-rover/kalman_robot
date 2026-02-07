@@ -1,12 +1,43 @@
-import { alertsRef, settingsRef } from '../common/refs';
-import { ros } from '../common/ros';
-import { SetFeedRequest } from '../common/ros-interfaces';
 import { getKeybind } from './keybinds';
+import { alertsRef, settingsRef } from './refs';
+import { ros } from './ros';
+import { SetFeedRequest } from './ros-interfaces';
 import { Service } from 'roslib';
 
+
+// Create arrays storing feed configuration
+// Store initial values
 let feedCameras = [1, 2];
 let feedChannels = [15, 8];
 let feedPowers = [1, 1];
+
+// Type for storing details from CustomEvent
+type FeedUpdateDetail = {
+  feed: number;
+  camera?: number;
+  channel?: number;
+  power?: number;
+};
+
+// Initial SetFeed request to send after connecting ROS
+const prepareInitialSetFeedRequest = (feedI: number) => {
+  return {
+    feed: feedI + 1, // Feeds in SetFeed are 1-indexed
+    camera: feedCameras[feedI],
+    channel: feedChannels[feedI],
+    power: feedPowers[feedI]
+  };
+};
+
+// SetFeed request with operator data to send after change feeds in feeds.tsx or via keyboard
+const prepareSetFeedRequestFromEventDetail = (detail: FeedUpdateDetail) => {
+  return {
+    feed: detail.feed + 1, // Feeds in SetFeed are 1-indexed
+    camera: detail.camera ?? 0,
+    channel: detail.channel ?? 0,
+    power: detail.power ?? 0
+  };
+};
 
 // Load feed config from local storage.
 const feedConfig = localStorage.getItem('feed-config');
@@ -29,8 +60,8 @@ if (feedConfig) {
   }
 }
 
-// Save feed config to local storage on update.
-window.addEventListener('feeds-updated', () => {
+window.addEventListener('feeds-updated', (e) => {
+  // Save feed config to local storage on update.
   localStorage.setItem(
     'feed-config',
     JSON.stringify({
@@ -43,58 +74,35 @@ window.addEventListener('feeds-updated', () => {
 
 // ROS
 window.addEventListener('ros-connect', () => {
+  console.log('ROS connected')
+
   const setFeed = new Service<SetFeedRequest, {}>({
     ros: ros,
     name: '/set_feed',
     serviceType: 'kalman_interfaces/SetFeeds'
   });
 
-  // Keep track of previous values to avoid unnecessary calls.
-  // 0 is an invalid state that will force update on first call.
-  let prevCameras = [0, 0];
-  let prevChannels = [0, 0];
-  let prevPowers = [0, 0];
-  let lastActionableReq = null;
-
-  const sendCall = (showAlerts = true) => {
-    let errorShownOnce = false; // Prevents from showing two errors, one for each feed.
-    // For each of the two feeds, send a call if any of the values have changed.
-    for (let feed = 0; feed < 2; feed++) {
-      // Construct the request.
-      // On first call, all previous values are 0, so all current values will be sent.
-      const req: SetFeedRequest = {
-        feed: feed + 1, // Feeds in SetFeed are 1-indexed.
-        camera: feedCameras[feed] === prevCameras[feed] ? 0 : feedCameras[feed],
-        channel: feedChannels[feed] === prevChannels[feed] ? 0 : feedChannels[feed],
-        power: feedPowers[feed] === prevPowers[feed] ? 0 : feedPowers[feed]
-      };
-
-      // Remember the current values for the next call.
-      prevCameras[feed] = feedCameras[feed];
-      prevChannels[feed] = feedChannels[feed];
-      prevPowers[feed] = feedPowers[feed];
-
-      // If any of the values have changed, send the call.
-      const errorCb = (error: string) => {
-        if (!errorShownOnce) {
-          if (showAlerts) {
-            alertsRef.current?.pushAlert('Failed to update feeds: ' + error);
-          }
-          errorShownOnce = true;
-        }
-      };
-      if (req.camera || req.channel || req.power) {
-        setFeed.callService(req, undefined, errorCb);
-        lastActionableReq = req;
-      } else if (lastActionableReq !== null) {
-        // If no values have changed, repeat the last call.
-        setFeed.callService(lastActionableReq, undefined, errorCb);
+  const sendCall = (feedRequest: SetFeedRequest | null = null, showAlerts: boolean = true) => {
+    // If any of the values have changed, send the call.
+    const errorCb = (error: string) => {
+      if (showAlerts) {
+        alertsRef.current?.pushAlert('Failed to update feeds: ' + error);
       }
-    }
+    };
+
+    // Send previously prepared request
+    setFeed.callService(feedRequest, undefined, errorCb);
   };
 
-  window.addEventListener('feeds-updated', () => sendCall());
-  sendCall(false);
+  // Send initial request to set default values or stored in local storage config
+  sendCall(prepareInitialSetFeedRequest(0), false);
+  sendCall(prepareInitialSetFeedRequest(1), false);
+
+  // Handle changes from feeds panel or keyboard
+  window.addEventListener('feeds-updated', (e) => {
+    const detail = (e as CustomEvent<FeedUpdateDetail>).detail;
+    sendCall(prepareSetFeedRequestFromEventDetail(detail));
+  });
 });
 
 // Keybinds
@@ -106,16 +114,30 @@ function cycleFeedCameras(direction: number) {
   } else if (feedCameras[changingFeedI] > 8) {
     feedCameras[changingFeedI] = 1;
   }
-  window.dispatchEvent(new Event('feeds-updated'));
+  window.dispatchEvent(
+    new CustomEvent<FeedUpdateDetail>('feeds-updated', {
+      detail: {
+        feed: changingFeedI,
+        camera: feedCameras[changingFeedI]
+      }
+    })
+  );
 }
+
 function showCameraOnFeed(camera: number, overrideFeedI?: number) {
-  if (overrideFeedI !== undefined) {
-    feedCameras[overrideFeedI] = camera;
-  } else {
-    feedCameras[changingFeedI] = camera;
-  }
-  window.dispatchEvent(new Event('feeds-updated'));
+  const feedI = overrideFeedI ?? changingFeedI;
+  feedCameras[feedI] = camera;
+
+  window.dispatchEvent(
+    new CustomEvent<FeedUpdateDetail>('feeds-updated', {
+      detail: {
+        feed: feedI,
+        camera: feedCameras[feedI]
+      }
+    })
+  );
 }
+
 window.addEventListener('keydown', (event) => {
   // Check if any input box is focused.
   if (document.activeElement.tagName === 'INPUT') {
@@ -186,10 +208,11 @@ window.addEventListener('keydown', (event) => {
       break;
   }
 });
+
 window.addEventListener('keyup', (event) => {
   if (event.code === getKeybind('Hold to Change Cameras on Feed 2 not 1')) {
     changingFeedI = 0;
   }
 });
 
-export { feedCameras, feedChannels, feedPowers };
+export { FeedUpdateDetail, feedCameras, feedChannels, feedPowers };
