@@ -148,32 +148,6 @@ stvl:
 {% endfor %}
 {% endif %}
 
-# ################# experimental ##################
-# yolo_layer:
-#   plugin: "nav2_costmap_2d::ObstacleLayer"
-#   enabled: true
-#   observation_sources: yolo_cloud
-#   yolo_cloud:
-#     topic: /yolo_clouds
-    
-#     # Take frame from the message header
-#     sensor_frame: ""
-#     data_type: "PointCloud2"
-
-#     clearing: false
-#     marking: true
-#     observation_persistence: 1.5
-#     min_z: 0.05                
-#     max_z: 0.5               
-    
-#     # --- ZASIĘG ---
-#     obstacle_range: 0.5
-#     raytrace_range: 3.5       
-    
-#     min_obstacle_height: 0.0   
-#     max_obstacle_height: 1.0
-# ################# experimental ##################
-
 yolo_cubes_cloud_stvl:
   plugin: "spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer"
   enabled: true
@@ -181,7 +155,7 @@ yolo_cubes_cloud_stvl:
   origin_z: 0.0                   # meters
   voxel_size: 0.1                 # meters
   
-  voxel_decay: 7.0               # seconds if linear, e^n if exponential
+  voxel_decay: 4.0               # seconds if linear, e^n if exponential
   decay_model: 0                  # 0=linear, 1=exponential, -1=persistent
   mark_threshold: 0               # voxel height
   track_unknown_space: true       # default space is unknown
@@ -213,7 +187,7 @@ yolo_cubes_cloud_stvl:
     max_z: 5.0                  # default 10, meters
     vertical_fov_angle: 1.025   # default 0.7, radians
     horizontal_fov_angle: 7.0   # default 1.04, radians
-    decay_acceleration: 0.1     # default 0, 1/s^2. If laser scanner MUST be 0
+    decay_acceleration: 1.0     # default 0, 1/s^2. If laser scanner MUST be 0
 
 # This layer places an exponential decay functions around obstacles to increase cost to traverse near collision. It also places a lethal cost around obstacles within the robot's fully inscribed radius - even if a robot is non-circular for optimized first-order collision checking.
 inflation_layer:
