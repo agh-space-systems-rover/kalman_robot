@@ -161,14 +161,16 @@ yolo_layer:
 
     clearing: false
     marking: true
-  
-    # keep the detections for 2 seconds before removing
-    observation_persistence: 0.7  # seconds
-    min_z: 0.5                  # default 0, meters
-    max_z: 5.0                 # default 10, meters
-    obstacle_range: 5.0          # trust detections up to 3 meters
-    min_obstacle_height: 0.0     # meters
-    max_obstacle_height: 1.0   # meters
+    observation_persistence: 1.5
+    min_z: 0.05                
+    max_z: 0.5               
+    
+    # --- ZASIĘG ---
+    obstacle_range: 0.5
+    raytrace_range: 3.5       
+    
+    min_obstacle_height: 0.0   
+    max_obstacle_height: 1.0
 ################# experimental ##################
 
 # This layer places an exponential decay functions around obstacles to increase cost to traverse near collision. It also places a lethal cost around obstacles within the robot's fully inscribed radius - even if a robot is non-circular for optimized first-order collision checking.

@@ -61,8 +61,8 @@ class CubeClouds(Node):
     def generate_cube_cloud(self, cx, cy, cz, rad):
         points = []
         resolution = 0.1   
-        height_min = -0.2 
-        height_max = 0.2
+        height_min = -0.1
+        height_max = 0.1
 
         # generate fake cloud
         for x in np.arange(-rad, rad + 0.01, resolution):
