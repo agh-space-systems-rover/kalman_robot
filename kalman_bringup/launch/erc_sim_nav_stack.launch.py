@@ -1,6 +1,6 @@
 from kalman_bringup import *
 
-RGBD_IDS = "d455_front d455_back"# d455_left d455_right"
+RGBD_IDS = "d455_front"# d455_back d455_left d455_right"
 
 def generate_launch_description():
     return gen_launch({
@@ -15,12 +15,13 @@ def generate_launch_description():
         },
         "slam": {
             "rgbd_ids": RGBD_IDS,
-            "gps_datum": "50.06623534 19.9132241",  # ERC2024 Marsyard S1, Kraków
-            "fiducials": "terc2025",
+            "gps_datum": "50.06622974 19.91320048",  # ERC2025 Marsyard S1, Kraków
+            "fiducials": "erc2025",
+            "use_mag": "true",
         },
         "nav2": {
             "rgbd_ids": RGBD_IDS,
-            # "static_map": "erc2024",
+            "static_map": "erc2025",
         },
         "aruco": {
             "rgbd_ids": RGBD_IDS,
@@ -28,4 +29,4 @@ def generate_launch_description():
             "size": "0.15",
         },
         "supervisor": {},
-    }, composition="start_container")
+    }, composition="none")

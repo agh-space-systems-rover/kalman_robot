@@ -24,10 +24,7 @@ export default function RebootPC() {
       className={styles['reboot-pc']}
       onClick={() => {
         if (rebootService === null) {
-          alertsRef.current?.pushAlert(
-            'Not connected to local ROS instance. Unable to send reboot request.',
-            'error'
-          );
+          alertsRef.current?.pushAlert('Not connected to local ROS instance. Unable to send reboot request.', 'error');
           return;
         }
 
@@ -40,10 +37,7 @@ export default function RebootPC() {
             );
           },
           (e) => {
-            alertsRef.current?.pushAlert(
-              `Unable to send a reboot request. ${e}.`,
-              'error'
-            );
+            alertsRef.current?.pushAlert(`Unable to send a reboot request. ${e}.`, 'error');
           }
         );
       }}

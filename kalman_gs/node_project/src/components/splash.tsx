@@ -42,30 +42,18 @@ export default class Splash extends Component<{}, State> {
   render() {
     return (
       <div
-        className={
-          styles['splash-bg'] + (this.state.shown ? ` ${styles['shown']}` : '')
-        }
+        className={styles['splash-bg'] + (this.state.shown ? ` ${styles['shown']}` : '')}
         onClick={() => this.hide()}
       >
         <div className={styles['splash']}>
           <div className={styles['splash-header']}>
-            <img
-              src={splash}
-              className={styles['splash-header-image']}
-              draggable='false'
-            />
+            <img src={splash} className={styles['splash-header-image']} draggable='false' />
             <div className={styles['splash-header-image-vignette']} />
             <div className={styles['splash-header-image-attribution']}>
               <FontAwesomeIcon icon={faCamera} />
-              <div className={styles['splash-header-image-attribution-text']}>
-                KSAF 2023
-              </div>
+              <div className={styles['splash-header-image-attribution-text']}>KSAF 2023</div>
             </div>
-            <img
-              src={logo}
-              className={styles['splash-header-logo']}
-              draggable='false'
-            />
+            <img src={logo} className={styles['splash-header-logo']} draggable='false' />
           </div>
           <div className={styles['splash-content']}>
             <h1>Kalman Ground Station</h1>

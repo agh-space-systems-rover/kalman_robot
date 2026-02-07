@@ -3,7 +3,8 @@
 <package format="3">
   <name>kalman_nav2</name>
   <version>0.0.0</version>
-  <description>configuration and launch files for Nav2 and related modules; Includes a custom path follower.</description>
+  <description>configuration and launch files for Nav2 and related modules; Includes a custom path
+    follower.</description>
   <maintainer email="63957587+rayferric@users.noreply.github.com">rayferric</maintainer>
   <license>MIT</license>
 
@@ -22,6 +23,13 @@
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>tf2_ros</exec_depend>
   <exec_depend>service_based_nav2_controller_srvs</exec_depend>
+  <exec_depend>python3-numpy</exec_depend>
+
+  <!-- geo_path_converter dependencies -->
+  <exec_depend>python-utm-pip</exec_depend>
+  <exec_depend>kalman_interfaces</exec_depend>
+
+  <exec_depend>kalman_utils</exec_depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
