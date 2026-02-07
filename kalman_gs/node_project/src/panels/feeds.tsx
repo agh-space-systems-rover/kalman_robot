@@ -63,9 +63,7 @@ function IntegerSelector({
       </Label>
       <Input
         className={styles['input'] + (editing ? ' editing' : '')}
-        defaultValue={
-          customNames ? customNames[defaultValue] : defaultValue.toString()
-        }
+        defaultValue={customNames ? customNames[defaultValue] : defaultValue.toString()}
         ref={inputRef}
         onChange={(value) => {
           // Check if there are non-digit characters
@@ -117,10 +115,7 @@ function Feed({ feedIndex }: FeedProps) {
       <div className={styles['feed-controls-row']}>
         <div className={styles['icon']}>
           <FontAwesomeIcon icon={faDisplay} />
-          <FontAwesomeIcon
-            className={styles['icon-digit']}
-            icon={[fa1, fa2][feedIndex]}
-          />
+          <FontAwesomeIcon className={styles['icon-digit']} icon={[fa1, fa2][feedIndex]} />
         </div>
       </div>
       <IntegerSelector

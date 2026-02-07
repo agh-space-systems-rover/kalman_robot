@@ -30,13 +30,9 @@
     odom0_queue_size: 10
 
     # Apply world-referenced pitch and roll correction from the IMU.
-    imu0: imu/data # From the IMU
+    imu0: imu/data
     imu0_config: [false, false, false,
-{% if use_mag %}
-                  true,  true,  true,
-{% else %}
                   true,  true,  false,
-{% endif %}
                   false, false, false,
                   false, false, false,
                   false, false, false]
@@ -44,6 +40,19 @@
     imu0_relative: false
     imu0_queue_size: 10
     imu0_remove_gravitational_acceleration: true
+
+{% if use_mag %}
+    imu1: imu/data
+    imu1_config: [false, false, false,
+                  false, false, true,
+                  false, false, false,
+                  false, false, false,
+                  false, false, false]
+    imu1_differential: false
+    imu1_relative: false
+    imu1_queue_size: 10
+    imu1_remove_gravitational_acceleration: true
+{% endif %}
 
 
     # XY correction from navsat_transform (GPS).

@@ -8,6 +8,7 @@ ament_python_install_package(${PROJECT_NAME})
 
 install(PROGRAMS
   scripts/gs
+  scripts/pkg_config_reader
   DESTINATION lib/${PROJECT_NAME}
 )
 

@@ -1,5 +1,9 @@
 // Standard ROS types
 
+export type UInt8 = {
+  data: number;
+};
+
 export type Time = {
   sec?: number;
   nanosec?: number;
@@ -150,6 +154,10 @@ export type SupervisorGpsYoloSearchFeedback = {
 };
 // Result is empty.
 
+export type GeoPath = {
+  points: GeoPoint[];
+};
+
 export type WheelState = {
   velocity?: number;
   angle?: number;
@@ -159,6 +167,16 @@ export type WheelStates = {
   front_right?: WheelState;
   back_left?: WheelState;
   back_right?: WheelState;
+};
+export type WheelTemperature = {
+  motor?: number;
+  swivel?: number;
+};
+export type WheelTemperatures = {
+  front_left?: WheelTemperature;
+  front_right?: WheelTemperature;
+  back_left?: WheelTemperature;
+  back_right?: WheelTemperature;
 };
 
 export type SetFeedRequest = {
@@ -173,6 +191,15 @@ export type SpoofGpsRequest = {
   location?: GeoPoint;
 };
 // Response is empty.
+
+export type ReadPkgConfigFileRequest = {
+  pkg?: string;
+  path?: string;
+};
+export type ReadPkgConfigFileResponse = {
+  content?: string;
+  success?: boolean;
+};
 
 export type JointState = {
   header?: Header;
@@ -228,3 +255,9 @@ export type SetUeuosEffectRequest = {
   effect?: number;
 };
 // Response is empty.
+
+export type ColorRGB = {
+  r: number;
+  g: number;
+  b: number;
+};

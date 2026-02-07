@@ -11,8 +11,15 @@ from launch_ros.actions import Node, LoadComposableNodes, ComposableNodeContaine
 from launch_ros.descriptions import ComposableNode
 from launch.substitutions import LaunchConfiguration
 
+from kalman_utils.launch import (
+    launch_node_or_load_component,
+    load_standalone_config,
+    load_standalone_config_file,
+)
+
 REALSENSE_SERIAL_NUMBERS = {
-    "d455_front": "_242422301926",
+    #"d455_front": "_242422301926",
+    "d455_front": "_043422251512",
     "d455_front_old": "_043422251512",
     "d455_back": "_241122302098",
     "d455_left": "_231622302763",
@@ -57,10 +64,10 @@ def launch_setup(context):
             "IMU cannot be started simultaneously with the compass_calibration node. Please start either one of them separately or do not start them at all."
         )
 
-    description = []
+    actions = []
 
     if master != "":
-        description += [
+        actions += [
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
                     str(
@@ -92,10 +99,8 @@ def launch_setup(context):
                                 "serial_no": serial_no,
                                 "camera_name": camera_name,
                             },
-                            str(
-                                get_package_share_path("kalman_hardware")
-                                / "config"
-                                / "realsense2_camera.yaml"
+                            load_standalone_config(
+                                "kalman_hardware", "realsense2_camera.yaml"
                             ),
                         ],
                         extra_arguments=[{"use_intra_process_comms": True}],
@@ -106,10 +111,8 @@ def launch_setup(context):
                         package="kalman_hardware",
                         plugin="kalman_hardware::RgbdFilter",
                         parameters=[
-                            str(
-                                get_package_share_path("kalman_hardware")
-                                / "config"
-                                / "rgbd_filter.yaml"
+                            load_standalone_config(
+                                "kalman_hardware", "rgbd_filter.yaml"
                             )
                         ],
                         remappings=[
@@ -131,14 +134,14 @@ def launch_setup(context):
             [],
         )
         if component_container:
-            description += [
+            actions += [
                 LoadComposableNodes(
                     target_container=component_container,
                     composable_node_descriptions=composable_node_descriptions,
                 )
             ]
         else:
-            description += [
+            actions += [
                 ComposableNodeContainer(
                     package="rclcpp_components",
                     executable="component_container",
@@ -166,7 +169,7 @@ def launch_setup(context):
 
         # Load IMU driver and filter.
         if component_container:
-            description += [
+            actions += [
                 LoadComposableNodes(
                     target_container=component_container,
                     composable_node_descriptions=[
@@ -174,33 +177,17 @@ def launch_setup(context):
                             package="phidgets_spatial",
                             plugin="phidgets::SpatialRosI",
                             parameters=[
-                                str(
-                                    get_package_share_path("kalman_hardware")
-                                    / "config"
-                                    / "phidgets_spatial.yaml"
-                                ),
+                                load_standalone_config("kalman_hardware", "phidgets_spatial.yaml"),
                                 phidgets_spatial_calibration_params_path,
                             ],
+                            extra_arguments=[{"use_intra_process_comms": False}],
                             # NOTE: Spatial does not support intra-process communication.
-                        ),
-                        ComposableNode(
-                            package="imu_filter_madgwick",
-                            plugin="ImuFilterMadgwickRos",
-                            parameters=[
-                                str(
-                                    get_package_share_path("kalman_hardware")
-                                    / "config"
-                                    / "imu_filter_madgwick.yaml"
-                                ),
-                                {"use_mag": imu != "no_mag"},
-                            ],
-                            extra_arguments=[{"use_intra_process_comms": True}],
                         ),
                     ],
                 ),
             ]
         else:
-            description += [
+            actions += [
                 ComposableNodeContainer(
                     package="rclcpp_components",
                     executable="component_container",
@@ -211,31 +198,27 @@ def launch_setup(context):
                             package="phidgets_spatial",
                             plugin="phidgets::SpatialRosI",
                             parameters=[
-                                str(
-                                    get_package_share_path("kalman_hardware")
-                                    / "config"
-                                    / "phidgets_spatial.yaml"
-                                ),
+                                load_standalone_config("kalman_hardware", "phidgets_spatial.yaml"),
                                 phidgets_spatial_calibration_params_path,
                             ],
+                            extra_arguments=[{"use_intra_process_comms": False}],
                         ),
                     ],
                 ),
-                Node(
-                    package="imu_filter_madgwick",
-                    executable="imu_filter_madgwick_node",
-                    parameters=[
-                        str(
-                            get_package_share_path("kalman_hardware")
-                            / "config"
-                            / "imu_filter_madgwick.yaml"
-                        )
-                    ],
-                ),
             ]
+        actions += launch_node_or_load_component(
+            component_container=component_container,
+            package="imu_filter_madgwick",
+            executable="imu_filter_madgwick_node",
+            plugin="ImuFilterMadgwickRos",
+            parameters=[
+                load_standalone_config("kalman_hardware", "imu_filter_madgwick.yaml"),
+                {"use_mag": imu != "no_mag"},
+            ],
+        )
 
     if compass_calibration > 1e-6:
-        description += [
+        actions += [
             Node(
                 package="kalman_hardware",
                 executable="compass_calibration",
@@ -248,16 +231,12 @@ def launch_setup(context):
         ]
 
     if gps:
-        description += [
+        actions += [
             Node(
                 package="nmea_navsat_driver",
                 executable="nmea_serial_driver",
                 parameters=[
-                    str(
-                        get_package_share_path("kalman_hardware")
-                        / "config"
-                        / "nmea_navsat_driver.yaml"
-                    )
+                    load_standalone_config("kalman_hardware", "nmea_navsat_driver.yaml")
                 ],
                 remappings=[
                     ("fix", "gps/fix"),
@@ -269,7 +248,7 @@ def launch_setup(context):
             ),
         ]
 
-    return description
+    return actions
 
 
 def generate_launch_description():

@@ -23,14 +23,7 @@ type Props = {
 
 let currentlyOpenMenu: Popup | null = null;
 
-export default function ContextMenu({
-  items,
-  children,
-  openOnClick = false,
-  className,
-  tooltip,
-  ...props
-}: Props) {
+export default function ContextMenu({ items, children, openOnClick = false, className, tooltip, ...props }: Props) {
   const popupRef = useRef<Popup>(null);
   const hideTimeout = useRef<any>(null);
 
@@ -106,9 +99,7 @@ export default function ContextMenu({
                 }}
               >
                 {anyItemHasIcon && (
-                  <div className={styles['item-icon']}>
-                    {item.icon && <FontAwesomeIcon icon={item.icon} />}
-                  </div>
+                  <div className={styles['item-icon']}>{item.icon && <FontAwesomeIcon icon={item.icon} />}</div>
                 )}
                 <div className={styles['item-text']}>{item.text}</div>
               </div>
@@ -118,11 +109,7 @@ export default function ContextMenu({
       }
       {...props}
     >
-      {tooltip && !open ? (
-        <Tooltip text={tooltip} {...triggerAttribs} />
-      ) : (
-        <div {...triggerAttribs} />
-      )}
+      {tooltip && !open ? <Tooltip text={tooltip} {...triggerAttribs} /> : <div {...triggerAttribs} />}
       {children}
     </Popup>
   );

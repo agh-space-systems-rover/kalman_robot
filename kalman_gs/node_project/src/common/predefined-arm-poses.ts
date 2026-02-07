@@ -53,26 +53,26 @@ const PREDEFINED_POSES = {
     },
     {
       'id': 6,
-      'name': 'Spectro approach',
-      'path': 'predefined_poses/spectro_approach.yaml',
+      'name': 'Sand Storage',
+      'path': 'predefined_poses/sand_storage.yaml',
       'joints_set': [1, 2, 3, 4, 5, 6],
-      'joints_checked': [2, 3],
+      'joints_checked': [],
       'safe_previous_poses': [0, 2, 5]
     },
     {
       'id': 7,
-      'name': 'Sample storage',
-      'path': 'predefined_poses/sample_storage.yaml',
+      'name': 'Rock Storage',
+      'path': 'predefined_poses/rock_storage.yaml',
       'joints_set': [1, 2, 3, 4, 5, 6],
-      'joints_checked': [2, 3],
+      'joints_checked': [],
       'safe_previous_poses': [0, 2, 5]
     },
     {
       'id': 8,
-      'name': 'Rock storage',
-      'path': 'predefined_poses/rock_storage.yaml',
+      'name': 'Spectro Approach',
+      'path': 'predefined_poses/spectro_approach.yaml',
       'joints_set': [1, 2, 3, 4, 5, 6],
-      'joints_checked': [2, 3],
+      'joints_checked': [],
       'safe_previous_poses': [0, 2, 5]
     }
   ]
@@ -85,9 +85,9 @@ const POSES_JOINTS = {
   'Base Left': [2.2435, 0.3388, 1.7765, 0.0, 1.0902, 0.7],
   'Base Right': [-2.2435, 0.3388, 1.7765, 0.0, 1.0902, -0.7],
   'Based': [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-  'Spectro approach': [0.0, 0.28, 2.4, 3.14, -1.7, 0.0],
-  'Sample storage': [0.0, 0.0, 1.57, 0.0, 0.0, 0.0],
-  'Rock storage': [0.0, 0.0, 1.57, 0.0, 0.0, 0.0]
+  'Sand Storage': [-2.47, 0.08, 1.69, 0.6, 0.98, -0.88],
+  'Rock Storage': [-3.14, -0.7, 2.2, 0.0, 1.0, 0.0],
+  'Spectro Approach': [0.0, 0.28, 2.4, 3.14, -1.7, 0.0]
 };
 
 export default { PREDEFINED_POSES, POSES_JOINTS };

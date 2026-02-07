@@ -15,8 +15,7 @@ export default class Popup extends Component<Props> {
   private popupRef = createRef<HTMLDivElement>();
 
   private updatePopupPosition = () => {
-    const anchorMargin =
-      this.props.margin === undefined ? 10 : this.props.margin;
+    const anchorMargin = this.props.margin === undefined ? 10 : this.props.margin;
 
     if (!this.anchorRef.current) return;
     if (!this.popupRef.current) return;
@@ -49,14 +48,10 @@ export default class Popup extends Component<Props> {
       if (anchorOverlapsPopup(desiredPopupPosition)) {
         desiredPopupPosition.left = anchorBounds.right + anchorMargin;
       }
-    } else if (
-      desiredPopupPosition.left + popupBounds.width >
-      innerWidth - 10
-    ) {
+    } else if (desiredPopupPosition.left + popupBounds.width > innerWidth - 10) {
       desiredPopupPosition.left = innerWidth - 10 - popupBounds.width;
       if (anchorOverlapsPopup(desiredPopupPosition)) {
-        desiredPopupPosition.left =
-          anchorBounds.left - anchorMargin - popupBounds.width;
+        desiredPopupPosition.left = anchorBounds.left - anchorMargin - popupBounds.width;
       }
     }
 
@@ -65,14 +60,10 @@ export default class Popup extends Component<Props> {
       if (anchorOverlapsPopup(desiredPopupPosition)) {
         desiredPopupPosition.top = anchorBounds.bottom + anchorMargin;
       }
-    } else if (
-      desiredPopupPosition.top + popupBounds.height >
-      innerHeight - 10
-    ) {
+    } else if (desiredPopupPosition.top + popupBounds.height > innerHeight - 10) {
       desiredPopupPosition.top = innerHeight - 10 - popupBounds.height;
       if (anchorOverlapsPopup(desiredPopupPosition)) {
-        desiredPopupPosition.top =
-          anchorBounds.top - anchorMargin - popupBounds.height;
+        desiredPopupPosition.top = anchorBounds.top - anchorMargin - popupBounds.height;
       }
     }
 

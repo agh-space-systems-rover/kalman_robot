@@ -1,0 +1,76 @@
+.health-status {
+  width: calc(1em + 4px);
+  height: calc(1em + 4px);
+  padding: 3px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition:
+    transform 0.1s,
+    0.2s;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.health-status:global(.no-display) {
+  display: none;
+}
+
+.health-status:global(.connected) svg {
+  color: var(--green-foreground);
+}
+
+.health-status:global(.error) svg {
+  color: var(--red-foreground);
+  animation: blinker 1s linear infinite;
+}
+
+.health-status:hover {
+  background-color: var(--background);
+}
+
+.health-status:active {
+  background-color: var(--interactive);
+  transition: background-color 0s;
+}
+
+.health-status-tooltip {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 180px;
+}
+
+.health-status-tooltip-header {
+  font-weight: bold;
+  font-size: 0.95em;
+  margin-bottom: 4px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--interactive);
+}
+
+.health-status-tooltip-device {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9em;
+}
+
+.health-status-tooltip-icon {
+  width: 16px;
+  display: inline-block;
+}
+
+.health-status-tooltip-icon:global(.connected) {
+  color: var(--green-foreground);
+}
+
+.health-status-tooltip-icon:global(.disconnected) {
+  color: var(--red-foreground);
+}
+
+@keyframes blinker {
+  50% {
+    opacity: 0;
+  }
+}

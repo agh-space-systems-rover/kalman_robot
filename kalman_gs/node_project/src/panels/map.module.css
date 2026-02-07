@@ -77,4 +77,37 @@
   font-size: 1em !important;
   opacity: 0.8 !important;
   text-align: center !important;
+  height: 34px !important;
+}
+.gps-display-control {
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  z-index: 1000;
+  
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  user-select: none;
+  background-color: color-mix(in srgb, var(--dark-background) 80%, transparent);
+  border: none;
+  border-radius: 5px;
+  color: var(--foreground);
+  font-family: 'Roboto', sans-serif;
+  padding: 0 0 0 10px;
+  font-weight: normal;
+  text-shadow: none;
+  box-shadow: 0 0 10px black;
+  font-size: 1em;
+  text-align: center;
+
+  white-space: pre;
+}
+.gps-coords-text {
+  font-size: 0.85em;
+  opacity: 0.8;
+}
+:global([data-theme='light']) .gps-display-control :last-child {
+  filter: brightness(1.4);
 }

@@ -11,7 +11,8 @@ BAUD_RATES = {
     "arm": 2000000,
 }
 
-PORTS = {"pc": "/tmp/ttyV2"}
+# PORTS = {"pc": "/tmp/ttyV2"}
+PORTS = {}
 
 
 def start_ros_link(side: str, rover_endpoint: str) -> Node:
@@ -101,6 +102,14 @@ def launch_setup(context):
             package="kalman_master",
             executable="rfid_driver",
         ),
+        "storage_driver": Node(
+            package="kalman_master",
+            executable="storage_driver",
+        ),
+        "ph_driver": Node(
+            package="kalman_master",
+            executable="ph_driver",
+        ),
     }
 
     mode_configs = {
@@ -123,6 +132,8 @@ def launch_setup(context):
             "estop_driver",
             "rfid_driver",
             "tunnel_client",
+            "storage_driver",
+            "ph_driver",
         ],
         "arm": [
             "master_com",

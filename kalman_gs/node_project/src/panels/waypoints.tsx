@@ -37,10 +37,7 @@ export default function Waypoints() {
   const latRef = useRef<Input>();
   const lonRef = useRef<Input>();
   const nameRef = useRef<Input>();
-  const waypointCanBeCreated =
-    latRef.current?.getValue() &&
-    lonRef.current?.getValue() &&
-    nameRef.current?.getValue();
+  const waypointCanBeCreated = latRef.current?.getValue() && lonRef.current?.getValue() && nameRef.current?.getValue();
 
   useEffect(() => {
     window.addEventListener('waypoints-update', () => {
@@ -85,14 +82,10 @@ export default function Waypoints() {
         </div>
         <div className={styles['row']}>
           <Button
-            className={
-              styles['colored-button'] + ' ' + waypointColors[newWaypointColorI]
-            }
+            className={styles['colored-button'] + ' ' + waypointColors[newWaypointColorI]}
             tooltip='Set waypoint color.'
             onClick={() => {
-              setNewWaypointColorI(
-                (newWaypointColorI + 1) % waypointColors.length
-              );
+              setNewWaypointColorI((newWaypointColorI + 1) % waypointColors.length);
             }}
           >
             <FontAwesomeIcon icon={faPalette} />
@@ -122,29 +115,15 @@ export default function Waypoints() {
         <div className={styles['row']}>
           <div className={styles['waypoint-list']}>
             <div className={styles['row']}>
-              <Label
-                className={
-                  styles['waypoint-list-header'] + ' ' + styles['flex-grow']
-                }
-              >
+              <Label className={styles['waypoint-list-header'] + ' ' + styles['flex-grow']}>
                 <FontAwesomeIcon icon={waypoints.length > 0 ? faList : faBan} />
                 &nbsp; {waypoints.length > 0 ? '' : 'No'} Active Waypoints
               </Label>
             </div>
             {waypoints.map((waypoint, index) => (
               <div key={index} className={styles['row']}>
-                <Label
-                  className={styles['colored-label'] + ' ' + waypoint.color}
-                >
-                  &nbsp;
-                </Label>
-                <Label
-                  className={
-                    styles['flex-grow'] + ' ' + styles['waypoint-name-label']
-                  }
-                >
-                  {waypoint.name}
-                </Label>
+                <Label className={styles['colored-label'] + ' ' + waypoint.color}>&nbsp;</Label>
+                <Label className={styles['flex-grow'] + ' ' + styles['waypoint-name-label']}>{waypoint.name}</Label>
                 <Button
                   tooltip='Move marker to the waypoint.'
                   onClick={() => {
@@ -157,11 +136,7 @@ export default function Waypoints() {
                   tooltip='Remove waypoint'
                   onClick={() => {
                     // Ask for confirmation before removing the waypoint.
-                    if (
-                      window.confirm(
-                        `Are you sure you want to remove "${waypoint.name}"?`
-                      )
-                    ) {
+                    if (window.confirm(`Are you sure you want to remove "${waypoint.name}"?`)) {
                       removeWaypoint(waypoint);
                       setRerenderCount(rerenderCount + 1);
                     }
@@ -178,9 +153,7 @@ export default function Waypoints() {
             className={styles['flex-grow']}
             onClick={() => {
               // Display a confirmation dialog.
-              if (
-                window.confirm('Are you sure you want to remove all waypoints?')
-              ) {
+              if (window.confirm('Are you sure you want to remove all waypoints?')) {
                 removeAllWaypoints();
               }
             }}
@@ -197,14 +170,8 @@ export default function Waypoints() {
               const text = prompt('Enter waypoints as text:');
               if (text) {
                 const numWaypoints = waypoints.length;
-                importWaypointsFromText(
-                  text,
-                  waypointColors[newWaypointColorI]
-                );
-                alertsRef.current?.pushAlert(
-                  `Imported ${waypoints.length - numWaypoints} waypoints.`,
-                  'success'
-                );
+                importWaypointsFromText(text, waypointColors[newWaypointColorI]);
+                alertsRef.current?.pushAlert(`Imported ${waypoints.length - numWaypoints} waypoints.`, 'success');
               }
             }}
           >
@@ -217,10 +184,7 @@ export default function Waypoints() {
             onClick={() => {
               const text = exportWaypointsAsText();
               navigator.clipboard.writeText(text);
-              alertsRef.current?.pushAlert(
-                'Waypoints were copied to clipboard.',
-                'success'
-              );
+              alertsRef.current?.pushAlert('Waypoints were copied to clipboard.', 'success');
             }}
             disabled={waypoints.length === 0}
           >

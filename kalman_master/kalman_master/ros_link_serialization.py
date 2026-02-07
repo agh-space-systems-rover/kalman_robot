@@ -216,6 +216,27 @@ def set_nested_value(obj, path: str, value) -> None:
         setattr(obj, path_items[-1], value)
 
 
+# Compare two lists of path components. Match wildcards.
+# Returns true if the paths match.
+# Examples:
+#   ["a", "b", "c"], ["a", "b", "c"] -> True
+#   ["a", "b", "c"], ["a", "b", "*"] -> True
+#   ["a", "*", "c"], ["a", "b", "c"] -> True
+#   ["a", "*", "c"], ["*", "b", "*"] -> True
+#   ["a", "b", "c"], ["a", "b"] -> False
+def compare_path_component_lists_with_wildcards(
+    path1: list[str], path2: list[str]
+) -> bool:
+    if len(path1) != len(path2):
+        return False
+
+    for p1, p2 in zip(path1, path2):
+        if p1 != "*" and p2 != "*" and p1 != p2:
+            return False
+
+    return True
+
+
 # Return true if the path starts with any of the prefixes
 # or if any of the prefixes start with the path.
 def does_path_match_any_prefix(prefixes: list[str], path: str) -> bool:
@@ -224,9 +245,10 @@ def does_path_match_any_prefix(prefixes: list[str], path: str) -> bool:
     for prefix in prefixes:
         prefix_items = prefix.split(".") if prefix else []
 
-        if (
-            path_items[: len(prefix_items)] == prefix_items
-            or prefix_items[: len(path_items)] == path_items
+        if compare_path_component_lists_with_wildcards(
+            path_items[: len(prefix_items)], prefix_items
+        ) or compare_path_component_lists_with_wildcards(
+            prefix_items[: len(path_items)], path_items
         ):
             return True
     return False
@@ -253,8 +275,9 @@ def get_key_from_deepest_matching_field(
 ) -> dict | None:
     # Filter out fields that do not contain the key.
     fields = [field for field in fields if key in field]
-    # Sort the fields by path length in descending order.
-    fields = sorted(fields, key=lambda x: len(x["path"]), reverse=True)
+    # Sort the fields by number of path components in descending order (more components first).
+    # If paths have the same number of components, sort by number of wildcards in ascending order (fewer wildcards first).
+    fields = sorted(fields, key=lambda x: (-x["path"].count("."), x["path"].count("*")))
     # Pick first matching field.
     for field in fields:
         if does_path_match_any_prefix([field["path"]], path):

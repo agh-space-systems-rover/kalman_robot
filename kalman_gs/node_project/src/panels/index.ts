@@ -4,6 +4,7 @@ import Imu from './imu';
 import Map from './map';
 import MapHeader from './map.header';
 import Mobile from './mobile';
+import Science from './science';
 import Supervisor from './supervisor';
 import Ueuos from './ueuos';
 import Waypoints from './waypoints';
@@ -18,7 +19,8 @@ import {
   faFlag,
   faGear,
   faMobileScreenButton,
-  faPalette
+  faPalette,
+  faMicroscope
 } from '@fortawesome/free-solid-svg-icons';
 
 // Add new panels here:
@@ -31,8 +33,8 @@ export type PanelID =
   | 'arm'
   | 'waypoints'
   | 'mobile'
-  | 'ueuos';
-
+  | 'ueuos'
+  | 'science';
 export const defaultPanel: PanelID = 'map';
 export const panelInfos: Panels = {
   imu: {
@@ -80,6 +82,11 @@ export const panelInfos: Panels = {
     Component: Ueuos,
     name: 'UEUOS',
     icon: faPalette
+  },
+  science: {
+    Component: Science,
+    name: 'Science',
+    icon: faMicroscope
   }
 };
 
