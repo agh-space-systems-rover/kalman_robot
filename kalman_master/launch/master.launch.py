@@ -11,7 +11,8 @@ BAUD_RATES = {
     "arm": 2000000,
 }
 
-PORTS = {"pc": "/tmp/ttyV2"}
+# PORTS = {"pc": "/tmp/ttyV2"}
+PORTS = {}
 
 
 def start_ros_link(side: str, rover_endpoint: str) -> Node:

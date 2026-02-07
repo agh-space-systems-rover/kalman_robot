@@ -7,14 +7,21 @@ import { imuRotation } from '../common/imu';
 import '../common/leaflet-rotated-marker-plugin';
 import { mapMarker, setMapMarkerLatLon } from '../common/map-marker';
 import { Quaternion, Vector3, quatConj, quatTimesVec } from '../common/mini-math-lib';
+import { ros } from '../common/ros';
+import { GeoPoint, GeoPath, WheelStates } from '../common/ros-interfaces';
 import { waypoints } from '../common/waypoints';
 import erc2024Overlay from '../media/erc2024-overlay.png';
+import erc2025Overlay from '../media/erc2025-overlay.png';
 import Leaflet from 'leaflet';
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 import 'leaflet/dist/leaflet.css';
-import { Component, createRef } from 'react';
-import { ImageOverlay, MapContainer, Marker, ScaleControl, TileLayer, Tooltip } from 'react-leaflet';
+import { Component, createRef, useState, useEffect, useCallback } from 'react';
+import { ImageOverlay, MapContainer, Marker, ScaleControl, TileLayer, Tooltip, Polyline } from 'react-leaflet';
+import { Topic } from 'roslib';
+import { faGlobe, faCopy } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import Button from '../components/button';
 
 const GO_TO_LOCATION_ZOOM = 19;
 const DEFAULT_LAT = 51.477928;
@@ -26,6 +33,20 @@ Leaflet.Marker.prototype.options.icon = Leaflet.icon({
   iconUrl: icon,
   shadowUrl: iconShadow,
   iconAnchor: [12, 41]
+});
+
+let geoPathArray: GeoPoint[] = [];
+window.addEventListener('ros-connect', () => {
+  const geoPathTopic = new Topic({
+    ros: ros,
+    name: '/plan/gps',
+    messageType: 'kalman_interfaces/GeoPath'
+  });
+
+  geoPathTopic.subscribe((msg: GeoPath) => {
+    geoPathArray = msg.points;
+    window.dispatchEvent(new Event('map-geo-points-update'));
+  });
 });
 
 type Props = {
@@ -49,11 +70,52 @@ function headingFromRoverRot(baseToMap: Quaternion): number {
   const heading = (angleFromHeadingToNorth * 180) / Math.PI;
   return heading;
 }
+/**
+ * displaying gps coordinates
+ */
+function GpsCoordinatesDisplay() {
+  const [coords, setCoords] = useState({
+    lat: mapMarker.latitude,
+    long: mapMarker.longitude
+  });
 
+  const onMarkerUpdated = useCallback(() => {
+    setCoords({
+      lat: mapMarker.latitude,
+      long: mapMarker.longitude
+    });
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener('map-marker-move', onMarkerUpdated);
+    // Cleanup
+    return () => {
+      window.removeEventListener('map-marker-move', onMarkerUpdated);
+    };
+  }, [onMarkerUpdated]);
+  const latStr = coords.lat != null ? coords.lat.toFixed(6) : 'N/A';
+  const longStr = coords.long != null ? coords.long.toFixed(6) : 'N/A';
+
+  return (
+    <div className={styles['gps-display-control']}>
+      <FontAwesomeIcon icon={faGlobe} />
+      <div className={styles['gps-coords-text']}>
+        {`${latStr}, ${longStr}`}
+      </div>
+      <Button
+        tooltip='Copy marker coordinates to clipboard.'
+        onClick={() => {
+          navigator.clipboard.writeText(`${mapMarker.latitude.toFixed(8)}, ${mapMarker.longitude.toFixed(8)}`);
+        }}
+      ><FontAwesomeIcon icon={faCopy} /></Button>
+    </div>
+  );
+}
 export default class Map extends Component<Props> {
   private mapRef = createRef<Leaflet.Map>();
   private mapMarkerRef = createRef<Leaflet.Marker>();
   private kalmanMarkerRef = createRef<Leaflet.Marker>();
+  private polylineRef = createRef<Leaflet.Polyline>();
   private propsUpdateTimer: NodeJS.Timeout | null = null;
 
   private updateProps = () => {
@@ -88,6 +150,10 @@ export default class Map extends Component<Props> {
     this.forceUpdate();
   };
 
+  private onMapgeoPathUpdated = () => {
+    this.polylineRef.current?.setLatLngs(geoPathArray.map((point) => [point.latitude, point.longitude]));
+  };
+
   componentDidMount() {
     if (window) {
       window.addEventListener('resize', this.onResized);
@@ -96,6 +162,7 @@ export default class Map extends Component<Props> {
       window.addEventListener('imu-update', this.onImuUpdated);
       window.addEventListener('gps-update', this.onGpsUpdated);
       window.addEventListener('waypoints-update', this.onWaypointsUpdated);
+      window.addEventListener('map-geo-points-update', this.onMapgeoPathUpdated);
     }
 
     this.propsUpdateTimer = setInterval(() => {
@@ -115,6 +182,7 @@ export default class Map extends Component<Props> {
       window.removeEventListener('resize', this.onResized);
       window.removeEventListener('any-panel-resize', this.onResized);
       window.removeEventListener('waypoints-update', this.onWaypointsUpdated);
+      window.removeEventListener('map-geo-points-update', this.onMapgeoPathUpdated);
     }
   }
 
@@ -173,12 +241,20 @@ export default class Map extends Component<Props> {
             maxZoom={23}
             minZoom={3}
           />
-          <ImageOverlay
+          {/*<ImageOverlay
             url={erc2024Overlay}
             bounds={[
               // Order of points does not matter as long as they are diagonally opposite corners of the image:
               [50.0663741908217, 19.9130491956501],
               [50.0659224467215, 19.9137533400464]
+            ]}
+          />*/}
+          <ImageOverlay
+            url={erc2025Overlay}
+            bounds={[
+              // Order of points does not matter as long as they are diagonally opposite corners of the image:
+              [50.065971191749, 19.9130887981378],
+              [50.066363153534, 19.9137014499564]
             ]}
           />
           <Marker
@@ -230,7 +306,16 @@ export default class Map extends Component<Props> {
             riseOnHover
           />
           <ScaleControl imperial={false} maxWidth={200} />
+
+          <Polyline
+            ref={this.polylineRef}
+            positions={geoPathArray.map((point) => [point.latitude, point.longitude])}
+            color={'darkblue'}
+            weight={5}
+            opacity={0.8}
+          />
         </MapContainer>
+        <GpsCoordinatesDisplay />
       </div>
     );
   }

@@ -18,10 +18,7 @@ export type VerticalPanelLayout = {
   bottom: PanelLayout;
 };
 
-export type PanelLayout =
-  | LeafPanelLayout
-  | HorizontalPanelLayout
-  | VerticalPanelLayout;
+export type PanelLayout = LeafPanelLayout | HorizontalPanelLayout | VerticalPanelLayout;
 
 export type PanelLayouts = {
   layouts: {

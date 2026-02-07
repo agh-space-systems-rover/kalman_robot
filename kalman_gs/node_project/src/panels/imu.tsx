@@ -1,11 +1,7 @@
 import styles from './imu.module.css';
 
 import { imuRotation } from '../common/imu';
-import {
-  quatFromAxisAngle,
-  quatTimesQuat,
-  vecFromCssColor
-} from '../common/mini-math-lib';
+import { quatFromAxisAngle, quatTimesQuat, vecFromCssColor } from '../common/mini-math-lib';
 import {
   Vector3,
   HemisphericLight,
@@ -178,28 +174,13 @@ export default function Imu({ props }: Props) {
       scene.fogDensity = FOG_DENSITY;
 
       // ambient light
-      const ambientLight1 = new HemisphericLight(
-        'ambient-light-1',
-        new Vector3(1),
-        scene
-      );
+      const ambientLight1 = new HemisphericLight('ambient-light-1', new Vector3(1), scene);
       ambientLight1.intensity = 0.5;
-      const ambientLight2 = new HemisphericLight(
-        'ambient-light-2',
-        new Vector3(-1),
-        scene
-      );
+      const ambientLight2 = new HemisphericLight('ambient-light-2', new Vector3(-1), scene);
       ambientLight2.intensity = 0.2;
 
       // This creates and positions a free camera (non-mesh)
-      camera.current = new ArcRotateCamera(
-        'camera',
-        0,
-        0,
-        0,
-        new Vector3(0, 0, -10),
-        scene
-      );
+      camera.current = new ArcRotateCamera('camera', 0, 0, 0, new Vector3(0, 0, -10), scene);
       camera.current.minZ = 0.1;
       camera.current.maxZ = 10000;
       camera.current.lowerRadiusLimit = 0.1;
@@ -208,22 +189,12 @@ export default function Imu({ props }: Props) {
       camera.current.panningInertia = 0.8;
       camera.current.wheelDeltaPercentage = 0.05; // tuned to inertia
       camera.current.setTarget(Vector3.Zero());
-      camera.current.attachControl(
-        scene.getEngine().getRenderingCanvas(),
-        true
-      );
-      camera.current.position = new Vector3(
-        props.cameraPosition.x,
-        props.cameraPosition.y,
-        props.cameraPosition.z
-      );
+      camera.current.attachControl(scene.getEngine().getRenderingCanvas(), true);
+      camera.current.position = new Vector3(props.cameraPosition.x, props.cameraPosition.y, props.cameraPosition.z);
       camera.current.alpha = props.cameraAlpha;
       camera.current.beta = props.cameraBeta;
       camera.current.radius = props.cameraRadius;
-      camera.current.mode =
-        props.cameraMode === 'perspective'
-          ? Camera.PERSPECTIVE_CAMERA
-          : Camera.ORTHOGRAPHIC_CAMERA;
+      camera.current.mode = props.cameraMode === 'perspective' ? Camera.PERSPECTIVE_CAMERA : Camera.ORTHOGRAPHIC_CAMERA;
       if (camera.current.mode === Camera.ORTHOGRAPHIC_CAMERA) {
         const newFov = camera.current.fov / ORTHO_FOV_SCALE_INV;
         const scale = Math.tan(camera.current.fov / 2) / Math.tan(newFov / 2);
@@ -233,17 +204,10 @@ export default function Imu({ props }: Props) {
         camera.current.upperRadiusLimit *= scale;
       }
 
-      const mesh = await SceneLoader.ImportMeshAsync(
-        null,
-        '/',
-        'kalman.obj',
-        scene
-      );
+      const mesh = await SceneLoader.ImportMeshAsync(null, '/', 'kalman.obj', scene);
       kalman.current = mesh.meshes[0];
       const kalmanMat = new PBRMaterial('kalman-material', scene);
-      kalmanMat.albedoColor = parseCssColor(
-        style.getPropertyValue('--interactive')
-      );
+      kalmanMat.albedoColor = parseCssColor(style.getPropertyValue('--interactive'));
       kalmanMat.metallic = 0;
       kalmanMat.roughness = 1;
       kalman.current.material = kalmanMat;
@@ -269,10 +233,7 @@ export default function Imu({ props }: Props) {
       // yAxis.material = yAxisMaterial;
 
       // center grid
-      const gridLineMaterial = new StandardMaterial(
-        'grid-line-material',
-        scene
-      );
+      const gridLineMaterial = new StandardMaterial('grid-line-material', scene);
       gridLineMaterial.emissiveColor = GRID_COLOR;
       gridLineMaterial.wireframe = true;
       gridLineMaterial.disableLighting = true;
@@ -290,28 +251,18 @@ export default function Imu({ props }: Props) {
         gridLine.material = gridLineMaterial;
 
         // x-axes
-        const gridLine2 = MeshBuilder.CreateBox(
-          'grid-line',
-          { size: 1 },
-          scene
-        );
+        const gridLine2 = MeshBuilder.CreateBox('grid-line', { size: 1 }, scene);
         gridLine2.scaling = new Vector3(2 * gridSize, 0.0001, 0.0001);
         gridLine2.position.z = i;
         gridLine2.material = gridLineMaterial;
       }
 
       // handle mouse events
-      const onPointerDown = (
-        evt: IPointerEvent,
-        pickInfo: PickingInfo,
-        type: PointerEventTypes
-      ) => {
+      const onPointerDown = (evt: IPointerEvent, pickInfo: PickingInfo, type: PointerEventTypes) => {
         if (viewGizmoScene.current === undefined) {
           return;
         }
-        const gizmoCanvasClientPos = viewGizmoScene.current
-          .getEngine()
-          .getRenderingCanvasClientRect();
+        const gizmoCanvasClientPos = viewGizmoScene.current.getEngine().getRenderingCanvasClientRect();
         const ray = viewGizmoScene.current.createPickingRay(
           evt.clientX - gizmoCanvasClientPos!.x,
           evt.clientY - gizmoCanvasClientPos!.y,
@@ -332,32 +283,12 @@ export default function Imu({ props }: Props) {
             switch (name) {
               case 'x-text':
               case 'x-bulb':
-                babylonSmoothSet(
-                  camera.current,
-                  'alpha',
-                  getClosestTargetAngle(camera.current.alpha, 0),
-                  0.5
-                );
-                babylonSmoothSet(
-                  camera.current,
-                  'beta',
-                  getClosestTargetAngle(camera.current.beta, Math.PI / 2),
-                  0.5
-                );
+                babylonSmoothSet(camera.current, 'alpha', getClosestTargetAngle(camera.current.alpha, 0), 0.5);
+                babylonSmoothSet(camera.current, 'beta', getClosestTargetAngle(camera.current.beta, Math.PI / 2), 0.5);
                 break;
               case 'x-negative-bulb':
-                babylonSmoothSet(
-                  camera.current,
-                  'alpha',
-                  getClosestTargetAngle(camera.current.alpha, Math.PI),
-                  0.5
-                );
-                babylonSmoothSet(
-                  camera.current,
-                  'beta',
-                  getClosestTargetAngle(camera.current.beta, Math.PI / 2),
-                  0.5
-                );
+                babylonSmoothSet(camera.current, 'alpha', getClosestTargetAngle(camera.current.alpha, Math.PI), 0.5);
+                babylonSmoothSet(camera.current, 'beta', getClosestTargetAngle(camera.current.beta, Math.PI / 2), 0.5);
                 break;
               case 'y-text':
               case 'y-bulb':
@@ -367,12 +298,7 @@ export default function Imu({ props }: Props) {
                   getClosestTargetAngle(camera.current.alpha, Math.PI / 2),
                   0.5
                 );
-                babylonSmoothSet(
-                  camera.current,
-                  'beta',
-                  getClosestTargetAngle(camera.current.beta, Math.PI / 2),
-                  0.5
-                );
+                babylonSmoothSet(camera.current, 'beta', getClosestTargetAngle(camera.current.beta, Math.PI / 2), 0.5);
                 break;
               case 'y-negative-bulb':
                 babylonSmoothSet(
@@ -381,57 +307,33 @@ export default function Imu({ props }: Props) {
                   getClosestTargetAngle(camera.current.alpha, -Math.PI / 2),
                   0.5
                 );
-                babylonSmoothSet(
-                  camera.current,
-                  'beta',
-                  getClosestTargetAngle(camera.current.beta, Math.PI / 2),
-                  0.5
-                );
+                babylonSmoothSet(camera.current, 'beta', getClosestTargetAngle(camera.current.beta, Math.PI / 2), 0.5);
                 break;
               case 'z-text':
               case 'z-bulb':
                 babylonSmoothSet(
                   camera.current,
                   'alpha',
-                  getClosestTargetAngle(
-                    camera.current.alpha,
-                    getClosestRightAngle(camera.current.alpha)
-                  ),
+                  getClosestTargetAngle(camera.current.alpha, getClosestRightAngle(camera.current.alpha)),
                   0.5
                 );
-                babylonSmoothSet(
-                  camera.current,
-                  'beta',
-                  getClosestTargetAngle(camera.current.beta, 0),
-                  0.5
-                );
+                babylonSmoothSet(camera.current, 'beta', getClosestTargetAngle(camera.current.beta, 0), 0.5);
                 break;
               case 'z-negative-bulb':
                 babylonSmoothSet(
                   camera.current,
                   'alpha',
-                  getClosestTargetAngle(
-                    camera.current.alpha,
-                    getClosestRightAngle(camera.current.alpha)
-                  ),
+                  getClosestTargetAngle(camera.current.alpha, getClosestRightAngle(camera.current.alpha)),
                   0.5
                 );
-                babylonSmoothSet(
-                  camera.current,
-                  'beta',
-                  getClosestTargetAngle(camera.current.beta, Math.PI),
-                  0.5
-                );
+                babylonSmoothSet(camera.current, 'beta', getClosestTargetAngle(camera.current.beta, Math.PI), 0.5);
                 break;
               default:
                 switchToOrtho = false;
                 break;
             }
 
-            if (
-              switchToOrtho &&
-              camera.current!.mode === Camera.PERSPECTIVE_CAMERA
-            ) {
+            if (switchToOrtho && camera.current!.mode === Camera.PERSPECTIVE_CAMERA) {
               // Start animating fov to current fov * 0.2, modulate radius simultaneously
               viewSetAnimSrcCameraParams.current = {
                 fov: camera.current!.fov,
@@ -439,12 +341,7 @@ export default function Imu({ props }: Props) {
                 lowerRadiusLimit: camera.current!.lowerRadiusLimit,
                 upperRadiusLimit: camera.current!.upperRadiusLimit
               };
-              babylonSmoothSet(
-                camera.current!,
-                'fov',
-                camera.current!.fov / ORTHO_FOV_SCALE_INV,
-                0.5
-              );
+              babylonSmoothSet(camera.current!, 'fov', camera.current!.fov / ORTHO_FOV_SCALE_INV, 0.5);
               camera.current!.lowerRadiusLimit = 0;
               camera.current!.upperRadiusLimit = 1000000;
 
@@ -452,14 +349,9 @@ export default function Imu({ props }: Props) {
               setTimeout(() => {
                 camera.current!.mode = Camera.ORTHOGRAPHIC_CAMERA;
                 const radiusScale =
-                  Math.tan(viewSetAnimSrcCameraParams.current.fov / 2) /
-                  Math.tan(camera.current.fov / 2);
-                camera.current!.lowerRadiusLimit =
-                  viewSetAnimSrcCameraParams.current.lowerRadiusLimit *
-                  radiusScale;
-                camera.current!.upperRadiusLimit =
-                  viewSetAnimSrcCameraParams.current.upperRadiusLimit *
-                  radiusScale;
+                  Math.tan(viewSetAnimSrcCameraParams.current.fov / 2) / Math.tan(camera.current.fov / 2);
+                camera.current!.lowerRadiusLimit = viewSetAnimSrcCameraParams.current.lowerRadiusLimit * radiusScale;
+                camera.current!.upperRadiusLimit = viewSetAnimSrcCameraParams.current.upperRadiusLimit * radiusScale;
                 viewSetAnimSrcCameraParams.current = null;
               }, 500);
             }
@@ -477,26 +369,16 @@ export default function Imu({ props }: Props) {
               lowerRadiusLimit: camera.current!.lowerRadiusLimit,
               upperRadiusLimit: camera.current!.upperRadiusLimit
             };
-            babylonSmoothSet(
-              camera.current!,
-              'fov',
-              camera.current!.fov * ORTHO_FOV_SCALE_INV,
-              0.5
-            );
+            babylonSmoothSet(camera.current!, 'fov', camera.current!.fov * ORTHO_FOV_SCALE_INV, 0.5);
             camera.current!.lowerRadiusLimit = 0;
             camera.current!.upperRadiusLimit = 1000000;
 
             // At the end of the animation stop modulating radius
             setTimeout(() => {
               const radiusScale =
-                Math.tan(viewSetAnimSrcCameraParams.current.fov / 2) /
-                Math.tan(camera.current.fov / 2);
-              camera.current!.lowerRadiusLimit =
-                viewSetAnimSrcCameraParams.current.lowerRadiusLimit *
-                radiusScale;
-              camera.current!.upperRadiusLimit =
-                viewSetAnimSrcCameraParams.current.upperRadiusLimit *
-                radiusScale;
+                Math.tan(viewSetAnimSrcCameraParams.current.fov / 2) / Math.tan(camera.current.fov / 2);
+              camera.current!.lowerRadiusLimit = viewSetAnimSrcCameraParams.current.lowerRadiusLimit * radiusScale;
+              camera.current!.upperRadiusLimit = viewSetAnimSrcCameraParams.current.upperRadiusLimit * radiusScale;
               viewSetAnimSrcCameraParams.current = null;
             }, 500);
           }
@@ -531,21 +413,16 @@ export default function Imu({ props }: Props) {
       if (camera.current !== undefined) {
         if (viewSetAnimSrcCameraParams.current !== null) {
           // Set radius relative to current (animated) fov
-          const scale =
-            Math.tan(viewSetAnimSrcCameraParams.current.fov / 2) /
-            Math.tan(camera.current.fov / 2);
-          camera.current.radius =
-            viewSetAnimSrcCameraParams.current.radius * scale;
+          const scale = Math.tan(viewSetAnimSrcCameraParams.current.fov / 2) / Math.tan(camera.current.fov / 2);
+          camera.current.radius = viewSetAnimSrcCameraParams.current.radius * scale;
         }
 
         //
         if (camera.current.mode === Camera.ORTHOGRAPHIC_CAMERA) {
           // Set ortho parameters
           // Use radius, fov, aspect ratio to calculate ortho camera size
-          const size =
-            camera.current!.radius * 2 * Math.tan(camera.current.fov / 2);
-          const size2 =
-            size * camera.current!.getEngine().getAspectRatio(camera.current);
+          const size = camera.current!.radius * 2 * Math.tan(camera.current.fov / 2);
+          const size2 = size * camera.current!.getEngine().getAspectRatio(camera.current);
           camera.current.orthoLeft = -size2 / 2;
           camera.current.orthoRight = size2 / 2;
           camera.current.orthoBottom = -size / 2;
@@ -607,14 +484,7 @@ export default function Imu({ props }: Props) {
     (scene: Scene) => {
       scene.clearColor = new Color4(0, 0, 0, 0);
 
-      viewGizmoCamera.current = new ArcRotateCamera(
-        'camera',
-        0,
-        0,
-        0,
-        Vector3.Zero(),
-        scene
-      );
+      viewGizmoCamera.current = new ArcRotateCamera('camera', 0, 0, 0, Vector3.Zero(), scene);
       viewGizmoCamera.current.setPosition(new Vector3(0, 0, -10));
       viewGizmoCamera.current.mode = Camera.ORTHOGRAPHIC_CAMERA;
       viewGizmoCamera.current.orthoBottom = -2;
@@ -627,11 +497,7 @@ export default function Imu({ props }: Props) {
       viewGizmoCamera.current.upperBetaLimit = Infinity;
 
       // x-axis
-      const xAxis = MeshBuilder.CreateCylinder(
-        'x-axis',
-        { diameter: 0.1, height: 1 },
-        scene
-      );
+      const xAxis = MeshBuilder.CreateCylinder('x-axis', { diameter: 0.1, height: 1 }, scene);
       xAxis.rotation.z = Math.PI / 2;
       xAxis.position.x = 0.5;
       const xAxisMaterial = new StandardMaterial('x-axis-material', scene);
@@ -640,11 +506,7 @@ export default function Imu({ props }: Props) {
       xAxis.material = xAxisMaterial;
 
       // y-axis
-      const yAxis = MeshBuilder.CreateCylinder(
-        'y-axis',
-        { diameter: 0.1, height: 1 },
-        scene
-      );
+      const yAxis = MeshBuilder.CreateCylinder('y-axis', { diameter: 0.1, height: 1 }, scene);
       yAxis.rotation.x = Math.PI / 2;
       yAxis.position.z = 0.5;
       const yAxisMaterial = new StandardMaterial('y-axis-material', scene);
@@ -653,11 +515,7 @@ export default function Imu({ props }: Props) {
       yAxis.material = yAxisMaterial;
 
       // z-axis
-      const zAxis = MeshBuilder.CreateCylinder(
-        'z-axis',
-        { diameter: 0.1, height: 1 },
-        scene
-      );
+      const zAxis = MeshBuilder.CreateCylinder('z-axis', { diameter: 0.1, height: 1 }, scene);
       zAxis.position.y = 0.5;
       const zAxisMaterial = new StandardMaterial('z-axis-material', scene);
       zAxisMaterial.emissiveColor = BLUE_COLOR;
@@ -665,11 +523,7 @@ export default function Imu({ props }: Props) {
       zAxis.material = zAxisMaterial;
 
       // x bulb
-      viewGizmoXBulb.current = MeshBuilder.CreateSphere(
-        'x-bulb',
-        { diameter: 0.5 },
-        scene
-      );
+      viewGizmoXBulb.current = MeshBuilder.CreateSphere('x-bulb', { diameter: 0.5 }, scene);
       viewGizmoXBulb.current.position.x = 1;
       const xBulbMaterial = new StandardMaterial('x-bulb-material', scene);
       xBulbMaterial.emissiveColor = RED_COLOR;
@@ -680,21 +534,9 @@ export default function Imu({ props }: Props) {
       const xText = MeshBuilder.CreatePlane('x-text', { size: 0.5 }, scene);
       xText.position.z = -0.9;
       xText.parent = viewGizmoXBulb.current;
-      const xTextDynamicTexture = new DynamicTexture(
-        'x-text-dynamic-texture',
-        { width: 64, height: 64 },
-        scene
-      );
+      const xTextDynamicTexture = new DynamicTexture('x-text-dynamic-texture', { width: 64, height: 64 }, scene);
       xTextDynamicTexture.hasAlpha = true;
-      xTextDynamicTexture.drawText(
-        'E',
-        16,
-        51,
-        'bold 50px sans-serif',
-        '#622',
-        'transparent',
-        true
-      );
+      xTextDynamicTexture.drawText('E', 16, 51, 'bold 50px sans-serif', '#622', 'transparent', true);
       const xTextMaterial = new StandardMaterial('x-text-material', scene);
       xTextMaterial.diffuseTexture = xTextDynamicTexture;
       xTextMaterial.disableLighting = true;
@@ -702,34 +544,19 @@ export default function Imu({ props }: Props) {
       xText.material = xTextMaterial;
 
       // x negative bulb
-      const xNegativeBulbMaterial = new StandardMaterial(
-        'x-negative-bulb-material',
-        scene
-      );
+      const xNegativeBulbMaterial = new StandardMaterial('x-negative-bulb-material', scene);
       xNegativeBulbMaterial.emissiveColor = RED_COLOR;
       xNegativeBulbMaterial.disableLighting = true;
       xNegativeBulbMaterial.alpha = 0.2;
-      const xNegativeBulb = MeshBuilder.CreateSphere(
-        'x-negative-bulb',
-        { diameter: 0.6 },
-        scene
-      );
+      const xNegativeBulb = MeshBuilder.CreateSphere('x-negative-bulb', { diameter: 0.6 }, scene);
       xNegativeBulb.position.x = -1;
       xNegativeBulb.material = xNegativeBulbMaterial;
-      const xNegativeBulbInside = MeshBuilder.CreateSphere(
-        'x-negative-bulb-inside',
-        { diameter: 0.4 },
-        scene
-      );
+      const xNegativeBulbInside = MeshBuilder.CreateSphere('x-negative-bulb-inside', { diameter: 0.4 }, scene);
       xNegativeBulbInside.position.x = -1;
       xNegativeBulbInside.material = xNegativeBulbMaterial;
 
       // y bulb
-      viewGizmoYBulb.current = MeshBuilder.CreateSphere(
-        'y-bulb',
-        { diameter: 0.5 },
-        scene
-      );
+      viewGizmoYBulb.current = MeshBuilder.CreateSphere('y-bulb', { diameter: 0.5 }, scene);
       viewGizmoYBulb.current.position.z = 1;
       const yBulbMaterial = new StandardMaterial('y-bulb-material', scene);
       yBulbMaterial.emissiveColor = GREEN_COLOR;
@@ -740,21 +567,9 @@ export default function Imu({ props }: Props) {
       const yText = MeshBuilder.CreatePlane('y-text', { size: 0.5 }, scene);
       yText.position.z = -0.9;
       yText.parent = viewGizmoYBulb.current;
-      const yTextDynamicTexture = new DynamicTexture(
-        'y-text-dynamic-texture',
-        { width: 64, height: 64 },
-        scene
-      );
+      const yTextDynamicTexture = new DynamicTexture('y-text-dynamic-texture', { width: 64, height: 64 }, scene);
       yTextDynamicTexture.hasAlpha = true;
-      yTextDynamicTexture.drawText(
-        'N',
-        12,
-        51,
-        'bold 50px sans-serif',
-        '#262',
-        'transparent',
-        true
-      );
+      yTextDynamicTexture.drawText('N', 12, 51, 'bold 50px sans-serif', '#262', 'transparent', true);
       const yTextMaterial = new StandardMaterial('y-text-material', scene);
       yTextMaterial.diffuseTexture = yTextDynamicTexture;
       yTextMaterial.disableLighting = true;
@@ -762,34 +577,19 @@ export default function Imu({ props }: Props) {
       yText.material = yTextMaterial;
 
       // y negative bulb
-      const yNegativeBulbMaterial = new StandardMaterial(
-        'y-negative-bulb-material',
-        scene
-      );
+      const yNegativeBulbMaterial = new StandardMaterial('y-negative-bulb-material', scene);
       yNegativeBulbMaterial.emissiveColor = GREEN_COLOR;
       yNegativeBulbMaterial.disableLighting = true;
       yNegativeBulbMaterial.alpha = 0.2;
-      const yNegativeBulb = MeshBuilder.CreateSphere(
-        'y-negative-bulb',
-        { diameter: 0.6 },
-        scene
-      );
+      const yNegativeBulb = MeshBuilder.CreateSphere('y-negative-bulb', { diameter: 0.6 }, scene);
       yNegativeBulb.position.z = -1;
       yNegativeBulb.material = yNegativeBulbMaterial;
-      const yNegativeBulbInside = MeshBuilder.CreateSphere(
-        'y-negative-bulb-inside',
-        { diameter: 0.4 },
-        scene
-      );
+      const yNegativeBulbInside = MeshBuilder.CreateSphere('y-negative-bulb-inside', { diameter: 0.4 }, scene);
       yNegativeBulbInside.position.z = -1;
       yNegativeBulbInside.material = yNegativeBulbMaterial;
 
       // z bulb
-      viewGizmoZBulb.current = MeshBuilder.CreateSphere(
-        'z-bulb',
-        { diameter: 0.5 },
-        scene
-      );
+      viewGizmoZBulb.current = MeshBuilder.CreateSphere('z-bulb', { diameter: 0.5 }, scene);
       viewGizmoZBulb.current.position.y = 1;
       const zBulbMaterial = new StandardMaterial('z-bulb-material', scene);
       zBulbMaterial.emissiveColor = BLUE_COLOR;
@@ -800,21 +600,9 @@ export default function Imu({ props }: Props) {
       const zText = MeshBuilder.CreatePlane('z-text', { size: 0.5 }, scene);
       zText.position.z = -0.9;
       zText.parent = viewGizmoZBulb.current;
-      const zTextDynamicTexture = new DynamicTexture(
-        'z-text-dynamic-texture',
-        { width: 64, height: 64 },
-        scene
-      );
+      const zTextDynamicTexture = new DynamicTexture('z-text-dynamic-texture', { width: 64, height: 64 }, scene);
       zTextDynamicTexture.hasAlpha = true;
-      zTextDynamicTexture.drawText(
-        'U',
-        14,
-        51,
-        'bold 50px sans-serif',
-        '#226',
-        'transparent',
-        true
-      );
+      zTextDynamicTexture.drawText('U', 14, 51, 'bold 50px sans-serif', '#226', 'transparent', true);
       const zTextMaterial = new StandardMaterial('y-text-material', scene);
       zTextMaterial.diffuseTexture = zTextDynamicTexture;
       zTextMaterial.disableLighting = true;
@@ -822,25 +610,14 @@ export default function Imu({ props }: Props) {
       zText.material = zTextMaterial;
 
       // z negative bulb
-      const zNegativeBulbMaterial = new StandardMaterial(
-        'z-negative-bulb-material',
-        scene
-      );
+      const zNegativeBulbMaterial = new StandardMaterial('z-negative-bulb-material', scene);
       zNegativeBulbMaterial.emissiveColor = BLUE_COLOR;
       zNegativeBulbMaterial.disableLighting = true;
       zNegativeBulbMaterial.alpha = 0.2;
-      const zNegativeBulb = MeshBuilder.CreateSphere(
-        'z-negative-bulb',
-        { diameter: 0.6 },
-        scene
-      );
+      const zNegativeBulb = MeshBuilder.CreateSphere('z-negative-bulb', { diameter: 0.6 }, scene);
       zNegativeBulb.position.y = -1;
       zNegativeBulb.material = zNegativeBulbMaterial;
-      const zNegativeBulbInside = MeshBuilder.CreateSphere(
-        'z-negative-bulb-inside',
-        { diameter: 0.4 },
-        scene
-      );
+      const zNegativeBulbInside = MeshBuilder.CreateSphere('z-negative-bulb-inside', { diameter: 0.4 }, scene);
       zNegativeBulbInside.position.y = -1;
       zNegativeBulbInside.material = zNegativeBulbMaterial;
 
@@ -864,11 +641,7 @@ export default function Imu({ props }: Props) {
       viewGizmoCamera.current.alpha = camera.current.alpha;
       viewGizmoCamera.current.beta = camera.current.beta;
 
-      const bulbRot = new Vector3(
-        Math.PI / 2 - camera.current.beta,
-        -camera.current.alpha - Math.PI / 2,
-        0
-      );
+      const bulbRot = new Vector3(Math.PI / 2 - camera.current.beta, -camera.current.alpha - Math.PI / 2, 0);
       viewGizmoXBulb.current.rotation = bulbRot;
       viewGizmoYBulb.current.rotation = bulbRot;
       viewGizmoZBulb.current.rotation = bulbRot;
@@ -878,13 +651,7 @@ export default function Imu({ props }: Props) {
 
   return (
     <div key={rerenderCount} className={styles['canvas-container']}>
-      <BabylonJS
-        className={styles['canvas']}
-        id='canvas'
-        antialias
-        onSceneReady={onSceneReady}
-        onRender={onRender}
-      />
+      <BabylonJS className={styles['canvas']} id='canvas' antialias onSceneReady={onSceneReady} onRender={onRender} />
       <BabylonJS
         className={styles['view-gizmo']}
         id='view-gizmo'

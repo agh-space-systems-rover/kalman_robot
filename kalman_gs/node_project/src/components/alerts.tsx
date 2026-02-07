@@ -1,10 +1,6 @@
 import styles from './alerts.module.css';
 
-import {
-  faBug,
-  faCheckCircle,
-  faExclamationTriangle
-} from '@fortawesome/free-solid-svg-icons';
+import { faBug, faCheckCircle, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Component } from 'react';
 
@@ -35,18 +31,12 @@ export default class Alerts extends Component<{}, State> {
       <div className={styles['alerts']}>
         {this.state.alerts.reverse().map((alert, i) => {
           const icon =
-            alert.type === 'error'
-              ? faBug
-              : alert.type === 'warning'
-                ? faExclamationTriangle
-                : faCheckCircle;
+            alert.type === 'error' ? faBug : alert.type === 'warning' ? faExclamationTriangle : faCheckCircle;
 
           return (
             <div
               key={alert.id}
-              className={
-                styles['alert'] + (alert.shown ? ' shown ' : ' ') + alert.type
-              }
+              className={styles['alert'] + (alert.shown ? ' shown ' : ' ') + alert.type}
               onClick={() => this.hideAlert(alert.id)}
             >
               <FontAwesomeIcon icon={icon} className={styles['icon']} />
@@ -76,9 +66,7 @@ export default class Alerts extends Component<{}, State> {
     // Schedule a timeout to wait-out the fade-out animation.
     setTimeout(() => {
       if (this.visibleAlertIds.includes(id)) {
-        this.visibleAlertIds = this.visibleAlertIds.filter(
-          (visibleId) => visibleId !== id
-        );
+        this.visibleAlertIds = this.visibleAlertIds.filter((visibleId) => visibleId !== id);
         this.setState((state) => ({
           alerts: state.alerts.filter((alert) => alert.id !== id)
         }));

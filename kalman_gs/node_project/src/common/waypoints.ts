@@ -49,8 +49,7 @@ function exportWaypointsAsText(): string {
 
 function parseDMS(dms: string): number {
   const [degrees, minutes, seconds, direction] = dms.split(/\s+/);
-  let decimal =
-    parseFloat(degrees) + parseFloat(minutes) / 60 + parseFloat(seconds) / 3600;
+  let decimal = parseFloat(degrees) + parseFloat(minutes) / 60 + parseFloat(seconds) / 3600;
   if (direction === 'S' || direction === 'W') {
     decimal = -decimal;
   }
@@ -58,13 +57,11 @@ function parseDMS(dms: string): number {
 }
 
 function parseLatLon(coordinate: string): { lat: number; lon: number } {
-  const regexDMS =
-    /([NS])\s*(\d+)\s*(\d+)\s*(\d+)\s*([EW])\s*(\d+)\s*(\d+)\s*(\d+)/i;
+  const regexDMS = /([NS])\s*(\d+)\s*(\d+)\s*(\d+)\s*([EW])\s*(\d+)\s*(\d+)\s*(\d+)/i;
   const regexDecimal = /([-+]?\d*\.?\d+)\s+([-+]?\d*\.?\d+)/;
 
   if (regexDMS.test(coordinate)) {
-    const [, latDir, latDeg, latMin, latSec, lonDir, lonDeg, lonMin, lonSec] =
-      regexDMS.exec(coordinate)!;
+    const [, latDir, latDeg, latMin, latSec, lonDir, lonDeg, lonMin, lonSec] = regexDMS.exec(coordinate)!;
     const lat = parseDMS(`${latDeg} ${latMin} ${latSec} ${latDir}`);
     const lon = parseDMS(`${lonDeg} ${lonMin} ${lonSec} ${lonDir}`);
     return { lat, lon };
@@ -76,10 +73,7 @@ function parseLatLon(coordinate: string): { lat: number; lon: number } {
   }
 }
 
-function importWaypointsFromText(
-  text: string,
-  defaultColor: WaypointColor = waypointColors[0]
-) {
+function importWaypointsFromText(text: string, defaultColor: WaypointColor = waypointColors[0]) {
   const newWaypoints: Waypoint[] = [];
 
   const lines = text
@@ -105,9 +99,7 @@ function importWaypointsFromText(
       // Everything before the coordinates is considered the name
       const namePart = line.slice(0, coordinateMatch.index);
       // Rest of the line, either begins with a color, or is another waypoint. (When newlines were replaced with spaces.)
-      const restOfLinePart = line.slice(
-        coordinateMatch.index + coordPart.length
-      );
+      const restOfLinePart = line.slice(coordinateMatch.index + coordPart.length);
 
       const coord = coordPart.trim();
       const name = namePart.trim();

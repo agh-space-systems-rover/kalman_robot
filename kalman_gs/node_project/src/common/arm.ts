@@ -258,7 +258,6 @@ window.addEventListener('keydown', (event) => {
   }
 });
 
-
 window.addEventListener('keyup', (event) => {
   if (event.code === getKeybind('Hold to Lock Rotational Axes')) {
     rotationalLock = false;

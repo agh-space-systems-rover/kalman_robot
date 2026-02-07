@@ -19,5 +19,9 @@ def generate_launch_description():
                 package="kalman_arm_gs",
                 executable="arm_state_republisher",
             ),
+            Node(
+                package="kalman_arm_gs",
+                executable="magnetometer_driver",
+            ),
         ]
     )

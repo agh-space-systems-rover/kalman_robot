@@ -52,7 +52,7 @@ const jointInputMapping: JointMapping = {
   joint_1: {
     type: AxisType.AXIS,
     input: { axisId: 'left-x' },
-    mapping: invertedMapping
+    mapping: noMapping
   },
   joint_2: {
     type: AxisType.AXIS,
@@ -180,7 +180,7 @@ window.addEventListener('ros-connect', () => {
       fastclickTopic.publish({ data: 0 });
     }
     if (readGamepads('b-button', 'arm') > 0.5 && previousArmButtons['b-button'] <= 0.5) {
-      fastclickTopic.publish({ data: 255});
+      fastclickTopic.publish({ data: 255 });
     }
 
     previousArmButtons['right-shoulder'] = readGamepads('right-shoulder', 'arm');

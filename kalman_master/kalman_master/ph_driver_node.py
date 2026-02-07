@@ -4,11 +4,15 @@ import os
 import yaml
 from rclpy.node import Node
 from kalman_interfaces.msg import MasterMessage
-from std_msgs.msg import Float32
+from std_msgs.msg import Float32, UInt8MultiArray
 from std_srvs.srv import Trigger
 
 BOARD_ID = 0
-DEVICE_ID = 0
+CHANNEL_ID = 0
+
+RAIL_BOARD_ID = 0
+RAIL_CHANNEL_ID = 1
+RAIL_MAX_SPEED = 100
 
 class PHDriver(Node):
     def __init__(self):
@@ -18,43 +22,54 @@ class PHDriver(Node):
         self.value_pub = self.create_publisher(Float32, "science/ph/value", 10)
         self.value_raw_pub = self.create_publisher(Float32, "science/ph/value/raw", 10)
 
-        # Replace topic subscription with a service
         self.value_req_srv = self.create_service(
             Trigger,
             "science/ph/value/req",
             self.cb_value_req,
         )
 
-        # Master comms
-        self.master_pub = self.create_publisher(
-            MasterMessage, "master_com/ros_to_master", 10
+        self.rail_control_sub = self.create_subscription(
+            Float32,
+            "science/ph/rail/target_vel",
+            self.cb_rail_control,
+            10
         )
-        self.master_sub = self.create_subscription(
-            MasterMessage,
-            f"master_com/master_to_ros/{hex(MasterMessage.PH_RES)[1:]}",
-            self.cb_master_res,
+
+        # Master comms
+        self.requester = self.create_publisher(
+            UInt8MultiArray, "/kutong/request", 10
+        )
+        self.data_response = self.create_subscription(
+            UInt8MultiArray,
+            "kutong/data",
+            self.cb_data_response,
             10,
         )
 
     def cb_value_req(self, request, response):
-        # Create the request message
-        req_msg = MasterMessage()
-        req_msg.cmd = MasterMessage.PH_REQ
-        req_msg.data = struct.pack("BB", BOARD_ID, DEVICE_ID)
-
         # Publish the request to the master
-        self.master_pub.publish(req_msg)
+        self.requester.publish(UInt8MultiArray())
         response.success = True
         response.message = "pH value requested"
         return response
 
-    def cb_master_res(self, msg: MasterMessage):
+    def cb_rail_control(self, msg: Float32):
+        target_vel = max(-1.0, min(1.0, msg.data))
+        target_vel_int = int(abs(target_vel * RAIL_MAX_SPEED))
+        
+        rail_msg = MasterMessage()
+        rail_msg.cmd = MasterMessage.PH_RAIL
+        rail_msg.data = [RAIL_BOARD_ID, RAIL_CHANNEL_ID, target_vel_int, 0 if target_vel < 0 else 1]
+        # self.master_pub.publish(rail_msg)
+
+    def cb_data_response(self, msg: UInt8MultiArray):
         if len(msg.data) < 4:
             self.get_logger().warn("Received invalid pH response")
             return
 
         # Unpack the response
-        board_id, device_id, ph_value = struct.unpack("<BBH", msg.data[:4])
+        ph_value, _ = struct.unpack("<HH", msg.data)
+        # self.get_logger().info(f"{v1} {ph_value}")
 
         # Publish the raw value
         self.value_raw_pub.publish(Float32(data=float(ph_value)))
@@ -73,13 +88,7 @@ class PHDriver(Node):
         else:
             self.get_logger().warn(f"Calibration file not found: {path}")
 
-        # Publish the value if IDs match
-        if board_id == BOARD_ID and device_id == DEVICE_ID:
-            self.value_pub.publish(Float32(data=float(ph_value)))
-        else:
-            self.get_logger().warn(
-                f"Unknown pH sensor response: board_id={board_id}, device_id={device_id}"
-            )
+        self.value_pub.publish(Float32(data=float(ph_value)))
 
 def main():
     try:

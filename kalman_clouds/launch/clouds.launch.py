@@ -1,12 +1,12 @@
 from ament_index_python import get_package_share_path
 from launch import LaunchDescription
-from launch_ros.actions import Node, LoadComposableNodes
 from launch.actions import (
     DeclareLaunchArgument,
     OpaqueFunction,
 )
 from launch.substitutions import LaunchConfiguration
-from launch_ros.descriptions import ComposableNode
+
+from kalman_utils.launch import launch_node_or_load_component, load_standalone_config
 
 
 def launch_point_cloud_utils_nodes(
@@ -16,40 +16,24 @@ def launch_point_cloud_utils_nodes(
     component_container: str,
     rgbd_ids: list,
 ) -> list:
-    if component_container:
-        plugin = "point_cloud_utils::" + "".join(
-            [x.capitalize() for x in name.split("_")]
+    plugin = (
+        "point_cloud_utils::" + "".join([x.capitalize() for x in name.split("_")])
+        if component_container
+        else None
+    )
+
+    actions = []
+    for camera_id in rgbd_ids:
+        actions += launch_node_or_load_component(
+            component_container=component_container,
+            package="point_cloud_utils",
+            executable=name,
+            plugin=plugin,
+            namespace=camera_id,
+            parameters=parameters,
+            remappings=remappings,
         )
-        if rgbd_ids:
-            return [
-                LoadComposableNodes(
-                    target_container=component_container,
-                    composable_node_descriptions=[
-                        ComposableNode(
-                            package="point_cloud_utils",
-                            plugin=plugin,
-                            namespace=camera_id,
-                            parameters=parameters,
-                            remappings=remappings,
-                            extra_arguments=[{"use_intra_process_comms": True}],
-                        )
-                        for camera_id in rgbd_ids
-                    ],
-                )
-            ]
-        else:
-            return []
-    else:
-        return [
-            Node(
-                package="point_cloud_utils",
-                executable=name,
-                namespace=camera_id,
-                parameters=parameters,
-                remappings=remappings,
-            )
-            for camera_id in rgbd_ids
-        ]
+    return actions
 
 
 def launch_setup(context):
@@ -62,11 +46,12 @@ def launch_setup(context):
         if x != ""
     ]
 
-    description = []
+    actions = []
 
     # cloud generation
     parameters = [
-        str(get_package_share_path("kalman_clouds") / "config" / "rgbd_cloud.yaml"),
+        # str(get_package_share_path("kalman_clouds") / "config" / "rgbd_cloud.yaml"),
+        load_standalone_config("kalman_clouds", "rgbd_cloud.yaml"),
         (
             {
                 "color_transport": "compressed",
@@ -81,84 +66,35 @@ def launch_setup(context):
         ("depth/image_raw", "depth/image_raw"),
         ("cloud", "point_cloud/raw"),
     ]
-    description += launch_point_cloud_utils_nodes(
+    actions += launch_point_cloud_utils_nodes(
         "rgbd_cloud", parameters, remappings, component_container, rgbd_ids
     )
 
     # voxel grid
     parameters = [
-        str(get_package_share_path("kalman_clouds") / "config" / "voxel_grid.yaml")
+        load_standalone_config("kalman_clouds", "voxel_grid.yaml"),
     ]
     remappings = [
         ("input", "point_cloud/raw"),
         ("output", "point_cloud/grid"),
     ]
-    description += launch_point_cloud_utils_nodes(
+    actions += launch_point_cloud_utils_nodes(
         "voxel_grid", parameters, remappings, component_container, rgbd_ids
     )
 
     # outlier removal
     parameters = [
-        str(
-            get_package_share_path("kalman_clouds")
-            / "config"
-            / "radius_outlier_removal.yaml"
-        )
+        load_standalone_config("kalman_clouds", "radius_outlier_removal.yaml"),
     ]
     remappings = [
         ("input", "point_cloud/grid"),
         ("output", "point_cloud"),
     ]
-    description += launch_point_cloud_utils_nodes(
+    actions += launch_point_cloud_utils_nodes(
         "radius_outlier_removal", parameters, remappings, component_container, rgbd_ids
     )
-    # parameters = [
-    #     str(get_package_share_path("kalman_clouds") / "config" / "statistical_outlier_removal.yaml")
-    # ]
-    # remappings = [
-    #     ("input", "point_cloud/grid"),
-    #     ("output", "point_cloud"),
-    # ]
-    # description += launch_point_cloud_utils_nodes("statistical_outlier_removal", parameters, remappings, component_container, rgbd_ids)
 
-    # # cloud synchronization - makes a single 3D point cloud
-    # parameters = [
-    #     {
-    #         "number_of_inputs": len(rgbd_ids),
-    #     }
-    # ]
-    # remappings = [
-    #     ("output", "point_cloud"),
-    # ] + [
-    #     (f"input{n}", f"{camera_id}/point_cloud")
-    #     for n, camera_id in enumerate(rgbd_ids)
-    # ]
-    # if component_container:
-    #     description += [
-    #         LoadComposableNodes(
-    #             target_container=component_container,
-    #             composable_node_descriptions=[
-    #                 ComposableNode(
-    #                     package="point_cloud_utils",
-    #                     plugin="point_cloud_utils::CloudSync",
-    #                     parameters=parameters,
-    #                     remappings=remappings,
-    #                     extra_arguments=[{"use_intra_process_comms": True}],
-    #                 )
-    #             ],
-    #         )
-    #     ]
-    # else:
-    #     description += [
-    #         Node(
-    #             package="point_cloud_utils",
-    #             executable="cloud_sync",
-    #             parameters=parameters,
-    #             remappings=remappings,
-    #         )
-    #     ]
-
-    return description
+    return actions
 
 
 def generate_launch_description():

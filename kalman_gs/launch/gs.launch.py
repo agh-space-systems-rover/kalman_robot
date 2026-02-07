@@ -6,6 +6,7 @@ import os
 import shutil
 import yaml
 
+
 def generate_launch_description():
     # Find maproxy-util if it is not in the PATH.
     mapproxy_util = "mapproxy-util"
@@ -59,6 +60,10 @@ def generate_launch_description():
             Node(
                 package="kalman_gs",
                 executable="gs",
+            ),
+            Node(
+                package="kalman_gs",
+                executable="pkg_config_reader",
             ),
         ]
     )
