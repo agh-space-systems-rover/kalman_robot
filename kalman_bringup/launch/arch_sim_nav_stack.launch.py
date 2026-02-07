@@ -30,7 +30,7 @@ def generate_launch_description():
             "yolo": {
                 "rgbd_ids": RGBD_IDS,
                 "config": "arch2025",
-        },
+            },
         },
         composition="start_container",
     )
