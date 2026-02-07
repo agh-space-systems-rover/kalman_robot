@@ -8,8 +8,7 @@ const PREDEFINED_POSES = {
       'path': 'predefined_poses/compact_herman.yaml',
       'joints': [0.0, -0.4098, 2.567, 0.0, -0.6277, 0.0],
       'joints_set': [1, 2, 3, 4, 5, 6],
-      'joints_checked': [1, 2, 3],
-      'safe_previous_poses': [2, 3, 4, 5, 6]
+      'joints_checked': [1, 2, 3]
     },
     {
       'id': 1,
@@ -17,8 +16,7 @@ const PREDEFINED_POSES = {
       'path': 'predefined_poses/reset.yaml',
       'joints': [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
       'joints_set': [1, 2, 3, 4, 5, 6],
-      'joints_checked': [],
-      'safe_previous_poses': [0, 2, 3, 4, 5, 6]
+      'joints_checked': []
     }
   ]
 };

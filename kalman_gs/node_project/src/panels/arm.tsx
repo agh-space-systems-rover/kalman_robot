@@ -37,7 +37,6 @@ interface ArmPose{
   joints_set: number[];
   joints_checked: number[];
   joints_reversed?: number[];
-  safe_previous_poses: number[];
 };
 
 window.addEventListener('ros-connect', () => {
@@ -220,7 +219,6 @@ function ArmStatus({ // MARK -- ARM STATUS
       joints: currentValues,
       joints_set: [1, 2, 3, 4, 5, 6],
       joints_checked: [1, 2, 3, 4, 5, 6],
-      safe_previous_poses: []
     };
 
     localStorage.setItem('custom_arm_poses', JSON.stringify([...savedPoses, newPose]));
@@ -368,22 +366,6 @@ function PoseRequester({ // MARK -- POSE REQUESTER
     return () => clearInterval(intervalId);
   }, []);
 
-  const isStartingFromSafePose = (safePreviousPoses: number[]) => {
-    for (let i = 0; i < safePreviousPoses.length; i++) {
-      if (
-        isCloseEnough(
-          predefinedPoses.poses[safePreviousPoses[i]].joints,
-          namesAndValues.map((joint) => joint.value),
-          predefinedPoses.max_distance_rad,
-          predefinedPoses.poses[safePreviousPoses[i]].joints_checked
-        )
-      ) {
-        return true;
-      }
-    }
-    return false;
-  };
-
   const allPoses: ArmPose[] = [
     ...predefinedPoses.poses.map((p) => ({ 
       ...p, 
@@ -464,7 +446,7 @@ function PoseRequester({ // MARK -- POSE REQUESTER
           namesAndValues.map((joint) => joint.value),
           predefinedPoses.max_distance_rad,
           currentPose.joints_checked
-      ) || isStartingFromSafePose(currentPose.safe_previous_poses)
+      )
   ) : false;
 
   const handleImportSinglePose = (e: React.ChangeEvent<HTMLInputElement>) => {
