@@ -4,9 +4,7 @@ import { Ros } from 'roslib';
 const ros = new Ros({
   url: `ws://${window.location.hostname}:9065`
 });
-// ros.on('connection', () => {
-//   console.log('ROSLIB connected.');
-// });
+
 ros.on('error', (error) => {
   console.error('ROSLIB error:\n', error, '\nWill attempt to reconnect.');
 });
@@ -32,10 +30,10 @@ setInterval(() => {
   } else if (ros.isConnected) {
     if (lastLoggedConnectionState === undefined) {
       // alertsRef.current?.pushAlert('Connected with ROS.', 'success');
-      window.dispatchEvent(new Event('ros-connect'));
+      window.dispatchEvent(new CustomEvent('ros-connect'));
     } else if (lastLoggedConnectionState === false) {
       alertsRef.current?.pushAlert('Re-established connection with ROS.', 'success');
-      window.dispatchEvent(new Event('ros-connect'));
+      window.dispatchEvent(new CustomEvent('ros-connect'));
     }
     lastLoggedConnectionState = true;
   }

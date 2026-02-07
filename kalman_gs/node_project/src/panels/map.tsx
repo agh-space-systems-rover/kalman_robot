@@ -45,7 +45,7 @@ window.addEventListener('ros-connect', () => {
 
   geoPathTopic.subscribe((msg: GeoPath) => {
     geoPathArray = msg.points;
-    window.dispatchEvent(new Event('map-geo-points-update'));
+    window.dispatchEvent(new CustomEvent('map-geo-points-update'));
   });
 });
 

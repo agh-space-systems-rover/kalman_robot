@@ -128,7 +128,7 @@ export default function Supervisor({ props }: Props) {
   }, [rerender]);
 
   const rerenderAllSupervisorPanels = useCallback(() => {
-    window.dispatchEvent(new Event('supervisor-rerender'));
+    window.dispatchEvent(new CustomEvent('supervisor-rerender'));
   }, []);
 
   const inputRefs = Array.from({ length: 4 }, () => useRef<Input>(null));

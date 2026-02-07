@@ -29,7 +29,7 @@ export default function PanelManager() {
   // Send panel resize event after every re-render.
   useEffect(() => {
     // Emit panel resize event to force all panels to resize
-    window.dispatchEvent(new Event('any-panel-resize'));
+    window.dispatchEvent(new CustomEvent('any-panel-resize'));
   }, [rerenderCounter]);
 
   // Expose a custom event that allows to re-render the panel manager.
@@ -90,7 +90,7 @@ export default function PanelManager() {
                       .setAttribute('style', `flex: ${1 - (layout as HorizontalPanelLayout).division};`);
 
                     // Emit panel resize event to force all panels to resize
-                    window.dispatchEvent(new Event('any-panel-resize'));
+                    window.dispatchEvent(new CustomEvent('any-panel-resize'));
                   };
                   const mouseUp = () => {
                     document.documentElement.style.cursor = '';
@@ -155,7 +155,7 @@ export default function PanelManager() {
                       .setAttribute('style', `flex: ${1 - (layout as VerticalPanelLayout).division};`);
 
                     // Emit panel resize event to force all panels to resize
-                    window.dispatchEvent(new Event('any-panel-resize'));
+                    window.dispatchEvent(new CustomEvent('any-panel-resize'));
                   };
                   const mouseUp = () => {
                     document.documentElement.style.cursor = '';
