@@ -1,6 +1,6 @@
 const { app, BrowserWindow, screen } = require('electron');
 
-const DEV_URL = 'http://localhost:3000';
+app.setName('Kalman | Ground Station');
 
 function createWindow() {
   const window = new BrowserWindow({
