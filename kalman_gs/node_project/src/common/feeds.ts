@@ -74,8 +74,6 @@ window.addEventListener('feeds-updated', (e) => {
 
 // ROS
 window.addEventListener('ros-connect', () => {
-  console.log('ROS connected')
-
   const setFeed = new Service<SetFeedRequest, {}>({
     ros: ros,
     name: '/set_feed',
