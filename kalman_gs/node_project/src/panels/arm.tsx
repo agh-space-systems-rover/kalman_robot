@@ -214,9 +214,9 @@ function ArmStatus({ // MARK -- ARM STATUS
     
     
     const newPose: ArmPose= {
-      id: Date.now(), // FIXME unique ID
+      id: Date.now(),
       name: poseName,
-      path: "TODO", // TODO generating yaml with pose data
+      path: "TODO path",
       joints: currentValues,
       joints_set: [1, 2, 3, 4, 5, 6],
       joints_checked: [1, 2, 3, 4, 5, 6],
