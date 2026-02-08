@@ -1,4 +1,5 @@
 import Arms from './arm';
+import ArmHeader from './arm.header';
 import Feeds from './feeds';
 import Imu from './imu';
 import Map from './map';
@@ -65,6 +66,7 @@ export const panelInfos: Panels = {
   },
   arm: {
     Component: Arms,
+    HeaderComponent: ArmHeader, //TODO
     name: 'Arm',
     icon: faDiagramProject
   },
