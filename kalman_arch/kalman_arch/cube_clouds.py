@@ -16,25 +16,11 @@ import sensor_msgs_py.point_cloud2 as pc2
 
 
 def join_point_clouds(cloud1: PointCloud2, cloud2: PointCloud2) -> PointCloud2:
-    """
-    Łączy dwie chmury punktów w jedną.
-    UWAGA: Zakłada, że obie chmury są w tym samym układzie (frame_id).
-    """
 
-    # 1. Sprawdź zgodność pól (czy obie chmury mają np. x, y, z)
-    # W uproszczeniu zakładamy, że struktura jest ta sama.
+    array1 = pc2.read_points_numpy(cloud1)
+    array2 = pc2.read_points_numpy(cloud2)
 
-    # 2. Wczytaj punkty jako ustrukturyzowane tablice NumPy
-    # read_points_numpy jest znacznie szybsze niż zwykłe read_points
-    # Dostępne w nowszych wersjach sensor_msgs_py, jeśli brak - użyj read_points + np.array
-    array1 = pc2.read_points_numpy(cloud1, squeeze=False)
-    array2 = pc2.read_points_numpy(cloud2, squeeze=False)
-
-    # 3. Połącz tablice
     combined_array = np.concatenate((array1, array2))
-
-    # 4. Utwórz nową wiadomość
-    # Używamy nagłówka z pierwszej chmury (zaktualizuj timestamp jeśli trzeba)
     output_cloud = pc2.create_cloud(
         header=cloud1.header, fields=cloud1.fields, points=combined_array
     )
