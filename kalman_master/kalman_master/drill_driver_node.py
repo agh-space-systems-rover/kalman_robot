@@ -11,7 +11,7 @@ from dataclasses import dataclass
 DRILL_UNIVERSAL_ADDR = [0, 0] # board, channel
 # ARM_SPEED = 50
 RACK_SPEED = 50
-DRILL_SPEED = 100
+DRILL_SPEED = 255
 MAX_ZEROFRAMES_SPAM = 5
 
 # SCALE_DEVICES = [
