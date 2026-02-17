@@ -1,0 +1,37 @@
+# base_moveit_config.yaml
+request:
+    group_name: "kalman_arm"
+    pipeline_id: "ompl"
+    planner_id: ""
+    num_planning_attempts: 10
+    allowed_planning_time: 5.0
+    max_velocity_scaling_factor: 0.6
+    max_acceleration_scaling_factor: 0.8
+    workspace_parameters:
+        header:
+            frame_id: "world"
+        min_corner: {x: -1.0, y: -1.0, z: -1.0}
+        max_corner: {x: 1.0, y: 1.0, z: 1.0}
+    start_state:
+        is_diff: true
+    goal_constraints:
+        - name: ""
+        - joint_constraints:
+            - {joint_name: "arm_joint_1", position: 0.0, tolerance_above: 0.01, tolerance_below: 0.01, weight: 1.0}
+            - {joint_name: "arm_joint_2", position: 0.0, tolerance_above: 0.01, tolerance_below: 0.01, weight: 1.0}
+            - {joint_name: "arm_joint_3", position: 0.0, tolerance_above: 0.01, tolerance_below: 0.01, weight: 1.0}
+            - {joint_name: "arm_joint_4", position: 0.0, tolerance_above: 0.01, tolerance_below: 0.01, weight: 1.0}
+            - {joint_name: "arm_joint_5", position: 0.0, tolerance_above: 0.01, tolerance_below: 0.01, weight: 1.0}
+            - {joint_name: "arm_joint_6", position: 0.0, tolerance_above: 0.01, tolerance_below: 0.01, weight: 1.0}
+    path_constraints:
+        name: ""
+        joint_constraints: []
+    trajectory_constraints:
+        constraints: []
+planning_options:
+    planning_scene_diff:
+        is_diff: true
+    plan_only: false
+    replan: false
+    replan_attempts: 0
+    replan_delay: 2.0

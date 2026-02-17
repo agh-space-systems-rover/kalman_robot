@@ -26,49 +26,63 @@ Pose = namedtuple(
         "safe_previous_poses",
     ],
 )
+Pose = namedtuple(
+    "Pose",
+    [
+        "joints_set",
+        "joints_checked",
+        "joints_reversed",
+    ],
+)
 
 arm_config = get_package_share_directory("kalman_arm")
 
-PREDEFINED_POSES: dict[int, Pose] = {}
-try:
-    with open(f"{arm_config}/config/predefined_poses.yaml", "r") as f:
-        predefined_poses = yaml.safe_load(f)
-        MAX_DISTANCE_RAD = predefined_poses["max_distance_rad"]
-        STOP_TRAJECTORY_TIMEOUT = predefined_poses["stop_trajectory_timeout"]
-        for pose in predefined_poses["poses"]:
-            PREDEFINED_POSES[int(pose["id"])] = Pose(
-                pose["name"],
-                f"{arm_config}/{pose['path']}",
-                pose["joints_set"],
-                pose["joints_checked"],
-                pose["joints_reversed"],
-                pose["safe_previous_poses"],
-            )
-except:
-    print("Error loading predefined poses configuration")
+# PREDEFINED_POSES: dict[int, Pose] = {}
+# try:
+#     # MARK load predefined poses configuration
+#     with open(f"{arm_config}/config/predefined_poses.yaml", "r") as f:
+#         predefined_poses = yaml.safe_load(f)
+#         MAX_DISTANCE_RAD = predefined_poses["max_distance_rad"]
+#         STOP_TRAJECTORY_TIMEOUT = predefined_poses["stop_trajectory_timeout"]
+#         for pose in predefined_poses["poses"]:
+#             PREDEFINED_POSES[int(pose["id"])] = Pose(
+#                 pose["name"],
+#                 f"{arm_config}/{pose['path']}",
+#                 pose["joints_set"],
+#                 pose["joints_checked"],
+#                 pose["joints_reversed"],
+#                 pose["safe_previous_poses"],
+#             )
+# except:
+#     print("Error loading predefined poses configuration")
 
 
 class PoseRequestSender(Node):
 
     def __init__(self):
         super().__init__("pose_request_sender")
+        # MARK create action client that create longer task and can inform of status
         self._action_client = ActionClient(self, MoveGroup, "/arm_controllers/move_action")
 
-        self.joints: dict[str, float] = {}
+        self.joints: dict[str, float] = {} 
+        """current joint states"""
         self._send_goal_future = None
+        """Future for the currently active goal"""
         self._timer = None
         self._goal_handle = None
         self._cancel_future: None | Future = None
         self._goal_sent = False
 
+        # reading joint status
         self.joint_states_sub = self.create_subscription(
             ArmState, "/arm_state", self.update_state, 10
         )
-
+        # ?
         self._change_control_pub = self.create_publisher(
             UInt8, "/change_control_type", 10
         )
 
+        # getting pose requests
         self._execute_sub = self.create_subscription(
             ArmPoseSelect,
             "/pose_request/execute",
@@ -108,40 +122,59 @@ class PoseRequestSender(Node):
         self.timer_callback()
 
     def send_goal(self, msg: ArmPoseSelect):
-        if msg.pose_id not in PREDEFINED_POSES:
-            self.get_logger().error("Invalid pose ID")
-            self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.INVALID_ID))
-            return
-
-        pose = PREDEFINED_POSES[msg.pose_id]
         while len(self.joints.keys()) == 0:
             rclpy.spin_once(self)
-
         if self._goal_handle:
             self.get_logger().info("Canceling previous goal")
             self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.PREEMPTING))
             self.timer_callback()
             self._cancel_future.add_done_callback(
-                lambda x: self.publish_pose_goal(pose)
+                lambda x: self.publish_pose_goal(msg)
             )
         else:
-            self.publish_pose_goal(pose)
+            self.publish_pose_goal(msg)
 
-    def publish_pose_goal(self, pose: Pose):
-        request = self.get_request_from_file(pose.path)
-        self.reset_not_set_joints(request, pose.joints_set)
-        self.reverse_joints(request, pose.joints_reversed)
-
+    def publish_pose_goal(self, pose: ArmPoseSelect):
+        request = self.build_request(pose)
         if self.check_joints_too_far(
             request, pose.joints_checked
         ) or self.check_is_from_safe_previous_poses(pose):
             self.get_logger().info("Sending pose goal...")
             self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.GOAL_SENDING))
-            self.send_request(request)
+            self.send_request(request) # MARK send the pose to execute
         else:
             self.get_logger().warn("Too far away for pose...")
             self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.TOO_FAR))
 
+    def build_request(self, pose: ArmPoseSelect) -> MoveGroup.Goal:
+        request = MoveGroup.Goal()
+        with open("base_pose_request.yaml", "r") as f:
+            base_request = yaml.safe_load(f)
+        set_message_fields(request, base_request)
+
+        goal_constraint: Constraints = request.request.goal_constraints[0]
+        joint_constraints: list[JointConstraint] = sorted(
+                goal_constraint.joint_constraints, key=lambda x: x.joint_name
+            )
+        for i in range(6):
+            joint_number = int(joint_constraints[i].joint_name[-1])
+            # if joint_number isnt in out mask then we set current position
+            if joint_number not in pose.joints_checked:
+                joint_constraints[i].position = self.joints[
+                    joint_constraints[i].joint_name
+                    ]
+            else:
+                # else we set the position as specified in the pose, but if its also in the reversed mask we reverse it
+                if joint_number in pose.joints_reversed:
+                    joint_constraints[i].position = -self.joints[
+                        joint_constraints[i].joint_name
+                    ]
+                else:
+                    joint_constraints[i].position = pose.joints_set[i]
+        return request
+        
+
+        
     def get_request_from_file(self, filename: str) -> MoveGroup.Goal:
         try:
             predefined_pose = None
@@ -211,15 +244,15 @@ class PoseRequestSender(Node):
 
         return close_enough
 
-    def check_is_from_safe_previous_poses(self, pose: Pose) -> bool:
-        for safe_pose in pose.safe_previous_poses:
-            if safe_pose in PREDEFINED_POSES:
-                safe_pose = PREDEFINED_POSES[safe_pose]
-                if self.check_joints_too_far(
-                    self.get_request_from_file(safe_pose.path), safe_pose.joints_checked
-                ):
-                    return True
-        return False
+    # def check_is_from_safe_previous_poses(self, pose: Pose) -> bool:
+    #     for safe_pose in pose.safe_previous_poses:
+    #         if safe_pose in PREDEFINED_POSES:
+    #             safe_pose = PREDEFINED_POSES[safe_pose]
+    #             if self.check_joints_too_far(
+    #                 self.get_request_from_file(safe_pose.path), safe_pose.joints_checked
+    #             ):
+    #                 return True
+    #     return False
 
     def send_request(self, request, check=True):
 
