@@ -99,7 +99,7 @@ function isCloseEnough(jointsA: number[], jointsB: number[], maxDistance: number
   return true;
 }
 
-function ArmStatus({ // MARK -- ARM STATUS
+function ArmStatus({
     editMode
   }: { 
     editMode: boolean 
@@ -215,7 +215,7 @@ function ArmStatus({ // MARK -- ARM STATUS
     const newPose: ArmPose= {
       id: Date.now(),
       name: poseName,
-      path: "TODO path",
+      path: "FIXME path",
       joints: currentValues,
       joints_set: [1, 2, 3, 4, 5, 6],
       joints_checked: [1, 2, 3, 4, 5, 6],
@@ -312,7 +312,7 @@ function poseJoints(jointValues) {
   );
 }
 
-function PoseRequester({ // MARK -- POSE REQUESTER
+function PoseRequester({
     editMode,
     onSelectPose
   }: {
@@ -321,7 +321,7 @@ function PoseRequester({ // MARK -- POSE REQUESTER
   }) {
   const [rerenderCount, setRerenderCount] = useState(0);
   const [keepAlive, setKeepAlive] = useState(false);
-  const [customPoses, setCustomPoses] = useState<ArmPose[]>([]); // własne pozy
+  const [customPoses, setCustomPoses] = useState<ArmPose[]>([]);
 
 
   const rerender = useCallback(() => {
@@ -524,8 +524,7 @@ function PoseRequester({ // MARK -- POSE REQUESTER
             }
           }}
         >
-          {closeEnough ? 'Send Pose' : 'Cannot Send'} 
-          {/* MARK #test sending pose */}
+          {closeEnough ? 'Send Pose' : 'Cannot Send'}
         </div>
         <div
           className={`${styles['pose-button']} ${styles['pose-abort']}`}
@@ -541,7 +540,7 @@ function PoseRequester({ // MARK -- POSE REQUESTER
   );
 }
 
-function TrajectoryRequester() { // MARK -- TRAJECTORY REQUESTER
+function TrajectoryRequester() {
   const [rerenderCount, setRerenderCount] = useState(0);
   const [keepAlive, setKeepAlive] = useState(false);
   const rerender = useCallback(() => {
@@ -655,7 +654,6 @@ function TrajectoryRequester() { // MARK -- TRAJECTORY REQUESTER
           }}
         >
           {closeEnough ? 'Send Pose' : 'Cannot Send'}
-          {/* MARK sending tra */}
         </div>
         <div
           className={`${styles['pose-button']} ${styles['pose-abort']}`}
@@ -702,7 +700,6 @@ function EditPanel({
     const link = document.createElement('a');
     link.href = url;
     link.download = `arm_pose_${pose.name.replace(/\s+/g, '_')}.json`;
-    
     document.body.appendChild(link);
     link.click();
 
@@ -793,7 +790,6 @@ function EditPanel({
 
   return (
     <div className={styles['edit-panel']}>
-      {/* TODO input import */}
       <h2 className={styles['pose-header']}>{isReadOnly ? 'View Pose' : 'Edit Pose'}</h2>
       <div onClick={exportToFile} className={styles['edit-button']}>
         <FontAwesomeIcon icon={faUpload} /> Export Pose
@@ -807,8 +803,6 @@ function EditPanel({
           <FontAwesomeIcon icon={faTrash} /> Delete
         </div>
       </div>
-      
-      {/* TODO editing panel */}
     </div>
   );
 }
