@@ -19,9 +19,22 @@ def launch_setup(context):
     description = [
         Node(
             package="kalman_arch",
-            executable="cube_clouds",
-
-        )
+            executable="cube_saver",
+            parameters=[
+                {
+                    "buffer_size": 100,
+                    "buffer_cleanup_time": 5000,
+                    "num_cameras": len(rgbd_ids),
+                }
+            ],
+            remappings=[
+                (
+                    f"annotated{i}/image_raw/compressed",
+                    f"{camera_id}/yolo_annotated/compressed",
+                )
+                for i, camera_id in enumerate(rgbd_ids)
+            ],
+        ),
     ]
 
     record_video_params = {
