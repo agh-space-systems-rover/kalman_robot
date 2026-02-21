@@ -31,10 +31,18 @@ class GamepadDriving(Node):
         self.last_drive_msg = Drive()
 
     def joy_cb(self, msg: Joy):
+        left_trigger = msg.axes[LEFT_TRIGGER]
+        right_trigger = msg.axes[RIGHT_TRIGGER]
+        if left_trigger == 0:
+            left_trigger = 1
+        if right_trigger == 0:
+            right_trigger = 1
+        # ^ Needed to avoid situation where gamepad after initialization might send 0s
+
         # Detect if turning in place.
         if msg.buttons[LEFT_SHOULDER] or msg.buttons[RIGHT_SHOULDER]:
             # Read input.
-            speed = (-msg.axes[LEFT_TRIGGER] * 0.5 + 0.5) - (-msg.axes[RIGHT_TRIGGER] * 0.5 + 0.5)
+            speed = (-left_trigger * 0.5 + 0.5) - (-right_trigger * 0.5 + 0.5)
             speed *= min(msg.buttons[LEFT_SHOULDER] + msg.buttons[RIGHT_SHOULDER], 1)
             if speed == 0:
                 speed = 0.0001
@@ -46,7 +54,7 @@ class GamepadDriving(Node):
             drive = Drive()
             drive.sin_angle = msg.axes[RIGHT_X]
             drive.inv_radius = msg.axes[LEFT_X] / self.turn_radius.value
-            drive.speed = (-msg.axes[RIGHT_TRIGGER] * 0.5 + 0.5) - (-msg.axes[LEFT_TRIGGER] * 0.5 + 0.5)
+            drive.speed = (-right_trigger * 0.5 + 0.5) - (-left_trigger * 0.5 + 0.5)
         
         if self.drive_msg_is_zero(drive) and self.drive_msg_is_zero(self.last_drive_msg):
             return
