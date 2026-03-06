@@ -13,3 +13,6 @@ from kalman_supervisor.states.mapping_states.navigate import (
 )
 from kalman_supervisor.states.mapping_states.loop_closure import LoopClosure
 from kalman_supervisor.states.mapping_states.take_photos import TakePhotos
+
+from kalman_supervisor.states.rscp_states.rscp_idle import RscpIdle
+from kalman_supervisor.states.rscp_states.rscp_navigate_gps import RscpNavigateGps

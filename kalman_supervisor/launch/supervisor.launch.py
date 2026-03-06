@@ -39,6 +39,9 @@ def launch_setup(context):
         for x in LaunchConfiguration("arch_camera_ids").perform(context).split(" ")
         if x != ""
     ]
+    rscp_enabled = (
+        LaunchConfiguration("rscp_enabled").perform(context).lower() == "true"
+    )
 
     remappings = []
 
@@ -62,11 +65,14 @@ def launch_setup(context):
         *remap_action("missions/mapping_goals", "supervisor/mapping_goals"),
         *remap_action("nav/navigate_to_pose", "navigate_to_pose"),
         ("ueuos/set_state", "ueuos/set_state"),
+        ("ueuos/set_color", "ueuos/set_color"),
         ("yolo/get_state", "yolo_detect/get_state"),
         ("yolo/change_state", "yolo_detect/change_state"),
         ("yolo/detections", "yolo_detections"),
         ("search/path_follower/set_parameters", "path_follower/set_parameters"),
         ("search/path_follower/get_parameters", "path_follower/get_parameters"),
+        ("rscp/req", "rscp/req"),
+        ("rscp/res", "rscp/res"),
     ]
 
     for i, camera_id in enumerate(arch_camera_ids):
@@ -94,6 +100,9 @@ def launch_setup(context):
                     },
                     "arch": {
                         "num_cameras": len(arch_camera_ids),
+                    },
+                    "rscp": {
+                        "enabled": rscp_enabled,
                     },
                 },
             ],
@@ -132,6 +141,12 @@ def generate_launch_description():
                 "arch_camera_ids",
                 default_value="",
                 description="Space-separated IDs of the cameras to take photos with during the ARCh 2025 mapping mission.",
+            ),
+            DeclareLaunchArgument(
+                "rscp_enabled",
+                default_value="false",
+                choices=["true", "false"],
+                description="Enable RSCP mode (start in rscp_idle instead of teleop).",
             ),
             OpaqueFunction(function=launch_setup),
         ]
