@@ -4,6 +4,7 @@ import { keybinds, resetAllKeybinds, resetKeybind, setKeybind } from '../common/
 import { Theme, currentTheme, setTheme } from '../common/themes';
 import Button from './button';
 import Dropdown from './dropdown';
+import FileInput from './file-input';
 import Input from './input';
 import { faRaspberryPi } from '@fortawesome/free-brands-svg-icons';
 import {
@@ -11,6 +12,7 @@ import {
   faCloudMoon,
   faKeyboard,
   faPalette,
+  faPhotoFilm,
   faRefresh,
   faSun,
   faXmark
@@ -277,6 +279,44 @@ export default class Settings extends Component<{}, State> {
                 </>
               )}
               {searchedKeybinds}
+              {this.isSearchedFor('background image anime') && (
+                <>
+                  <h2>
+                    <FontAwesomeIcon icon={faPhotoFilm} />
+                    &nbsp;&nbsp;Background Image
+                  </h2>
+                  <div className={styles['background-selector']}>
+                    <FileInput
+                      accept='image/*'
+                      emptyLabel={localStorage.getItem('panel-manager-background-image-name')}
+                      onChange={(files) => {
+                        if (!files || files.length === 0) return;
+
+                        const file = files[0];
+                        const reader = new FileReader();
+
+                        reader.onload = () => {
+                          const base64 = reader.result;
+
+                          if (typeof base64 === 'string') {
+                            localStorage.setItem('panel-manager-background-image', base64);
+                            localStorage.setItem('panel-manager-background-image-name', file.name);
+                            window.dispatchEvent(new Event('panel-manager-rerender'));
+                          }
+                        };
+
+                        reader.readAsDataURL(file);
+                      }}
+                      onClear={() => {
+                        localStorage.removeItem('panel-manager-background-image');
+                        localStorage.removeItem('panel-manager-background-image-name');
+                        window.dispatchEvent(new Event('panel-manager-rerender'));
+                      }}
+                      canClearEmpty={!!localStorage.getItem('panel-manager-background-image-name')}
+                    />
+                  </div>
+                </>
+              )}
               <div className={styles['no-search-results']}>
                 <div className={styles['no-search-results-text']}>
                   <FontAwesomeIcon icon={faBan} />
