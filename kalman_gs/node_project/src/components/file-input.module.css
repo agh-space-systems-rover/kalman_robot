@@ -1,0 +1,67 @@
+.file-input-container {
+  display: flex;
+  align-items: stretch;
+  margin: 5px;
+  height: calc(1em + 10px);
+}
+
+.file-hidden {
+  display: none;
+}
+
+.file-main,
+.file-clear {
+  background-color: var(--dark-background);
+  border: none;
+  color: var(--strong-foreground);
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.file-main {
+  flex: 1;
+  border-top-left-radius: 5px;
+  border-bottom-left-radius: 5px;
+
+  border-right: 1px solid var(--background);
+
+  padding: 0 10px;
+  min-width: 0;
+}
+
+.file-main-inner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+
+.file-main-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-clear {
+  width: 38px;
+  justify-content: center;
+
+  border-top-right-radius: 5px;
+  border-bottom-right-radius: 5px;
+
+  padding: 0;
+}
+
+.file-main:hover:not(:disabled),
+.file-clear:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.file-main:disabled,
+.file-clear:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: none;
+}

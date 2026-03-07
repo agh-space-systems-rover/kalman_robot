@@ -34,9 +34,9 @@ export default function PanelManager() {
 
   // Expose a custom event that allows to re-render the panel manager.
   useEffect(() => {
-    window.addEventListener('rerender-panel-manager', rerender);
+    window.addEventListener('panel-manager-rerender', rerender);
     return () => {
-      window.removeEventListener('rerender-panel-manager', rerender);
+      window.removeEventListener('panel-manager-rerender', rerender);
     };
   }, [rerender]);
 
@@ -306,7 +306,16 @@ export default function PanelManager() {
               </div>
             </div>
             <div className={styles['panel-container']}>
-              {/* <panel.Component props={(layout as LeafPanelLayout).props} /> */}
+              {localStorage.getItem('panel-manager-background-image') && (
+                <img
+                  src={localStorage.getItem('panel-manager-background-image') as string}
+                  alt=''
+                  className={styles['background-image']}
+                  aria-hidden='true'
+                  draggable='false'
+                />
+              )}
+
               {/* If component is a class component, assign a ref */}
               {panel.Component.prototype instanceof Component ? (
                 <panel.Component ref={panelRef} props={(layout as LeafPanelLayout).props} />

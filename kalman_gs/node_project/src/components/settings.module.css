@@ -141,6 +141,12 @@
   font-size: 18px;
 }
 
+.background-selector{
+  display: flex;
+  flex-direction: column;
+  margin-top: -5px;
+}
+
 .no-search-results {
   height: 100%;
   width: 100%;
