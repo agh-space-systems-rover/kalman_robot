@@ -11,7 +11,7 @@ function createWindow() {
     webPreferences: {}
   });
 
-  window.loadURL(DEV_URL).then((response) => {
+  window.loadURL('http://localhost:3000').then((response) => {
     // nothing to do
   });
 

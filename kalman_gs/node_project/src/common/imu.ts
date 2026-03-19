@@ -36,7 +36,7 @@ window.addEventListener('ros-connect', () => {
     if (frame === 'imu_link') {
       Object.assign(imuRotation, imuLinkToBaseLink(imuRotation));
     }
-    window.dispatchEvent(new Event('imu-update'));
+    window.dispatchEvent(new CustomEvent('imu-update'));
   };
 
   imu.subscribe((msg: Imu) => {
