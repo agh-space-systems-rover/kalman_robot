@@ -1,6 +1,9 @@
 import styles from './input.module.css';
 
+
+
 import { Component, createRef } from 'react';
+
 
 type Props = {
   type?: string;
@@ -14,6 +17,7 @@ type Props = {
   onBlur?: () => void;
   className?: string;
   autoFocus?: boolean;
+  disabled?: boolean;
   [key: string]: any;
 };
 
@@ -35,7 +39,7 @@ export default class Input extends Component<Props> {
   }
 
   setValue(value: any) {
-    this.ref.current!.value = value;
+    if (!this.props.disabled) this.ref.current!.value = value;
   }
 
   isEmpty(): boolean {
@@ -43,7 +47,7 @@ export default class Input extends Component<Props> {
   }
 
   selectAll() {
-    this.ref.current?.select();
+    if (!this.props.disabled) this.ref.current?.select();
   }
 
   render() {
@@ -58,11 +62,16 @@ export default class Input extends Component<Props> {
       onFocus,
       onBlur,
       className,
+      disabled,
       ...props
     } = this.props;
 
     return (
-      <div className={styles['input'] + (className ? ` ${className}` : '')} {...props}>
+      <div
+        className={styles['input'] + (className ? ` ${className}` : '')}
+        aria-disabled={disabled || undefined}
+        {...props}
+      >
         <input
           ref={this.ref}
           placeholder={placeholder}
@@ -70,15 +79,16 @@ export default class Input extends Component<Props> {
           minLength={minLength}
           maxLength={maxLength}
           className={styles['input-field']}
+          disabled={disabled}
           onChange={(e) => {
+            if (disabled) return;
             if (type === 'float') {
-              console.log(e.target.value);
-              this.ref.current.value = this.ref.current.value.replace(/[^\d.-]/g, '');
-              console.log(this.ref.current.value);
+              this.ref.current!.value = this.ref.current!.value.replace(/[^\d.-]/g, '');
             }
             onChange?.(e.target.value);
           }}
           onKeyUp={(e) => {
+            if (disabled) return;
             if (e.key === 'Enter') {
               onSubmit?.(e.currentTarget.value);
               this.ref.current?.blur();
