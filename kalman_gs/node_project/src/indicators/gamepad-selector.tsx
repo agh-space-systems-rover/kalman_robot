@@ -61,7 +61,7 @@ export default function GamepadSelector() {
 
   return (
     <>
-      {Array.from(gamepads.keys()).map((pad) => (
+      {Array.from(gamepads.values()).map(({ pad, mode }) => (
         <ContextMenu
           key={pad.id}
           items={Object.entries(modeAppearance).map(([mode, { name, icon }]) => ({
@@ -77,7 +77,7 @@ export default function GamepadSelector() {
           tooltip={getPadName(pad.id)}
         >
           <FontAwesomeIcon icon={faGamepad} className={styles['gamepad-icon']} />
-          <FontAwesomeIcon icon={modeAppearance[gamepads.get(pad)].icon} className={styles['mode-icon']} />
+          <FontAwesomeIcon icon={modeAppearance[mode].icon} className={styles['mode-icon']} />
         </ContextMenu>
       ))}
     </>

@@ -32,15 +32,15 @@
     <!-- origin at bottom screw mount -->
     <xacro:include filename="$(find realsense2_description)/urdf/_d455.urdf.xacro" />
     <xacro:sensor_d455 name="d455_front" parent="base_link" use_nominal_extrinsics="true">
-        <origin xyz="0.125 0.105 0.350" rpy="0 0.349 0" />
+        <origin xyz="0.125 0.105 0.335" rpy="0 0.349 0" />
     </xacro:sensor_d455>
     <xacro:sensor_d455 name="d455_back" parent="base_link" use_nominal_extrinsics="true">
-        <origin xyz="-0.605 -0.175 0.350" rpy="0 0.349 -3.1416" />
+        <origin xyz="-0.555 -0.225 0.335" rpy="0 0.349 -3.1416" />
     </xacro:sensor_d455>
     <xacro:sensor_d455 name="d455_left" parent="base_link" use_nominal_extrinsics="true">
-        <origin xyz="0.080 0.150 0.300" rpy="0 0.349 1.5708" />
+        <origin xyz="0.080 0.150 0.290" rpy="0 0.349 1.5708" />
     </xacro:sensor_d455>
     <xacro:sensor_d455 name="d455_right" parent="base_link" use_nominal_extrinsics="true">
-        <origin xyz="-0.560 -0.22 0.300" rpy="0 0.349 -1.5708" />
+        <origin xyz="-0.510 -0.270 0.290" rpy="0 0.349 -1.5708" />
     </xacro:sensor_d455>
 </robot>

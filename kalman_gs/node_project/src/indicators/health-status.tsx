@@ -58,7 +58,7 @@ window.addEventListener('ros-connect', () => {
 
   healthStatusTopic.subscribe((msg: UInt8) => {
     latestHealthStatus = msg;
-    window.dispatchEvent(new Event('health-status-update'));
+    window.dispatchEvent(new CustomEvent('health-status-update'));
   });
 });
 
