@@ -33,7 +33,7 @@ export default class FileInput extends Component<Props, State> {
   private ref = createRef<HTMLInputElement>();
 
   state: State = {
-    label: this.props.emptyLabel ?? 'Wybierz plik…',
+    label: this.props.emptyLabel ?? 'Choose image...',
     hasFiles: false
   };
 
@@ -41,7 +41,7 @@ export default class FileInput extends Component<Props, State> {
     const files = this.ref.current?.files;
     if (!files || files.length === 0) {
       this.setState({
-        label: this.props.emptyLabel ?? 'Wybierz plik…',
+        label: this.props.emptyLabel ?? 'Choose image...',
         hasFiles: false
       });
       return;
@@ -88,7 +88,7 @@ export default class FileInput extends Component<Props, State> {
         {/* main button */}
         <Button
           className={styles['file-main']}
-          tooltip={hasFiles ? 'Zmień plik' : 'Wybierz plik'}
+          tooltip={hasFiles ? 'Change file' : 'Choose file'}
           onClick={() => this.openPicker()}
           disabled={disabled}
         >
