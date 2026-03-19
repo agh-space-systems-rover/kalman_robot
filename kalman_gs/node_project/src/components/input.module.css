@@ -37,3 +37,8 @@
   transition: background-color 0.1s;
   height: calc(100% - 6px);
 }
+
+.input-field:disabled {
+  color: var(--foreground);
+  cursor: not-allowed;
+}

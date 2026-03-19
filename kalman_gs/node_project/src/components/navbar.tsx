@@ -1,15 +1,12 @@
 import styles from './navbar.module.css';
 
 import { panelLayouts } from '../common/panel-layouts';
-import { splashRef } from '../common/refs';
+import { modalRef, splashRef } from '../common/refs';
 import { IndicatorComponents } from '../indicators';
-import RebootPC from '../indicators/reboot-pc';
-import logoSmall from '../media/logo-small.png';
-import logo from '../media/logo.png';
 import ContextMenu from './context-menu';
-import Splash from './splash';
+import Modal from './modal';
 import Tooltip from './tooltip';
-import { faEdit, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faPlus, faTableColumns, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useCallback, useRef, useState } from 'react';
 
@@ -29,7 +26,7 @@ export default function Navbar() {
 
   const rerenderNavbarAndPanelManager = useCallback(() => {
     setRerenderCounter(rerenderCounter + 1);
-    window.dispatchEvent(new Event('rerender-panel-manager'));
+    window.dispatchEvent(new CustomEvent('rerender-panel-manager'));
   }, [rerenderCounter]);
 
   return (
@@ -54,33 +51,56 @@ export default function Navbar() {
                     text: 'Delete',
                     onClick: () => {
                       if (Object.keys(panelLayouts.layouts).length === 1) {
-                        alert('You cannot delete all layouts. Please create a new layout before deleting this one.');
+                        modalRef.current?.showConfirm({
+                          title: 'Cannot Delete',
+                          icon: faTableColumns,
+                          message:
+                            'You cannot delete all layouts. Please create a new layout before deleting this one.',
+                          confirmText: 'OK',
+                          cancelText: 'Close',
+                          onConfirm: () => {}
+                        });
                         return;
                       }
-                      const confirmation = confirm('Are you sure you want to delete this layout?');
-                      if (confirmation) {
-                        delete panelLayouts.layouts[layoutName];
-                        if (panelLayouts.currentLayout === layoutName) {
-                          panelLayouts.currentLayout = Object.keys(panelLayouts.layouts)[0];
+
+                      modalRef.current?.showConfirm({
+                        title: 'Delete layout',
+                        icon: faTableColumns,
+                        message: `Are you sure you want to delete "${layoutName}"?`,
+                        confirmText: 'Delete',
+                        cancelText: 'Cancel',
+                        onConfirm: () => {
+                          delete panelLayouts.layouts[layoutName];
+                          if (panelLayouts.currentLayout === layoutName) {
+                            panelLayouts.currentLayout = Object.keys(panelLayouts.layouts)[0];
+                          }
+                          rerenderNavbarAndPanelManager();
                         }
-                        rerenderNavbarAndPanelManager();
-                      }
+                      });
                     }
                   },
                   {
                     icon: faEdit,
                     text: 'Rename',
                     onClick: () => {
-                      const newLayoutName = prompt('Choose a new name for the layout:');
-                      if (newLayoutName) {
-                        panelLayouts.layouts[newLayoutName] = panelLayouts.layouts[layoutName];
-                        delete panelLayouts.layouts[layoutName];
-                        if (panelLayouts.currentLayout === layoutName) {
-                          panelLayouts.currentLayout = newLayoutName;
+                      modalRef.current?.showPrompt({
+                        title: 'Rename layout',
+                        icon: faTableColumns,
+                        message: 'Choose a new name for the layout:',
+                        placeholder: 'New layout name',
+                        defaultValue: layoutName,
+                        confirmText: 'Save',
+                        onSubmit: (newLayoutName) => {
+                          if (!newLayoutName) return;
+                          panelLayouts.layouts[newLayoutName] = panelLayouts.layouts[layoutName];
+                          delete panelLayouts.layouts[layoutName];
+                          if (panelLayouts.currentLayout === layoutName) {
+                            panelLayouts.currentLayout = newLayoutName;
+                          }
+                          panelLayouts.layouts = sortObject(panelLayouts.layouts);
+                          rerenderNavbarAndPanelManager();
                         }
-                        panelLayouts.layouts = sortObject(panelLayouts.layouts);
-                        rerenderNavbarAndPanelManager();
-                      }
+                      });
                     }
                   }
                 ]}
@@ -98,15 +118,22 @@ export default function Navbar() {
           text='Create a new layout.'
           className={styles['layout']}
           onClick={() => {
-            const layoutName = prompt('Choose a name for the new layout:');
-            if (layoutName) {
-              panelLayouts.layouts[layoutName] = {
-                panel: defaultPanel
-              };
-              panelLayouts.currentLayout = layoutName;
-              panelLayouts.layouts = sortObject(panelLayouts.layouts);
-              rerenderNavbarAndPanelManager();
-            }
+            modalRef.current?.showPrompt({
+              title: 'Create new layout',
+              icon: faTableColumns,
+              message: 'Choose a name for the new layout:',
+              placeholder: 'Layout name',
+              confirmText: 'Create',
+              onSubmit: (layoutName) => {
+                if (!layoutName) return;
+                panelLayouts.layouts[layoutName] = {
+                  panel: defaultPanel
+                };
+                panelLayouts.currentLayout = layoutName;
+                panelLayouts.layouts = sortObject(panelLayouts.layouts);
+                rerenderNavbarAndPanelManager();
+              }
+            });
           }}
         >
           <FontAwesomeIcon icon={faPlus} />

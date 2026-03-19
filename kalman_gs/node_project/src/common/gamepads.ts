@@ -56,7 +56,7 @@ const connectGamepads = () => {
       oldModeButtonState.delete(id);
     }
   }
-  window.dispatchEvent(new Event('gamepads-connect'));
+  window.dispatchEvent(new CustomEvent('gamepads-connect'));
 };
 
 window.addEventListener('gamepadconnected', connectGamepads);
@@ -65,7 +65,7 @@ setInterval(connectGamepads, 100);
 
 function setGamepadMode(pad: Gamepad, mode: GamepadMode) {
   gamepads.get(pad.id).mode = mode;
-  window.dispatchEvent(new Event('gamepads-connect'));
+  window.dispatchEvent(new CustomEvent('gamepads-connect'));
 }
 
 function readGamepads(input: GamepadInput, padMode: GamepadMode): number {
