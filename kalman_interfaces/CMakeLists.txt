@@ -28,6 +28,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/GeoPath.msg"
   "msg/MasterMessage.msg"
   "msg/SupervisorMappingGoal.msg"
+  "msg/WExLabHeaterCfg.msg"
   "msg/WheelState.msg"
   "msg/WheelStates.msg"
   "msg/WheelTemperature.msg"
