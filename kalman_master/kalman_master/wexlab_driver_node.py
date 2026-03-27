@@ -2,8 +2,8 @@ import struct
 import rclpy
 from rclpy.node import Node
 import numpy as np
-from kalman_interfaces.msg import MasterMessage, WExLabHeaterCfg, WExLabLedAll, WExLabLedSingle
-from std_msgs.msg import Float32, Bool, Empty
+from kalman_interfaces.msg import MasterMessage, WExLabHeaterCfg, WExLabLedAll, WExLabLedSingle, WExLabTemperature
+from std_msgs.msg import Float32, Bool, Empty, UInt8
 
 
 class WExLabDriver(Node):
@@ -34,6 +34,10 @@ class WExLabDriver(Node):
         self.weight_tare_pub = self.create_subscription(Empty, "wexlab/weight/tare", self.weight_tare_cb, 10)
         self.weight_res_pub = self.create_publisher(Float32, "wexlab/weight/res", 10)
 
+        self.temperature_req_sub = self.create_subscription(UInt8, "wexlab/temperature/req", self.temperature_req_cb,
+                                                            10)
+        self.temperature_res_pub = self.create_publisher(WExLabTemperature, "wexlab/temperature/res", 10)
+
         self.lid_open_sub = self.create_subscription(Float32, "wexlab/lid/open_cmd", self.lid_open_cb, 10)
         self.lid_toggle_sub = self.create_subscription(Bool, "wexlab/lid/on_off", self.lid_toggle_cb, 10)
 
@@ -45,7 +49,6 @@ class WExLabDriver(Node):
         self.lid_open_pct = 0.0
 
     def pump_rate_cb(self, msg: Float32):
-        # 0x10 WEXLAB_MOSFET -> 2x uint8_t -> channel(1 for pump), PWM(0-100)
         pwm = int(np.clip(msg.data, 0, 100))
         out_msg = MasterMessage()
         out_msg.cmd = MasterMessage.GS_TO_ESP
@@ -53,14 +56,12 @@ class WExLabDriver(Node):
         self.master_pub.publish(out_msg)
 
     def heater_toggle_cb(self, msg: Bool):
-        # 0x11 WEXLAB_HEATER_TOGGLE -> 1x uint8_t -> 1=on, 0=off
         out_msg = MasterMessage()
         out_msg.cmd = MasterMessage.GS_TO_ESP
         out_msg.data = [0x11, 1, 1 if msg.data else 0]
         self.master_pub.publish(out_msg)
 
     def heater_cfg_cb(self, msg: WExLabHeaterCfg):
-        # 0x12 WEXLAB_HEATER_CFG -> 4x uint8_t -> high temp, low temp, PWM main, PWM lid
         high_temp = int(np.clip(msg.thermostat_max, 0, 255))
         low_temp = int(np.clip(msg.thermostat_min, 0, 255))
         pwm_main = int(np.clip(msg.power_main, 0, 100))
@@ -72,26 +73,29 @@ class WExLabDriver(Node):
         self.master_pub.publish(out_msg)
 
     def weight_req_cb(self, msg: Empty):
-        # 0xD0 WEXLAB_SCALE_REQ -> 0 bytes
         out_msg = MasterMessage()
         out_msg.cmd = MasterMessage.GS_TO_ESP
         out_msg.data = [0xD0, 0]
         self.master_pub.publish(out_msg)
 
     def weight_tare_cb(self, msg: Empty):
-        # 0xD2 WEXLAB_SCALE_TARE -> 0 bytes
         out_msg = MasterMessage()
         out_msg.cmd = MasterMessage.GS_TO_ESP
         out_msg.data = [0xD2, 0]
         self.master_pub.publish(out_msg)
 
+    def temperature_req_cb(self, msg: UInt8):
+        out_msg = MasterMessage()
+        out_msg.cmd = MasterMessage.GS_TO_ESP
+        out_msg.data = [0x15, int(msg.data)]
+        self.master_pub.publish(out_msg)
+
     def master_res_cb(self, msg: MasterMessage):
         if len(msg.data) == 0:
             return
-            
+
         cmd = msg.data[0]
         if cmd == 0xD1:
-            # 0xD1 WEXLAB_SCALE_RES -> 1x int32_t -> voltage in mV
             if len(msg.data) < 6:
                 self.get_logger().warn("Received invalid weight response length")
                 return
@@ -110,6 +114,24 @@ class WExLabDriver(Node):
             weight_g = voltage_mv_f * scale + bias
 
             self.weight_res_pub.publish(Float32(data=weight_g))
+
+        if cmd == 0x16:
+            if len(msg.data) < 6:
+                self.get_logger().warn("Received invalid temperature response length")
+                return
+
+            temperature_id = msg.data[2]
+
+            packed_temp = bytes(msg.data[3:5])
+            temperature = struct.unpack("<h", packed_temp)[0] / 100.0
+
+            temperature_error = msg.data[5] > 0
+
+            self.temperature_res_pub.publish(WExLabTemperature(
+                temperature_id=temperature_id,
+                temperature=temperature,
+                temperature_error=temperature_error
+            ))
 
     def update_lid_servo(self):
         out_msg = MasterMessage()

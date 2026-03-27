@@ -1,0 +1,3 @@
+uint8 temperature_id
+float32 temperature
+bool temperature_error

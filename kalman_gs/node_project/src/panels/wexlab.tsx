@@ -136,7 +136,7 @@ type WexlabPanelProps = {
     heaterPowerLid?: number;
     weightTareHistory?: number[];
     servoValue?: number;
-    ledTarget?: 'all' | 0 | 1 | 2;
+    ledTarget?: 'all' | number;
     ledColor?: string;
   };
 };
@@ -149,6 +149,7 @@ type ValueEditorProps = {
   value?: number;
   onValueChange: (value: number) => void;
   onSend: (value: number) => void;
+  onReset?: () => void;
 };
 
 type HeaterCfgKey = 'heaterThermostatMin' | 'heaterThermostatMax' | 'heaterPowerMain' | 'heaterPowerLid';
@@ -236,6 +237,10 @@ export default function Wexlab({ props }: WexlabPanelProps) {
             onSend={(value) => {
               pumpTopic?.publish({ data: value });
             }}
+            onReset={() => {
+              props.pumpValue = 0;
+              pumpTopic?.publish({ data: 0 });
+            }}
           />
         )}
 
@@ -321,7 +326,7 @@ function hexToGrayscaleReversed(hexColor: string): string {
   return brightness > 128 ? '#111111' : '#EEEEEE';
 }
 
-function ValueEditor({ min, max, step = 1, placeholder, value = 0, onValueChange, onSend }: ValueEditorProps) {
+function ValueEditor({ min, max, step = 1, placeholder, value = 0, onValueChange, onSend, onReset }: ValueEditorProps) {
   const [inputValue, setInputValue] = useState(value);
   const inputRef = useRef<Input>(null);
   const skipBlurRef = useRef(false);
@@ -343,6 +348,17 @@ function ValueEditor({ min, max, step = 1, placeholder, value = 0, onValueChange
 
   const shiftValue = (delta: number) => {
     commitValue(inputValue + delta);
+  };
+
+  const resetValue = () => {
+    setInputValue(0);
+    onValueChange(0);
+    inputRef.current?.setValue(0);
+    if (onReset) {
+      onReset();
+      return;
+    }
+    onSend(0);
   };
 
   return (
@@ -383,6 +399,12 @@ function ValueEditor({ min, max, step = 1, placeholder, value = 0, onValueChange
           &nbsp;&nbsp;Send
         </Button>
       </div>
+      <div className={styles['wexlab-row']}>
+        <Button className={styles['wexlab-row-item']} tooltip='Reset value to zero' onClick={resetValue}>
+          <FontAwesomeIcon icon={faArrowRotateRight} />
+          &nbsp;&nbsp;Reset
+        </Button>
+      </div>
     </>
   );
 }
@@ -401,7 +423,7 @@ function LenkaBoxEditor({
   const skipBlurRef = useRef(false);
 
   useEffect(() => {
-    const normalized = normalizeNumber(value, -100, 100, 0);
+    const normalized = normalizeNumber(value, -50, 50, 0);
     setInputValue(normalized);
     inputRef.current?.setValue(normalized);
   }, [value]);
@@ -413,6 +435,14 @@ function LenkaBoxEditor({
     onValueChange(nextValue);
     inputRef.current?.setValue(nextValue);
     onSend(nextValue);
+  };
+
+  const stopValue = () => {
+    skipBlurRef.current = false;
+    setInputValue(0);
+    onValueChange(0);
+    inputRef.current?.setValue(0);
+    onSend(0);
   };
 
   const shiftValue = (delta: number) => {
@@ -481,6 +511,16 @@ function LenkaBoxEditor({
           &nbsp;&nbsp;Send
         </Button>
       </div>
+      <div className={styles['wexlab-row']}>
+        <Button
+          className={styles['wexlab-row-item'] + ' ' + styles['colored-button'] + ' red'}
+          tooltip='Quick stop mechanism'
+          onClick={stopValue}
+        >
+          <FontAwesomeIcon icon={faStop} />
+          &nbsp;&nbsp;Stop
+        </Button>
+      </div>
     </>
   );
 }
@@ -490,6 +530,7 @@ function NumberInputRow({
   inputValue,
   className,
   placeholder,
+  disabled = false,
   onChange,
   onSubmit,
   onBlur,
@@ -500,6 +541,7 @@ function NumberInputRow({
   inputValue: number;
   className?: string;
   placeholder?: string;
+  disabled?: boolean;
   onChange: (text: string) => void;
   onSubmit: (text: string) => void;
   onBlur: () => void;
@@ -508,7 +550,7 @@ function NumberInputRow({
 }) {
   return (
     <div className={styles['wexlab-row']}>
-      <Button className={styles['wexlab-step-button']} tooltip='Decrease value by 1' onClick={onDecrease}>
+      <Button className={styles['wexlab-step-button']} tooltip='Decrease value by 1' onClick={onDecrease} disabled={disabled}>
         <FontAwesomeIcon icon={faMinus} />
       </Button>
       <Input
@@ -517,11 +559,12 @@ function NumberInputRow({
         className={className}
         placeholder={placeholder}
         defaultValue={String(inputValue)}
+        disabled={disabled}
         onChange={onChange}
         onSubmit={onSubmit}
         onBlur={onBlur}
       />
-      <Button className={styles['wexlab-step-button']} tooltip='Increase value by 1' onClick={onIncrease}>
+      <Button className={styles['wexlab-step-button']} tooltip='Increase value by 1' onClick={onIncrease} disabled={disabled}>
         <FontAwesomeIcon icon={faPlus} />
       </Button>
     </div>
@@ -574,6 +617,16 @@ function HeaterPanel({ props }: WexlabPanelProps) {
       skipBlurRef.current[key] = skipBlur;
       publishCfg();
     }
+  };
+
+  const resetHeater = () => {
+    for (const field of HEATER_FIELDS) {
+      props[field.key] = 0;
+      skipBlurRef.current[field.key] = false;
+      fieldRefs[field.key].current?.setValue(0);
+    }
+    publishOnOff(false);
+    publishCfg();
   };
 
   const fieldRefs: Record<HeaterCfgKey, RefObject<Input>> = {
@@ -649,6 +702,12 @@ function HeaterPanel({ props }: WexlabPanelProps) {
           &nbsp;&nbsp;Send
         </Button>
       </div>
+      <div className={styles['wexlab-row']}>
+        <Button className={styles['wexlab-row-item']} tooltip='Reset heater configuration to zero' onClick={resetHeater}>
+          <FontAwesomeIcon icon={faArrowRotateRight} />
+          &nbsp;&nbsp;Reset
+        </Button>
+      </div>
     </>
   );
 }
@@ -701,13 +760,22 @@ function LedPanel({
   onTargetChange,
   onColorChange
 }: {
-  target: 'all' | 0 | 1 | 2;
+  target: 'all' | number;
   color: string;
-  onTargetChange: (target: 'all' | 0 | 1 | 2) => void;
+  onTargetChange: (target: 'all' | number) => void;
   onColorChange: (color: string) => void;
 }) {
+  const targetInputRef = useRef<Input>(null);
   const colorInputRef = useRef<Input>(null);
+  const skipTargetBlurRef = useRef(false);
+  const [targetInputValue, setTargetInputValue] = useState(target === 'all' ? 0 : normalizeNumber(target, 0, 59, 0));
   const [colorInputValue, setColorInputValue] = useState(color.replace('#', ''));
+
+  useEffect(() => {
+    const normalizedTarget = target === 'all' ? 0 : normalizeNumber(target, 0, 59, 0);
+    setTargetInputValue(normalizedTarget);
+    targetInputRef.current?.setValue(normalizedTarget);
+  }, [target]);
 
   useEffect(() => {
     colorInputRef.current?.setValue(color.replace('#', ''));
@@ -723,9 +791,21 @@ function LedPanel({
     }
 
     ledSingleTopic?.publish({
-      led_id: target,
+      led_id: normalizeNumber(target, 0, 59, 0),
       color: colorObject
     });
+  };
+
+  const commitTargetValue = (rawValue?: unknown, skipBlur = false) => {
+    const nextValue = normalizeNumber(rawValue ?? targetInputRef.current?.getValue(), 0, 59, targetInputValue);
+    skipTargetBlurRef.current = skipBlur;
+    setTargetInputValue(nextValue);
+    onTargetChange(nextValue);
+    targetInputRef.current?.setValue(nextValue);
+  };
+
+  const shiftTargetValue = (delta: number) => {
+    commitTargetValue(targetInputValue + delta);
   };
 
   const handleHexColorInput = (value: string) => {
@@ -743,23 +823,51 @@ function LedPanel({
     }
   };
 
-  const ledOptions: Array<'all' | 0 | 1 | 2> = ['all', 0, 1, 2];
-
   return (
     <>
       <div className={styles['wexlab-row']}>
-        {ledOptions.map((option) => (
-          <Button
-            key={option}
-            className={styles['wexlab-row-item']}
-            tooltip={`Select LED target ${option}`}
-            disabled={target === option}
-            onClick={() => onTargetChange(option)}
-          >
-            {option === 'all' ? 'All' : option}
-          </Button>
-        ))}
+        <Button
+          className={styles['wexlab-row-item']}
+          tooltip='Select all LEDs'
+          disabled={target === 'all'}
+          onClick={() => onTargetChange('all')}
+        >
+          All
+        </Button>
+        <Button
+          className={styles['wexlab-row-item']}
+          tooltip='Select single LED'
+          disabled={target !== 'all'}
+          onClick={() => onTargetChange(targetInputValue)}
+        >
+          Single
+        </Button>
       </div>
+
+      <NumberInputRow
+        inputRef={targetInputRef}
+        inputValue={targetInputValue}
+        className={styles['wexlab-input']}
+        placeholder='LED ID'
+        onChange={(text) => {
+          const nextValue = normalizeNumber(text, 0, 59, targetInputValue);
+          setTargetInputValue(nextValue);
+          onTargetChange(nextValue);
+        }}
+        onSubmit={(text) => {
+          commitTargetValue(text, true);
+        }}
+        onBlur={() => {
+          if (skipTargetBlurRef.current) {
+            skipTargetBlurRef.current = false;
+            return;
+          }
+          commitTargetValue();
+        }}
+        onDecrease={() => shiftTargetValue(-1)}
+        onIncrease={() => shiftTargetValue(1)}
+        disabled={target === 'all'}
+      />
 
       <div className={styles['wexlab-row']}>
         <HexColorPicker

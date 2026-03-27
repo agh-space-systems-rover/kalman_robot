@@ -31,6 +31,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/WExLabHeaterCfg.msg"
   "msg/WExLabLedAll.msg"
   "msg/WExLabLedSingle.msg"
+  "msg/WExLabTemperature.msg"
   "msg/WheelState.msg"
   "msg/WheelStates.msg"
   "msg/WheelTemperature.msg"
