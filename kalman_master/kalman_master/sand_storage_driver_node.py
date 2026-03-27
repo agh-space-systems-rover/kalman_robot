@@ -4,6 +4,8 @@ import numpy as np
 from kalman_interfaces.msg import MasterMessage
 from std_msgs.msg import Float32
 
+VALUE_LIMIT = 50
+
 class SandStorageDriver(Node):
     def __init__(self):
         super().__init__("sand_storage_driver")
@@ -21,7 +23,7 @@ class SandStorageDriver(Node):
         # 0-100 prędkość
         # 0 lub 1 kierunek
 
-        val = np.clip(msg.data, -1, 1) * 100.0
+        val = np.clip(msg.data, -VALUE_LIMIT, VALUE_LIMIT)
 
         if val < 0:
             direction = 0
