@@ -931,6 +931,7 @@ function WeightPanel({
   const [weight, setWeight] = useState<number | null>(null);
   const [rerenderCount, setRerenderCount] = useState(0);
   const [isPending, setIsPending] = useState(false);
+  const requestTimeoutRef = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     const update = () => {
@@ -949,14 +950,33 @@ function WeightPanel({
     const cb = (msg: { data: number }) => {
       setWeight(msg.data);
       setIsPending(false);
+      if (requestTimeoutRef.current !== undefined) {
+        window.clearTimeout(requestTimeoutRef.current);
+        requestTimeoutRef.current = undefined;
+      }
     };
 
     weightResTopic.subscribe(cb);
     return () => weightResTopic?.unsubscribe(cb);
   }, [rerenderCount]);
 
+  useEffect(() => {
+    return () => {
+      if (requestTimeoutRef.current !== undefined) {
+        window.clearTimeout(requestTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const requestWeight = () => {
     setIsPending(true);
+    if (requestTimeoutRef.current !== undefined) {
+      window.clearTimeout(requestTimeoutRef.current);
+    }
+    requestTimeoutRef.current = window.setTimeout(() => {
+      setIsPending(false);
+      requestTimeoutRef.current = undefined;
+    }, 3000);
     weightReqTopic?.publish({});
   };
 
@@ -1060,6 +1080,7 @@ function TemperaturePanel() {
     }))
   );
   const [pendingIds, setPendingIds] = useState<number[]>([]);
+  const requestTimeoutsRef = useRef<Record<number, number | undefined>>({});
 
   useEffect(() => {
     const update = () => {
@@ -1098,14 +1119,37 @@ function TemperaturePanel() {
         )
       );
       setPendingIds((current) => current.filter((id) => id !== temperatureId));
+      const timeoutId = requestTimeoutsRef.current[temperatureId];
+      if (timeoutId !== undefined) {
+        window.clearTimeout(timeoutId);
+        requestTimeoutsRef.current[temperatureId] = undefined;
+      }
     };
 
     temperatureResTopic.subscribe(cb);
     return () => temperatureResTopic?.unsubscribe(cb);
   }, [rerenderCount]);
 
+  useEffect(() => {
+    return () => {
+      for (const timeoutId of Object.values(requestTimeoutsRef.current)) {
+        if (timeoutId !== undefined) {
+          window.clearTimeout(timeoutId);
+        }
+      }
+    };
+  }, []);
+
   const requestTemperature = (temperatureId: number) => {
     setPendingIds((current) => (current.includes(temperatureId) ? current : [...current, temperatureId]));
+    const previousTimeoutId = requestTimeoutsRef.current[temperatureId];
+    if (previousTimeoutId !== undefined) {
+      window.clearTimeout(previousTimeoutId);
+    }
+    requestTimeoutsRef.current[temperatureId] = window.setTimeout(() => {
+      setPendingIds((current) => current.filter((id) => id !== temperatureId));
+      requestTimeoutsRef.current[temperatureId] = undefined;
+    }, 3000);
     temperatureReqTopic?.publish({ data: temperatureId });
   };
 
