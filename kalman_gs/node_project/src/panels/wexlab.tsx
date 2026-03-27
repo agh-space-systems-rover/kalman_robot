@@ -155,14 +155,15 @@ type HeaterCfgKey = 'heaterThermostatMin' | 'heaterThermostatMax' | 'heaterPower
 
 type HeaterField = {
   key: HeaterCfgKey;
+  label: string;
   placeholder: string;
 };
 
 const HEATER_FIELDS: HeaterField[] = [
-  { key: 'heaterThermostatMin', placeholder: 'Thermostat Min' },
-  { key: 'heaterThermostatMax', placeholder: 'Thermostat Max' },
-  { key: 'heaterPowerMain', placeholder: 'Power Main' },
-  { key: 'heaterPowerLid', placeholder: 'Power Lid' }
+  { key: 'heaterThermostatMin', label: 'Low Temp', placeholder: 'Thermostat Min' },
+  { key: 'heaterThermostatMax', label: 'High Temp', placeholder: 'Thermostat Max' },
+  { key: 'heaterPowerMain', label: 'Main PWM', placeholder: 'Power Main' },
+  { key: 'heaterPowerLid', label: 'Lid PWM', placeholder: 'Power Lid' }
 ];
 
 function clamp(value: number, min: number, max: number) {
@@ -604,40 +605,42 @@ function HeaterPanel({ props }: WexlabPanelProps) {
       </div>
 
       {HEATER_FIELDS.map((field) => (
-        <NumberInputRow
-          key={field.key}
-          inputRef={fieldRefs[field.key]}
-          inputValue={normalizeNumber(props[field.key], 0, 100, 0)}
-          className={styles['wexlab-input']}
-          placeholder={field.placeholder}
-          onChange={(text) => {
-            setFieldValue(field.key, normalizeNumber(text, 0, 100, props[field.key] ?? 0));
-          }}
-          onSubmit={(text) => {
-            const nextValue = normalizeNumber(text, 0, 100, props[field.key] ?? 0);
-            fieldRefs[field.key].current?.setValue(nextValue);
-            setFieldValue(field.key, nextValue, true, true);
-          }}
-          onBlur={() => {
-            if (skipBlurRef.current[field.key]) {
-              skipBlurRef.current[field.key] = false;
-              return;
-            }
-            const nextValue = normalizeNumber(fieldRefs[field.key].current?.getValue(), 0, 100, props[field.key] ?? 0);
-            fieldRefs[field.key].current?.setValue(nextValue);
-            setFieldValue(field.key, nextValue, true);
-          }}
-          onDecrease={() => {
-            const nextValue = normalizeNumber((props[field.key] ?? 0) - 1, 0, 100, 0);
-            fieldRefs[field.key].current?.setValue(nextValue);
-            setFieldValue(field.key, nextValue, true);
-          }}
-          onIncrease={() => {
-            const nextValue = normalizeNumber((props[field.key] ?? 0) + 1, 0, 100, 0);
-            fieldRefs[field.key].current?.setValue(nextValue);
-            setFieldValue(field.key, nextValue, true);
-          }}
-        />
+        <div key={field.key}>
+          <div className={styles['wexlab-field-header']}>{field.label}</div>
+          <NumberInputRow
+            inputRef={fieldRefs[field.key]}
+            inputValue={normalizeNumber(props[field.key], 0, 100, 0)}
+            className={styles['wexlab-input']}
+            placeholder={field.placeholder}
+            onChange={(text) => {
+              setFieldValue(field.key, normalizeNumber(text, 0, 100, props[field.key] ?? 0));
+            }}
+            onSubmit={(text) => {
+              const nextValue = normalizeNumber(text, 0, 100, props[field.key] ?? 0);
+              fieldRefs[field.key].current?.setValue(nextValue);
+              setFieldValue(field.key, nextValue, true, true);
+            }}
+            onBlur={() => {
+              if (skipBlurRef.current[field.key]) {
+                skipBlurRef.current[field.key] = false;
+                return;
+              }
+              const nextValue = normalizeNumber(fieldRefs[field.key].current?.getValue(), 0, 100, props[field.key] ?? 0);
+              fieldRefs[field.key].current?.setValue(nextValue);
+              setFieldValue(field.key, nextValue, true);
+            }}
+            onDecrease={() => {
+              const nextValue = normalizeNumber((props[field.key] ?? 0) - 1, 0, 100, 0);
+              fieldRefs[field.key].current?.setValue(nextValue);
+              setFieldValue(field.key, nextValue, true);
+            }}
+            onIncrease={() => {
+              const nextValue = normalizeNumber((props[field.key] ?? 0) + 1, 0, 100, 0);
+              fieldRefs[field.key].current?.setValue(nextValue);
+              setFieldValue(field.key, nextValue, true);
+            }}
+          />
+        </div>
       ))}
 
       <div className={styles['wexlab-row']}>

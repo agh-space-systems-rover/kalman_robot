@@ -45,6 +45,14 @@
   flex: 0 0 auto;
 }
 
+.wexlab-field-header {
+  text-align: center;
+  color: var(--foreground);
+  font-size: 0.8rem;
+  font-weight: 600;
+  user-select: none;
+}
+
 .wexlab-color-picker {
   margin: 10px 5px;
 }

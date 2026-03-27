@@ -36,8 +36,8 @@ class WExLabDriver(Node):
         self.lid_open_sub = self.create_subscription(Float32, "wexlab/lid/open_cmd", self.lid_open_cb, 10)
         self.lid_toggle_sub = self.create_subscription(Bool, "wexlab/lid/on_off", self.lid_toggle_cb, 10)
 
-        self.lid_open_sub = self.create_subscription(WExLabLedAll, "wexlab/led/all", self.lid_open_cb, 10)
-        self.lid_toggle_sub = self.create_subscription(WExLabLedSingle, "wexlab/led/single", self.lid_toggle_cb, 10)
+        self.lid_open_sub = self.create_subscription(WExLabLedAll, "wexlab/led/all", self.led_all_cb, 10)
+        self.lid_toggle_sub = self.create_subscription(WExLabLedSingle, "wexlab/led/single", self.led_single_cb, 10)
 
         # Track lid state to reconstruct commands
         self.lid_is_on = False
