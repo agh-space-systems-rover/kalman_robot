@@ -1,7 +1,7 @@
 import styles from './wexlab.module.css';
 
 import { ros } from '../common/ros';
-import { ColorRGBA, WExLabHeaterCfg, WExLabLedAll, WExLabLedSingle } from '../common/ros-interfaces';
+import { ColorRGBA, WExLabHeaterCfg, WExLabLedAll, WExLabLedSingle, WExLabTemperature } from '../common/ros-interfaces';
 import {
   faBoxArchive,
   faFire,
@@ -20,7 +20,8 @@ import {
   faBan,
   faTrash,
   faLightbulb,
-  faHashtag
+  faHashtag,
+  faTemperatureThreeQuarters
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { RefObject, useEffect, useRef, useState } from 'react';
@@ -37,6 +38,7 @@ const WEXLAB_OPTIONS = [
   { name: 'Pump', value: 'pump', icon: faDroplet },
   { name: 'Heater', value: 'heater', icon: faFire },
   { name: 'Weight', value: 'weight', icon: faScaleBalanced },
+  { name: 'Temperature', value: 'temperature', icon: faTemperatureThreeQuarters },
   { name: 'Servo', value: 'servo', icon: faBoxOpen },
   { name: 'LED', value: 'led', icon: faLightbulb }
 ] as const;
@@ -50,6 +52,8 @@ let heaterCfgTopic: Topic<WExLabHeaterCfg> | undefined;
 let weightReqTopic: Topic<Record<string, never>> | undefined;
 let weightTareTopic: Topic<Record<string, never>> | undefined;
 let weightResTopic: Topic<{ data: number }> | undefined;
+let temperatureReqTopic: Topic<{ data: number }> | undefined;
+let temperatureResTopic: Topic<WExLabTemperature> | undefined;
 let servoOpenTopic: Topic<{ data: number }> | undefined;
 let servoOnOffTopic: Topic<{ data: boolean }> | undefined;
 let ledAllTopic: Topic<WExLabLedAll> | undefined;
@@ -96,6 +100,18 @@ window.addEventListener('ros-connect', () => {
     ros,
     name: '/wexlab/weight/res',
     messageType: 'std_msgs/Float32'
+  });
+
+  temperatureReqTopic = new Topic({
+    ros,
+    name: '/wexlab/temperature/req',
+    messageType: 'std_msgs/UInt8'
+  });
+
+  temperatureResTopic = new Topic({
+    ros,
+    name: '/wexlab/temperature/res',
+    messageType: 'kalman_interfaces/WExLabTemperature'
   });
 
   servoOpenTopic = new Topic({
@@ -254,6 +270,7 @@ export default function Wexlab({ props }: WexlabPanelProps) {
             }}
           />
         )}
+        {selectedSection === 'temperature' && <TemperaturePanel />}
         {selectedSection === 'servo' && (
           <ServoPanel
             value={props.servoValue}
@@ -525,6 +542,19 @@ function LenkaBoxEditor({
   );
 }
 
+type NumberInputRowProps = {
+  inputRef: RefObject<Input>;
+  inputValue: number;
+  className?: string;
+  placeholder?: string;
+  disabled?: boolean;
+  onChange: (text: string) => void;
+  onSubmit: (text: string) => void;
+  onBlur: () => void;
+  onDecrease: () => void;
+  onIncrease: () => void;
+};
+
 function NumberInputRow({
   inputRef,
   inputValue,
@@ -536,18 +566,7 @@ function NumberInputRow({
   onBlur,
   onDecrease,
   onIncrease
-}: {
-  inputRef: RefObject<Input>;
-  inputValue: number;
-  className?: string;
-  placeholder?: string;
-  disabled?: boolean;
-  onChange: (text: string) => void;
-  onSubmit: (text: string) => void;
-  onBlur: () => void;
-  onDecrease: () => void;
-  onIncrease: () => void;
-}) {
+}: NumberInputRowProps) {
   return (
     <div className={styles['wexlab-row']}>
       <Button className={styles['wexlab-step-button']} tooltip='Decrease value by 1' onClick={onDecrease} disabled={disabled}>
@@ -827,17 +846,15 @@ function LedPanel({
     <>
       <div className={styles['wexlab-row']}>
         <Button
-          className={styles['wexlab-row-item']}
+          className={`${styles['wexlab-row-item']} ${target === 'all' ? styles['wexlab-toggle-active'] : styles['wexlab-toggle-inactive']}`}
           tooltip='Select all LEDs'
-          disabled={target === 'all'}
           onClick={() => onTargetChange('all')}
         >
           All
         </Button>
         <Button
-          className={styles['wexlab-row-item']}
+          className={`${styles['wexlab-row-item']} ${target !== 'all' ? styles['wexlab-toggle-active'] : styles['wexlab-toggle-inactive']}`}
           tooltip='Select single LED'
-          disabled={target !== 'all'}
           onClick={() => onTargetChange(targetInputValue)}
         >
           Single
@@ -913,6 +930,7 @@ function WeightPanel({
 }) {
   const [weight, setWeight] = useState<number | null>(null);
   const [rerenderCount, setRerenderCount] = useState(0);
+  const [isPending, setIsPending] = useState(false);
 
   useEffect(() => {
     const update = () => {
@@ -930,6 +948,7 @@ function WeightPanel({
 
     const cb = (msg: { data: number }) => {
       setWeight(msg.data);
+      setIsPending(false);
     };
 
     weightResTopic.subscribe(cb);
@@ -937,6 +956,7 @@ function WeightPanel({
   }, [rerenderCount]);
 
   const requestWeight = () => {
+    setIsPending(true);
     weightReqTopic?.publish({});
   };
 
@@ -967,10 +987,10 @@ function WeightPanel({
           <FontAwesomeIcon icon={faWeightHanging} />
         </Label>
         <Label color={darkBg} className={styles['wexlab-row-item'] + ' ' + styles['wexlab-selectable']}>
-          {displayWeight !== null ? `${displayWeight.toFixed(2)} g` : '--- g'}
+          {displayWeight !== null ? `${displayWeight.toFixed(2)} g` : '---'}
         </Label>
         <Button tooltip='Request weight measurement' onClick={requestWeight}>
-          <FontAwesomeIcon icon={faArrowRotateRight} />
+          <FontAwesomeIcon className={isPending ? styles['wexlab-loading-icon'] : undefined} icon={faArrowRotateRight} />
         </Button>
         <Button tooltip='Tare weight' onClick={tareWeight} disabled={weight === null}>
           <FontAwesomeIcon icon={faScaleBalanced} />
@@ -1011,6 +1031,112 @@ function WeightPanel({
           </Button>
         </div>
       )}
+    </>
+  );
+}
+
+type TemperatureStatus = 'idle' | 'ok' | 'error';
+
+type TemperatureReading = {
+  id: number;
+  label: string;
+  value: number | null;
+  status: TemperatureStatus;
+};
+
+const TEMPERATURE_FIELDS: Array<Pick<TemperatureReading, 'id' | 'label'>> = [
+  { id: 0, label: 'Main Heater' },
+  { id: 1, label: 'Chamber Temperature' },
+  { id: 2, label: 'Auxiliary Measurement' }
+];
+
+function TemperaturePanel() {
+  const [rerenderCount, setRerenderCount] = useState(0);
+  const [readings, setReadings] = useState<TemperatureReading[]>(
+    TEMPERATURE_FIELDS.map((field) => ({
+      ...field,
+      value: null,
+      status: 'idle'
+    }))
+  );
+  const [pendingIds, setPendingIds] = useState<number[]>([]);
+
+  useEffect(() => {
+    const update = () => {
+      setRerenderCount((count) => count + 1);
+    };
+    window.addEventListener('wexlab-subscribed', update);
+    return () => {
+      window.removeEventListener('wexlab-subscribed', update);
+    };
+  }, []);
+
+  useEffect(() => {
+    setReadings(
+      TEMPERATURE_FIELDS.map((field) => ({
+        ...field,
+        value: null,
+        status: 'idle'
+      }))
+    );
+
+    if (!temperatureResTopic) return;
+
+    const cb = (msg: WExLabTemperature) => {
+      const temperatureId = typeof msg.temperature_id === 'number' ? msg.temperature_id : -1;
+      if (!TEMPERATURE_FIELDS.some((field) => field.id === temperatureId)) return;
+
+      setReadings((current) =>
+        current.map((reading) =>
+          reading.id === temperatureId
+            ? {
+                ...reading,
+                value: typeof msg.temperature === 'number' ? msg.temperature : null,
+                status: msg.temperature_error ? 'error' : 'ok'
+              }
+            : reading
+        )
+      );
+      setPendingIds((current) => current.filter((id) => id !== temperatureId));
+    };
+
+    temperatureResTopic.subscribe(cb);
+    return () => temperatureResTopic?.unsubscribe(cb);
+  }, [rerenderCount]);
+
+  const requestTemperature = (temperatureId: number) => {
+    setPendingIds((current) => (current.includes(temperatureId) ? current : [...current, temperatureId]));
+    temperatureReqTopic?.publish({ data: temperatureId });
+  };
+
+  return (
+    <>
+      {readings.map((reading) => {
+        const isPending = pendingIds.includes(reading.id);
+        const statusClass =
+          reading.status === 'error'
+            ? styles['wexlab-status-error']
+            : reading.status === 'ok'
+              ? styles['wexlab-status-ok']
+              : styles['wexlab-status-idle'];
+
+        return (
+          <div key={reading.id}>
+            <div className={styles['wexlab-field-header']}>{reading.label}</div>
+            <div className={styles['wexlab-row']}>
+              <Label className={`${styles['wexlab-status-label']} ${statusClass}`}>
+                <FontAwesomeIcon icon={faTemperatureThreeQuarters} />
+              </Label>
+              <Label color='var(--dark-background)' className={`${styles['wexlab-selectable']} ${styles['wexlab-temperature-value']}`}>
+                {reading.value !== null ? `${reading.value.toFixed(2)} °C` : '---'}
+              </Label>
+              <Button tooltip={`Request temperature`} onClick={() => requestTemperature(reading.id)}>
+                <FontAwesomeIcon className={isPending ? styles['wexlab-loading-icon'] : undefined} icon={faArrowRotateRight} />
+              </Button>
+            </div>
+          </div>
+        );
+      })}
     </>
   );
 }

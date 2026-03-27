@@ -53,6 +53,64 @@
   user-select: none;
 }
 
+.wexlab-toggle-active {
+  background-color: var(--interactive) !important;
+  font-weight: 600;
+}
+
+.wexlab-toggle-active:hover {
+  background-color: var(--active) !important;
+}
+
+.wexlab-toggle-inactive {
+  background-color: var(--dark-active) !important;
+}
+
+.wexlab-toggle-inactive:hover {
+  background-color: var(--dark-active) !important;
+}
+
+.wexlab-status-label {
+  transition: background-color 0.2s ease;
+}
+
+.wexlab-loading-icon {
+  animation: wexlab-spin 1s linear infinite;
+}
+
+.wexlab-status-idle {
+  background-color: var(--dark-background) !important;
+}
+
+.wexlab-status-ok {
+  background-color: var(--green-background) !important;
+}
+
+.wexlab-status-error {
+  background-color: var(--red-background) !important;
+  animation: blinker 1s linear infinite;
+}
+
+.wexlab-temperature-value {
+  flex: 1;
+}
+
+@keyframes blinker {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@keyframes wexlab-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .wexlab-color-picker {
   margin: 10px 5px;
 }

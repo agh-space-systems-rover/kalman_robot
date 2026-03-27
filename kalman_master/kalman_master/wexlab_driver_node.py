@@ -34,8 +34,7 @@ class WExLabDriver(Node):
         self.weight_tare_pub = self.create_subscription(Empty, "wexlab/weight/tare", self.weight_tare_cb, 10)
         self.weight_res_pub = self.create_publisher(Float32, "wexlab/weight/res", 10)
 
-        self.temperature_req_sub = self.create_subscription(UInt8, "wexlab/temperature/req", self.temperature_req_cb,
-                                                            10)
+        self.temperature_req_sub = self.create_subscription(UInt8, "wexlab/temperature/req", self.temperature_req_cb, 10)
         self.temperature_res_pub = self.create_publisher(WExLabTemperature, "wexlab/temperature/res", 10)
 
         self.lid_open_sub = self.create_subscription(Float32, "wexlab/lid/open_cmd", self.lid_open_cb, 10)

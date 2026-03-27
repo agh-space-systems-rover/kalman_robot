@@ -242,6 +242,12 @@ export type WExLabHeaterCfg = {
   power_lid?: number;
 };
 
+export type WExLabTemperature = {
+  temperature_id?: number;
+  temperature?: number;
+  temperature_error?: boolean;
+};
+
 export type WExLabLedAll = {
   color?: ColorRGBA;
 };
