@@ -20,12 +20,13 @@ class WExLabDriver(Node):
 
         self.master_sub = self.create_subscription(
             MasterMessage,
-            f"master_com/master_to_ros/{hex(MasterMessage.WEXLAB_SCALE_RES)[1:]}",
+            f"master_com/master_to_ros/{hex(MasterMessage.ESP_TO_GS)[1:]}",
             self.master_res_cb,
             10,
         )
 
         self.pump_sub = self.create_subscription(Float32, "wexlab/pump/rate_cmd", self.pump_rate_cb, 10)
+
         self.heater_toggle_sub = self.create_subscription(Bool, "wexlab/heater/on_off", self.heater_toggle_cb, 10)
         self.heater_cfg_sub = self.create_subscription(WExLabHeaterCfg, "wexlab/heater/cfg", self.heater_cfg_cb, 10)
 
@@ -36,8 +37,8 @@ class WExLabDriver(Node):
         self.lid_open_sub = self.create_subscription(Float32, "wexlab/lid/open_cmd", self.lid_open_cb, 10)
         self.lid_toggle_sub = self.create_subscription(Bool, "wexlab/lid/on_off", self.lid_toggle_cb, 10)
 
-        self.lid_open_sub = self.create_subscription(WExLabLedAll, "wexlab/led/all", self.led_all_cb, 10)
-        self.lid_toggle_sub = self.create_subscription(WExLabLedSingle, "wexlab/led/single", self.led_single_cb, 10)
+        self.led_all_sub = self.create_subscription(WExLabLedAll, "wexlab/led/all", self.led_all_cb, 10)
+        self.led_single_sub = self.create_subscription(WExLabLedSingle, "wexlab/led/single", self.led_single_cb, 10)
 
         # Track lid state to reconstruct commands
         self.lid_is_on = False
@@ -47,15 +48,15 @@ class WExLabDriver(Node):
         # 0x10 WEXLAB_MOSFET -> 2x uint8_t -> channel(1 for pump), PWM(0-100)
         pwm = int(np.clip(msg.data, 0, 100))
         out_msg = MasterMessage()
-        out_msg.cmd = MasterMessage.WEXLAB_MOSFET
-        out_msg.data = [1, pwm]
+        out_msg.cmd = MasterMessage.GS_TO_ESP
+        out_msg.data = [0x10, 2, 1, pwm]
         self.master_pub.publish(out_msg)
 
     def heater_toggle_cb(self, msg: Bool):
         # 0x11 WEXLAB_HEATER_TOGGLE -> 1x uint8_t -> 1=on, 0=off
         out_msg = MasterMessage()
-        out_msg.cmd = MasterMessage.WEXLAB_HEATER_TOGGLE
-        out_msg.data = [1 if msg.data else 0]
+        out_msg.cmd = MasterMessage.GS_TO_ESP
+        out_msg.data = [0x11, 1, 1 if msg.data else 0]
         self.master_pub.publish(out_msg)
 
     def heater_cfg_cb(self, msg: WExLabHeaterCfg):
@@ -66,55 +67,60 @@ class WExLabDriver(Node):
         pwm_lid = int(np.clip(msg.power_lid, 0, 100))
 
         out_msg = MasterMessage()
-        out_msg.cmd = MasterMessage.WEXLAB_HEATER_CFG
-        out_msg.data = [high_temp, low_temp, pwm_main, pwm_lid]
+        out_msg.cmd = MasterMessage.GS_TO_ESP
+        out_msg.data = [0x12, 4, high_temp, low_temp, pwm_main, pwm_lid]
         self.master_pub.publish(out_msg)
 
     def weight_req_cb(self, msg: Empty):
         # 0xD0 WEXLAB_SCALE_REQ -> 0 bytes
         out_msg = MasterMessage()
-        out_msg.cmd = MasterMessage.WEXLAB_SCALE_REQ
-        out_msg.data = []
+        out_msg.cmd = MasterMessage.GS_TO_ESP
+        out_msg.data = [0xD0, 0]
         self.master_pub.publish(out_msg)
 
     def weight_tare_cb(self, msg: Empty):
-        # 0xD1 WEXLAB_SCALE_TARE -> 0 bytes
+        # 0xD2 WEXLAB_SCALE_TARE -> 0 bytes
         out_msg = MasterMessage()
-        out_msg.cmd = MasterMessage.WEXLAB_SCALE_TARE
-        out_msg.data = []
+        out_msg.cmd = MasterMessage.GS_TO_ESP
+        out_msg.data = [0xD2, 0]
         self.master_pub.publish(out_msg)
 
     def master_res_cb(self, msg: MasterMessage):
-        # 0xD1 WEXLAB_SCALE_RES -> 1x int32_t -> voltage in mV
-        if len(msg.data) < 4:
-            self.get_logger().warn("Received invalid weight response length")
+        if len(msg.data) == 0:
             return
+            
+        cmd = msg.data[0]
+        if cmd == 0xD1:
+            # 0xD1 WEXLAB_SCALE_RES -> 1x int32_t -> voltage in mV
+            if len(msg.data) < 6:
+                self.get_logger().warn("Received invalid weight response length")
+                return
 
-        packed_data = bytes(msg.data[:4])
-        voltage_mv = struct.unpack("<i", packed_data)[0]
+            packed_data = bytes(msg.data[2:6])
+            voltage_mv = struct.unpack("<i", packed_data)[0]
 
-        # Convert to float
-        voltage_mv_f = float(voltage_mv)
+            # Convert to float
+            voltage_mv_f = float(voltage_mv)
 
-        # Read calibration params
-        scale = self.get_parameter("weight_scale").value
-        bias = self.get_parameter("weight_bias").value
+            # Read calibration params
+            scale = self.get_parameter("weight_scale").value
+            bias = self.get_parameter("weight_bias").value
 
-        # Calculate weight in grams
-        weight_g = voltage_mv_f * scale + bias
+            # Calculate weight in grams
+            weight_g = voltage_mv_f * scale + bias
 
-        self.weight_res_pub.publish(Float32(data=weight_g))
+            self.weight_res_pub.publish(Float32(data=weight_g))
 
     def update_lid_servo(self):
         out_msg = MasterMessage()
-        out_msg.cmd = MasterMessage.WEXLAB_SERVO_PCT
+        out_msg.cmd = MasterMessage.GS_TO_ESP
 
         if not self.lid_is_on:
             # Over 100 turns off the servo
-            out_msg.data = [255]
+            out_msg.data = [0x13, 1, 255]
         else:
             pwm = int(np.clip(self.lid_open_pct, 0, 100))
-            out_msg.data = [pwm]
+            out_msg.data = [0x13, 1, pwm]
 
         self.master_pub.publish(out_msg)
 
@@ -129,8 +135,10 @@ class WExLabDriver(Node):
 
     def led_all_cb(self, msg: WExLabLedAll):
         out_msg = MasterMessage()
-        out_msg.cmd = MasterMessage.WEXLAB_SERVO_PCT
+        out_msg.cmd = MasterMessage.GS_TO_ESP
         out_msg.data = [
+            0x20,
+            3,
             int(msg.color.r * 255),
             int(msg.color.g * 255),
             int(msg.color.b * 255)
@@ -139,8 +147,10 @@ class WExLabDriver(Node):
 
     def led_single_cb(self, msg: WExLabLedSingle):
         out_msg = MasterMessage()
-        out_msg.cmd = MasterMessage.WEXLAB_SERVO_PCT
+        out_msg.cmd = MasterMessage.GS_TO_ESP
         out_msg.data = [
+            0x21,
+            4,
             int(msg.led_id),
             int(msg.color.r * 255),
             int(msg.color.g * 255),
