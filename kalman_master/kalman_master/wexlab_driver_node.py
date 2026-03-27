@@ -86,7 +86,7 @@ class WExLabDriver(Node):
     def temperature_req_cb(self, msg: UInt8):
         out_msg = MasterMessage()
         out_msg.cmd = MasterMessage.GS_TO_ESP
-        out_msg.data = [0x15, int(msg.data)]
+        out_msg.data = [0x15, 1, int(msg.data)]
         self.master_pub.publish(out_msg)
 
     def master_res_cb(self, msg: MasterMessage):
@@ -101,6 +101,10 @@ class WExLabDriver(Node):
 
             packed_data = bytes(msg.data[2:6])
             voltage_mv = struct.unpack("<i", packed_data)[0]
+
+            self.get_logger().info(f"data = {list(msg.data)}")
+            self.get_logger().info(f"data = {list(msg.data[2:6])}")
+            self.get_logger().info(f"int = {struct.unpack('<i', packed_data)[0]}")
 
             # Convert to float
             voltage_mv_f = float(voltage_mv)
@@ -120,11 +124,10 @@ class WExLabDriver(Node):
                 return
 
             temperature_id = msg.data[2]
+            temperature_error = msg.data[3] > 0
 
-            packed_temp = bytes(msg.data[3:5])
+            packed_temp = bytes(msg.data[4:6])
             temperature = struct.unpack("<h", packed_temp)[0] / 100.0
-
-            temperature_error = msg.data[5] > 0
 
             self.temperature_res_pub.publish(WExLabTemperature(
                 temperature_id=temperature_id,

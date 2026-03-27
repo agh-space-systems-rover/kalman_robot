@@ -993,8 +993,7 @@ function WeightPanel({
     onTareHistoryChange([]);
   };
 
-  const tareOffset = tareHistory.reduce((sum, value) => sum + value, 0);
-  const displayWeight = weight !== null ? weight - tareOffset : null;
+  const displayWeight = weight !== null ? weight : null;
 
   const style = getComputedStyle(document.body);
   const greenBg = style.getPropertyValue('--green-background');
