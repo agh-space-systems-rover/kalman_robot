@@ -102,10 +102,6 @@ class WExLabDriver(Node):
             packed_data = bytes(msg.data[2:6])
             voltage_mv = struct.unpack("<i", packed_data)[0]
 
-            self.get_logger().info(f"data = {list(msg.data)}")
-            self.get_logger().info(f"data = {list(msg.data[2:6])}")
-            self.get_logger().info(f"int = {struct.unpack('<i', packed_data)[0]}")
-
             # Convert to float
             voltage_mv_f = float(voltage_mv)
 

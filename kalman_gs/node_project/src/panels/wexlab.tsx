@@ -1,5 +1,6 @@
 import styles from './wexlab.module.css';
 
+import { modalRef } from '../common/refs';
 import { ros } from '../common/ros';
 import { ColorRGBA, WExLabHeaterCfg, WExLabLedAll, WExLabLedSingle, WExLabTemperature } from '../common/ros-interfaces';
 import {
@@ -1040,9 +1041,14 @@ function WeightPanel({
             className={styles['wexlab-row-item']}
             tooltip='Clear all tare history'
             onClick={() => {
-              if (window.confirm('Are you sure you want to clear all tare history?')) {
-                clearTareHistory();
-              }
+              modalRef.current?.showConfirm({
+                title: 'Clear tare history',
+                icon: faTrash,
+                message: 'Are you sure you want to clear all tare history?',
+                confirmText: 'Clear',
+                cancelText: 'Cancel',
+                onConfirm: clearTareHistory
+              });
             }}
           >
             <FontAwesomeIcon icon={faTrash} />

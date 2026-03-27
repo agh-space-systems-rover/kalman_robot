@@ -1,7 +1,7 @@
 import styles from './waypoints.module.css';
 
 import { mapMarker, setMapMarkerLatLon } from '../common/map-marker';
-import { alertsRef } from '../common/refs';
+import { alertsRef, modalRef } from '../common/refs';
 import {
   addWaypoint,
   exportWaypointsAsText,
@@ -135,11 +135,17 @@ export default function Waypoints() {
                 <Button
                   tooltip='Remove waypoint'
                   onClick={() => {
-                    // Ask for confirmation before removing the waypoint.
-                    if (window.confirm(`Are you sure you want to remove "${waypoint.name}"?`)) {
-                      removeWaypoint(waypoint);
-                      setRerenderCount(rerenderCount + 1);
-                    }
+                    modalRef.current?.showConfirm({
+                      title: 'Remove waypoint',
+                      icon: faMapLocationDot,
+                      message: `Are you sure you want to remove "${waypoint.name}"?`,
+                      confirmText: 'Remove',
+                      cancelText: 'Cancel',
+                      onConfirm: () => {
+                        removeWaypoint(waypoint);
+                        setRerenderCount(rerenderCount + 1);
+                      }
+                    });
                   }}
                 >
                   <FontAwesomeIcon icon={faTrash} />
@@ -152,10 +158,14 @@ export default function Waypoints() {
           <Button
             className={styles['flex-grow']}
             onClick={() => {
-              // Display a confirmation dialog.
-              if (window.confirm('Are you sure you want to remove all waypoints?')) {
-                removeAllWaypoints();
-              }
+              modalRef.current?.showConfirm({
+                title: 'Remove all waypoints',
+                icon: faMapLocationDot,
+                message: 'Are you sure you want to remove all waypoints?',
+                confirmText: 'Remove',
+                cancelText: 'Cancel',
+                onConfirm: removeAllWaypoints
+              });
             }}
             disabled={waypoints.length === 0}
           >
