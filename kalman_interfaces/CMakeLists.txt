@@ -29,6 +29,8 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/MasterMessage.msg"
   "msg/SupervisorMappingGoal.msg"
   "msg/WExLabHeaterCfg.msg"
+  "msg/WExLabLedAll.msg"
+  "msg/WExLabLedSingle.msg"
   "msg/WheelState.msg"
   "msg/WheelStates.msg"
   "msg/WheelTemperature.msg"

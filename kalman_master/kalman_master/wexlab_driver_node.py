@@ -2,8 +2,9 @@ import struct
 import rclpy
 from rclpy.node import Node
 import numpy as np
-from kalman_interfaces.msg import MasterMessage, WExLabHeaterCfg
+from kalman_interfaces.msg import MasterMessage, WExLabHeaterCfg, WExLabLedAll, WExLabLedSingle
 from std_msgs.msg import Float32, Bool, Empty
+
 
 class WExLabDriver(Node):
     def __init__(self):
@@ -16,7 +17,7 @@ class WExLabDriver(Node):
 
         # Master comms
         self.master_pub = self.create_publisher(MasterMessage, "master_com/ros_to_master", 10)
-        
+
         self.master_sub = self.create_subscription(
             MasterMessage,
             f"master_com/master_to_ros/{hex(MasterMessage.WEXLAB_SCALE_RES)[1:]}",
@@ -27,12 +28,16 @@ class WExLabDriver(Node):
         self.pump_sub = self.create_subscription(Float32, "wexlab/pump/rate_cmd", self.pump_rate_cb, 10)
         self.heater_toggle_sub = self.create_subscription(Bool, "wexlab/heater/on_off", self.heater_toggle_cb, 10)
         self.heater_cfg_sub = self.create_subscription(WExLabHeaterCfg, "wexlab/heater/cfg", self.heater_cfg_cb, 10)
-        
+
         self.weight_req_sub = self.create_subscription(Empty, "wexlab/weight/req", self.weight_req_cb, 10)
+        self.weight_tare_pub = self.create_subscription(Empty, "wexlab/weight/tare", self.weight_tare_cb, 10)
         self.weight_res_pub = self.create_publisher(Float32, "wexlab/weight/res", 10)
 
         self.lid_open_sub = self.create_subscription(Float32, "wexlab/lid/open_cmd", self.lid_open_cb, 10)
         self.lid_toggle_sub = self.create_subscription(Bool, "wexlab/lid/on_off", self.lid_toggle_cb, 10)
+
+        self.lid_open_sub = self.create_subscription(WExLabLedAll, "wexlab/led/all", self.lid_open_cb, 10)
+        self.lid_toggle_sub = self.create_subscription(WExLabLedSingle, "wexlab/led/single", self.lid_toggle_cb, 10)
 
         # Track lid state to reconstruct commands
         self.lid_is_on = False
@@ -72,6 +77,13 @@ class WExLabDriver(Node):
         out_msg.data = []
         self.master_pub.publish(out_msg)
 
+    def weight_tare_cb(self, msg: Empty):
+        # 0xD1 WEXLAB_SCALE_TARE -> 0 bytes
+        out_msg = MasterMessage()
+        out_msg.cmd = MasterMessage.WEXLAB_SCALE_TARE
+        out_msg.data = []
+        self.master_pub.publish(out_msg)
+
     def master_res_cb(self, msg: MasterMessage):
         # 0xD1 WEXLAB_SCALE_RES -> 1x int32_t -> voltage in mV
         if len(msg.data) < 4:
@@ -96,14 +108,14 @@ class WExLabDriver(Node):
     def update_lid_servo(self):
         out_msg = MasterMessage()
         out_msg.cmd = MasterMessage.WEXLAB_SERVO_PCT
-        
+
         if not self.lid_is_on:
             # Over 100 turns off the servo
             out_msg.data = [255]
         else:
             pwm = int(np.clip(self.lid_open_pct, 0, 100))
             out_msg.data = [pwm]
-            
+
         self.master_pub.publish(out_msg)
 
     def lid_open_cb(self, msg: Float32):
@@ -114,6 +126,28 @@ class WExLabDriver(Node):
     def lid_toggle_cb(self, msg: Bool):
         self.lid_is_on = msg.data
         self.update_lid_servo()
+
+    def led_all_cb(self, msg: WExLabLedAll):
+        out_msg = MasterMessage()
+        out_msg.cmd = MasterMessage.WEXLAB_SERVO_PCT
+        out_msg.data = [
+            int(msg.color.r * 255),
+            int(msg.color.g * 255),
+            int(msg.color.b * 255)
+        ]
+        self.master_pub.publish(out_msg)
+
+    def led_single_cb(self, msg: WExLabLedSingle):
+        out_msg = MasterMessage()
+        out_msg.cmd = MasterMessage.WEXLAB_SERVO_PCT
+        out_msg.data = [
+            int(msg.led_id),
+            int(msg.color.r * 255),
+            int(msg.color.g * 255),
+            int(msg.color.b * 255)
+        ]
+        self.master_pub.publish(out_msg)
+
 
 def main():
     try:

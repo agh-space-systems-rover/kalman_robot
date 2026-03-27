@@ -9,6 +9,7 @@ import Supervisor from './supervisor';
 import Ueuos from './ueuos';
 import Waypoints from './waypoints';
 import Wheels from './wheels';
+import Wexlab from './wexlab';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import {
   faBullseye,
@@ -34,7 +35,8 @@ export type PanelID =
   | 'waypoints'
   | 'mobile'
   | 'ueuos'
-  | 'science';
+  | 'science'
+  | 'wexlab';
 export const defaultPanel: PanelID = 'map';
 export const panelInfos: Panels = {
   imu: {
@@ -86,6 +88,11 @@ export const panelInfos: Panels = {
   science: {
     Component: Science,
     name: 'Science',
+    icon: faMicroscope
+  },
+  wexlab: {
+    Component: Wexlab,
+    name: 'WExLab',
     icon: faMicroscope
   }
 };

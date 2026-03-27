@@ -235,6 +235,22 @@ export type ArmAxesLocks = {
   yaw?: boolean;
 };
 
+export type WExLabHeaterCfg = {
+  thermostat_min?: number;
+  thermostat_max?: number;
+  power_main?: number;
+  power_lid?: number;
+};
+
+export type WExLabLedAll = {
+  color?: ColorRGBA;
+};
+
+export type WExLabLedSingle = {
+  led_id?: number;
+  color?: ColorRGBA;
+};
+
 export type SetUeuosColorRequest = {
   color?: ColorRGBA;
 };
@@ -255,9 +271,3 @@ export type SetUeuosEffectRequest = {
   effect?: number;
 };
 // Response is empty.
-
-export type ColorRGB = {
-  r: number;
-  g: number;
-  b: number;
-};
