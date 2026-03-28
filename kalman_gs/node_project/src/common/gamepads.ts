@@ -3,57 +3,39 @@ import { GamepadInput, readGamepad } from './gamepad-compat';
 type GamepadMode = 'none' | 'wheels' | 'arm' | 'drill';
 const gamepadModes: GamepadMode[] = ['none', 'wheels', 'arm', 'drill'];
 
-type GamepadEntry = {
-  pad: Gamepad;
-  mode: GamepadMode;
-};
-
-const gamepads: Map<string, GamepadEntry> = new Map();
-const oldModeButtonState: Map<string, number> = new Map();
+const gamepads: Map<Gamepad, GamepadMode> = new Map();
+const oldModeButtonState: Map<Gamepad, number> = new Map();
 
 const ARDUINO_GAMEPAD_ID = '2341-8036-Arduino LLC Arduino Leonardo';
 const defaultMode: GamepadMode = 'none';
 
 const connectGamepads = () => {
   const connectedGamepads = navigator.getGamepads().filter((pad) => pad !== null);
-
-  // Handle gamepad actions
+  // Add new gamepads.
   for (const pad of connectedGamepads) {
-    // Do not handle Arduino custom controller
-    if (pad.id === ARDUINO_GAMEPAD_ID) continue;
-
-    // Add new controller or update its reference
-    if (!gamepads.has(pad.id)) {
-      gamepads.set(pad.id, { pad, mode: defaultMode });
-    } else {
-      gamepads.get(pad.id).pad = pad;
+    if (!gamepads.has(pad) && pad.id !== ARDUINO_GAMEPAD_ID) {
+      gamepads.set(pad, defaultMode);
     }
-
-    // Get entry
-    // Then handle gamepad actions
-    const entry = gamepads.get(pad.id)!;
 
     if (readGamepad(pad, 'select')) {
-      entry.mode = 'arm';
+      gamepads.set(pad, 'arm');
     }
-
     if (readGamepad(pad, 'start')) {
-      entry.mode = 'wheels';
+      gamepads.set(pad, 'wheels');
     }
 
-    if (readGamepad(pad, 'mode') && !oldModeButtonState.get(pad.id)) {
-      const nextIndex = (gamepadModes.indexOf(entry.mode) + 1) % gamepadModes.length;
-      entry.mode = gamepadModes[nextIndex];
+    if (readGamepad(pad, 'mode') && !oldModeButtonState.get(pad)) {
+      const currentMode = gamepads.get(pad);
+      const nextIndex = (gamepadModes.indexOf(currentMode ?? 'none') + 1) % gamepadModes.length;
+      gamepads.set(pad, gamepadModes[nextIndex]);
     }
 
-    oldModeButtonState.set(pad.id, readGamepad(pad, 'mode'));
+    oldModeButtonState.set(pad, readGamepad(pad, 'mode'));
   }
-
   // Remove disconnected gamepads.
-  for (const id of gamepads.keys()) {
-    if (!connectedGamepads.some((pad) => pad.id === id)) {
-      gamepads.delete(id);
-      oldModeButtonState.delete(id);
+  for (const pad of gamepads.keys()) {
+    if (!connectedGamepads.includes(pad)) {
+      gamepads.delete(pad);
     }
   }
   window.dispatchEvent(new CustomEvent('gamepads-connect'));
@@ -64,15 +46,15 @@ window.addEventListener('gamepaddisconnected', connectGamepads);
 setInterval(connectGamepads, 100);
 
 function setGamepadMode(pad: Gamepad, mode: GamepadMode) {
-  gamepads.get(pad.id).mode = mode;
+  gamepads.set(pad, mode);
   window.dispatchEvent(new CustomEvent('gamepads-connect'));
 }
 
-function readGamepads(input: GamepadInput, padMode: GamepadMode): number {
+function readGamepads(input: GamepadInput, mode: GamepadMode): number {
   let value = 0;
   let numPads = 0;
-  for (const { pad, mode } of gamepads.values()) {
-    if (mode !== padMode) {
+  for (const [pad, padMode] of gamepads) {
+    if (padMode !== mode) {
       continue;
     }
     value += readGamepad(pad, input);
