@@ -12,8 +12,8 @@ class WExLabDriver(Node):
 
         # Configuration for scale reading
         # TODO: Replace with proper calibration parameters!
-        self.declare_parameter("weight_scale", 1.0)
-        self.declare_parameter("weight_bias", 0.0)
+        self.declare_parameter("weight_scale", -0.066319)
+        self.declare_parameter("weight_bias", -1.046478)
 
         # Master comms
         self.master_pub = self.create_publisher(MasterMessage, "master_com/ros_to_master", 10)
