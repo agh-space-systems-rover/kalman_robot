@@ -457,9 +457,6 @@ function LenkaBoxEditor({
 
   const stopValue = () => {
     skipBlurRef.current = false;
-    setInputValue(0);
-    onValueChange(0);
-    inputRef.current?.setValue(0);
     onSend(0);
   };
 
