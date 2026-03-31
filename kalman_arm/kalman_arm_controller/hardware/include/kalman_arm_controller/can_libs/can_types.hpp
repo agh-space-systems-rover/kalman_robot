@@ -8,135 +8,89 @@
 #define KALMAN_ARM_CONTROLLER__HARDWARE__CAN_TYPES_HPP_
 
 #include "can_messages.hpp"
+#include <array>
 #include <cstdint>
 
-/**
- * @brief Structure representing a CAN message handler.
- *
- * This structure is used to store the CAN message handler functions.
- *
- * @param can_id uint16_t Command identifier
- * @param len uint8_t Length of the data
- * @param func Function pointer to the handler
- */
-typedef struct {
-	uint16_t can_id;
-	uint8_t  len;
-	int (*func)(uint32_t identifier, uint8_t *data, uint8_t len);
-} canCmdHandler_t;
+    /**
+     * @brief Maximum number of joints that can be configured.
+     *
+     * Used for static sizing of std::array containers.
+     */
+    constexpr std::size_t K_MAX_JOINTS = 16;
 
-/**
- * @brief Structure representing the status of a joint motor laready calculated
- * to normal, humanreadable and supported by moveit format.
- */
-typedef struct {
-	float velocity_deg_s;
-	float position_deg;
-} jointMoveStatus_t;
+/* ------------------------------------------------------------------ */
+/*  CAN message handler structure                                    */
+/* ------------------------------------------------------------------ */
+struct canCmdHandler_t {
+	uint16_t can_id{}; ///< CAN identifier
+	uint8_t  len{};    ///< Length of payload
+	int (*func)(
+	    uint32_t identifier, uint8_t *data, uint8_t len
+	); ///< Handler function
+};
 
-typedef struct {
-	float torque_Nm;
-	float velocity_deg_s;
-	float position_deg;
-	float acceleration_deg_ss;
-} jointMoveSetpoint_t;
+/* ------------------------------------------------------------------ */
+/*  Joint status / setpoint structures                                 */
+/* ------------------------------------------------------------------ */
+struct jointMoveStatus_t {
+	float velocity_deg_s{}; ///< Joint velocity (deg/s)
+	float position_deg{};   ///< Joint position (deg)
+};
 
-/**
- * @brief Structure representing the status of a joint motor and its setpoint.
- *
- * This structure combines the joint motor status and the joint setpoint.
- *
- * @param status jointMotorStatus_t Received joint motor status
- * @param setpoint jointCmdSetpoint_t Joint setpoint to send
- */
-typedef struct __attribute__((__packed__)) {
-	/**
-	 * @brief Structure representing the status of a joint motor received from
-	 * CAN.
-	 */
-	jointMotorStatus_t status;
+struct jointMoveSetpoint_t {
+	float torque_Nm{};           ///< Desired torque (Nm)
+	float velocity_deg_s{};      ///< Setpoint velocity (deg/s)
+	float position_deg{};        ///< Setpoint position (deg)
+	float acceleration_deg_ss{}; ///< Setpoint acceleration (deg/s²)
+};
 
-	/**
-	 * @brief Structure representing the fast status (only pos and vel) of a
-	 * joint motor received from CAN.
-	 */
-	jointMotorFastStatus_t fastStatus;
+struct jointStatus_t {
+	jointMotorStatus_t     status{};
+	jointMotorFastStatus_t fastStatus{};
+	jointCmdSetpoint_t     setpoint{};
+	jointCmdVelocity_t     velSetpoint{};
+	jointMoveStatus_t      moveStatus{};
+	jointMoveSetpoint_t    moveSetpoint{};
+	jointMoveSetpoint_t    moveSetpointDiff{};
+};
 
-	/**
-	 * @brief Structure representing the setpoint of a joint motor to send via
-	 * CAN.
-	 */
-	jointCmdSetpoint_t setpoint;
+/* ------------------------------------------------------------------ */
+/*  Joint configuration structures                                    */
+/* ------------------------------------------------------------------ */
+struct jointConfig_t {
+	float maxVelocity_deg_s{};
+	float maxAcceleration_deg_ss{};
+	float maxTorque_Nm{};
 
-	jointCmdVelocity_t velSetpoint;
+	float minPosition_deg{};
+	float maxPosition_deg{};
 
-	/**
-	 * @brief Structure representing the received status of a joint motor
-	 * already calculated to normal, humanreadable and supported by moveit
-	 * format.
-	 */
-	jointMoveStatus_t moveStatus;
+	float positionAfterPositioning{};
+	float idleTorque_Nm{};
+	float defVelocity_deg_s{};
+	float defAcceleration_deg_ss{};
+	float defAcceleration_pos_deg_ss{};
 
-	/**
-	 * @brief Structure representing the setpoint of a joint motor already
-	 * calculated to normal, humanreadable and supported by moveit format.
-	 */
-	jointMoveSetpoint_t moveSetpoint;
+	float    gearRatio{};
+	uint8_t  invertDirection{};
+	uint8_t  requirePositioning{};
+	uint8_t  positioningOrder{};
+	float    positioningVelocity{};
+	uint16_t positioningTimeout{};
+	uint8_t  differential{};
+};
 
-	/**
-	 * @brief Structure where the setpoint of differential joints is stored
-	 * (later converted to `moveSetpoint`).
-	 */
-	jointMoveSetpoint_t moveSetpointDiff;
-} jointStatus_t;
+struct armConfig_t {
+	uint8_t                                 jointNumber{};
+	std::array<jointConfig_t, K_MAX_JOINTS> joint{};
+	uint16_t                                jointCommandRefreshTime_ms{};
+	uint16_t                                jointCommunicationTimeout{};
+	uint16_t                                canRoverStatusSendPeriod_ms{};
+};
 
-/**
- * @brief Structure representing the configuration of a joint motor.
- *
- * This structure is used to store the configuration of a joint motors in
- * arm_config file.
- */
-typedef struct {
-
-	float maxVelocity_deg_s;
-	float maxAcceleration_deg_ss;
-	float maxTorque_Nm;
-
-	float minPosition_deg, maxPosition_deg;
-
-	float positionAfterPositioning;
-	float idleTorque_Nm;
-	float defVelocity_deg_s;
-	float defAcceleration_deg_ss;
-	float defAcceleration_pos_deg_ss;
-
-	float gearRatio;
-
-	uint8_t  invertDirection;
-	uint8_t  requirePositioning;
-	uint8_t  positioningOrder;
-	float    positioningVelocity;
-	uint16_t positioningTimeout;
-	uint8_t  differential;
-
-} jointConfig_t;
-
-/**
- * @brief Structure representing the configuration of the arm.
- *
- * This structure is used to store the configuration of the arm (every joint) in
- * arm_config file.
- */
-typedef struct {
-	uint8_t jointNumber;
-
-	jointConfig_t joint[16];
-	uint16_t      jointCommandRefreshTime_ms;
-	uint16_t      jointCommunicationTimeout;
-	uint16_t      canRoverStatusSendPeriod_ms;
-
-} armConfig_t;
-
-enum ControlType { position, posvel };
+/* ------------------------------------------------------------------ */
+/*  Control type – scoped enum                                         */
+/* ------------------------------------------------------------------ */
+enum class ControlType : uint8_t { position = 0, posvel = 1 };
 
 #endif // KALMAN_ARM_CONTROLLER__HARDWARE__CAN_TYPES_HPP_

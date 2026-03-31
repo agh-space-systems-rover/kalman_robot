@@ -105,7 +105,7 @@ int CAN_driver::armRead() {
 		frame = *((struct canfd_frame *)buffer);
 
 		// We don't need to lock the recv invocation
-		std::lock_guard<std::mutex> lock(arm_driver.m_read); // Yay for RAII
+		MutexLock lock(arm_driver.m_read); // clang thread-safety aware
 		handle_frame(frame, &CAN_handlers::HANDLES);
 
 		CAN_vars::update_joint_status();
@@ -143,8 +143,9 @@ int CAN_driver::handle_frame(
 	return 0;
 }
 
-int CAN_driver::arm_write(ControlType controlType) {
-	std::lock_guard<std::mutex> lock(CAN_driver::arm_driver.m_write);
+int CAN_driver::arm_write(ControlType controlType)
+{
+	MutexLock lock(CAN_driver::arm_driver.m_write);
 
 	CAN_vars::update_joint_setpoint();
 	write_control_type(controlType);

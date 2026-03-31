@@ -99,8 +99,9 @@ ArmSystem::export_command_interfaces() {
 	return command_interfaces;
 }
 
-return_type
-ArmSystem::read(const rclcpp::Time & /*time*/, const rclcpp::Duration &period) {
+hardware_interface::return_type
+ArmSystem::read(
+    const rclcpp::Time & /*time*/, const rclcpp::Duration &period) {
 	return read_joint_states();
 	// if (current_control_type == ControlType::posvel)
 	// {
@@ -119,13 +120,14 @@ ArmSystem::read(const rclcpp::Time & /*time*/, const rclcpp::Duration &period) {
 	// return return_type::OK;
 }
 
-return_type ArmSystem::write(const rclcpp::Time &, const rclcpp::Duration &) {
+hardware_interface::return_type ArmSystem::write(
+    const rclcpp::Time &, const rclcpp::Duration &) {
 	return write_joint_commands();
 	// return return_type::OK;
 }
 
-return_type ArmSystem::read_joint_states() {
-	std::lock_guard<std::mutex> lock(CAN_driver::arm_driver.m_read);
+hardware_interface::return_type ArmSystem::read_joint_states() {
+	CAN_driver::MutexLock lock(CAN_driver::arm_driver.m_read);
 	already_read_ = true;
 	for (int i = 0; i < 6; i++) {
 		joint_position_[i] =
@@ -142,10 +144,10 @@ return_type ArmSystem::read_joint_states() {
 	joint_position_[0]   = -joint_position_[0];
 	joint_velocities_[0] = -joint_velocities_[0];
 
-	return return_type::OK;
+	return hardware_interface::return_type::OK;
 }
 
-return_type ArmSystem::write_joint_commands() {
+hardware_interface::return_type ArmSystem::write_joint_commands() {
 	// Do not write if previous write is still in progress
 	if (writer.valid() &&
 	    writer.wait_for(std::chrono::seconds(0)) != std::future_status::ready) {
@@ -165,7 +167,7 @@ return_type ArmSystem::write_joint_commands() {
 			if (current_control_type == ControlType::posvel ||
 			    (current_control_type == ControlType::position &&
 			     !pos_too_far && already_read_)) {
-				std::lock_guard<std::mutex> lock(
+				CAN_driver::MutexLock lock(
 				    CAN_driver::arm_driver.m_write
 				);
 				for (int i = 0; i < 4; i++) {
@@ -202,7 +204,7 @@ return_type ArmSystem::write_joint_commands() {
 		}
 	}
 
-	return return_type::OK;
+	return hardware_interface::return_type::OK;
 }
 
 ArmSystem::~ArmSystem() {
