@@ -17,7 +17,13 @@ ArmNavigateToPose::ArmNavigateToPose(
       action_node_{std::make_shared<rclcpp::Node>("action_node")},
       parent_{parent} {
 	client_ = rclcpp_action::create_client<
-	    kalman_interfaces::action::ArmGotoJointPose>(action_node_, "goto_pose");
+	    kalman_interfaces::action::ArmGotoJointPose>(
+        parent_->get_node_base_interface(),
+        parent_->get_node_graph_interface(),
+        parent_->get_node_logging_interface(),
+        parent_->get_node_waitables_interface(),
+        "goto_pose"
+    );
 }
 
 BT::PortsList ArmNavigateToPose::providedPorts() {
@@ -34,6 +40,12 @@ BT::PortsList ArmNavigateToPose::providedPorts() {
 
 BT::NodeStatus ArmNavigateToPose::onStart() {
 	RCLCPP_INFO(parent_->get_logger(), "[ArmNavigateToPose] tick()");
+
+  {
+    std::lock_guard<std::mutex> lk(m_);
+    last_result_.reset();
+  }
+  cancelled_ = false;
 
 	if (!client_->wait_for_action_server(std::chrono::seconds(1))) {
 		RCLCPP_ERROR(parent_->get_logger(), "Nav action server not available");
@@ -110,6 +122,20 @@ BT::NodeStatus ArmNavigateToPose::onRunning() {
 			return BT::NodeStatus::FAILURE;
 		}
 	}
+
+	if (goal_handle_future_.valid() &&
+	    goal_handle_future_.wait_for(std::chrono::milliseconds(0)) ==
+	        std::future_status::ready) {
+		auto goal_handle = goal_handle_future_.get();
+		if (!goal_handle) {
+			RCLCPP_ERROR(
+			    parent_->get_logger(),
+			    "[ArmNavigateToPose] goal was rejected by goto_pose server"
+			);
+			return BT::NodeStatus::FAILURE;
+		}
+	}
+
 	RCLCPP_INFO(
 	    parent_->get_logger(),
 	    "[ArmNavigateToPose] onRunning() returning RUNNING"
