@@ -164,7 +164,7 @@ private:
 
 	rclcpp_action::CancelResponse
 	handle_cancel(const std::shared_ptr<GoalHandle> goal_handle) {
-		requestStop();
+		(void)goal_handle;
 		return rclcpp_action::CancelResponse::ACCEPT;
 	}
 
@@ -217,6 +217,20 @@ private:
 			return;
 		}
 		while (!stop_requested_.load()) {
+			if (currentHandle && currentHandle->is_canceling()) {
+				if (tree_) {
+					tree_->rootNode()->halt();
+				}
+				auto result    = std::make_shared<ArmMission::Result>();
+				result->result = false;
+				currentHandle->canceled(result);
+				currentHandle.reset();
+				running_        = false;
+				stop_requested_ = true;
+				RCLCPP_INFO(get_logger(), "Arm mission transitioned to canceled");
+				break;
+			}
+
 			auto status = tree_->rootNode()->executeTick();
 
 			// Optionally react to terminal states (SUCCESS/FAILURE) by halting
