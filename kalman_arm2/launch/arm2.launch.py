@@ -1,18 +1,47 @@
+import yaml
+
+from kalman_utils.launch import launch_node_or_load_component, remap_action
 from launch import LaunchDescription
-from launch_ros.actions import Node
 from launch.actions import (
     DeclareLaunchArgument,
     OpaqueFunction,
 )
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
-from launch_ros.substitutions import FindPackageShare
+from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
-
-from kalman_utils.launch import launch_node_or_load_component, remap_action
+from launch_ros.substitutions import FindPackageShare
 
 
 def launch_setup(context):
     component_container = LaunchConfiguration("component_container").perform(context)
+    twist_ik_params = {
+        "base_damping": float(LaunchConfiguration("ik_base_damping").perform(context)),
+        "max_damping": float(LaunchConfiguration("ik_max_damping").perform(context)),
+        "singularity_sigma_threshold": float(
+            LaunchConfiguration("ik_singularity_sigma_threshold").perform(context)
+        ),
+        "joint_centering_gain": float(
+            LaunchConfiguration("ik_joint_centering_gain").perform(context)
+        ),
+        "enable_singularity_logging": yaml.safe_load(
+            LaunchConfiguration("ik_enable_singularity_logging").perform(context)
+        ),
+        "singularity_log_period_ms": float(
+            LaunchConfiguration("ik_singularity_log_period_ms").perform(context)
+        ),
+        "joint_motion_weights": yaml.safe_load(
+            LaunchConfiguration("ik_joint_motion_weights").perform(context)
+        ),
+        "singularity_avoidance_gains": yaml.safe_load(
+            LaunchConfiguration("ik_singularity_avoidance_gains").perform(context)
+        ),
+        "singularity_avoidance_thresholds": yaml.safe_load(
+            LaunchConfiguration("ik_singularity_avoidance_thresholds").perform(context)
+        ),
+        "singularity_preferred_positions": yaml.safe_load(
+            LaunchConfiguration("ik_singularity_preferred_positions").perform(context)
+        ),
+    }
 
     actions = []
 
@@ -41,6 +70,7 @@ def launch_setup(context):
             ("target_twist", "target_twist"),
             ("target_vel", "target_vel/joints"),
         ],
+        parameters=[twist_ik_params],
     )
 
     # Gamepad control node
@@ -79,7 +109,7 @@ def launch_setup(context):
     )
 
     if 1:
-        actions += node_or_component(
+        actions += launch_node_or_load_component(
             component_container=component_container,
             package="kalman_arm2",
             executable="bt_panel",
@@ -181,6 +211,56 @@ def generate_launch_description():
                 "component_container",
                 default_value="",
                 description="Name of an existing component container to use. Empty to disable composition.",
+            ),
+            DeclareLaunchArgument(
+                "ik_base_damping",
+                default_value="0.03",
+                description="Base damping factor for twist IK.",
+            ),
+            DeclareLaunchArgument(
+                "ik_max_damping",
+                default_value="0.35",
+                description="Maximum damping factor for twist IK near singularities.",
+            ),
+            DeclareLaunchArgument(
+                "ik_singularity_sigma_threshold",
+                default_value="0.12",
+                description="Smallest singular value threshold below which damping ramps up.",
+            ),
+            DeclareLaunchArgument(
+                "ik_joint_centering_gain",
+                default_value="0.35",
+                description="Nullspace gain that pulls joints toward preferred positions.",
+            ),
+            DeclareLaunchArgument(
+                "ik_enable_singularity_logging",
+                default_value="true",
+                description="Enable throttled twist IK singularity diagnostics.",
+            ),
+            DeclareLaunchArgument(
+                "ik_singularity_log_period_ms",
+                default_value="1000.0",
+                description="Throttle period for twist IK diagnostics in milliseconds.",
+            ),
+            DeclareLaunchArgument(
+                "ik_joint_motion_weights",
+                default_value="[1.0, 1.0, 1.0, 10.0, 0.5, 1.0]",
+                description="Per-joint motion weights for weighted pseudoinverse IK.",
+            ),
+            DeclareLaunchArgument(
+                "ik_singularity_avoidance_gains",
+                default_value="[0.0, 0.0, 0.0, 0.0, 0.0, 1.2]",
+                description="Per-joint nullspace bias gains used near singular configurations.",
+            ),
+            DeclareLaunchArgument(
+                "ik_singularity_avoidance_thresholds",
+                default_value="[0.0, 0.0, 0.0, 0.0, 0.0, 0.35]",
+                description="Per-joint activation thresholds for singularity avoidance bias.",
+            ),
+            DeclareLaunchArgument(
+                "ik_singularity_preferred_positions",
+                default_value="[0.0, 0.0, 0.0, 0.0, 0.0, 1.4]",
+                description="Per-joint preferred positions used by singularity avoidance bias.",
             ),
             OpaqueFunction(function=launch_setup),
         ]
