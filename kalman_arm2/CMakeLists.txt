@@ -34,6 +34,7 @@ include_directories(
 
 add_library(twist_ik_node SHARED src/twist_ik_node.cpp)
 ament_target_dependencies(twist_ik_node rclcpp rclcpp_components kalman_interfaces geometry_msgs std_msgs urdf kdl_parser orocos_kdl_vendor tf2_ros tf2_geometry_msgs)
+target_link_libraries(twist_ik_node Eigen3::Eigen)
 rclcpp_components_register_node(
   twist_ik_node
   PLUGIN "kalman_arm2::TwistIK"
