@@ -24,6 +24,8 @@
 #include <tf2_ros/static_transform_broadcaster.h>
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2_ros/transform_listener.h>
+#include <visualization_msgs/msg/marker.hpp>
+#include <visualization_msgs/msg/marker_array.hpp>
 
 IKNavigateToPose::IKNavigateToPose(
     const std::string           &name,
@@ -34,6 +36,10 @@ IKNavigateToPose::IKNavigateToPose(
 	arm_pub_ = parent_->create_publisher<geometry_msgs::msg::TwistStamped>(
 	    "target_twist", 10
 	);
+  marker_pub_ =
+      parent_->create_publisher<visualization_msgs::msg::MarkerArray>(
+          "debug_markers", 10
+      );
 
 	tf_buffer_   = std::make_unique<tf2_ros::Buffer>(parent_->get_clock());
 	tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
@@ -49,7 +55,29 @@ BT::PortsList IKNavigateToPose::providedPorts() {
 
 BT::NodeStatus IKNavigateToPose::onStart() {
 	pose = getInput<geometry_msgs::msg::Pose>("pose").value();
+  publish_target_marker(visualization_msgs::msg::Marker::ADD);
 	return BT::NodeStatus::RUNNING;
+}
+
+void IKNavigateToPose::publish_target_marker(uint8_t action) {
+  visualization_msgs::msg::MarkerArray arr;
+  visualization_msgs::msg::Marker marker{};
+  marker.header.frame_id = "base_link";
+  marker.header.stamp = parent_->now();
+  marker.ns = "debug";
+  marker.id = 100;
+  marker.action = action;
+  marker.type = visualization_msgs::msg::Marker::CUBE;
+  marker.pose = pose;
+  marker.scale.x = 0.04;
+  marker.scale.y = 0.04;
+  marker.scale.z = 0.04;
+  marker.color.a = 0.85;
+  marker.color.r = 1.0;
+  marker.color.g = 0.1;
+  marker.color.b = 0.1;
+  arr.markers.push_back(marker);
+  marker_pub_->publish(arr);
 }
 
 namespace {
@@ -130,6 +158,57 @@ inline geometry_msgs::msg::Vector3 angularVelToTarget(
 	return out;
 }
 
+inline double quaternionAngleToTarget(
+    const geometry_msgs::msg::Quaternion &q_current_msg,
+    const geometry_msgs::msg::Quaternion &q_target_msg
+) {
+  tf2::Quaternion q_c, q_t;
+  tf2::fromMsg(q_current_msg, q_c);
+  tf2::fromMsg(q_target_msg, q_t);
+  q_c.normalize();
+  q_t.normalize();
+
+  tf2::Quaternion q_err = q_c.inverse() * q_t;
+  q_err.normalize();
+  if (q_err.getW() < 0.0) {
+    q_err = tf2::Quaternion(-q_err.getX(), -q_err.getY(), -q_err.getZ(), -q_err.getW());
+  }
+
+  const double w = std::clamp(static_cast<double>(q_err.getW()), -1.0, 1.0);
+  return 2.0 * std::acos(w);
+}
+
+inline geometry_msgs::msg::Vector3 scaledLinearVelocity(
+    const geometry_msgs::msg::Point &current,
+    const geometry_msgs::msg::Point &target,
+    double kp,
+    double max_speed,
+    double min_speed,
+    double min_speed_activation_distance
+) {
+  tf2::Vector3 error(
+      target.x - current.x,
+      target.y - current.y,
+      target.z - current.z
+  );
+
+  tf2::Vector3 velocity = error * kp;
+  const double speed = velocity.length();
+
+  if (speed > max_speed) {
+    velocity *= max_speed / speed;
+  } else if (speed > 1e-9 && error.length() > min_speed_activation_distance &&
+             speed < min_speed) {
+    velocity *= min_speed / speed;
+  }
+
+  geometry_msgs::msg::Vector3 out;
+  out.x = velocity.x();
+  out.y = velocity.y();
+  out.z = velocity.z();
+  return out;
+}
+
 } // namespace
 
 BT::NodeStatus IKNavigateToPose::onRunning() {
@@ -141,7 +220,7 @@ BT::NodeStatus IKNavigateToPose::onRunning() {
 		auto base_T_cam_st = tf_buffer_->lookupTransform(
 		    base_frame_,
 		    end_effector_frame,
-		    parent_->now() - std::chrono::milliseconds{100},
+		    rclcpp::Time(0, 0, parent_->get_clock()->get_clock_type()),
 		    rclcpp::Duration::from_seconds(0.1)
 		);
 
@@ -154,15 +233,16 @@ BT::NodeStatus IKNavigateToPose::onRunning() {
 			geometry_msgs::msg::TwistStamped twist{};
 
 			twist.header.frame_id = base_frame_;
+      twist.header.stamp = parent_->now();
 
-			const float factor = -0.1;
-
-			twist.twist.linear.x =
-			    (current_pose.position.x - pose.position.x) * factor;
-			twist.twist.linear.y =
-			    (current_pose.position.y - pose.position.y) * factor;
-			twist.twist.linear.z =
-			    (current_pose.position.z - pose.position.z) * factor;
+      twist.twist.linear = scaledLinearVelocity(
+          current_pose.position,
+          pose.position,
+          linear_kp_,
+          max_linear_speed_,
+          min_linear_speed_,
+          min_speed_activation_distance_
+      );
 
 			{
 				// We want the end effector to be perpendicular to marker
@@ -188,31 +268,28 @@ BT::NodeStatus IKNavigateToPose::onRunning() {
 				twist.twist.angular = angularVelToTarget(
 				    current_pose.orientation, pose_copy.orientation
 				);
-			}
-
-			// twist.twist.angular =
-			// angularVelToTarget(current_pose.orientation, pose.orientation);
-			// current_pose.orientation
-			RCLCPP_INFO_STREAM(
-			    parent_->get_logger(),
-			    name() << "Target rotation is " << pose.orientation.w << " "
-			           << pose.orientation.x << " " << pose.orientation.y << " "
-			           << pose.orientation.z
-			);
-			// current_pose.orientation * pose.orientation.inverse();
-
-			const auto v = twist.twist.linear;
-
-			const auto vec3mag = [](geometry_msgs::msg::Vector3 v) -> float {
-				// return 10000.0;
-				return v.x * v.x + v.y * v.y + v.z * v.z;
-			};
-			const float magnitude = vec3mag(v);
-			if (magnitude < 1e-4) {
-				RCLCPP_INFO_STREAM(
-				    parent_->get_logger(), name() << "Returning SUCCESS"
+				const auto v = twist.twist.linear;
+				const double angular_error = quaternionAngleToTarget(
+				    current_pose.orientation, pose_copy.orientation
 				);
-				return BT::NodeStatus::SUCCESS;
+
+				const auto vec3mag = [](geometry_msgs::msg::Vector3 v) -> float {
+					return v.x * v.x + v.y * v.y + v.z * v.z;
+				};
+				const float magnitude = vec3mag(v);
+				if (magnitude < position_tolerance_sq_ &&
+				    angular_error < orientation_tolerance_rad_) {
+					geometry_msgs::msg::TwistStamped zero_vel{};
+					zero_vel.header.frame_id = base_frame_;
+					zero_vel.header.stamp    = parent_->now();
+					arm_pub_->publish(zero_vel);
+					RCLCPP_INFO_STREAM(
+					    parent_->get_logger(),
+					    name() << "Returning SUCCESS, linear_error_sq=" << magnitude
+					           << " angular_error=" << angular_error
+					);
+					return BT::NodeStatus::SUCCESS;
+				}
 			}
 
 			arm_pub_->publish(twist);
@@ -231,4 +308,10 @@ BT::NodeStatus IKNavigateToPose::onRunning() {
 	RCLCPP_INFO_STREAM(parent_->get_logger(), name() << "Returning RUNNING");
 	return BT::NodeStatus::RUNNING;
 }
-void IKNavigateToPose::onHalted() {}
+void IKNavigateToPose::onHalted() {
+  geometry_msgs::msg::TwistStamped zero_vel{};
+  zero_vel.header.frame_id = "base_link";
+  zero_vel.header.stamp = parent_->now();
+  arm_pub_->publish(zero_vel);
+  publish_target_marker(visualization_msgs::msg::Marker::DELETE);
+}
