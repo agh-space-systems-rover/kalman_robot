@@ -1,5 +1,4 @@
 import yaml
-
 from kalman_utils.launch import launch_node_or_load_component, remap_action
 from launch import LaunchDescription
 from launch.actions import (
@@ -108,6 +107,17 @@ def launch_setup(context):
         [FindPackageShare("kalman_arm2"), "trees", "demo.xml"]
     )
 
+    panel_tracker_params = {
+        "tracking_frame": LaunchConfiguration("panel_tracking_frame").perform(context),
+        "board_frame": LaunchConfiguration("panel_board_frame").perform(context),
+        "detection_topic": LaunchConfiguration("panel_detection_topic").perform(
+            context
+        ),
+        "ema_alpha": float(
+            LaunchConfiguration("panel_tracker_ema_alpha").perform(context)
+        ),
+    }
+
     if 1:
         actions += launch_node_or_load_component(
             component_container=component_container,
@@ -139,6 +149,15 @@ def launch_setup(context):
             *remap_action("goto_pose", "goto_pose"),
         ],
         parameters=[{"layout_yaml": ParameterValue(panel_layout_file, value_type=str)}],
+    )
+
+    actions += launch_node_or_load_component(
+        component_container=component_container,
+        package="kalman_arm2",
+        executable="panel_tracker",
+        plugin="kalman_arm2::PanelTracker",
+        namespace="arm",
+        parameters=[panel_tracker_params],
     )
 
     # Joy node
@@ -261,6 +280,26 @@ def generate_launch_description():
                 "ik_singularity_preferred_positions",
                 default_value="[0.0, 0.0, 0.0, 0.0, 0.0, 1.4]",
                 description="Per-joint preferred positions used by singularity avoidance bias.",
+            ),
+            DeclareLaunchArgument(
+                "panel_tracking_frame",
+                default_value="base_link",
+                description="Frame in which the panel tracker estimates the board pose.",
+            ),
+            DeclareLaunchArgument(
+                "panel_board_frame",
+                default_value="aruco_board",
+                description="TF child frame published by the panel tracker.",
+            ),
+            DeclareLaunchArgument(
+                "panel_detection_topic",
+                default_value="/d455_arm/aruco_detections",
+                description="Aruco detection topic used by the panel tracker.",
+            ),
+            DeclareLaunchArgument(
+                "panel_tracker_ema_alpha",
+                default_value="0.2",
+                description="EMA smoothing factor for panel pose tracking.",
             ),
             OpaqueFunction(function=launch_setup),
         ]
