@@ -227,7 +227,9 @@ private:
 				currentHandle.reset();
 				running_        = false;
 				stop_requested_ = true;
-				RCLCPP_INFO(get_logger(), "Arm mission transitioned to canceled");
+				RCLCPP_INFO(
+				    get_logger(), "Arm mission transitioned to canceled"
+				);
 				break;
 			}
 
