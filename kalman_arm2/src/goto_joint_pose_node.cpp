@@ -104,7 +104,7 @@ public:
 	handle_cancel(const std::shared_ptr<GoalHandleArmGotoJointPose> gh) {
 		RCLCPP_INFO(get_logger(), "Received request to cancel goal");
 		if (current_gh == gh) {
-			current_gh.reset();
+			publish_zero_velocity();
 			RCLCPP_INFO(get_logger(), "Goal cancelled");
 		} else {
 			RCLCPP_WARN(
@@ -119,6 +119,14 @@ public:
 		current_gh = gh;
 	}
 
+	void publish_zero_velocity() {
+		auto vel_msg         = kalman_interfaces::msg::ArmValues();
+		vel_msg.header.stamp = now();
+		vel_msg.joints.fill(0.0);
+		vel_msg.jaw = 0.0;
+		joint_vel_pub->publish(vel_msg);
+	}
+
 	void
 	on_joint_positions(const kalman_interfaces::msg::ArmValues::SharedPtr msg) {
 		current_pos = *msg;
@@ -126,6 +134,14 @@ public:
 
 	void timer_cb() {
 		if (!current_gh) {
+			return;
+		}
+
+		if (current_gh->is_canceling()) {
+			publish_zero_velocity();
+			current_gh->canceled(std::make_shared<ArmGotoJointPose::Result>());
+			current_gh.reset();
+			RCLCPP_INFO(get_logger(), "Goal transitioned to canceled");
 			return;
 		}
 
@@ -162,6 +178,7 @@ public:
 
 		// Decide if done
 		if (all_done) {
+			publish_zero_velocity();
 			current_gh->succeed(std::make_shared<ArmGotoJointPose::Result>());
 			RCLCPP_INFO(get_logger(), "Goal succeeded");
 			current_gh.reset();
