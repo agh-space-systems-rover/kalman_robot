@@ -78,7 +78,7 @@ BT::NodeStatus ComeCloser::onRunning() {
 
 	RCLCPP_INFO(parent_->get_logger(), "Movement magnitude²: %f", magnitude);
 
-	if (magnitude < 1e-5) {
+	if (magnitude < 1e-3) {
 		// Stop
 		//
 		geometry_msgs::msg::TwistStamped zero_vel{};
