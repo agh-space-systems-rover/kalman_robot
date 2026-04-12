@@ -149,6 +149,16 @@ private:
 	    const rclcpp_action::GoalUUID          &uuid,
 	    std::shared_ptr<const ArmMission::Goal> goal
 	) {
+		(void)uuid;
+		(void)goal;
+		if (running_.load()) {
+			RCLCPP_WARN(
+			    get_logger(),
+			    "Rejecting arm mission goal because another mission is already "
+			    "running"
+			);
+			return rclcpp_action::GoalResponse::REJECT;
+		}
 		return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
 	}
 
@@ -178,11 +188,17 @@ private:
 
 	void startTicking() {
 		if (!tree_) {
-			RCLCPP_ERROR(get_logger(), "Cannot start BT execution: tree is not configured");
+			RCLCPP_ERROR(
+			    get_logger(),
+			    "Cannot start BT execution: tree is not configured"
+			);
 			return;
 		}
 		if (worker_.joinable()) {
-			requestStop();
+			worker_.join();
+		}
+		if (tree_) {
+			tree_->rootNode()->halt();
 		}
 		double hz    = get_parameter("tick_rate_hz").as_double();
 		tick_period_ = std::chrono::duration<double>(1.0 / std::max(1e-3, hz));
@@ -195,7 +211,9 @@ private:
 
 	void tickLoop() {
 		if (!tree_) {
-			RCLCPP_ERROR(get_logger(), "BT tick loop started without a valid tree");
+			RCLCPP_ERROR(
+			    get_logger(), "BT tick loop started without a valid tree"
+			);
 			return;
 		}
 		while (!stop_requested_.load()) {
@@ -224,6 +242,7 @@ private:
 
 				tree_->rootNode()->halt();
 				currentHandle.reset();
+				running_        = false;
 				stop_requested_ = true;
 				break;
 			}
