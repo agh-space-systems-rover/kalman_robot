@@ -1,12 +1,12 @@
 from ament_index_python import get_package_share_path
 from launch import LaunchDescription
-from launch_ros.actions import Node
-
 from launch.actions import (
-    OpaqueFunction,
     DeclareLaunchArgument,
+    OpaqueFunction,
 )
 from launch.substitutions import LaunchConfiguration
+from launch_ros.actions import Node
+
 
 
 def find_available_configs() -> set:
@@ -37,6 +37,7 @@ def launch_setup(context):
                 "--log-level",
                 "warn",
             ],
+            prefix="vglrun -d egl",
         )
         for config in configs
     ]
