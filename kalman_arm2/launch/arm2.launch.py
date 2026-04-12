@@ -233,12 +233,12 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument(
                 "ik_base_damping",
-                default_value="0.03",
+                default_value="0.02",
                 description="Base damping factor for twist IK.",
             ),
             DeclareLaunchArgument(
                 "ik_max_damping",
-                default_value="0.35",
+                default_value="0.08",
                 description="Maximum damping factor for twist IK near singularities.",
             ),
             DeclareLaunchArgument(
@@ -263,7 +263,7 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument(
                 "ik_joint_motion_weights",
-                default_value="[1.0, 1.0, 1.0, 10.0, 0.5, 1.0]",
+                default_value="[1.0, 1.0, 1.0, 5.0, 0.5, 0.5]",
                 description="Per-joint motion weights for weighted pseudoinverse IK.",
             ),
             DeclareLaunchArgument(
