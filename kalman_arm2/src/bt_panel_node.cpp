@@ -1,13 +1,18 @@
+#include "actions/acquire_panel_pose.hpp"
 #include "actions/arm_navigate_to_pose.hpp"
 #include "actions/average_pose.hpp"
 #include "actions/build_uv.hpp"
 #include "actions/come_closer.hpp"
+#include "actions/compute_panel_target.hpp"
 #include "actions/do_something.hpp"
 #include "actions/get_next_goal.hpp"
 #include "actions/ik_navigate_to_pose.hpp"
 #include "actions/say_something.hpp"
 #include "actions/show_board.hpp"
 #include "conditions/has_next_goal.hpp"
+#include "conditions/is_panel_pose_available.hpp"
+#include "conditions/is_panel_pose_fresh.hpp"
+#include "conditions/is_panel_pose_good.hpp"
 #include "conditions/is_recent_detection.hpp"
 #include "mission_state.hpp"
 #include <behaviortree_cpp_v3/behavior_tree.h>
@@ -52,7 +57,7 @@ public:
 		// Build the tree
 		configure();
 
-		if (get_parameter("auto_start").as_bool()) {
+		if (tree_ && get_parameter("auto_start").as_bool()) {
 			startTicking();
 		}
 
@@ -73,6 +78,9 @@ public:
 		try {
 			factory_ = std::make_unique<BT::BehaviorTreeFactory>();
 
+			factory_->registerBuilder<AcquirePanelPose>(
+			    "AcquirePanelPose", Builder<AcquirePanelPose>()
+			);
 			factory_->registerBuilder<DoSomething>(
 			    "DoSomething", Builder<DoSomething>()
 			);
@@ -88,6 +96,9 @@ public:
 			factory_->registerBuilder<AveragePose>(
 			    "AveragePose", Builder<AveragePose>()
 			);
+			factory_->registerBuilder<ComputePanelTarget>(
+			    "ComputePanelTarget", Builder<ComputePanelTarget>()
+			);
 			factory_->registerBuilder<HasNextGoal>(
 			    "HasNextGoal", Builder<HasNextGoal>()
 			);
@@ -96,6 +107,15 @@ public:
 			);
 			factory_->registerBuilder<IKNavigateToPose>(
 			    "IKNavigateToPose", Builder<IKNavigateToPose>()
+			);
+			factory_->registerBuilder<IsPanelPoseAvailable>(
+			    "IsPanelPoseAvailable", Builder<IsPanelPoseAvailable>()
+			);
+			factory_->registerBuilder<IsPanelPoseFresh>(
+			    "IsPanelPoseFresh", Builder<IsPanelPoseFresh>()
+			);
+			factory_->registerBuilder<IsPanelPoseGood>(
+			    "IsPanelPoseGood", Builder<IsPanelPoseGood>()
 			);
 			factory_->registerBuilder<SaySomething>(
 			    "Say", Builder<SaySomething>()
@@ -157,6 +177,13 @@ private:
 	}
 
 	void startTicking() {
+		if (!tree_) {
+			RCLCPP_ERROR(get_logger(), "Cannot start BT execution: tree is not configured");
+			return;
+		}
+		if (worker_.joinable()) {
+			requestStop();
+		}
 		double hz    = get_parameter("tick_rate_hz").as_double();
 		tick_period_ = std::chrono::duration<double>(1.0 / std::max(1e-3, hz));
 		stop_requested_ = false;
@@ -167,6 +194,10 @@ private:
 	}
 
 	void tickLoop() {
+		if (!tree_) {
+			RCLCPP_ERROR(get_logger(), "BT tick loop started without a valid tree");
+			return;
+		}
 		while (!stop_requested_.load()) {
 			auto status = tree_->rootNode()->executeTick();
 
@@ -216,6 +247,7 @@ private:
 				tree_->rootNode()->halt();
 			}
 		}
+		running_ = false;
 	}
 
 	template <typename T> const BT::NodeBuilder Builder() {
