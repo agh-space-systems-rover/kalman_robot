@@ -3,6 +3,7 @@
 #include <kalman_interfaces/action/arm_goto_joint_pose.hpp>
 #include <kalman_interfaces/msg/arm_values.hpp>
 #include <rclcpp/create_timer.hpp>
+#include <rclcpp/logging.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_action/create_server.hpp>
 #include <rclcpp_action/rclcpp_action.hpp>
