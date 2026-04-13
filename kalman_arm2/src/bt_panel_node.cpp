@@ -270,11 +270,11 @@ private:
 
 			std::this_thread::sleep_for(tick_period_);
 
-			RCLCPP_ERROR(
-			    get_logger(),
-			    "Mission state: %s",
-			    mission_helper_->to_string().c_str()
-			);
+			// RCLCPP_ERROR(
+			//     get_logger(),
+			//     "Mission state: %s",
+			//     mission_helper_->to_string().c_str()
+			// );
 		}
 	}
 
