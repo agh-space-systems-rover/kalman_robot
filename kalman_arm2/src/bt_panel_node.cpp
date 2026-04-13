@@ -7,6 +7,7 @@
 #include "actions/do_something.hpp"
 #include "actions/get_next_goal.hpp"
 #include "actions/ik_navigate_to_pose.hpp"
+#include "actions/pose_ik_navigate_to_pose.hpp"
 #include "actions/say_something.hpp"
 #include "actions/show_board.hpp"
 #include "conditions/has_next_goal.hpp"
@@ -105,8 +106,12 @@ public:
 			factory_->registerBuilder<GetNextGoal>(
 			    "GetNextGoal", Builder<GetNextGoal>()
 			);
-			factory_->registerBuilder<IKNavigateToPose>(
-			    "IKNavigateToPose", Builder<IKNavigateToPose>()
+			factory_->registerBuilder<IKNavigateToPoseIterative>(
+			    "IKNavigateToPoseIterative",
+			    Builder<IKNavigateToPoseIterative>()
+			);
+			factory_->registerBuilder<PoseIKNavigateToPose>(
+			    "IKNavigateToPose", Builder<PoseIKNavigateToPose>()
 			);
 			factory_->registerBuilder<IsPanelPoseAvailable>(
 			    "IsPanelPoseAvailable", Builder<IsPanelPoseAvailable>()

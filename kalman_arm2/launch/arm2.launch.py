@@ -72,6 +72,20 @@ def launch_setup(context):
         parameters=[twist_ik_params],
     )
 
+    actions += launch_node_or_load_component(
+        component_container=component_container,
+        package="kalman_arm2",
+        executable="pose_ik",
+        plugin="kalman_arm2::PoseIK",
+        namespace="arm",
+        remappings=[
+            ("current_pos", "current_pos"),
+            ("target_pose", "target_pose"),
+            ("target_vel", "target_vel/joints"),
+        ],
+        parameters=[twist_ik_params],
+    )
+
     # Gamepad control node
     actions += [
         Node(
@@ -263,7 +277,7 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument(
                 "ik_joint_motion_weights",
-                default_value="[1.0, 1.0, 1.0, 5.0, 0.5, 0.5]",
+                default_value="[1.0, 1.0, 1.0, 5.0, 0.3, 0.3]",
                 description="Per-joint motion weights for weighted pseudoinverse IK.",
             ),
             DeclareLaunchArgument(

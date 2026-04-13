@@ -41,6 +41,15 @@ rclcpp_components_register_node(
   EXECUTABLE twist_ik
 )
 
+add_library(pose_ik_node SHARED src/pose_ik_node.cpp)
+ament_target_dependencies(pose_ik_node rclcpp rclcpp_components kalman_interfaces geometry_msgs std_msgs urdf kdl_parser orocos_kdl_vendor tf2_ros tf2_geometry_msgs)
+target_link_libraries(pose_ik_node Eigen3::Eigen)
+rclcpp_components_register_node(
+  pose_ik_node
+  PLUGIN "kalman_arm2::PoseIK"
+  EXECUTABLE pose_ik
+)
+
 add_library(goto_joint_pose_node SHARED src/goto_joint_pose_node.cpp)
 ament_target_dependencies(goto_joint_pose_node rclcpp rclcpp_components kalman_interfaces geometry_msgs std_msgs tf2_ros tf2_geometry_msgs)
 rclcpp_components_register_node(
@@ -76,6 +85,7 @@ src/mission_state.cpp include/mission_state.hpp
 src/conditions/has_next_goal.cpp include/conditions/has_next_goal.hpp
 src/actions/get_next_goal.cpp include/actions/get_next_goal.hpp
 src/actions/ik_navigate_to_pose.cpp include/actions/ik_navigate_to_pose.hpp
+src/actions/pose_ik_navigate_to_pose.cpp include/actions/pose_ik_navigate_to_pose.hpp
 src/actions/say_something.cpp include/actions/say_something.hpp
 src/actions/build_uv.cpp include/actions/build_uv.hpp
 src/actions/show_board.cpp include/actions/show_board.hpp
@@ -96,7 +106,7 @@ target_link_libraries(bt_panel_node yaml-cpp)
 # target_compile_features(bt_panel_node PUBLIC cxx_std_20)
 
 ament_export_targets(kalman_arm2-targets)
-install(TARGETS twist_ik_node goto_joint_pose_node panel_layout_node panel_tracker_node bt_panel_node
+install(TARGETS twist_ik_node pose_ik_node goto_joint_pose_node panel_layout_node panel_tracker_node bt_panel_node
   EXPORT kalman_arm2-targets
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib

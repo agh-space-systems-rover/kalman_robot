@@ -44,6 +44,7 @@ private:
 	std::unique_ptr<tf2_ros::Buffer>            tf_buffer_;
 	std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
 	geometry_msgs::msg::Pose                    pose;
+	rclcpp::Time                                deadline_;
 	double                                      position_tolerance_sq_{1e-4};
 	double orientation_tolerance_rad_{0.15};
 	double linear_kp_{0.8};
@@ -54,4 +55,9 @@ private:
 	std::shared_ptr<tf2_ros::StaticTransformBroadcaster> static_broadcaster_;
 
 	void publish_target_marker(uint8_t action);
+};
+
+class IKNavigateToPoseIterative : public IKNavigateToPose {
+  public:
+	using IKNavigateToPose::IKNavigateToPose;
 };
