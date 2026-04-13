@@ -1,39 +1,42 @@
 #include "conditions/is_panel_pose_available.hpp"
 
 IsPanelPoseAvailable::IsPanelPoseAvailable(
-    const std::string &name,
+    const std::string           &name,
     const BT::NodeConfiguration &config,
-    rclcpp::Node *parent
+    rclcpp::Node                *parent
 )
     : BT::SimpleConditionNode(
-          name,
-          std::bind(&IsPanelPoseAvailable::tick, this),
-          config
+          name, std::bind(&IsPanelPoseAvailable::tick, this), config
       ),
       parent_(parent) {
-    panel_sub_ = parent_->create_subscription<
-        geometry_msgs::msg::PoseWithCovarianceStamped>(
-        "panel_pose",
-        10,
-        std::bind(
-            &IsPanelPoseAvailable::panel_pose_callback,
-            this,
-            std::placeholders::_1
-        )
-    );
+	panel_sub_ = parent_->create_subscription<
+	    geometry_msgs::msg::PoseWithCovarianceStamped>(
+	    "panel_pose",
+	    10,
+	    std::bind(
+	        &IsPanelPoseAvailable::panel_pose_callback,
+	        this,
+	        std::placeholders::_1
+	    )
+	);
 }
 
 BT::PortsList IsPanelPoseAvailable::providedPorts() {
-    return {};
+	return {};
 }
 
 void IsPanelPoseAvailable::panel_pose_callback(
     const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr msg
 ) {
-    last_panel_pose_ = *msg;
+	last_panel_pose_ = *msg;
 }
 
 BT::NodeStatus IsPanelPoseAvailable::tick() {
-    return last_panel_pose_.has_value() ? BT::NodeStatus::SUCCESS
-                                        : BT::NodeStatus::FAILURE;
+	if (!last_panel_pose_.has_value()) {
+		RCLCPP_WARN_STREAM(
+		    parent_->get_logger(), name() << " failed: no panel pose available"
+		);
+		return BT::NodeStatus::FAILURE;
+	}
+	return BT::NodeStatus::SUCCESS;
 }
