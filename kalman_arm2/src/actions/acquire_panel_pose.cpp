@@ -6,7 +6,8 @@ AcquirePanelPose::AcquirePanelPose(
     rclcpp::Node *parent
 )
     : BT::StatefulActionNode(name, config), parent_(parent) {
-    panel_sub_ = parent_->create_subscription<geometry_msgs::msg::PoseStamped>(
+    panel_sub_ = parent_->create_subscription<
+        geometry_msgs::msg::PoseWithCovarianceStamped>(
         "panel_pose",
         10,
         std::bind(
@@ -25,7 +26,7 @@ BT::PortsList AcquirePanelPose::providedPorts() {
 }
 
 void AcquirePanelPose::panel_pose_callback(
-    const geometry_msgs::msg::PoseStamped::SharedPtr msg
+    const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr msg
 ) {
     last_panel_pose_ = *msg;
 }
