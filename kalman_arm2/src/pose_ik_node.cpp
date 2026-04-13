@@ -54,10 +54,11 @@ class PoseIK : public rclcpp::Node {
 	double      angular_kp;
 	double      max_linear_speed;
 	double      min_linear_speed;
-	double      min_speed_activation_distance;
+	double      min_speed_tolerance_scale;
 	double      max_angular_speed;
 	double      fine_approach_distance;
 	double      fine_approach_angular_scale;
+	double      fine_approach_posture_scale;
 	double      position_tolerance;
 	double      orientation_tolerance_rad;
 
@@ -107,10 +108,11 @@ class PoseIK : public rclcpp::Node {
 		declare_parameter<double>("angular_kp", 2.0);
 		declare_parameter<double>("max_linear_speed", 0.12);
 		declare_parameter<double>("min_linear_speed", 0.015);
-		declare_parameter<double>("min_speed_activation_distance", 0.03);
+		declare_parameter<double>("min_speed_tolerance_scale", 1.5);
 		declare_parameter<double>("max_angular_speed", 0.6);
 		declare_parameter<double>("fine_approach_distance", 0.08);
 		declare_parameter<double>("fine_approach_angular_scale", 0.2);
+		declare_parameter<double>("fine_approach_posture_scale", 0.0);
 		declare_parameter<double>("position_tolerance", 0.01);
 		declare_parameter<double>("orientation_tolerance_rad", 0.15);
 
@@ -131,13 +133,14 @@ class PoseIK : public rclcpp::Node {
 		get_parameter("angular_kp", angular_kp);
 		get_parameter("max_linear_speed", max_linear_speed);
 		get_parameter("min_linear_speed", min_linear_speed);
-		get_parameter(
-		    "min_speed_activation_distance", min_speed_activation_distance
-		);
+		get_parameter("min_speed_tolerance_scale", min_speed_tolerance_scale);
 		get_parameter("max_angular_speed", max_angular_speed);
 		get_parameter("fine_approach_distance", fine_approach_distance);
 		get_parameter(
 		    "fine_approach_angular_scale", fine_approach_angular_scale
+		);
+		get_parameter(
+		    "fine_approach_posture_scale", fine_approach_posture_scale
 		);
 		get_parameter("position_tolerance", position_tolerance);
 		get_parameter("orientation_tolerance_rad", orientation_tolerance_rad);
@@ -386,6 +389,8 @@ class PoseIK : public rclcpp::Node {
 
 	bool solve_joint_velocities(
 	    const geometry_msgs::msg::Twist &base_twist,
+	    double                           position_error,
+	    bool                             position_only,
 	    Eigen::VectorXd                 &joint_velocities,
 	    double                          &min_sigma_out,
 	    double                          &damping_out,
@@ -402,28 +407,48 @@ class PoseIK : public rclcpp::Node {
 		Eigen::MatrixXd       weight_inv =
 		    joint_motion_weights.cwiseInverse().asDiagonal();
 
-		Eigen::Matrix<double, 6, 1> twist_vector;
-		twist_vector << base_twist.linear.x, base_twist.linear.y,
-		    base_twist.linear.z, base_twist.angular.x, base_twist.angular.y,
-		    base_twist.angular.z;
+		Eigen::MatrixXd active_jacobian;
+		Eigen::VectorXd twist_vector;
+		if (position_only) {
+			active_jacobian = jacobian.topRows(3);
+			twist_vector.resize(3);
+			twist_vector << base_twist.linear.x, base_twist.linear.y,
+			    base_twist.linear.z;
+		} else {
+			active_jacobian = jacobian;
+			twist_vector.resize(6);
+			twist_vector << base_twist.linear.x, base_twist.linear.y,
+			    base_twist.linear.z, base_twist.angular.x, base_twist.angular.y,
+			    base_twist.angular.z;
+		}
 
-		const double min_sigma = compute_min_singular_value(jacobian);
+		const double min_sigma = compute_min_singular_value(active_jacobian);
 		const double damping   = compute_adaptive_damping(min_sigma);
-		const Eigen::Matrix<double, 6, 6> task_metric =
-		    jacobian * weight_inv * jacobian.transpose() +
-		    (damping * damping) * Eigen::Matrix<double, 6, 6>::Identity();
+		const Eigen::MatrixXd task_metric =
+		    active_jacobian * weight_inv * active_jacobian.transpose() +
+		    (damping * damping) *
+		        Eigen::MatrixXd::Identity(
+		            active_jacobian.rows(), active_jacobian.rows()
+		        );
 
 		const Eigen::MatrixXd weighted_pseudoinverse =
-		    weight_inv * jacobian.transpose() *
-		    task_metric.ldlt().solve(Eigen::Matrix<double, 6, 6>::Identity());
+		    weight_inv * active_jacobian.transpose() *
+		    task_metric.ldlt().solve(
+		        Eigen::MatrixXd::Identity(
+		            active_jacobian.rows(), active_jacobian.rows()
+		        )
+		    );
 
 		const Eigen::VectorXd task_velocity =
 		    weighted_pseudoinverse * twist_vector;
 		const Eigen::VectorXd q            = current_joint_positions_eigen();
-		const Eigen::VectorXd posture_bias = compute_posture_bias(q);
+		Eigen::VectorXd       posture_bias = compute_posture_bias(q);
+		if (position_error < fine_approach_distance) {
+			posture_bias *= fine_approach_posture_scale;
+		}
 		const Eigen::MatrixXd nullspace_projector =
 		    Eigen::MatrixXd::Identity(q.size(), q.size()) -
-		    weighted_pseudoinverse * jacobian;
+		    weighted_pseudoinverse * active_jacobian;
 
 		joint_velocities   = task_velocity + nullspace_projector * posture_bias;
 		min_sigma_out      = min_sigma;
@@ -435,9 +460,11 @@ class PoseIK : public rclcpp::Node {
 			    get_logger(),
 			    *get_clock(),
 			    static_cast<int64_t>(singularity_log_period_ms),
-			    "PoseIK diagnostics: sigma_min=%.4f damping=%.4f qdot=%s",
+			    "PoseIK diagnostics: sigma_min=%.4f damping=%.4f mode=%s "
+			    "qdot=%s",
 			    min_sigma,
 			    damping,
+			    position_only ? "position_only" : "full_pose",
 			    format_vector(joint_velocities).c_str()
 			);
 		}
@@ -526,10 +553,12 @@ class PoseIK : public rclcpp::Node {
         );
 		tf2::Vector3 linear_cmd   = linear_error * linear_kp;
 		const double linear_speed = linear_cmd.length();
+		const double min_speed_disable_distance =
+		    position_tolerance * min_speed_tolerance_scale;
 		if (linear_speed > max_linear_speed) {
 			linear_cmd *= max_linear_speed / linear_speed;
 		} else if (linear_speed > 1e-9 &&
-		           linear_error.length() > min_speed_activation_distance &&
+		           position_error > min_speed_disable_distance &&
 		           linear_speed < min_linear_speed) {
 			linear_cmd *= min_linear_speed / linear_speed;
 		}
@@ -630,6 +659,9 @@ class PoseIK : public rclcpp::Node {
 
 			const geometry_msgs::msg::Twist base_twist =
 			    pose_error_to_twist(current_pose, target_pose, position_error);
+			const bool position_only =
+			    orientation_error <= orientation_tolerance_rad &&
+			    position_error < fine_approach_distance;
 
 			Eigen::VectorXd             joint_velocities;
 			double                      min_sigma = 0.0;
@@ -638,6 +670,8 @@ class PoseIK : public rclcpp::Node {
 			    Eigen::Matrix<double, 6, 1>::Zero();
 			if (!solve_joint_velocities(
 			        base_twist,
+			        position_error,
+			        position_only,
 			        joint_velocities,
 			        min_sigma,
 			        damping,
@@ -676,55 +710,56 @@ class PoseIK : public rclcpp::Node {
 			               : "position")
 			        : "orientation";
 #if 0
-            RCLCPP_INFO_THROTTLE(
-                get_logger(),
-                *get_clock(),
-                1000,
-                "PoseIK target=(%.3f %.3f %.3f) current=(%.3f %.3f %.3f) "
-                "pos_err=(%.3f %.3f %.3f) pos_norm=%.4f ang_err=%.4f gate=%s "
-                "cmd_v=(%.3f %.3f %.3f) |cmd_v|=%.4f "
-                "cmd_w=(%.3f %.3f %.3f) sigma_min=%.4f damping=%.4f "
-                "q=(%.3f %.3f %.3f %.3f %.3f %.3f) "
-                "qdot=(%.5f %.5f %.5f %.5f %.5f %.5f) "
-                "achieved_v=(%.3f %.3f %.3f) |achieved_v|=%.4f",
-                target_pose.position.x,
-                target_pose.position.y,
-                target_pose.position.z,
-                current_pose.position.x,
-                current_pose.position.y,
-                current_pose.position.z,
-                dx,
-                dy,
-                dz,
-                position_error,
-                orientation_error,
-                gate_state,
-                base_twist.linear.x,
-                base_twist.linear.y,
-                base_twist.linear.z,
-                commanded_linear_speed,
-                base_twist.angular.x,
-                base_twist.angular.y,
-                base_twist.angular.z,
-                min_sigma,
-                damping,
-                current_joint_positions(0),
-                current_joint_positions(1),
-                current_joint_positions(2),
-                current_joint_positions(3),
-                current_joint_positions(4),
-                current_joint_positions(5),
-                joint_velocities(0),
-                joint_velocities(1),
-                joint_velocities(2),
-                joint_velocities(3),
-                joint_velocities(4),
-                joint_velocities(5),
-                achieved_twist(0),
-                achieved_twist(1),
-                achieved_twist(2),
-                achieved_linear_speed
-            );
+				RCLCPP_INFO_THROTTLE(
+				    get_logger(),
+				    *get_clock(),
+				    1000,
+				    "PoseIK target=(%.3f %.3f %.3f) current=(%.3f %.3f %.3f) "
+				    "pos_err=(%.3f %.3f %.3f) pos_norm=%.4f ang_err=%.4f gate=%s "
+				    "mode=%s cmd_v=(%.3f %.3f %.3f) |cmd_v|=%.4f "
+				    "cmd_w=(%.3f %.3f %.3f) sigma_min=%.4f damping=%.4f "
+			    "q=(%.3f %.3f %.3f %.3f %.3f %.3f) "
+			    "qdot=(%.5f %.5f %.5f %.5f %.5f %.5f) "
+			    "achieved_v=(%.3f %.3f %.3f) |achieved_v|=%.4f",
+			    target_pose.position.x,
+			    target_pose.position.y,
+			    target_pose.position.z,
+			    current_pose.position.x,
+			    current_pose.position.y,
+			    current_pose.position.z,
+			    dx,
+			    dy,
+			    dz,
+				    position_error,
+				    orientation_error,
+				    gate_state,
+				    position_only ? "position_only" : "full_pose",
+				    base_twist.linear.x,
+				    base_twist.linear.y,
+				    base_twist.linear.z,
+			    commanded_linear_speed,
+			    base_twist.angular.x,
+			    base_twist.angular.y,
+			    base_twist.angular.z,
+			    min_sigma,
+			    damping,
+			    current_joint_positions(0),
+			    current_joint_positions(1),
+			    current_joint_positions(2),
+			    current_joint_positions(3),
+			    current_joint_positions(4),
+			    current_joint_positions(5),
+			    joint_velocities(0),
+			    joint_velocities(1),
+			    joint_velocities(2),
+			    joint_velocities(3),
+			    joint_velocities(4),
+			    joint_velocities(5),
+			    achieved_twist(0),
+			    achieved_twist(1),
+			    achieved_twist(2),
+			    achieved_linear_speed
+			);
 #endif
 		} catch (const tf2::TransformException &ex) {
 			RCLCPP_WARN_THROTTLE(
