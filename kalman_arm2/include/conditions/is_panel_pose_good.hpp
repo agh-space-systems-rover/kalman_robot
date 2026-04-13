@@ -1,7 +1,7 @@
 #pragma once
 
 #include <behaviortree_cpp_v3/condition_node.h>
-#include <geometry_msgs/msg/pose_stamped.hpp>
+#include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
 #include <optional>
 #include <rclcpp/rclcpp.hpp>
 
@@ -18,12 +18,15 @@ class IsPanelPoseGood : public BT::SimpleConditionNode {
   private:
     BT::NodeStatus tick() override;
     void panel_pose_callback(
-        const geometry_msgs::msg::PoseStamped::SharedPtr msg
+        const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr msg
     );
 
-    bool pose_is_finite(const geometry_msgs::msg::PoseStamped &pose) const;
+    bool pose_is_finite(
+        const geometry_msgs::msg::PoseWithCovarianceStamped &pose
+    ) const;
 
     rclcpp::Node *parent_;
-    rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr panel_sub_;
-    std::optional<geometry_msgs::msg::PoseStamped> last_panel_pose_;
+    rclcpp::Subscription<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr
+        panel_sub_;
+    std::optional<geometry_msgs::msg::PoseWithCovarianceStamped> last_panel_pose_;
 };

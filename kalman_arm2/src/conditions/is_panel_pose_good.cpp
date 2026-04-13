@@ -1,5 +1,6 @@
 #include "conditions/is_panel_pose_good.hpp"
 
+#include <algorithm>
 #include <cmath>
 
 IsPanelPoseGood::IsPanelPoseGood(
@@ -13,7 +14,8 @@ IsPanelPoseGood::IsPanelPoseGood(
           config
       ),
       parent_(parent) {
-    panel_sub_ = parent_->create_subscription<geometry_msgs::msg::PoseStamped>(
+    panel_sub_ = parent_->create_subscription<
+        geometry_msgs::msg::PoseWithCovarianceStamped>(
         "panel_pose",
         10,
         std::bind(
@@ -33,19 +35,24 @@ BT::PortsList IsPanelPoseGood::providedPorts() {
 }
 
 void IsPanelPoseGood::panel_pose_callback(
-    const geometry_msgs::msg::PoseStamped::SharedPtr msg
+    const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr msg
 ) {
     last_panel_pose_ = *msg;
 }
 
 bool IsPanelPoseGood::pose_is_finite(
-    const geometry_msgs::msg::PoseStamped &pose
+    const geometry_msgs::msg::PoseWithCovarianceStamped &pose
 ) const {
-    const auto &p = pose.pose.position;
-    const auto &q = pose.pose.orientation;
+    const auto &p = pose.pose.pose.position;
+    const auto &q = pose.pose.pose.orientation;
     return std::isfinite(p.x) && std::isfinite(p.y) && std::isfinite(p.z) &&
            std::isfinite(q.x) && std::isfinite(q.y) && std::isfinite(q.z) &&
-           std::isfinite(q.w);
+           std::isfinite(q.w) &&
+           std::all_of(
+               pose.pose.covariance.begin(),
+               pose.pose.covariance.end(),
+               [](double v) { return std::isfinite(v); }
+           );
 }
 
 BT::NodeStatus IsPanelPoseGood::tick() {
@@ -64,9 +71,23 @@ BT::NodeStatus IsPanelPoseGood::tick() {
         return BT::NodeStatus::FAILURE;
     }
 
-    // Placeholder until panel_tracker publishes real quality metrics.
-    (void)getInput<double>("max_position_error");
-    (void)getInput<double>("max_normal_error_deg");
+    const auto max_position_error_input = getInput<double>("max_position_error");
+    const auto max_normal_error_deg_input =
+        getInput<double>("max_normal_error_deg");
+    const double max_position_error =
+        max_position_error_input ? max_position_error_input.value() : 0.03;
+    const double max_normal_error_rad =
+        (max_normal_error_deg_input ? max_normal_error_deg_input.value() : 8.0) *
+        M_PI / 180.0;
 
-    return BT::NodeStatus::SUCCESS;
+    const auto &cov = last_panel_pose_->pose.covariance;
+    const double position_stddev =
+        std::sqrt(std::max({cov[0], cov[7], cov[14], 0.0}));
+    const double orientation_stddev =
+        std::sqrt(std::max({cov[21], cov[28], cov[35], 0.0}));
+
+    return position_stddev <= max_position_error &&
+                   orientation_stddev <= max_normal_error_rad
+               ? BT::NodeStatus::SUCCESS
+               : BT::NodeStatus::FAILURE;
 }

@@ -1,5 +1,5 @@
 #include <aruco_opencv_msgs/msg/aruco_detection.hpp>
-#include <geometry_msgs/msg/pose_stamped.hpp>
+#include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_components/register_node_macro.hpp>
 #include <tf2/LinearMath/Quaternion.hpp>
@@ -12,6 +12,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cmath>
 #include <optional>
 #include <string>
 #include <vector>
@@ -41,8 +42,8 @@ class PanelTracker : public rclcpp::Node {
         tf_broadcaster_ =
             std::make_shared<tf2_ros::TransformBroadcaster>(this);
 
-        pose_pub_ =
-            create_publisher<geometry_msgs::msg::PoseStamped>("panel_pose", 10);
+        pose_pub_ = create_publisher<
+            geometry_msgs::msg::PoseWithCovarianceStamped>("panel_pose", 10);
 
         detection_sub_ =
             create_subscription<aruco_opencv_msgs::msg::ArucoDetection>(
@@ -88,7 +89,8 @@ class PanelTracker : public rclcpp::Node {
 
     rclcpp::Subscription<aruco_opencv_msgs::msg::ArucoDetection>::SharedPtr
         detection_sub_;
-    rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr pose_pub_;
+    rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr
+        pose_pub_;
     std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
     std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
     std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
@@ -185,6 +187,91 @@ class PanelTracker : public rclcpp::Node {
         return filtered_board_pose_;
     }
 
+    std::array<double, 36> estimate_covariance(
+        const std::vector<tf2::Transform> &board_estimates,
+        const tf2::Transform &mean_board_pose,
+        const std::vector<aruco_opencv_msgs::msg::MarkerPose> &used_markers
+    ) const {
+        std::array<double, 36> covariance{};
+        covariance.fill(0.0);
+
+        const size_t count = board_estimates.size();
+        const double marker_count_scale =
+            1.0 / std::sqrt(static_cast<double>(std::max<size_t>(1, count)));
+
+        double mean_distance = 0.0;
+        for (const auto &marker : used_markers) {
+            mean_distance += std::sqrt(
+                marker.pose.position.x * marker.pose.position.x +
+                marker.pose.position.y * marker.pose.position.y +
+                marker.pose.position.z * marker.pose.position.z
+            );
+        }
+        mean_distance /=
+            static_cast<double>(std::max<size_t>(1, used_markers.size()));
+        const double distance_scale = std::max(0.2, mean_distance);
+
+        double tx_var = 0.0;
+        double ty_var = 0.0;
+        double tz_var = 0.0;
+        double rx_var = 0.0;
+        double ry_var = 0.0;
+        double rz_var = 0.0;
+
+        for (const auto &estimate : board_estimates) {
+            const tf2::Vector3 dt =
+                estimate.getOrigin() - mean_board_pose.getOrigin();
+            tx_var += dt.x() * dt.x();
+            ty_var += dt.y() * dt.y();
+            tz_var += dt.z() * dt.z();
+
+            tf2::Quaternion q_err =
+                mean_board_pose.getRotation().inverse() * estimate.getRotation();
+            q_err.normalize();
+            if (q_err.getW() < 0.0) {
+                q_err = tf2::Quaternion(
+                    -q_err.x(), -q_err.y(), -q_err.z(), -q_err.w()
+                );
+            }
+
+            const double w =
+                std::clamp(static_cast<double>(q_err.getW()), -1.0, 1.0);
+            const double angle = 2.0 * std::acos(w);
+            const double s = std::sqrt(std::max(1e-16, 1.0 - w * w));
+            tf2::Vector3 axis(1.0, 0.0, 0.0);
+            if (s > 1e-8) {
+                axis = tf2::Vector3(
+                    q_err.getX() / s, q_err.getY() / s, q_err.getZ() / s
+                );
+            }
+            const tf2::Vector3 rotvec = axis * angle;
+            rx_var += rotvec.x() * rotvec.x();
+            ry_var += rotvec.y() * rotvec.y();
+            rz_var += rotvec.z() * rotvec.z();
+        }
+
+        const double denom = static_cast<double>(std::max<size_t>(1, count - 1));
+        tx_var /= denom;
+        ty_var /= denom;
+        tz_var /= denom;
+        rx_var /= denom;
+        ry_var /= denom;
+        rz_var /= denom;
+
+        const double pos_floor =
+            std::pow(0.005 * distance_scale * marker_count_scale, 2);
+        const double rot_floor =
+            std::pow(0.03 * distance_scale * marker_count_scale, 2);
+
+        covariance[0] = tx_var + pos_floor;
+        covariance[7] = ty_var + pos_floor;
+        covariance[14] = tz_var + pos_floor * 2.0;
+        covariance[21] = rx_var + rot_floor;
+        covariance[28] = ry_var + rot_floor;
+        covariance[35] = rz_var + rot_floor;
+        return covariance;
+    }
+
     void on_detection(
         const aruco_opencv_msgs::msg::ArucoDetection::SharedPtr msg
     ) {
@@ -221,6 +308,7 @@ class PanelTracker : public rclcpp::Node {
 
         std::vector<tf2::Transform> board_estimates;
         std::vector<int> marker_ids;
+        std::vector<aruco_opencv_msgs::msg::MarkerPose> used_markers;
         for (const auto &marker : msg->markers) {
             const auto board_to_marker =
                 board_to_marker_from_layout(marker.marker_id);
@@ -241,6 +329,7 @@ class PanelTracker : public rclcpp::Node {
                 t_tracking_camera * t_camera_marker * board_to_marker->inverse()
             );
             marker_ids.push_back(marker.marker_id);
+            used_markers.push_back(marker);
         }
 
         if (board_estimates.empty()) {
@@ -251,6 +340,8 @@ class PanelTracker : public rclcpp::Node {
             average_transforms(board_estimates);
         const tf2::Transform filtered_measurement =
             apply_ema(averaged_measurement);
+        const auto covariance =
+            estimate_covariance(board_estimates, averaged_measurement, used_markers);
 
         geometry_msgs::msg::TransformStamped board_tf;
         board_tf.header.stamp = stamp;
@@ -259,12 +350,13 @@ class PanelTracker : public rclcpp::Node {
         board_tf.transform = tf2::toMsg(filtered_measurement);
         tf_broadcaster_->sendTransform(board_tf);
 
-        geometry_msgs::msg::PoseStamped pose_msg;
+        geometry_msgs::msg::PoseWithCovarianceStamped pose_msg;
         pose_msg.header = board_tf.header;
-        pose_msg.pose.position.x = board_tf.transform.translation.x;
-        pose_msg.pose.position.y = board_tf.transform.translation.y;
-        pose_msg.pose.position.z = board_tf.transform.translation.z;
-        pose_msg.pose.orientation = board_tf.transform.rotation;
+        pose_msg.pose.pose.position.x = board_tf.transform.translation.x;
+        pose_msg.pose.pose.position.y = board_tf.transform.translation.y;
+        pose_msg.pose.pose.position.z = board_tf.transform.translation.z;
+        pose_msg.pose.pose.orientation = board_tf.transform.rotation;
+        pose_msg.pose.covariance = covariance;
         pose_pub_->publish(pose_msg);
 
         RCLCPP_DEBUG(
