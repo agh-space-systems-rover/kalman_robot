@@ -48,13 +48,20 @@ IKNavigateToPose::IKNavigateToPose(
 }
 
 BT::PortsList IKNavigateToPose::providedPorts() {
-	return {BT::InputPort<geometry_msgs::msg::Pose>(
-	    "pose", "position relative to base link"
-	)};
+	return {
+      BT::InputPort<geometry_msgs::msg::Pose>(
+          "pose", "position relative to base link"
+      ),
+      BT::InputPort<double>("timeout_ms", "Timeout in milliseconds"),
+  };
 }
 
 BT::NodeStatus IKNavigateToPose::onStart() {
 	pose = getInput<geometry_msgs::msg::Pose>("pose").value();
+  const auto timeout_input = getInput<double>("timeout_ms");
+  const double timeout_ms = timeout_input ? timeout_input.value() : 10000.0;
+  deadline_ =
+      parent_->now() + rclcpp::Duration::from_seconds(timeout_ms / 1000.0);
   publish_target_marker(visualization_msgs::msg::Marker::ADD);
 	return BT::NodeStatus::RUNNING;
 }
@@ -214,6 +221,15 @@ inline geometry_msgs::msg::Vector3 scaledLinearVelocity(
 BT::NodeStatus IKNavigateToPose::onRunning() {
 	const std::string base_frame_        = "base_link";
 	const std::string end_effector_frame = "arm_link_end";
+
+  if (parent_->now() >= deadline_) {
+    geometry_msgs::msg::TwistStamped zero_vel{};
+    zero_vel.header.frame_id = base_frame_;
+    zero_vel.header.stamp = parent_->now();
+    arm_pub_->publish(zero_vel);
+    RCLCPP_WARN_STREAM(parent_->get_logger(), name() << " timed out");
+    return BT::NodeStatus::FAILURE;
+  }
 
 	try {
 		// 1) base -> camera (from robot tree, at detection time)
