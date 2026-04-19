@@ -32,9 +32,35 @@
 #include <rclcpp_components/register_node_macro.hpp>
 #include <std_msgs/msg/header.hpp>
 #include <std_srvs/srv/trigger.hpp>
+#include <tf2/LinearMath/Quaternion.hpp>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <unistd.h>
 
 namespace kalman_arm2 {
+namespace {
+geometry_msgs::msg::Pose sanitizeRequestedPanelPose(
+    const geometry_msgs::msg::Pose &input_pose
+) {
+	auto pose = input_pose;
+
+	const auto &q = pose.orientation;
+	const double norm_sq = q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w;
+	if (norm_sq <= 1e-12) {
+		pose.orientation.x = 0.0;
+		pose.orientation.y = 0.0;
+		pose.orientation.z = 0.0;
+		pose.orientation.w = 1.0;
+		return pose;
+	}
+
+	tf2::Quaternion normalized_q;
+	tf2::fromMsg(pose.orientation, normalized_q);
+	normalized_q.normalize();
+	pose.orientation = tf2::toMsg(normalized_q);
+	return pose;
+}
+} // namespace
+
 class BTPanel : public rclcpp::Node, public MissionFeedbackHandle {
 public:
 	using MoveToPanelPose = kalman_interfaces::action::MoveToPanelPose;
@@ -190,7 +216,8 @@ private:
 		}
 
 		tree_->rootBlackboard()->set(
-		    "requested_panel_pose", goal_handle->get_goal()->target_pose
+		    "requested_panel_pose",
+		    sanitizeRequestedPanelPose(goal_handle->get_goal()->target_pose)
 		);
 		currentHandle = goal_handle;
 		last_feedback_progress_.clear();
