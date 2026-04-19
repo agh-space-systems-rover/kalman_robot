@@ -19,6 +19,8 @@ class ComputePanelTarget : public BT::SyncActionNode {
     BT::NodeStatus tick() override;
 
   private:
+    geometry_msgs::msg::Pose resolve_panel_relative_pose() const;
+
     rclcpp::Node *parent_;
     std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
     std::shared_ptr<tf2_ros::TransformListener> tf_listener_;

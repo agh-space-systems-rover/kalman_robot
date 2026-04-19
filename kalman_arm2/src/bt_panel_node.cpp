@@ -21,7 +21,7 @@
 #include <behaviortree_cpp_v3/behavior_tree.h>
 #include <behaviortree_cpp_v3/bt_factory.h>
 #include <behaviortree_cpp_v3/loggers/bt_zmq_publisher.h> // optional (Groot)
-#include <kalman_interfaces/action/arm_mission.hpp>
+#include <kalman_interfaces/action/move_to_panel_pose.hpp>
 #include <memory>
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_action/create_server.hpp>
@@ -37,8 +37,8 @@
 namespace kalman_arm2 {
 class BTPanel : public rclcpp::Node, public MissionFeedbackHandle {
 public:
-	using ArmMission = kalman_interfaces::action::ArmMission;
-	using GoalHandle = rclcpp_action::ServerGoalHandle<ArmMission>;
+	using MoveToPanelPose = kalman_interfaces::action::MoveToPanelPose;
+	using GoalHandle = rclcpp_action::ServerGoalHandle<MoveToPanelPose>;
 
 	BTPanel(const rclcpp::NodeOptions &options) : Node("bt_panel", options) {
 		declare_parameter<std::string>("tree_xml");
@@ -65,9 +65,9 @@ public:
 		}
 
 		using namespace std::placeholders;
-		this->actionServer = rclcpp_action::create_server<ArmMission>(
+		this->actionServer = rclcpp_action::create_server<MoveToPanelPose>(
 		    this,
-		    "arm_mission",
+		    "move_to_panel_pose",
 		    std::bind(&BTPanel::handle_goal, this, _1, _2),
 		    std::bind(&BTPanel::handle_cancel, this, _1),
 		    std::bind(&BTPanel::handle_accepted, this, _1)
@@ -157,15 +157,14 @@ public:
 private:
 	rclcpp_action::GoalResponse handle_goal(
 	    const rclcpp_action::GoalUUID          &uuid,
-	    std::shared_ptr<const ArmMission::Goal> goal
+	    std::shared_ptr<const MoveToPanelPose::Goal> goal
 	) {
 		(void)uuid;
 		(void)goal;
 		if (running_.load()) {
 			RCLCPP_WARN(
 			    get_logger(),
-			    "Rejecting arm mission goal because another mission is already "
-			    "running"
+			    "Rejecting MoveToPanelPose goal because another mission is already running"
 			);
 			return rclcpp_action::GoalResponse::REJECT;
 		}
@@ -179,22 +178,23 @@ private:
 	}
 
 	void handle_accepted(const std::shared_ptr<GoalHandle> goal_handle) {
-		using namespace std::placeholders;
-
-		auto feedback      = std::make_shared<ArmMission::Feedback>();
+		auto feedback      = std::make_shared<MoveToPanelPose::Feedback>();
 		feedback->progress = "checking";
 		goal_handle->publish_feedback(feedback);
 
-		uint8_t cmd_id = goal_handle->get_goal()->command_id;
-		if (cmd_id == 1) { // FIXME: make theese enum comparisons
-			currentHandle = goal_handle;
-			last_feedback_progress_.clear();
-			startTicking();
-		} else if (cmd_id == 2) {
-			feedback->progress = "stopping";
-			goal_handle->publish_feedback(feedback);
-			// tree.haltTree();
+		if (!tree_) {
+			auto result    = std::make_shared<MoveToPanelPose::Result>();
+			result->result = false;
+			goal_handle->abort(result);
+			return;
 		}
+
+		tree_->rootBlackboard()->set(
+		    "requested_panel_pose", goal_handle->get_goal()->target_pose
+		);
+		currentHandle = goal_handle;
+		last_feedback_progress_.clear();
+		startTicking();
 	}
 
 	void publish_progress(const std::string &progress) override {
@@ -205,7 +205,7 @@ private:
 			return;
 		}
 
-		auto feedback      = std::make_shared<ArmMission::Feedback>();
+		auto feedback      = std::make_shared<MoveToPanelPose::Feedback>();
 		feedback->progress = progress;
 		try {
 			currentHandle->publish_feedback(feedback);
@@ -255,7 +255,7 @@ private:
 				if (tree_) {
 					tree_->rootNode()->halt();
 				}
-					auto result    = std::make_shared<ArmMission::Result>();
+					auto result    = std::make_shared<MoveToPanelPose::Result>();
 					result->result = false;
 					currentHandle->canceled(result);
 					currentHandle.reset();
@@ -279,7 +279,7 @@ private:
 				    toStr(status, true).c_str()
 				);
 
-				auto result    = std::make_shared<ArmMission::Result>();
+				auto result    = std::make_shared<MoveToPanelPose::Result>();
 				result->result = (status == BT::NodeStatus::SUCCESS);
 
 				// Only transition if the goal is still active
@@ -341,7 +341,7 @@ private:
 	std::shared_ptr<MissionHelper>               mission_helper_;
 	std::shared_ptr<GoalHandle>                  currentHandle;
 	std::string                                  last_feedback_progress_;
-	rclcpp_action::Server<ArmMission>::SharedPtr actionServer;
+	rclcpp_action::Server<MoveToPanelPose>::SharedPtr actionServer;
 };
 } // namespace kalman_arm2
 
