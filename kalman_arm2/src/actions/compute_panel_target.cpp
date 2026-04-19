@@ -1,5 +1,6 @@
 #include "actions/compute_panel_target.hpp"
 
+#include <cmath>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 
 ComputePanelTarget::ComputePanelTarget(
@@ -78,11 +79,7 @@ BT::NodeStatus ComputePanelTarget::tick() {
     geometry_msgs::msg::Pose target_pose;
     tf2::doTransform(panel_relative_pose, target_pose, base_to_panel);
 
-    if (orientation_mode == "normal_to_panel") {
-        // Keep the board orientation. IKNavigateToPose will add the fixed tool
-        // alignment it already uses for panel interaction.
-        target_pose.orientation = base_to_panel.transform.rotation;
-    }
+    (void)orientation_mode;
 
     setOutput("target_pose", target_pose);
     return BT::NodeStatus::SUCCESS;
