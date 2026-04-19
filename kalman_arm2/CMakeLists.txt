@@ -86,6 +86,7 @@ src/conditions/has_next_goal.cpp include/conditions/has_next_goal.hpp
 src/actions/get_next_goal.cpp include/actions/get_next_goal.hpp
 src/actions/ik_navigate_to_pose.cpp include/actions/ik_navigate_to_pose.hpp
 src/actions/pose_ik_navigate_to_pose.cpp include/actions/pose_ik_navigate_to_pose.hpp
+src/actions/set_mission_feedback.cpp include/actions/set_mission_feedback.hpp
 src/actions/say_something.cpp include/actions/say_something.hpp
 src/actions/build_uv.cpp include/actions/build_uv.hpp
 src/actions/show_board.cpp include/actions/show_board.hpp

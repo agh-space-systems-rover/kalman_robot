@@ -8,6 +8,7 @@
 #include "actions/get_next_goal.hpp"
 #include "actions/ik_navigate_to_pose.hpp"
 #include "actions/pose_ik_navigate_to_pose.hpp"
+#include "actions/set_mission_feedback.hpp"
 #include "actions/say_something.hpp"
 #include "actions/show_board.hpp"
 #include "conditions/has_next_goal.hpp"
@@ -15,6 +16,7 @@
 #include "conditions/is_panel_pose_fresh.hpp"
 #include "conditions/is_panel_pose_good.hpp"
 #include "conditions/is_recent_detection.hpp"
+#include "mission_feedback.hpp"
 #include "mission_state.hpp"
 #include <behaviortree_cpp_v3/behavior_tree.h>
 #include <behaviortree_cpp_v3/bt_factory.h>
@@ -33,7 +35,7 @@
 #include <unistd.h>
 
 namespace kalman_arm2 {
-class BTPanel : public rclcpp::Node {
+class BTPanel : public rclcpp::Node, public MissionFeedbackHandle {
 public:
 	using ArmMission = kalman_interfaces::action::ArmMission;
 	using GoalHandle = rclcpp_action::ServerGoalHandle<ArmMission>;
@@ -125,6 +127,9 @@ public:
 			factory_->registerBuilder<SaySomething>(
 			    "Say", Builder<SaySomething>()
 			);
+			factory_->registerBuilder<SetMissionFeedback>(
+			    "SetMissionFeedback", Builder<SetMissionFeedback>()
+			);
 			factory_->registerBuilder<BuildUV>("BuildUV", Builder<BuildUV>());
 			factory_->registerBuilder<ShowBoard>(
 			    "ShowBoard", Builder<ShowBoard>()
@@ -183,12 +188,36 @@ private:
 		uint8_t cmd_id = goal_handle->get_goal()->command_id;
 		if (cmd_id == 1) { // FIXME: make theese enum comparisons
 			currentHandle = goal_handle;
+			last_feedback_progress_.clear();
 			startTicking();
 		} else if (cmd_id == 2) {
 			feedback->progress = "stopping";
 			goal_handle->publish_feedback(feedback);
 			// tree.haltTree();
 		}
+	}
+
+	void publish_progress(const std::string &progress) override {
+		if (!currentHandle) {
+			return;
+		}
+		if (progress == last_feedback_progress_) {
+			return;
+		}
+
+		auto feedback      = std::make_shared<ArmMission::Feedback>();
+		feedback->progress = progress;
+		try {
+			currentHandle->publish_feedback(feedback);
+		} catch (const std::exception &e) {
+			RCLCPP_WARN_STREAM(
+			    get_logger(),
+			    "Failed to publish mission feedback '" << progress
+			                                           << "': " << e.what()
+			);
+			return;
+		}
+		last_feedback_progress_ = progress;
 	}
 
 	void startTicking() {
@@ -226,12 +255,13 @@ private:
 				if (tree_) {
 					tree_->rootNode()->halt();
 				}
-				auto result    = std::make_shared<ArmMission::Result>();
-				result->result = false;
-				currentHandle->canceled(result);
-				currentHandle.reset();
-				running_        = false;
-				stop_requested_ = true;
+					auto result    = std::make_shared<ArmMission::Result>();
+					result->result = false;
+					currentHandle->canceled(result);
+					currentHandle.reset();
+					last_feedback_progress_.clear();
+					running_        = false;
+					stop_requested_ = true;
 				RCLCPP_INFO(
 				    get_logger(), "Arm mission transitioned to canceled"
 				);
@@ -263,6 +293,7 @@ private:
 
 				tree_->rootNode()->halt();
 				currentHandle.reset();
+				last_feedback_progress_.clear();
 				running_        = false;
 				stop_requested_ = true;
 				break;
@@ -309,6 +340,7 @@ private:
 	std::chrono::duration<double>                tick_period_{0.05};
 	std::shared_ptr<MissionHelper>               mission_helper_;
 	std::shared_ptr<GoalHandle>                  currentHandle;
+	std::string                                  last_feedback_progress_;
 	rclcpp_action::Server<ArmMission>::SharedPtr actionServer;
 };
 } // namespace kalman_arm2
