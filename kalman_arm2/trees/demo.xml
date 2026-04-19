@@ -1,8 +1,10 @@
 <root main_tree_to_execute="MainTree">
   <BehaviorTree ID="MainTree">
     <Sequence name="PanelMissionSequence">
+      <SetMissionFeedback text="Moving to observation pose" />
       <ArmNavigateToPose j0="0.0" j1="-1.2" j2="2.9" j3="0" j4="0.2" j5="0.0" jaw="0.0" />
 
+      <SetMissionFeedback text="Acquiring initial panel pose" />
       <Fallback name="EnsureInitialPanelPose">
         <Sequence>
           <IsPanelPoseAvailable />
@@ -23,9 +25,11 @@
         orientation_mode="normal_to_panel"
         target_pose="{coarse_pose}" />
 
+      <SetMissionFeedback text="Moving to coarse panel target" />
       <IKNavigateToPose pose="{coarse_pose}" timeout_ms="12000" />
       <Say message="Coarse goal reached" />
 
+      <SetMissionFeedback text="Refreshing panel pose near target" />
       <AcquirePanelPose timeout_ms="2000" max_age_ms="2000" />
 
       <Say message="Fine goal reached" />
@@ -37,11 +41,12 @@
 
       <ComputePanelTarget
         target_u="0.0"
-        target_v="0.0"
+        target_v="0.5"
         target_standoff="0.2"
         orientation_mode="normal_to_panel"
         target_pose="{target_pose}" />
 
+      <SetMissionFeedback text="Moving to final panel target" />
       <IKNavigateToPose pose="{target_pose}" timeout_ms="15000" />
     </Sequence>
   </BehaviorTree>
