@@ -12,4 +12,4 @@
 
 Launch with gamepad control: `ros2 launch kalman_arm2 arm2.launch.py enable_gamepad:=true`
 
-Trigger panel location mission: `ros2 action send_goal /arm/arm_mission kalman_interfaces/action/ArmMission 'command_id: 1'`
+Trigger panel location mission: `ros2 action send_goal /arm/move_to_panel_pose kalman_interfaces/action/MoveToPanelPose '{target_pose: {position: {x: 0.0, y: 0.0, z: 0.2}, orientation: {x: 0.0, y: 0.0, z: 0.0, w: 1.0}}}'`

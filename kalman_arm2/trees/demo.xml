@@ -19,8 +19,7 @@
         max_normal_error_deg="12.0" />
 
       <ComputePanelTarget
-        target_u="0.0"
-        target_v="0.0"
+        panel_relative_pose="{requested_panel_pose}"
         target_standoff="0.4"
         orientation_mode="normal_to_panel"
         target_pose="{coarse_pose}" />
@@ -40,9 +39,7 @@
         max_normal_error_deg="8.0" />
 
       <ComputePanelTarget
-        target_u="0.0"
-        target_v="0.5"
-        target_standoff="0.2"
+        panel_relative_pose="{requested_panel_pose}"
         orientation_mode="normal_to_panel"
         target_pose="{target_pose}" />
 
