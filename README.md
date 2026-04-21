@@ -86,7 +86,6 @@ As mentioned in [Launch Hierarchy](#launch-hierarchy), top-level modules may inc
 
 ## Guidelines
 
-- When committing new code, please follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) specification.
 - The `scripts` directory should only contain scripts that are meant to be installed as ROS executables.
 - The `tools` directory should only contain developer utilities and not ROS-related code.
 - Whenever possible, design your C++ nodes as components. See [this tutorial](https://docs.ros.org/en/iron/Tutorials/Intermediate/Writing-a-Composable-Node.html) for more information.
