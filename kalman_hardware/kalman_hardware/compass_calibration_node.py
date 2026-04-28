@@ -45,7 +45,6 @@ from ament_index_python.packages import get_package_prefix
 import subprocess
 import os
 
-
 CMD_VEL_RATE = 2
 
 

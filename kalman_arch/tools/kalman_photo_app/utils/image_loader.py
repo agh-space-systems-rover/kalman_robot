@@ -2,7 +2,7 @@ def load_images(folder_path):
     import os
     from PIL import Image
 
-    valid_extensions = ('.jpg', '.jpeg', '.png', '.gif', '.bmp')
+    valid_extensions = (".jpg", ".jpeg", ".png", ".gif", ".bmp")
     image_paths = []
 
     for filename in os.listdir(folder_path):

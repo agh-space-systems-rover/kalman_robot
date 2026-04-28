@@ -73,15 +73,15 @@ BT::NodeStatus ShowBoard::onStart() {
 		m.scale.y            = layout.board_height;
 		m.scale.z            = 0.01;
 		m.pose.orientation.w = 1.0;
-		m.pose.position.x = layout.board_width / 2.0F - MARKER_SIZE;
-		m.pose.position.y = -layout.board_height / 2.0F + MARKER_SIZE;
-		m.color.a = 0.15;
-		m.color.r = 0.1;
-		m.color.g = 0.4;
-		m.color.b = 1.0;
+		m.pose.position.x    = layout.board_width / 2.0F - MARKER_SIZE;
+		m.pose.position.y    = -layout.board_height / 2.0F + MARKER_SIZE;
+		m.color.a            = 0.15;
+		m.color.r            = 0.1;
+		m.color.g            = 0.4;
+		m.color.b            = 1.0;
 		arr.markers.push_back(m);
 	}
-	int i {1};
+	int i{1};
 	for (const auto &[_, marker_info] : layout.markers) {
 		visualization_msgs::msg::Marker m{};
 		m.header.frame_id    = "uv_board";
@@ -94,13 +94,13 @@ BT::NodeStatus ShowBoard::onStart() {
 		m.scale.y            = MARKER_SIZE;
 		m.scale.z            = MARKER_SIZE;
 		m.pose.orientation.w = 1.0;
-		m.pose.position.x = marker_info.u;
-		m.pose.position.y = -marker_info.v;
-		m.color.a = 0.15;
-		m.color.r = 0.1;
-		m.color.g = 0.4;
-		m.color.b = 1.0;
-		m.text = std::to_string(marker_info.id);
+		m.pose.position.x    = marker_info.u;
+		m.pose.position.y    = -marker_info.v;
+		m.color.a            = 0.15;
+		m.color.r            = 0.1;
+		m.color.g            = 0.4;
+		m.color.b            = 1.0;
+		m.text               = std::to_string(marker_info.id);
 		arr.markers.push_back(m);
 	}
 	marker_pub_->publish(arr);

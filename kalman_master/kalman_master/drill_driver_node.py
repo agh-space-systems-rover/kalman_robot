@@ -8,7 +8,7 @@ from std_srvs.srv import Trigger
 from std_msgs.msg import Float32
 from dataclasses import dataclass
 
-DRILL_UNIVERSAL_ADDR = [0, 0] # board, channel
+DRILL_UNIVERSAL_ADDR = [0, 0]  # board, channel
 # ARM_SPEED = 50
 RACK_SPEED = 50
 DRILL_SPEED = 255
@@ -21,12 +21,15 @@ MAX_ZEROFRAMES_SPAM = 5
 # WEIGHT_SCALES = [1.0, 1.0]
 # WEIGHT_BIAS = 0.0
 
+
 class DrillDriver(Node):
     def __init__(self):
         super().__init__("drill_driver")
 
         # mechanism controls
-        self.vel_sub = self.create_subscription(Drill, "science/drill/cmd", self.drill_vel_cb, 1)
+        self.vel_sub = self.create_subscription(
+            Drill, "science/drill/cmd", self.drill_vel_cb, 1
+        )
         self.master_pub = self.create_publisher(
             MasterMessage, "master_com/ros_to_master", 10
         )
@@ -57,7 +60,11 @@ class DrillDriver(Node):
         msg.drill = np.clip(msg.drill, 0, 1)
 
         # data_arm = [1 if msg.arm < 0 else 0, round(abs(msg.arm * ARM_SPEED))]
-        data_rack = [*DRILL_UNIVERSAL_ADDR, round(abs(msg.rack * RACK_SPEED)), 1 if msg.rack < 0 else 0]
+        data_rack = [
+            *DRILL_UNIVERSAL_ADDR,
+            round(abs(msg.rack * RACK_SPEED)),
+            1 if msg.rack < 0 else 0,
+        ]
         data_drill = [*DRILL_UNIVERSAL_ADDR, round(abs(msg.drill * DRILL_SPEED))]
 
         # self.zero_arm = self.zero_arm + 1 if self.is_zero_frame(data_arm) else 0
@@ -116,7 +123,7 @@ class DrillDriver(Node):
     #     res.success = True
     #     res.message = "Requested weight reading"
     #     return res
-    
+
     # def scale_res_cb(self, msg: MasterMessage):
     #     if msg.cmd == MasterMessage.SCALE_RES:
     #         board_id, channel_id, value = struct.unpack("<BBi", bytes(msg.data[:6]))
@@ -128,6 +135,7 @@ class DrillDriver(Node):
 
     #         total_weight = sum(reading * scale for reading, scale in zip(self.last_weight_readings, WEIGHT_SCALES)) + WEIGHT_BIAS
     #         self.weight_pub.publish(Float32(data=total_weight))
+
 
 def main():
     try:

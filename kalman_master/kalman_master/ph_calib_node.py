@@ -16,6 +16,7 @@ from matplotlib.figure import Figure
 
 CALIB_PATH = os.path.expanduser("~/.config/kalman/ph_calib.yaml")
 
+
 class PHCalibNode(Node):
     def __init__(self, gui_callback):
         super().__init__("ph_calib_gui")
@@ -40,6 +41,7 @@ class PHCalibNode(Node):
         req = Trigger.Request()
         future = self.value_trigger_cli.call_async(req)
         # Optionally handle future result if needed
+
 
 class PHCalibApp(QtWidgets.QWidget):
     def __init__(self, ros_node):
@@ -87,9 +89,15 @@ class PHCalibApp(QtWidgets.QWidget):
         self.datapoint_table = QtWidgets.QTableWidget(0, 2)
         self.datapoint_table.setHorizontalHeaderLabels(["SEM", "pH"])
         self.datapoint_table.horizontalHeader().setStretchLastSection(True)
-        self.datapoint_table.horizontalHeader().setSectionResizeMode(0, QtWidgets.QHeaderView.Stretch)
-        self.datapoint_table.horizontalHeader().setSectionResizeMode(1, QtWidgets.QHeaderView.Stretch)
-        self.datapoint_table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        self.datapoint_table.horizontalHeader().setSectionResizeMode(
+            0, QtWidgets.QHeaderView.Stretch
+        )
+        self.datapoint_table.horizontalHeader().setSectionResizeMode(
+            1, QtWidgets.QHeaderView.Stretch
+        )
+        self.datapoint_table.setSelectionBehavior(
+            QtWidgets.QAbstractItemView.SelectRows
+        )
         self.datapoint_table.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         layout.addWidget(self.datapoint_table)
 
@@ -219,7 +227,9 @@ class PHCalibApp(QtWidgets.QWidget):
         calib_dict = {
             "scale": float(scale),
             "bias": float(bias),
-            "data": [{"sem": float(sem), "ph": float(ph)} for sem, ph in self.datapoints]
+            "data": [
+                {"sem": float(sem), "ph": float(ph)} for sem, ph in self.datapoints
+            ],
         }
         with open(CALIB_PATH, "w") as f:
             yaml.safe_dump(calib_dict, f)
@@ -233,7 +243,11 @@ class PHCalibApp(QtWidgets.QWidget):
         ax.set_ylabel("pH")
         ax.legend()
         self.canvas.draw()
-        QtWidgets.QMessageBox.information(self, "Calibration", f"Calibration saved!\nScale: {scale:.4f}\nBias: {bias:.4f}")
+        QtWidgets.QMessageBox.information(
+            self,
+            "Calibration",
+            f"Calibration saved!\nScale: {scale:.4f}\nBias: {bias:.4f}",
+        )
 
     def load_and_plot_calib(self):
         if os.path.exists(CALIB_PATH):
@@ -271,6 +285,7 @@ class PHCalibApp(QtWidgets.QWidget):
             except Exception:
                 pass
 
+
 def main():
     rclpy.init()
     app = QtWidgets.QApplication(sys.argv)
@@ -281,12 +296,14 @@ def main():
     # Spin ROS2 in a thread
     def ros_spin():
         rclpy.spin(ros_node)
+
     ros_thread = threading.Thread(target=ros_spin, daemon=True)
     ros_thread.start()
 
     sys.exit(app.exec_())
     ros_node.destroy_node()
     rclpy.shutdown()
+
 
 if __name__ == "__main__":
     main()

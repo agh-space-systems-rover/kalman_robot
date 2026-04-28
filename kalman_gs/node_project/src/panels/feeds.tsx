@@ -1,19 +1,23 @@
 import styles from './feeds.module.css';
 
-
-
 import CHANNELS from '../common/feed-channels';
 import { FeedUpdateDetail, feedCameras, feedChannels, feedPowers } from '../common/feeds';
-import { IconDefinition, fa1, fa2, faCamera, faCheck, faDisplay, faTowerBroadcast, faWaveSquare } from '@fortawesome/free-solid-svg-icons';
+import {
+  IconDefinition,
+  fa1,
+  fa2,
+  faCamera,
+  faCheck,
+  faDisplay,
+  faTowerBroadcast,
+  faWaveSquare
+} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useCallback, useEffect, useRef, useState } from 'react';
-
-
 
 import Button from '../components/button';
 import Input from '../components/input';
 import Label from '../components/label';
-
 
 type IntegerSelectorProps = {
   labelColor: string;

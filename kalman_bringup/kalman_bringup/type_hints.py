@@ -37,7 +37,29 @@ class Aruco(TypedDict):
     "Name of an existing component container to use. Empty by default to disable composition."
     rgbd_ids: str
     "Space-separated IDs of the RGBD cameras to use. Regular cameras are not supported yet."
-    dict: Literal["4X4_100", "4X4_1000", "4X4_250", "4X4_50", "5X5_100", "5X5_1000", "5X5_250", "5X5_50", "6X6_100", "6X6_1000", "6X6_250", "6X6_50", "7X7_100", "7X7_1000", "7X7_250", "7X7_50", "8X8_100", "8X8_1000", "8X8_250", "8X8_50", "ARUCO_ORIGINAL"]
+    dict: Literal[
+        "4X4_100",
+        "4X4_1000",
+        "4X4_250",
+        "4X4_50",
+        "5X5_100",
+        "5X5_1000",
+        "5X5_250",
+        "5X5_50",
+        "6X6_100",
+        "6X6_1000",
+        "6X6_250",
+        "6X6_50",
+        "7X7_100",
+        "7X7_1000",
+        "7X7_250",
+        "7X7_50",
+        "8X8_100",
+        "8X8_1000",
+        "8X8_250",
+        "8X8_50",
+        "ARUCO_ORIGINAL",
+    ]
     "Dictionary of markers to use. Valid choices are: ['4X4_50', '4X4_100', '4X4_250', '4X4_1000', '5X5_50', '5X5_100', '5X5_250', '5X5_1000', '6X6_50', '6X6_100', '6X6_250', '6X6_1000', '7X7_50', '7X7_100', '7X7_250', '7X7_1000', '8X8_50', '8X8_100', '8X8_250', '8X8_1000', 'ARUCO_ORIGINAL']"
     size: str
     "Size of the marker including black border in meters."

@@ -6,7 +6,6 @@ from geometry_msgs.msg import TwistStamped
 from kalman_interfaces.msg import ArmValues
 import numpy as np
 
-
 LEFT_X = 0
 LEFT_Y = 1
 LEFT_TRIGGER = 2
@@ -100,7 +99,7 @@ class GamepadControl(Node):
         if jaw_vel != 0.0:
             jaw_msg = ArmValues()
             jaw_msg.header.stamp = self.get_clock().now().to_msg()
-            jaw_msg.joints = [float('nan')] * 6
+            jaw_msg.joints = [float("nan")] * 6
             jaw_msg.jaw = jaw_vel
             self.jaw_pub.publish(jaw_msg)
 

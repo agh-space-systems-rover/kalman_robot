@@ -46,5 +46,6 @@ class ShowBoard : public BT::StatefulActionNode {
 	std::shared_ptr<tf2_ros::TransformBroadcaster>       tf_broadcaster_;
 	std::shared_ptr<tf2_ros::StaticTransformBroadcaster> static_broadcaster_;
 
-	rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr marker_pub_;
+	rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr
+	    marker_pub_;
 };
