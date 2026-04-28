@@ -1,7 +1,9 @@
 name: Format Check
 
 on:
-  pull_request
+  workflow_dispatch:
+  pull_request:
+  push:
 
 jobs:
   format-check:
