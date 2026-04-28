@@ -18,7 +18,7 @@ struct PanelLayout {
 	std::map<size_t, MarkerInfo> markers;
 	double                       board_width;
 	double                       board_height;
-	double marker_size;
+	double                       marker_size;
 	static PanelLayout           fake_read();
 	static std::optional<PanelLayout>
 	read_yaml(const std::filesystem::path &path, rclcpp::Logger logger);

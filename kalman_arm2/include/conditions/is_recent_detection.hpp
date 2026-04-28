@@ -8,32 +8,33 @@
 #include <rclcpp/logging.hpp>
 #include <rclcpp/rclcpp.hpp>
 
-class IsRecentDetection : public BT::SimpleConditionNode
-{
-public:
-  IsRecentDetection(
-    const std::string & name,
-    const BT::NodeConfiguration & config,
-    rclcpp::Node* parent);
+class IsRecentDetection : public BT::SimpleConditionNode {
+  public:
+	IsRecentDetection(
+	    const std::string           &name,
+	    const BT::NodeConfiguration &config,
+	    rclcpp::Node                *parent
+	);
 
-  static BT::PortsList providedPorts();
+	static BT::PortsList providedPorts();
 
-private:
-  BT::NodeStatus check(void);
+  private:
+	BT::NodeStatus check(void);
 
-  BT::NodeStatus tick() override;
+	BT::NodeStatus tick() override;
 
-  void aruco_callback(const aruco_opencv_msgs::msg::ArucoDetection::SharedPtr msg);
+	void
+	aruco_callback(const aruco_opencv_msgs::msg::ArucoDetection::SharedPtr msg);
 
-private:
-  using ArucoDetection = aruco_opencv_msgs::msg::ArucoDetection;
+  private:
+	using ArucoDetection = aruco_opencv_msgs::msg::ArucoDetection;
 
-  rclcpp::Node* parent_;
-  rclcpp::Subscription<ArucoDetection>::SharedPtr aruco_sub_;
+	rclcpp::Node                                   *parent_;
+	rclcpp::Subscription<ArucoDetection>::SharedPtr aruco_sub_;
 
-  rclcpp::Time last_detection_{parent_->now() - std::chrono::seconds{50000}};
+	rclcpp::Time last_detection_{parent_->now() - std::chrono::seconds{50000}};
 
-  ArucoDetection last_msg_;
+	ArucoDetection last_msg_;
 
-  aruco_opencv_msgs::msg::MarkerPose get_first_aruco_position() const;
+	aruco_opencv_msgs::msg::MarkerPose get_first_aruco_position() const;
 };

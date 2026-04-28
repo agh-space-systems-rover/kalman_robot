@@ -7,9 +7,8 @@ DoSomething::DoSomething(
 )
     : BT::SyncActionNode(name, config), parent_{parent} {}
 
-BT::PortsList DoSomething::providedPorts()
-{
-return { BT::InputPort<std::string>("target") };
+BT::PortsList DoSomething::providedPorts() {
+	return {BT::InputPort<std::string>("target")};
 }
 
 BT::NodeStatus DoSomething::tick() {

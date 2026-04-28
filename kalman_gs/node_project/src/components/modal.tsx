@@ -1,14 +1,11 @@
 import styles from './modal.module.css';
 
-
-
 import Button from './button';
 import Input from './input';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { faCheck, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Component, createRef } from 'react';
-
 
 type PromptOptions = {
   title: string;

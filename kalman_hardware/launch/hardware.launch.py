@@ -18,7 +18,7 @@ from kalman_utils.launch import (
 )
 
 REALSENSE_SERIAL_NUMBERS = {
-    #"d455_front": "_242422301926",
+    # "d455_front": "_242422301926",
     "d455_front": "_043422251512",
     "d455_front_old": "_043422251512",
     "d455_back": "_241122302098",
@@ -177,7 +177,9 @@ def launch_setup(context):
                             package="phidgets_spatial",
                             plugin="phidgets::SpatialRosI",
                             parameters=[
-                                load_standalone_config("kalman_hardware", "phidgets_spatial.yaml"),
+                                load_standalone_config(
+                                    "kalman_hardware", "phidgets_spatial.yaml"
+                                ),
                                 phidgets_spatial_calibration_params_path,
                             ],
                             extra_arguments=[{"use_intra_process_comms": False}],
@@ -198,7 +200,9 @@ def launch_setup(context):
                             package="phidgets_spatial",
                             plugin="phidgets::SpatialRosI",
                             parameters=[
-                                load_standalone_config("kalman_hardware", "phidgets_spatial.yaml"),
+                                load_standalone_config(
+                                    "kalman_hardware", "phidgets_spatial.yaml"
+                                ),
                                 phidgets_spatial_calibration_params_path,
                             ],
                             extra_arguments=[{"use_intra_process_comms": False}],

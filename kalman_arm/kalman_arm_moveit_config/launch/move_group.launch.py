@@ -21,6 +21,7 @@ from moveit_configs_utils.launch_utils import (
     DeclareBooleanLaunchArg,
 )
 
+
 def generate_move_group_launch(moveit_config):
     ld = LaunchDescription()
 
@@ -78,7 +79,7 @@ def generate_move_group_launch(moveit_config):
         output="screen",
         parameters=move_group_params,
         extra_debug_args=["--debug"],
-        namespace="/arm_controllers"
+        namespace="/arm_controllers",
         # Set the display variable, in case OpenGL code is used internally
         # additional_env={"DISPLAY": os.environ["DISPLAY"]},
         # arguments=['--ros-args', '--log-level', 'DEBUG'],
@@ -87,5 +88,7 @@ def generate_move_group_launch(moveit_config):
 
 
 def generate_launch_description():
-    moveit_config = MoveItConfigsBuilder("arm", package_name="kalman_arm_moveit_config").to_moveit_configs()
+    moveit_config = MoveItConfigsBuilder(
+        "arm", package_name="kalman_arm_moveit_config"
+    ).to_moveit_configs()
     return generate_move_group_launch(moveit_config)

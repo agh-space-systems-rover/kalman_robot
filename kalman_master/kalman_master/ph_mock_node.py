@@ -7,6 +7,7 @@ from kalman_interfaces.msg import MasterMessage
 BOARD_ID = 0
 CHANNEL_ID = 0
 
+
 class PHMockNode(Node):
     def __init__(self):
         super().__init__("ph_mock_node")
@@ -35,12 +36,14 @@ class PHMockNode(Node):
         res_msg.data = struct.pack("BBH", board_id, channel_id, ph_value)
         self.res_pub.publish(res_msg)
 
+
 def main():
     rclpy.init()
     node = PHMockNode()
     rclpy.spin(node)
     node.destroy_node()
     rclpy.shutdown()
+
 
 if __name__ == "__main__":
     main()

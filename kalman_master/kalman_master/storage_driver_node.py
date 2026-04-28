@@ -6,16 +6,18 @@ from std_msgs.msg import Float32, Empty
 from std_srvs.srv import Trigger
 
 storage = {
-    "sand": [{
-        "board": 0,
-        "channel": 3,
-        # calibration coeffs
-        "scale": 23739.0 / 1310000.0,
-        "bias": - 44568183.0 / 1310000.0,
-        # safe angles for the servo
-        "open_angle": 180,
-        "close_angle": 0,
-    }],
+    "sand": [
+        {
+            "board": 0,
+            "channel": 3,
+            # calibration coeffs
+            "scale": 23739.0 / 1310000.0,
+            "bias": -44568183.0 / 1310000.0,
+            # safe angles for the servo
+            "open_angle": 180,
+            "close_angle": 0,
+        }
+    ],
     "rock": [
         {
             "board": 0,
@@ -29,14 +31,13 @@ storage = {
             "board": 0,
             "channel": 2,
             "scale": 23739.0 / 1425700.0,
-            "bias": 0.0, 
+            "bias": 0.0,
             "open_angle": 180,
             "close_angle": 0,
         },
-
-    ]
-    ,
+    ],
 }
+
 
 class StorageDriver(Node):
     def __init__(self):
@@ -53,7 +54,9 @@ class StorageDriver(Node):
         for storage_name in storage.keys():
             req_srv_name = f"science/storage/{storage_name}/weight/req"
             self.value_req_srv[storage_name] = self.create_service(
-                Trigger, req_srv_name, lambda req, res, name=storage_name: self.handle_value_req(name, res)
+                Trigger,
+                req_srv_name,
+                lambda req, res, name=storage_name: self.handle_value_req(name, res),
             )
 
         # Master comms
@@ -74,14 +77,22 @@ class StorageDriver(Node):
             open_srv_name = f"science/storage/{storage_name}/open"
             close_srv_name = f"science/storage/{storage_name}/close"
             self.open_srv[storage_name] = self.create_service(
-                Trigger, open_srv_name, lambda req, resp, name=storage_name: self.handle_servo(name, True, resp)
+                Trigger,
+                open_srv_name,
+                lambda req, resp, name=storage_name: self.handle_servo(
+                    name, True, resp
+                ),
             )
             self.close_srv[storage_name] = self.create_service(
-                Trigger, close_srv_name, lambda req, resp, name=storage_name: self.handle_servo(name, False, resp)
+                Trigger,
+                close_srv_name,
+                lambda req, resp, name=storage_name: self.handle_servo(
+                    name, False, resp
+                ),
             )
 
         # Track last values to sum them up for multi-channel storages
-        self.last_values = {name: [0.0]*len(infos) for name, infos in storage.items()}
+        self.last_values = {name: [0.0] * len(infos) for name, infos in storage.items()}
 
     def handle_value_req(self, storage_name, response):
         storage_infos = storage[storage_name]
@@ -110,7 +121,7 @@ class StorageDriver(Node):
         board_id, channel_id, value = struct.unpack("<BBi", padded_data)
 
         self.get_logger().info(f"{channel_id} = {value}")
-        
+
         # Find which storage this corresponds to
         storage_name = None
         info_idx = 0
@@ -126,7 +137,10 @@ class StorageDriver(Node):
         # Publish the value
         if storage_name:
             # Apply linear mapping
-            value = value * storage[storage_name][info_idx]["scale"] + storage[storage_name][info_idx]["bias"]
+            value = (
+                value * storage[storage_name][info_idx]["scale"]
+                + storage[storage_name][info_idx]["bias"]
+            )
             self.last_values[storage_name][info_idx] = value
             total_value = sum(self.last_values[storage_name])
 
@@ -142,7 +156,9 @@ class StorageDriver(Node):
         for storage_info in storage_infos:
             board_id = storage_info["board"]
             channel_id = storage_info["channel"]
-            angle = storage_info["open_angle"] if open_flag else storage_info["close_angle"]
+            angle = (
+                storage_info["open_angle"] if open_flag else storage_info["close_angle"]
+            )
 
             msg = MasterMessage()
             msg.cmd = MasterMessage.SERVO_SET
@@ -150,7 +166,9 @@ class StorageDriver(Node):
             self.master_pub.publish(msg)
 
         response.success = True
-        response.message = f"{'Opened' if open_flag else 'Closed'} {storage_name} (angle={angle})"
+        response.message = (
+            f"{'Opened' if open_flag else 'Closed'} {storage_name} (angle={angle})"
+        )
         return response
 
 

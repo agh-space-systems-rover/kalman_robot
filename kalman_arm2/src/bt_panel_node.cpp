@@ -42,8 +42,11 @@ class BTPanel : public rclcpp::Node {
 		declare_parameter<bool>("auto_start", true);
 
 		mission_helper_ = std::make_shared<MissionHelper>(
-			// FIXME: assumption that the panel layout was read successfully
-		    MissionState{PanelLayout::read_yaml(panel_layout_yaml_path_, get_logger()).value()}
+		    // FIXME: assumption that the panel layout was read successfully
+		    MissionState{
+		        PanelLayout::read_yaml(panel_layout_yaml_path_, get_logger())
+		            .value()
+		    }
 		);
 
 		// Build the tree
@@ -226,7 +229,7 @@ class BTPanel : public rclcpp::Node {
 	std::unique_ptr<BT::BehaviorTreeFactory> factory_;
 	std::unique_ptr<BT::Tree>                tree_;
 	std::unique_ptr<BT::PublisherZMQ>        zmq_publisher_; // optional
-	std::string panel_layout_yaml_path_;
+	std::string                              panel_layout_yaml_path_;
 
 	std::thread                                  worker_;
 	std::atomic<bool>                            stop_requested_{true};

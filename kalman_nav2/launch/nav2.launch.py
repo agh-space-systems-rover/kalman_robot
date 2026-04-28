@@ -15,7 +15,6 @@ import copy
 
 from kalman_utils.launch import launch_node_or_load_component, load_standalone_config
 
-
 NAV_CONTAINER_NAME = "nav2_container"
 
 
@@ -119,7 +118,8 @@ def launch_setup(context):
                     ("output", "point_cloud/obstacles"),
                 ],
                 extra_arguments=[{"use_intra_process_comms": False}],
-            ) for camera_id in rgbd_ids
+            )
+            for camera_id in rgbd_ids
         ),
         [],
     )

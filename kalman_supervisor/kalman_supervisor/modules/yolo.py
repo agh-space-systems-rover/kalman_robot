@@ -41,7 +41,7 @@ class Yolo(Module):
     def tick(self) -> None:
         if not self.module_enabled:
             return
-        
+
         # Abort tick if deactivation is disabled.
         if not self.supervisor.get_parameter("yolo.deactivate_unused").value:
             return
