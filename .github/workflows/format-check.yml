@@ -7,6 +7,6 @@ on:
 
 jobs:
   call-parent-format-check:
-    uses: agh-space-systems-rover/kalman-ws/.github/workflows/format-check.yml@feat/add-code-styling-check-workflow
+    uses: agh-space-systems-rover/kalman-ws/.github/workflows/format-check.yml@ci/format-check-workflow/v1
     with:
       paths: .
