@@ -1,0 +1,15 @@
+.refresh-button {
+    width: calc(1em + 4px);
+    height: calc(1em + 4px);
+    padding: 3px;
+    border-radius: 5px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.2s;
+}
+
+.refresh-button:hover {
+    background-color: var(--background);
+}

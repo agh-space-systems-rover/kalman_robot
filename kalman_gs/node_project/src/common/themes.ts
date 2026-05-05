@@ -14,7 +14,7 @@ function setTheme(theme: Theme) {
   document.documentElement.setAttribute('data-theme', theme);
 
   // Emit event.
-  window.dispatchEvent(new Event('theme-change'));
+  window.dispatchEvent(new CustomEvent('theme-change'));
 
   // Save to local storage.
   localStorage.setItem('theme', JSON.stringify(theme));

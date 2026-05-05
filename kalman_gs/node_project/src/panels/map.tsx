@@ -45,7 +45,7 @@ window.addEventListener('ros-connect', () => {
 
   geoPathTopic.subscribe((msg: GeoPath) => {
     geoPathArray = msg.points;
-    window.dispatchEvent(new Event('map-geo-points-update'));
+    window.dispatchEvent(new CustomEvent('map-geo-points-update'));
   });
 });
 
@@ -93,8 +93,8 @@ function GpsCoordinatesDisplay() {
       window.removeEventListener('map-marker-move', onMarkerUpdated);
     };
   }, [onMarkerUpdated]);
-  const latStr = coords.lat ? coords.lat.toFixed(6) : 'N/A';
-  const longStr = coords.long ? coords.long.toFixed(6) : 'N/A';
+  const latStr = coords.lat != null ? coords.lat.toFixed(6) : 'N/A';
+  const longStr = coords.long != null ? coords.long.toFixed(6) : 'N/A';
 
   return (
     <div className={styles['gps-display-control']}>
