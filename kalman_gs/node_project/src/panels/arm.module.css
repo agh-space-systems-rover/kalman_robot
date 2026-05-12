@@ -16,6 +16,12 @@
   margin-top: 0;
   font-weight: 600;
 }
+.header-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+}
 
 .status-header,
 .pose-header {
@@ -128,7 +134,7 @@ input[type='range']::-moz-range-track {
   min-height: 30px;
 }
 
-.joint-lock {
+.joint-lock{
   display: flex;
   align-items: center;
   justify-content: center;
@@ -331,6 +337,64 @@ input[type='range']::-moz-range-track {
 .extra-space {
   margin-top: 20px;
 }
+
+/* Edit Panel */
+.edit-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  margin-left: 10px;
+}
+.edit-actions {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.edit-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+  margin-bottom: 5px;
+  cursor: pointer;
+  padding: 8px 12px;  
+  background-color: var(--interactive);
+}
+.edit-button:hover {
+  background-color: var(--dark-background);
+}
+  /* grid */
+  .joints-edit-grid-horizontal {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .grid-row {
+    display: grid;
+    grid-template-columns: 100px repeat(6, 20px);
+    align-items: center;
+    gap: 10px;
+  }
+  .column-header {
+    text-align: center;
+    font-family: monospace;
+    font-weight: bold;
+  }
+  .grid-row input[type="checkbox"] {
+    justify-self: center;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+  }
+  .grid-row input[type="checkbox"]:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
 
 @keyframes blink-animation {
   0% {
