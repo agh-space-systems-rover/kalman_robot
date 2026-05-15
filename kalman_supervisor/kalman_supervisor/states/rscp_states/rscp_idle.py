@@ -13,17 +13,19 @@ class RscpIdle(State):
             self.supervisor.ueuos.set_rscp_state(Ueuos.RscpState.ARMED)
         else:
             self.supervisor.ueuos.set_rscp_state(Ueuos.RscpState.DISARMED)
-        
-        self.supervisor.get_logger().info("[RSCP] Entered idle state, waiting for requests...")
+
+        self.supervisor.get_logger().info(
+            "[RSCP] Entered idle state, waiting for requests..."
+        )
 
     def tick(self) -> str | None:
         # Check for pending requests (ARM_DISARM and SET_STAGE are handled by module)
         if not self.supervisor.rscp.has_pending_request():
             return None
-        
+
         # Get the pending request
         req = self.supervisor.rscp.pop_pending_request()
-        
+
         if req.type == ArcRscpRequest.NAV_TO_GPS:
             # Check if we're armed before allowing navigation
             if not self.supervisor.rscp.is_armed():
@@ -33,7 +35,7 @@ class RscpIdle(State):
                 # Could send a NACK here if we had such a message type
                 # For now, just stay in idle
                 return None
-            
+
             # Handle NavigateToGPS request
             # Store the goal in the module for the navigate state to use
             self.supervisor.rscp.set_navigation_goal(req.latitude, req.longitude)
@@ -44,7 +46,7 @@ class RscpIdle(State):
             )
             # Transition to navigate state
             return "rscp_navigate_gps"
-            
+
         else:
             self.supervisor.get_logger().warn(
                 f"[RSCP] Unknown request type {req.type}, ignoring"
