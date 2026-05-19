@@ -652,7 +652,7 @@ class DeadReckoning : public rclcpp::Node {
 			mean_g_o += g_o;
 		}
 		mean_g_o /= static_cast<double>(num_seq_samples);
-		mean_g_o = mean_g_o / cv::norm(mean_g_o);
+		mean_g_o  = mean_g_o / cv::norm(mean_g_o);
 		// ^ normalize to unit vector
 
 		// Compute correction quaternion.

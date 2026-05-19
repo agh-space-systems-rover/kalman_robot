@@ -11,7 +11,9 @@ class MagnetometerDriver(Node):
         super().__init__("magnetometer_driver")
 
         # Publisher for sensor_msgs/MagneticField
-        self.magfield_pub = self.create_publisher(MagneticField, "science/magnetic_field/value", 10)
+        self.magfield_pub = self.create_publisher(
+            MagneticField, "science/magnetic_field/value", 10
+        )
 
         # Service for requesting magnetometer data
         self.data_req_srv = self.create_service(
@@ -21,9 +23,7 @@ class MagnetometerDriver(Node):
         )
 
         # Master comms (similarly to PHDriver, but using UInt8MultiArray for demo)
-        self.master_pub = self.create_publisher(
-            UInt8MultiArray, "magneto/request", 10
-        )
+        self.master_pub = self.create_publisher(UInt8MultiArray, "magneto/request", 10)
         self.master_sub = self.create_subscription(
             UInt8MultiArray,
             "magneto/data",
@@ -44,7 +44,7 @@ class MagnetometerDriver(Node):
         if len(msg.data) < 12:
             self.get_logger().warn("Received invalid magnetometer response")
             return
-        
+
         # Unpack the response
         x, y, z = struct.unpack("<fff", bytearray(msg.data[:12]))
 
@@ -55,6 +55,7 @@ class MagnetometerDriver(Node):
         mag_msg.magnetic_field.y = y
         mag_msg.magnetic_field.z = z
         self.magfield_pub.publish(mag_msg)
+
 
 def main():
     try:

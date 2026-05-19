@@ -47,6 +47,7 @@ class CubeClouds(Node):
         self.empty_det_timer = self.create_timer(0.1, self.timer_callback)
         self.end = time.time()
         self.last_msg = None
+
     def detection_cb(self, msg: Detection2DArray):
         self.last_msg = msg
         self.end = time.time()

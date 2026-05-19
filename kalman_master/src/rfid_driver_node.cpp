@@ -67,12 +67,13 @@ class RfidDriver : public rclcpp::Node {
 			);
 		}
 		const std::vector<uint8_t> &data = master_msg->data;
-		if (data.size() < 17){
+		if (data.size() < 17) {
 			return;
 		}
 
-		const std::string str_part = std::string(data.begin(), data.begin() + 16);
-		const uint8_t     msg_id   = data.at(16);
+		const std::string str_part =
+		    std::string(data.begin(), data.begin() + 16);
+		const uint8_t msg_id = data.at(16);
 		if (msg_id >= data_.arr.size()) {
 			return;
 		}

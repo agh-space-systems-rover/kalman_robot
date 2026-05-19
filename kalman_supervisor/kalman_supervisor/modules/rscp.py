@@ -18,20 +18,15 @@ class Rscp(Module):
         self.__current_stage: int | None = None
         self.__pending_request: ArcRscpRequest | None = None
         self.__navigation_goal: tuple[float, float] | None = None  # (lat, lon)
-        
+
         # Subscribe to rscp/req
         self.__req_sub = self.supervisor.create_subscription(
-            ArcRscpRequest, 
-            "rscp/req", 
-            self.__req_callback, 
-            10
+            ArcRscpRequest, "rscp/req", self.__req_callback, 10
         )
-        
+
         # Publisher for rscp/res
         self.__res_pub = self.supervisor.create_publisher(
-            ArcRscpResponse, 
-            "rscp/res", 
-            10
+            ArcRscpResponse, "rscp/res", 10
         )
 
     def __req_callback(self, msg: ArcRscpRequest) -> None:
@@ -41,47 +36,51 @@ class Rscp(Module):
             f"[RSCP] Received request type={msg.type} "
             f"(arm={msg.arm}, stage={msg.stage}, lat={msg.latitude}, lon={msg.longitude})"
         )
-    
+
     def tick(self) -> None:
         if not self.module_enabled:
             return
-        
+
         # Process certain request types in the module before states see them
         if self.__pending_request is not None:
             req = self.__pending_request
-            
+
             # Handle ARM_DISARM requests immediately
             if req.type == ArcRscpRequest.ARM_DISARM:
                 self.__armed = req.arm
                 self.send_ack()
                 self.__pending_request = None  # Consume the request
-                
+
                 self.supervisor.get_logger().info(
                     f"[RSCP] ARM_DISARM: {'ARMED' if self.__armed else 'DISARMED'}"
                 )
-                
+
                 # Update UEUOS state based on armed status
                 if self.__armed:
-                    self.supervisor.ueuos.set_rscp_state(self.supervisor.ueuos.RscpState.ARMED)
+                    self.supervisor.ueuos.set_rscp_state(
+                        self.supervisor.ueuos.RscpState.ARMED
+                    )
                 else:
-                    self.supervisor.ueuos.set_rscp_state(self.supervisor.ueuos.RscpState.DISARMED)
-            
+                    self.supervisor.ueuos.set_rscp_state(
+                        self.supervisor.ueuos.RscpState.DISARMED
+                    )
+
             # Handle SET_STAGE requests immediately
             elif req.type == ArcRscpRequest.SET_STAGE:
                 self.__current_stage = req.stage
                 self.send_ack()
                 self.__pending_request = None  # Consume the request
-                
+
                 self.supervisor.get_logger().info(
                     f"[RSCP] SET_STAGE: stage={self.__current_stage}"
                 )
-            
+
             # Other requests (NAV_TO_GPS) are left for states to handle
 
     def deactivate(self) -> None:
         if not self.module_enabled:
             return
-        
+
         self.supervisor.destroy_subscription(self.__req_sub)
         self.supervisor.destroy_publisher(self.__res_pub)
 
@@ -113,15 +112,16 @@ class Rscp(Module):
 
     def get_current_stage(self) -> int | None:
         return self.__current_stage
-    
+
     def get_navigation_goal(self) -> tuple[float, float] | None:
         return self.__navigation_goal
-    
+
     def set_navigation_goal(self, lat: float, lon: float) -> None:
         self.__navigation_goal = (lat, lon)
-        self.supervisor.get_logger().info(f"[RSCP] Navigation goal set to ({lat}, {lon})")
-    
+        self.supervisor.get_logger().info(
+            f"[RSCP] Navigation goal set to ({lat}, {lon})"
+        )
+
     def clear_navigation_goal(self) -> None:
         self.__navigation_goal = None
         self.supervisor.get_logger().info("[RSCP] Navigation goal cleared")
-

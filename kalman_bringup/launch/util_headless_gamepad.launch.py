@@ -9,8 +9,6 @@ def generate_launch_description():
             "hardware": {
                 "master": "pc",
             },
-            "wheels": {
-                "joy": "gamepad"
-            },
+            "wheels": {"joy": "gamepad"},
         }
     )

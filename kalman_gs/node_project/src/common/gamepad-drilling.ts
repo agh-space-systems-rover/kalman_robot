@@ -21,7 +21,7 @@ window.addEventListener('ros-connect', () => {
     if (Number.isNaN(drilling)) drilling = 0;
 
     // const drillData = { arm: armAxis, rack: rackAxis, drill: drilling };
-    const drillData = {rack: rackAxis, drill: drilling };
+    const drillData = { rack: rackAxis, drill: drilling };
     sendDrillData.publish(drillData);
   }, 1000 / RATE);
 });

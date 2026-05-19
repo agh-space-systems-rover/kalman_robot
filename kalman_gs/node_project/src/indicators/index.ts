@@ -4,8 +4,8 @@ import HealthStatus from './health-status';
 import Interstellar from './interstellar';
 import OpenSettings from './open-settings';
 import RebootPC from './reboot-pc';
-import RosHealth from './ros-health';
 import RefreshButton from './refresh-button';
+import RosHealth from './ros-health';
 
 // Add new indicators here:
 export const IndicatorComponents = [

@@ -30,7 +30,6 @@ class SeamlessAudioLoop {
   }
 
   play() {
-
     // Create a new buffer source
     this.bufferSource = this.audioContext.createBufferSource();
     this.bufferSource.buffer = this.buffer;
@@ -47,7 +46,6 @@ class SeamlessAudioLoop {
   }
 
   stop() {
-
     if (this.bufferSource) {
       this.bufferSource.stop(0);
       this.bufferSource = null;

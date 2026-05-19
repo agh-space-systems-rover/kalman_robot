@@ -37,7 +37,8 @@ IKNavigateToPose::IKNavigateToPose(
 
 	tf_buffer_   = std::make_unique<tf2_ros::Buffer>(parent_->get_clock());
 	tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
-	static_broadcaster_ = std::make_shared<tf2_ros::StaticTransformBroadcaster>(parent_);
+	static_broadcaster_ =
+	    std::make_shared<tf2_ros::StaticTransformBroadcaster>(parent_);
 }
 
 BT::PortsList IKNavigateToPose::providedPorts() {
@@ -76,54 +77,57 @@ static geometry_msgs::msg::Pose transformPose_withTf2Transform(
 }
 
 inline geometry_msgs::msg::Vector3 angularVelToTarget(
-    const geometry_msgs::msg::Quaternion& q_current_msg,
-    const geometry_msgs::msg::Quaternion& q_target_msg,
-    double kp = 2.0,                 // tune this
-    double max_w = 2.0               // rad/s (limit)
-){
-  // Convert & normalize
-  tf2::Quaternion q_c, q_t;
-  tf2::fromMsg(q_current_msg, q_c);
-  tf2::fromMsg(q_target_msg,  q_t);
-  q_c.normalize();
-  q_t.normalize();
+    const geometry_msgs::msg::Quaternion &q_current_msg,
+    const geometry_msgs::msg::Quaternion &q_target_msg,
+    double                                kp    = 2.0, // tune this
+    double                                max_w = 2.0  // rad/s (limit)
+) {
+	// Convert & normalize
+	tf2::Quaternion q_c, q_t;
+	tf2::fromMsg(q_current_msg, q_c);
+	tf2::fromMsg(q_target_msg, q_t);
+	q_c.normalize();
+	q_t.normalize();
 
-  // Quaternion error (body frame): R_err = R_c^T * R_t
-  // -> rotate from current to target, expressed in the current/body frame
-  tf2::Quaternion q_err = q_c.inverse() * q_t;
-//   tf2::Quaternion q_err = q_c * q_t;
-  q_err.normalize();
+	// Quaternion error (body frame): R_err = R_c^T * R_t
+	// -> rotate from current to target, expressed in the current/body frame
+	tf2::Quaternion q_err = q_c.inverse() * q_t;
+	//   tf2::Quaternion q_err = q_c * q_t;
+	q_err.normalize();
 
-  // Ensure shortest path (quaternions double-cover SO(3))
-  if (q_err.getW() < 0.0) {
-    q_err = tf2::Quaternion(-q_err.getX(), -q_err.getY(), -q_err.getZ(), -q_err.getW());
-  }
+	// Ensure shortest path (quaternions double-cover SO(3))
+	if (q_err.getW() < 0.0) {
+		q_err = tf2::Quaternion(
+		    -q_err.getX(), -q_err.getY(), -q_err.getZ(), -q_err.getW()
+		);
+	}
 
-  // Axis-angle from q_err
-  double w   = std::clamp(static_cast<double>(q_err.getW()), -1.0, 1.0);
-  double ang = 2.0 * std::acos(w);                 // in [0, pi]
-  double s   = std::sqrt(std::max(1e-16, 1.0 - w*w)); // = sin(ang/2)
+	// Axis-angle from q_err
+	double w   = std::clamp(static_cast<double>(q_err.getW()), -1.0, 1.0);
+	double ang = 2.0 * std::acos(w);                      // in [0, pi]
+	double s   = std::sqrt(std::max(1e-16, 1.0 - w * w)); // = sin(ang/2)
 
-  tf2::Vector3 axis(1.0, 0.0, 0.0);               // arbitrary when angle ~ 0
-  if (s > 1e-8) {
-    axis = tf2::Vector3(q_err.getX()/s, q_err.getY()/s, q_err.getZ()/s);
-  }
-  tf2::Vector3 rotvec = axis * ang;               // axis * angle
+	tf2::Vector3 axis(1.0, 0.0, 0.0); // arbitrary when angle ~ 0
+	if (s > 1e-8) {
+		axis =
+		    tf2::Vector3(q_err.getX() / s, q_err.getY() / s, q_err.getZ() / s);
+	}
+	tf2::Vector3 rotvec = axis * ang; // axis * angle
 
-  // Proportional angular velocity (optional: add -Kd*ω_meas for PD)
-  tf2::Vector3 w_cmd = kp * rotvec;
+	// Proportional angular velocity (optional: add -Kd*ω_meas for PD)
+	tf2::Vector3 w_cmd = kp * rotvec;
 
-  // Limit magnitude
-  double n = w_cmd.length();
-  if (n > max_w) {
-    w_cmd *= (max_w / n);
-  }
+	// Limit magnitude
+	double n = w_cmd.length();
+	if (n > max_w) {
+		w_cmd *= (max_w / n);
+	}
 
-  geometry_msgs::msg::Vector3 out;
-  out.x = w_cmd.x();
-  out.y = w_cmd.y();
-  out.z = w_cmd.z();
-  return out;
+	geometry_msgs::msg::Vector3 out;
+	out.x = w_cmd.x();
+	out.y = w_cmd.y();
+	out.z = w_cmd.z();
+	return out;
 }
 
 } // namespace
@@ -164,11 +168,11 @@ BT::NodeStatus IKNavigateToPose::onRunning() {
 				// We want the end effector to be perpendicular to marker
 				tf2::Quaternion q;
 				q.setRPY(0, M_PI_2, M_PI_2);
-				auto pose_copy = pose;
+				auto            pose_copy = pose;
 				tf2::Quaternion target_rotation;
 				tf2::fromMsg(pose.orientation, target_rotation);
 
-				const auto rot = target_rotation * q;
+				const auto rot        = target_rotation * q;
 				pose_copy.orientation = tf2::toMsg(rot);
 
 				// geometry_msgs::msg::TransformStamped transform;
@@ -181,12 +185,20 @@ BT::NodeStatus IKNavigateToPose::onRunning() {
 
 				// static_broadcaster_->sendTransform(transform);
 
-				twist.twist.angular = angularVelToTarget(current_pose.orientation, pose_copy.orientation);
+				twist.twist.angular = angularVelToTarget(
+				    current_pose.orientation, pose_copy.orientation
+				);
 			}
 
-			// twist.twist.angular = angularVelToTarget(current_pose.orientation, pose.orientation);
+			// twist.twist.angular =
+			// angularVelToTarget(current_pose.orientation, pose.orientation);
 			// current_pose.orientation
-			RCLCPP_INFO_STREAM(parent_->get_logger(), name() << "Target rotation is " << pose.orientation.w << " " << pose.orientation.x << " " << pose.orientation.y << " " << pose.orientation.z);
+			RCLCPP_INFO_STREAM(
+			    parent_->get_logger(),
+			    name() << "Target rotation is " << pose.orientation.w << " "
+			           << pose.orientation.x << " " << pose.orientation.y << " "
+			           << pose.orientation.z
+			);
 			// current_pose.orientation * pose.orientation.inverse();
 
 			const auto v = twist.twist.linear;

@@ -59,14 +59,14 @@ def generate_launch_description():
             ),
         ],
         output="both",
-        namespace="arm_controllers"
+        namespace="arm_controllers",
     )
     robot_state_pub_node = Node(
         package="robot_state_publisher",
         executable="robot_state_publisher",
         output="both",
         parameters=[robot_description],
-        namespace="arm_controllers"
+        namespace="arm_controllers",
     )
 
     joint_state_broadcaster_spawner = Node(
@@ -76,21 +76,25 @@ def generate_launch_description():
             "joint_state_broadcaster",
             "--controller-manager",
             "/arm_controllers/controller_manager",
-        ]
+        ],
     )
 
     robot_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["joint_trajectory_controller", "-c", "/arm_controllers/controller_manager"],
-        namespace="arm_controllers"
+        arguments=[
+            "joint_trajectory_controller",
+            "-c",
+            "/arm_controllers/controller_manager",
+        ],
+        namespace="arm_controllers",
     )
 
     robot_vel_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
         arguments=["velocity_controller", "-c", "controller_manager"],
-        namespace="arm_controllers"
+        namespace="arm_controllers",
     )
 
     # Delay start of robot_controller after `joint_state_broadcaster`

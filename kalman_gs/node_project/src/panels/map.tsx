@@ -12,6 +12,8 @@ import { GeoPoint, GeoPath, WheelStates } from '../common/ros-interfaces';
 import { waypoints } from '../common/waypoints';
 import erc2024Overlay from '../media/erc2024-overlay.png';
 import erc2025Overlay from '../media/erc2025-overlay.png';
+import { faGlobe, faCopy } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import Leaflet from 'leaflet';
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
@@ -19,8 +21,7 @@ import 'leaflet/dist/leaflet.css';
 import { Component, createRef, useState, useEffect, useCallback } from 'react';
 import { ImageOverlay, MapContainer, Marker, ScaleControl, TileLayer, Tooltip, Polyline } from 'react-leaflet';
 import { Topic } from 'roslib';
-import { faGlobe, faCopy } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+
 import Button from '../components/button';
 
 const GO_TO_LOCATION_ZOOM = 19;
@@ -99,15 +100,15 @@ function GpsCoordinatesDisplay() {
   return (
     <div className={styles['gps-display-control']}>
       <FontAwesomeIcon icon={faGlobe} />
-      <div className={styles['gps-coords-text']}>
-        {`${latStr}, ${longStr}`}
-      </div>
+      <div className={styles['gps-coords-text']}>{`${latStr}, ${longStr}`}</div>
       <Button
         tooltip='Copy marker coordinates to clipboard.'
         onClick={() => {
           navigator.clipboard.writeText(`${mapMarker.latitude.toFixed(8)}, ${mapMarker.longitude.toFixed(8)}`);
         }}
-      ><FontAwesomeIcon icon={faCopy} /></Button>
+      >
+        <FontAwesomeIcon icon={faCopy} />
+      </Button>
     </div>
   );
 }
