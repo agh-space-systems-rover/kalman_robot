@@ -25,7 +25,7 @@ def open_browser():
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Użycie: python panorama_viewer.py <path_to_panorama.jpg>")
+        print("Usage: python panorama_viewer.py <path_to_panorama.jpg>")
         sys.exit(1)
 
     IMAGE_PATH = os.path.abspath(sys.argv[1])
