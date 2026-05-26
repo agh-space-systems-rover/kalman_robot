@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="utf-8">
+    <title>Przeglądarka Panoram 3D</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #000;
+        }
+        #panorama {
+            width: 100vw;
+            height: 100vh;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="panorama"></div>
+
+    <script>
+    pannellum.viewer('panorama', {
+        "type": "equirectangular", // Standardowy format dla panoram 360
+        "panorama": "/image",      // Endpoint w Flasku serwujący zdjęcie
+        "autoLoad": true,
+        "compass": true,           // Wyświetla kompas
+        "showFullscreenCtrl": true // Przycisk pełnego ekranu
+
+        // Jeśli panorama jest cylindryczna (niepełna sferycznie), odkomentuj i dostosuj:
+        // "haov": 360, // Kąt widzenia w poziomie
+        // "vaov": 90   // Kąt widzenia w pionie
+    });
+    </script>
+
+</body>
+</html>
