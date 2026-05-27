@@ -2,7 +2,7 @@ import styles from './map.header.module.css';
 
 import { gpsCoords } from '../common/gps';
 import { mapMarker, setMapMarkerLatLon } from '../common/map-marker';
-import { alertsRef } from '../common/refs';
+import { alertsRef, modalRef } from '../common/refs';
 import { ros } from '../common/ros';
 import { NavSatFix, SpoofGpsRequest } from '../common/ros-interfaces';
 import Map from './map';
@@ -99,7 +99,11 @@ export default function MapHeader({ panelRef }: Props) {
       if (latLong) {
         panelRef.current?.goToLocation(...latLong);
       } else {
-        alert('No results found.');
+        modalRef.current?.showAlert({
+          title: 'No results found',
+          message: 'Could not find a location for this search.',
+          icon: faSearch
+        });
       }
     } catch (err) {
       alertsRef.current?.pushAlert('Failed to reach the Geocoding service. Please check your internet connection.');

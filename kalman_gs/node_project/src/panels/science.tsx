@@ -1,5 +1,6 @@
 import styles from './science.module.css';
 
+import { modalRef } from '../common/refs';
 import { ros } from '../common/ros';
 import {
   faWeightHanging,
@@ -387,9 +388,14 @@ function StorageContainer({ selectedStorage, tareHistory, onTareHistoryChange }:
             className={styles['science-row-item']}
             tooltip='Clear all tare history'
             onClick={() => {
-              if (window.confirm('Are you sure you want to clear all tare history?')) {
-                clearTareHistory();
-              }
+              modalRef.current?.showConfirm({
+                title: 'Clear tare history',
+                icon: faTrash,
+                message: 'Are you sure you want to clear all tare history?',
+                confirmText: 'Clear',
+                cancelText: 'Cancel',
+                onConfirm: clearTareHistory
+              });
             }}
           >
             <FontAwesomeIcon icon={faTrash} />
@@ -769,9 +775,14 @@ function DrillContainer({ tareHistory, onTareHistoryChange }: DrillContainerProp
             className={styles['science-row-item']}
             tooltip='Clear all tare history'
             onClick={() => {
-              if (window.confirm('Are you sure you want to clear all tare history?')) {
-                clearTareHistory();
-              }
+              modalRef.current?.showConfirm({
+                title: 'Clear tare history',
+                icon: faTrash,
+                message: 'Are you sure you want to clear all tare history?',
+                confirmText: 'Clear',
+                cancelText: 'Cancel',
+                onConfirm: clearTareHistory
+              });
             }}
           >
             <FontAwesomeIcon icon={faTrash} />
