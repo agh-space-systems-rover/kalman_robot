@@ -73,10 +73,10 @@ install(TARGETS slam_serialization_node
   ARCHIVE DESTINATION lib
 )
 
-
 install(PROGRAMS
   scripts/cube_saver
   scripts/cube_clouds
+  scripts/travel_distance_meter
   DESTINATION lib/${PROJECT_NAME}
 )
 
