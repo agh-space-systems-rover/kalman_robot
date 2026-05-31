@@ -1,3 +1,4 @@
+from kalman_supervisor.modules.arc import Arc
 from kalman_supervisor.modules.arch import Arch
 from kalman_supervisor.modules.aruco import ArUco
 from kalman_supervisor.modules.cmd_vel import CmdVel
