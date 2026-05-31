@@ -38,13 +38,29 @@ class CylindricalStitcher:
     def __init__(self, focal_length=700):
         self.focal_length = focal_length
         self.finder = cv2.SIFT_create()
-        self.bf = cv2.BFMatcher(cv2.NORM_L2, crossCheck=False)
+        # Używamy FLANN dla szybszego i dokładniejszego dopasowywania przy dużych zestawach cech
+        index_params = dict(algorithm=1, trees=5)
+        search_params = dict(checks=50)
+        self.flann = cv2.FlannBasedMatcher(index_params, search_params)
+
         self.panorama = None
         self.added_frames_count = 0
+        self.is_saved_360 = False
+
+        # Teoretyczna szerokość pełnego obrotu 360 stopni
+        self.target_width_360 = int(2 * np.pi * self.focal_length)
+
+        # Przechowywanie punktów kluczowych pierwszej klatki
+        self.first_frame_kp = None
+        self.first_frame_des = None
 
     def reset(self):
         self.panorama = None
         self.added_frames_count = 0
+        self.is_saved_360 = False
+        self.first_frame_kp = None
+        self.first_frame_des = None
+        print("[System] Resetowanie panoramy...")
 
     def rotate_frame(self, img, angle):
         if angle == 90:
@@ -77,25 +93,88 @@ class CylindricalStitcher:
 
         return cylindrical_img, (mask * 255).astype(np.uint8)
 
+    def check_loop_closure(self, frame_cyl):
+        """Sprawdza powrót do startu po przekroczeniu 50% szerokości przy użyciu Homografii."""
+        if self.panorama is None or self.first_frame_des is None:
+            return False
+
+        current_width = self.panorama.shape[1]
+        half_width_threshold = self.target_width_360 * 0.5
+
+        # WARUNEK 1: Sprawdzamy dopiero, gdy jesteśmy przynajmniej w połowie oczekiwanej szerokości
+        if current_width < half_width_threshold:
+            return False
+
+        kp_frame, des_frame = self.finder.detectAndCompute(frame_cyl, None)
+        if des_frame is None:
+            return False
+
+        # Dopasowanie przy użyciu FLANN (stabilniejsze niż podstawowy BFMatcher)
+        matches = self.flann.knnMatch(des_frame, self.first_frame_des, k=2)
+        good_matches = []
+        for match in matches:
+            if len(match) == 2:
+                m, n = match
+                # Wybór najbardziej unikalnych punktów (test Ratio Lowe'a)
+                if m.distance < 0.7 * n.distance:
+                    good_matches.append(m)
+
+        # WARUNEK 2: Jeśli mamy potencjalne punkty wspólne, weryfikujemy je Homografią
+        if len(good_matches) >= 15:
+            src_pts = np.float32(
+                [kp_frame[m.queryIdx].pt for m in good_matches]
+            ).reshape(-1, 1, 2)
+            dst_pts = np.float32(
+                [self.first_frame_kp[m.trainIdx].pt for m in good_matches]
+            ).reshape(-1, 1, 2)
+
+            # Homografia (findHomography + RANSAC) wybacza drobne różnice w kącie patrzenia kamery
+            H, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 5.0)
+
+            if H is not None:
+                num_inliers = np.sum(mask)
+                # Jeżeli poprawnie przetłumaczono geometrię dla min. 12 punktów - mamy to!
+                if num_inliers >= 12:
+                    print(
+                        f"\n[Loop Closure] Znaleziono dopasowanie perspektywiczne! Poprawne punkty (inliers): {num_inliers}"
+                    )
+                    return True
+        return False
+
     def try_stitch(self, frame_cyl, frame_mask):
+        # Inicjalizacja pierwszej klatki
         if self.panorama is None:
             self.panorama = frame_cyl.copy()
             self.added_frames_count = 1
+            # Konwertujemy deskryptory na float32 (wymóg dla FLANN Matchera)
+            kp, des = self.finder.detectAndCompute(frame_cyl, None)
+            if des is not None:
+                self.first_frame_kp = kp
+                self.first_frame_des = des.astype(np.float32)
             return True
 
+        # Sprawdzamy pętlę przed modyfikacją panoramy
+        if self.is_saved_360 is False and self.check_loop_closure(frame_cyl):
+            self.is_saved_360 = True
+
+        # Konwersja deskryptorów panoramy i klatki na float32 do dopasowania standardowego
         kp1, des1 = self.finder.detectAndCompute(self.panorama, None)
         kp2, des2 = self.finder.detectAndCompute(frame_cyl, None)
 
         if des1 is None or des2 is None:
             return False
 
-        matches = self.bf.knnMatch(des2, des1, k=2)
+        des1_f = des1.astype(np.float32)
+        des2_f = des2.astype(np.float32)
+
+        matches = self.flann.knnMatch(des2_f, des1_f, k=2)
         good_matches = []
         for match in matches:
             if len(match) == 2:
                 m, n = match
                 if m.distance < 0.7 * n.distance:
                     good_matches.append(m)
+
         if len(good_matches) <= 10:
             print("Skipped frame - too few common points.")
             return False
@@ -143,7 +222,18 @@ class CylindricalStitcher:
 
         self.panorama = large_canvas
         self.added_frames_count += 1
-        print(f"Added frame. New width: {self.panorama.shape[1]}px")
+
+        # Informacja o postępie szerokości w konsoli
+        progress_pct = (self.panorama.shape[1] / self.target_width_360) * 100
+        print(
+            f"Added frame. Width: {self.panorama.shape[1]}px ({progress_pct:.1f}% of 360° target)"
+        )
+
+        # Zapis automatyczny po wykryciu pętli
+        if self.is_saved_360 is True:
+            self.save_to_file(prefix="panorama_360_hybrid")
+            self.is_saved_360 = "done"
+
         return True
 
     def get_preview(self, max_width=1366):
@@ -156,11 +246,11 @@ class CylindricalStitcher:
             return cv2.resize(self.panorama, (preview_w, preview_h))
         return self.panorama.copy()
 
-    def save_to_file(self):
+    def save_to_file(self, prefix="panorama"):
         if self.panorama is not None:
-            filename = f"panorama_{datetime.now().strftime('%H%M%S')}.png"
+            filename = f"{prefix}_{datetime.now().strftime('%H%M%S')}.png"
             cv2.imwrite(filename, self.panorama)
-            print(f"Saved: {filename}")
+            print(f"====== AUTO-SAVE SUCCESFUL: {filename} ======")
 
 
 def rotate_frame(img, angle):
@@ -287,9 +377,9 @@ def main(config):
 
 if __name__ == "__main__":
     config = {
-        "video_port": 1,  # video port
+        "video_port": 2,  # video port
         "capture_interval": 15,  # capture interval
         "focal_length": 700,  # focal length typical [600-800]
-        "camera_rotation": 270,  # camera rotation
+        "camera_rotation": 90,  # camera rotation
     }
     main(config)
