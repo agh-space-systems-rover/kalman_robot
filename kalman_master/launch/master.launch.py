@@ -105,9 +105,17 @@ def launch_setup(context):
             package="kalman_master",
             executable="storage_driver",
         ),
+        "sand_storage_driver": Node(
+            package="kalman_master",
+            executable="sand_storage_driver",
+        ),
         "ph_driver": Node(
             package="kalman_master",
             executable="ph_driver",
+        ),
+        "wexlab_driver": Node(
+            package="kalman_master",
+            executable="wexlab_driver",
         ),
     }
 
@@ -132,7 +140,9 @@ def launch_setup(context):
             "rfid_driver",
             "tunnel_client",
             "storage_driver",
+            "sand_storage_driver",
             "ph_driver",
+            "wexlab_driver",
         ],
         "arm": [
             "master_com",
