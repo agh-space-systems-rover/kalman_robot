@@ -1,7 +1,5 @@
 import './css/index.css';
 
-
-
 import './common/gamepad-arming';
 import './common/gamepad-drilling';
 import './common/gamepad-driving';
@@ -11,15 +9,12 @@ import { currentTheme } from './common/themes';
 import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom/client';
 
-
-
 import Alerts from './components/alerts';
 import Modal from './components/modal';
 import Navbar from './components/navbar';
 import PanelManager from './components/panel-manager';
 import Settings from './components/settings';
 import Splash from './components/splash';
-
 
 function App() {
   const [_, setRerenderCount] = useState(0);

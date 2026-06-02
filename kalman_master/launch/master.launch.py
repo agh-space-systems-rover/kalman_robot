@@ -4,7 +4,6 @@ from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 from ament_index_python import get_package_share_path
 
-
 BAUD_RATES = {
     "pc": 115200,
     "gs": 38400,

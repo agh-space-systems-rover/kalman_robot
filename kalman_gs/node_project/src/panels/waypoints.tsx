@@ -177,12 +177,20 @@ export default function Waypoints() {
             className={styles['flex-grow']}
             tooltip='Import waypoints from text.\nImported waypoints will be appended to the list.'
             onClick={() => {
-              const text = prompt('Enter waypoints as text:');
-              if (text) {
-                const numWaypoints = waypoints.length;
-                importWaypointsFromText(text, waypointColors[newWaypointColorI]);
-                alertsRef.current?.pushAlert(`Imported ${waypoints.length - numWaypoints} waypoints.`, 'success');
-              }
+              modalRef.current?.showPrompt({
+                title: 'Import waypoints',
+                icon: faDownload,
+                message: 'Enter waypoints as text:',
+                confirmText: 'Import',
+                cancelText: 'Cancel',
+                onSubmit: (text) => {
+                  if (text) {
+                    const numWaypoints = waypoints.length;
+                    importWaypointsFromText(text, waypointColors[newWaypointColorI]);
+                    alertsRef.current?.pushAlert(`Imported ${waypoints.length - numWaypoints} waypoints.`, 'success');
+                  }
+                }
+              });
             }}
           >
             <FontAwesomeIcon icon={faDownload} />

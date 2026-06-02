@@ -1,14 +1,18 @@
 import styles from './modal.module.css';
 
-
-
 import Button from './button';
 import Input from './input';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
-import { faCheck, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faCheck, faCircleInfo, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Component, createRef } from 'react';
 
+type AlertOptions = {
+  title: string;
+  icon?: IconDefinition | null;
+  message?: string;
+  confirmText?: string;
+};
 
 type PromptOptions = {
   title: string;
@@ -32,7 +36,7 @@ type ConfirmOptions = {
 
 type State = {
   shown: boolean;
-  mode: 'prompt' | 'confirm' | null;
+  mode: 'alert' | 'prompt' | 'confirm' | null;
   title: string;
   icon?: IconDefinition | null;
   message?: string;
@@ -65,6 +69,25 @@ export default class Modal extends Component<{}, State> {
   escHandler = (e: KeyboardEvent) => {
     if (e.key === 'Escape') this.hide();
   };
+
+  showAlert(opts: AlertOptions) {
+    this.setState(
+      {
+        shown: true,
+        mode: 'alert',
+        title: opts.title,
+        icon: opts.icon === undefined ? faCircleInfo : opts.icon,
+        message: opts.message,
+        confirmText: opts.confirmText ?? 'OK',
+        cancelText: '',
+        defaultValue: '',
+        placeholder: '',
+        onSubmit: undefined,
+        onConfirm: undefined
+      },
+      () => window.addEventListener('keydown', this.escHandler)
+    );
+  }
 
   showPrompt(opts: PromptOptions) {
     this.setState(
@@ -135,8 +158,9 @@ export default class Modal extends Component<{}, State> {
                   defaultValue={defaultValue}
                   autoFocus
                   onSubmit={(v) => {
-                    this.state.onSubmit?.(v);
+                    const onSubmit = this.state.onSubmit;
                     this.hide();
+                    onSubmit?.(v);
                   }}
                 />
               </div>
@@ -148,22 +172,29 @@ export default class Modal extends Component<{}, State> {
                 onClick={() => {
                   if (mode === 'prompt') {
                     const v = this.inputRef.current?.getValue() ?? '';
-                    this.state.onSubmit?.(String(v ?? ''));
+                    const onSubmit = this.state.onSubmit;
+                    this.hide();
+                    onSubmit?.(String(v ?? ''));
                   } else if (mode === 'confirm') {
-                    this.state.onConfirm?.();
+                    const onConfirm = this.state.onConfirm;
+                    this.hide();
+                    onConfirm?.();
+                  } else {
+                    this.hide();
                   }
-                  this.hide();
                 }}
               >
                 <FontAwesomeIcon icon={faCheck} />
                 &nbsp;&nbsp;
                 <span>{confirmText}</span>
               </Button>
-              <Button className={styles['action-btn']} onClick={() => this.hide()}>
-                <FontAwesomeIcon icon={faXmark} />
-                &nbsp;&nbsp;
-                <span>{cancelText}</span>
-              </Button>
+              {mode !== 'alert' && (
+                <Button className={styles['action-btn']} onClick={() => this.hide()}>
+                  <FontAwesomeIcon icon={faXmark} />
+                  &nbsp;&nbsp;
+                  <span>{cancelText}</span>
+                </Button>
+              )}
             </div>
           </div>
         </div>

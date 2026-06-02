@@ -20,7 +20,9 @@ class ArUco(Module):
 
     def activate(self) -> None:
         self.module_enabled = self.supervisor.get_parameter("aruco.enabled").value
-        self.deactivate_unused = self.supervisor.get_parameter("aruco.deactivate_unused").value
+        self.deactivate_unused = self.supervisor.get_parameter(
+            "aruco.deactivate_unused"
+        ).value
         if not self.module_enabled:
             return
 

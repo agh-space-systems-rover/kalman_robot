@@ -25,15 +25,21 @@ def launch_setup(context):
         },
     ]
 
-    actions += sum((launch_node_or_load_component(
-        component_container=component_container,
-        package="aruco_opencv",
-        executable="aruco_tracker_autostart",
-        plugin="aruco_opencv::ArucoTrackerAutostart",
-        namespace=rgbd_id,
-        name="aruco_tracker",
-        parameters=parameters,
-    ) for rgbd_id in rgbd_ids), [])
+    actions += sum(
+        (
+            launch_node_or_load_component(
+                component_container=component_container,
+                package="aruco_opencv",
+                executable="aruco_tracker_autostart",
+                plugin="aruco_opencv::ArucoTrackerAutostart",
+                namespace=rgbd_id,
+                name="aruco_tracker",
+                parameters=parameters,
+            )
+            for rgbd_id in rgbd_ids
+        ),
+        [],
+    )
 
     return actions
 

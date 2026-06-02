@@ -39,13 +39,13 @@ def launch_setup(context):
         ),
     ]
 
-    parameters=[
+    parameters = [
         {
             "rate": 30,
             "source_list": [
                 "arm_controllers/joint_states",
                 "arm/joint_states",
-            ]
+            ],
         },
         # ^ "arm/" is from kalman_arm2
     ]

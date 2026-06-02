@@ -52,7 +52,9 @@ class PoseRequestSender(Node):
 
     def __init__(self):
         super().__init__("pose_request_sender")
-        self._action_client = ActionClient(self, MoveGroup, "/arm_controllers/move_action")
+        self._action_client = ActionClient(
+            self, MoveGroup, "/arm_controllers/move_action"
+        )
 
         self.joints: dict[str, float] = {}
         self._send_goal_future = None

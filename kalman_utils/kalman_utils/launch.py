@@ -5,6 +5,7 @@ from launch_ros.actions import Node, LoadComposableNodes
 from launch_ros.descriptions import ComposableNode
 from ament_index_python import get_package_share_path
 
+
 def launch_node_or_load_component(
     component_container,
     package,
@@ -15,7 +16,7 @@ def launch_node_or_load_component(
     parameters=[],
     remappings=[],
     extra_arguments=[{"use_intra_process_comms": True}],
-    **kwargs
+    **kwargs,
 ):
     if name is None:
         name = executable
@@ -52,7 +53,8 @@ def launch_node_or_load_component(
                 **kwargs,
             ),
         ]
-    
+
+
 def remap_action(from_name, to_name):
     return [
         (f"{from_name}/_action/send_goal", f"{to_name}/_action/send_goal"),
@@ -62,9 +64,11 @@ def remap_action(from_name, to_name):
         (f"{from_name}/_action/status", f"{to_name}/_action/status"),
     ]
 
+
 def load_standalone_config(pkg: str, yaml_filename: str) -> dict:
     yaml_path = str(get_package_share_path(pkg) / "config" / yaml_filename)
     return load_standalone_config_file(yaml_path)
+
 
 def load_standalone_config_file(yaml_path: str) -> dict:
     if not os.path.exists(yaml_path):
@@ -73,7 +77,7 @@ def load_standalone_config_file(yaml_path: str) -> dict:
     # Load the yaml
     with open(yaml_path, "r") as f:
         data = yaml.safe_load(f)
-    
+
     # Recursively find first ros__parameters key and return its value
     def find_ros_parameters(data):
         if isinstance(data, dict):
@@ -84,7 +88,7 @@ def load_standalone_config_file(yaml_path: str) -> dict:
                 if result is not None:
                     return result
         return None
-    
+
     # Find the first ros__parameters key
     ros_parameters = find_ros_parameters(data)
     if ros_parameters is not None:

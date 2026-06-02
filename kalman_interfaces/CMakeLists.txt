@@ -15,6 +15,8 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "action/SupervisorGpsYoloSearch.action"
   "action/SupervisorMappingGoals.action"
   "action/SupervisorTfGoal.action"
+  "msg/ArcRscpRequest.msg"
+  "msg/ArcRscpResponse.msg"
   "msg/ArmAxesLocks.msg"
   "msg/ArmCompressed.msg"
   "msg/ArmFkCommand.msg"

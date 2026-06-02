@@ -51,7 +51,7 @@ class GotoJointPose : public rclcpp::Node {
 	float  max_error;
 
 	// State
-	kalman_interfaces::msg::ArmValues      current_pos;
+	kalman_interfaces::msg::ArmValues           current_pos;
 	std::shared_ptr<GoalHandleArmGotoJointPose> current_gh;
 
 	GotoJointPose(const rclcpp::NodeOptions &options)
@@ -65,20 +65,16 @@ class GotoJointPose : public rclcpp::Node {
 		this->get_parameter("max_error", max_error);
 
 		// Publishers & subscribers
-		joint_vel_pub =
-		    create_publisher<kalman_interfaces::msg::ArmValues>(
-		        "target_vel", 10
-		    );
-		joint_pos_sub =
-		    create_subscription<kalman_interfaces::msg::ArmValues>(
-		        "current_pos",
-		        10,
-		        std::bind(
-		            &GotoJointPose::on_joint_positions,
-		            this,
-		            std::placeholders::_1
-		        )
-		    );
+		joint_vel_pub = create_publisher<kalman_interfaces::msg::ArmValues>(
+		    "target_vel", 10
+		);
+		joint_pos_sub = create_subscription<kalman_interfaces::msg::ArmValues>(
+		    "current_pos",
+		    10,
+		    std::bind(
+		        &GotoJointPose::on_joint_positions, this, std::placeholders::_1
+		    )
+		);
 
 		// Create timer for periodic computation
 		auto timer_period = std::chrono::duration<double>(1.0 / update_rate);
@@ -122,9 +118,8 @@ class GotoJointPose : public rclcpp::Node {
 		current_gh = gh;
 	}
 
-	void on_joint_positions(
-	    const kalman_interfaces::msg::ArmValues::SharedPtr msg
-	) {
+	void
+	on_joint_positions(const kalman_interfaces::msg::ArmValues::SharedPtr msg) {
 		current_pos = *msg;
 	}
 

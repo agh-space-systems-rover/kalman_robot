@@ -1,0 +1,13 @@
+name: PR Format Check
+
+on:
+  workflow_dispatch:
+  pull_request:
+
+jobs:
+  call-parent-format-check:
+    uses: agh-space-systems-rover/kalman_ws/.github/workflows/format-check.yml@ci/format-check-workflow/v1
+    with:
+      paths: .
+      caller_ref: ${{ github.ref }}
+      caller_sha: ${{ github.sha }}

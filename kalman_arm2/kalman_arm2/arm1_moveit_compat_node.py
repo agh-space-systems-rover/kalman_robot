@@ -8,8 +8,10 @@ from std_msgs.msg import Int8, UInt16
 import math
 import numpy as np
 
+
 def lerp(a, b, t):
     return a + (b - a) * t
+
 
 class Arm1MoveitCompatNode(Node):
     def __init__(self):
@@ -25,7 +27,9 @@ class Arm1MoveitCompatNode(Node):
         self.declare_parameter("control_rate", 10.0)
         self.gripper_pos_open = self.get_parameter("gripper_pos_open").value
         self.gripper_pos_closed = self.get_parameter("gripper_pos_closed").value
-        self.gripper_cmd_incr_per_deg = self.get_parameter("gripper_cmd_incr_per_deg").value
+        self.gripper_cmd_incr_per_deg = self.get_parameter(
+            "gripper_cmd_incr_per_deg"
+        ).value
         self.gripper_cmd_abs_open = self.get_parameter("gripper_cmd_abs_open").value
         self.gripper_cmd_abs_closed = self.get_parameter("gripper_cmd_abs_closed").value
         self.control_timeout = self.get_parameter("control_timeout").value
@@ -76,13 +80,13 @@ class Arm1MoveitCompatNode(Node):
         self.gripper_pos_sub = self.create_subscription(
             UInt16, "old/gripper/position", self.gripper_pos_cb, 10
         )
-        self.joint_pos_pub = self.create_publisher(
-            ArmValues, "new/current_pos", 10
-        )
+        self.joint_pos_pub = self.create_publisher(ArmValues, "new/current_pos", 10)
 
     def target_pos_jaw_cb(self, msg):
         gripper_msg = UInt16()
-        gripper_msg.data = int(lerp(self.gripper_cmd_abs_closed, self.gripper_cmd_abs_open, msg.jaw / 1.57))
+        gripper_msg.data = int(
+            lerp(self.gripper_cmd_abs_closed, self.gripper_cmd_abs_open, msg.jaw / 1.57)
+        )
         self.gripper_cmd_abs_pub.publish(gripper_msg)
 
     def target_vel_cb(self, msg):
@@ -128,9 +132,7 @@ class Arm1MoveitCompatNode(Node):
                 "arm_joint_5",
                 "arm_joint_6",
             ]
-            jog_msg.velocities = [
-                float(v) for v in self.last_target_vel_joints.joints
-            ]
+            jog_msg.velocities = [float(v) for v in self.last_target_vel_joints.joints]
             self.joint_jog_pub.publish(jog_msg)
 
         # Gripper control

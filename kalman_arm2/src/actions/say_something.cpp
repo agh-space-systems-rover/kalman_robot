@@ -7,16 +7,13 @@ SaySomething::SaySomething(
 )
     : BT::SyncActionNode(name, config), parent_{parent} {}
 
-BT::PortsList SaySomething::providedPorts()
-{
-return { BT::InputPort<std::string>("message") };
+BT::PortsList SaySomething::providedPorts() {
+	return {BT::InputPort<std::string>("message")};
 }
 
 BT::NodeStatus SaySomething::tick() {
 	auto message = getInput<std::string>("message").value_or("nothing");
-	RCLCPP_ERROR_STREAM(
-	    parent_->get_logger(), name() << ": " << message
-	);
+	RCLCPP_ERROR_STREAM(parent_->get_logger(), name() << ": " << message);
 	// std::this_thread::sleep_for(std::chrono::milliseconds(50));
 	return BT::NodeStatus::SUCCESS;
 }

@@ -7,7 +7,6 @@ from service_based_nav2_controller_srvs.srv import ComputeVelocityCommands
 from geometry_msgs.msg import TwistStamped, PointStamped
 from rcl_interfaces.msg import ParameterType, ParameterDescriptor
 
-
 BINARY_SEARCH_STEPS = 10
 
 

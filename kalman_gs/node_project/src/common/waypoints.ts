@@ -1,3 +1,5 @@
+import { modalRef } from './refs';
+
 const waypointColors = ['red', 'yellow', 'green', 'cyan', 'blue', 'magenta'] as const;
 type WaypointColor = (typeof waypointColors)[number];
 
@@ -127,7 +129,10 @@ function importWaypointsFromText(text: string, defaultColor: WaypointColor = way
     waypoints.push(...newWaypoints);
   } catch (error) {
     console.error(error);
-    alert('Failed to import waypoints:\n' + error);
+    modalRef.current?.showAlert({
+      title: 'Failed to import waypoints',
+      message: String(error)
+    });
   }
   window.dispatchEvent(new CustomEvent('waypoints-update'));
 }

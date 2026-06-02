@@ -96,7 +96,11 @@ def launch_setup(context):
                     ("depth/image", "depth/image_raw"),
                     ("rgb/camera_info", "color/camera_info"),
                 ],
-                arguments=["--ros-args", "--log-level", "error"] if not component_container else None,
+                arguments=(
+                    ["--ros-args", "--log-level", "error"]
+                    if not component_container
+                    else None
+                ),
             )
 
     if len(slam_rgbd_ids) == 0:
@@ -221,9 +225,7 @@ def launch_setup(context):
     # SLAM
     if len(slam_rgbd_ids) > 1:
         if not component_container:
-            raise ValueError(
-                "SLAM with multiple cameras requires a composition."
-            )
+            raise ValueError("SLAM with multiple cameras requires a composition.")
 
         description += [
             LoadComposableNodes(

@@ -4,7 +4,6 @@ import { ros } from './ros';
 import { SetFeedRequest } from './ros-interfaces';
 import { Service } from 'roslib';
 
-
 // Create arrays storing feed configuration
 // Store initial values
 let feedCameras = [1, 2];
