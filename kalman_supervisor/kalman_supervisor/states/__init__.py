@@ -16,3 +16,4 @@ from kalman_supervisor.states.mapping_states.take_photos import TakePhotos
 
 from kalman_supervisor.states.rscp_states.rscp_idle import RscpIdle
 from kalman_supervisor.states.rscp_states.rscp_navigate_gps import RscpNavigateGps
+from kalman_supervisor.states.rscp_states.rscp_approach_airlock import RscpApproachAirlock
