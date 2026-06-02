@@ -16,6 +16,10 @@ import PanelManager from './components/panel-manager';
 import Settings from './components/settings';
 import Splash from './components/splash';
 
+
+
+
+
 function App() {
   const [_, setRerenderCount] = useState(0);
 
