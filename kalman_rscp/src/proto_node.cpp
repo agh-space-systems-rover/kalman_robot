@@ -213,6 +213,7 @@ private:
             return;
 		}
 		std::vector framed_bytes = cobs_encode(bytes.data(), bytes.size());
+		framed_bytes.push_back(0);  // Null terminate as in rscp repo examples
 		UInt8MultiArray msg;
 		msg.data = std::move(framed_bytes);
 		serial_tx_pub_->publish(msg);
