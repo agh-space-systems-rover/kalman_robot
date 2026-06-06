@@ -14,6 +14,9 @@ class Arc(Module):
             10
         )
 
+    def _distance_callback(self, msg: Float32) -> None:
+        self._distance_traveled = msg.data
+
     def deactivate(self) -> None:
         if self.distance_sub:
             self.supervisor.destroy_subscription(self.distance_sub)

@@ -24,7 +24,7 @@ def generate_launch_description():
         [
         DeclareLaunchArgument(
                 "deadzone",
-                default_value="0.01",
+                default_value="0.1",
                 description="Deadzone in meters below which distance is not tracked.",
             ),
         OpaqueFunction(function=launch_setup),
