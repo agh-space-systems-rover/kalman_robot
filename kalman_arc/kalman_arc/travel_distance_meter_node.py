@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import math
 
 import rclpy
@@ -55,17 +54,12 @@ class TravelDistanceMeterNode(Node):
         self.distance_pub.publish(msg)
 
 
-def main(args=None):
-    rclpy.init(args=args)
-    node = TravelDistanceMeterNode()
+def main():
     try:
+        rclpy.init()
+        node = TravelDistanceMeterNode()
         rclpy.spin(node)
-    except KeyboardInterrupt:
-        pass
-    finally:
         node.destroy_node()
         rclpy.shutdown()
-
-
-if __name__ == "__main__":
-    main()
+    except KeyboardInterrupt:
+        pass
