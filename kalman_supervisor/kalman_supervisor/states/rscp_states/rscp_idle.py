@@ -22,7 +22,7 @@ class RscpIdle(State):
         goal = self.supervisor.rscp.get_navigation_goal()
         if goal is not None:
             stage = self.supervisor.rscp.get_current_stage()
-            
+
             if stage is None or stage in [1, 2, 3]:
                 self.supervisor.get_logger().warn(
                     f"[RSCP] NavigateToGPS received but unsupported stage {stage}"
@@ -40,7 +40,7 @@ class RscpIdle(State):
                 )
                 self.supervisor.rscp.clear_navigation_goal()
                 return None
-            
+
         return None
 
     def exit(self) -> None:

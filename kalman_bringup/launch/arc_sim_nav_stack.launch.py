@@ -33,7 +33,7 @@ def generate_launch_description():
             #     "config": "urc2024",
             # },
             "supervisor": {
-                # "aruco_rgbd_ids": RGBD_IDS,
+                "aruco_rgbd_ids": RGBD_IDS,
                 # "aruco_deactivate_unused": "true",
                 # "yolo_enabled": "true",
                 # "yolo_deactivate_unused": "true",

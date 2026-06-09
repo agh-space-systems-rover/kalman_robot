@@ -50,7 +50,7 @@ class RscpNavigateGps(State):
 
             stage = self.supervisor.rscp.get_current_stage()
             if stage == 4:
-                return "rscp_approach_airlock"
+                return "rscp_wait_before_airlock"
 
             # Return to idle state to wait for next request
             return "rscp_idle"
