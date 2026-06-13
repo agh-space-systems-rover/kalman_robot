@@ -1,0 +1,9 @@
+float32 depth_mm
+float32 rack_current
+float32 drill_current
+uint8 flags
+bool upper_limit_pressed
+bool lower_limit_pressed
+bool autonomy_active
+bool homed
+uint8 autonomy_state

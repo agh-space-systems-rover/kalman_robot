@@ -7,6 +7,11 @@
   min-width: 250px;
 }
 
+.science-drill {
+  align-items: flex-start;
+  padding-top: 5px;
+}
+
 .science-rows {
   display: flex;
   flex-direction: column;
@@ -14,6 +19,21 @@
   align-items: stretch;
   max-width: min(100%, 300px);
   min-width: 250px;
+}
+
+.science-drill-rows {
+  max-width: min(100%, 640px);
+}
+
+.science-drill-grid {
+  display: grid;
+  grid-template-columns: minmax(250px, 1fr) minmax(250px, 1fr);
+  column-gap: 10px;
+  align-items: start;
+}
+
+.science-drill-grid > div {
+  min-width: 0;
 }
 
 .science-row {
@@ -30,6 +50,97 @@
 
 .science-selectable {
   user-select: text;
+}
+
+.science-telemetry-label {
+  flex: 0 0 76px;
+}
+
+.science-disabled-input {
+  display: flex;
+  background-color: var(--dark-background);
+  margin-top: 5px;
+  margin-bottom: 5px;
+  flex: 1;
+  height: calc(1em + 4px);
+  padding: 3px;
+  border-top-right-radius: 5px;
+  border-bottom-right-radius: 5px;
+  margin-right: 5px;
+}
+
+.science-disabled-input input {
+  background-color: transparent;
+  min-width: 0;
+  width: 100%;
+  outline: none;
+  border: none;
+  color: var(--foreground);
+  appearance: textfield;
+  font-family: inherit;
+  padding: 2px 5px 4px 5px;
+  height: calc(100% - 6px);
+}
+
+.science-disabled-input input:disabled {
+  cursor: not-allowed;
+}
+
+.science-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.science-input input {
+  text-align: center;
+}
+
+.science-step-button {
+  flex: 0 0 auto;
+}
+
+.science-field-header {
+  text-align: center;
+  color: var(--foreground);
+  font-size: 0.8rem;
+  font-weight: 600;
+  user-select: none;
+}
+
+.science-received-text {
+  color: var(--foreground);
+  font-size: 0.8rem;
+  text-align: center;
+  user-select: none;
+}
+
+.science-toggle-active {
+  background-color: var(--interactive) !important;
+  font-weight: 600;
+}
+
+.science-toggle-active:hover {
+  background-color: var(--active) !important;
+}
+
+.science-toggle-inactive {
+  background-color: var(--dark-active) !important;
+}
+
+.science-toggle-inactive:hover {
+  background-color: var(--dark-active) !important;
+}
+
+.colored-button:global(.red) {
+  background-color: var(--red-background) !important;
+}
+
+.colored-button:global(.red):hover {
+  background-color: color-mix(in srgb, var(--red-background), var(--red-foreground) 50%) !important;
+}
+
+.colored-button:global(.red):active {
+  background-color: var(--red-foreground) !important;
 }
 
 .tare-history {
@@ -49,4 +160,11 @@
 .tare-entry {
   background-color: var(--background) !important;
   flex-grow: 1;
+}
+
+@media (max-width: 620px) {
+  .science-drill-grid {
+    grid-template-columns: 1fr;
+    column-gap: 0;
+  }
 }

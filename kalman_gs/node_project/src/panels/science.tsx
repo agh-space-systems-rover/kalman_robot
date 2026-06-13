@@ -1,34 +1,22 @@
 import styles from './science.module.css';
 
+
+
 import { modalRef } from '../common/refs';
 import { ros } from '../common/ros';
-import {
-  faWeightHanging,
-  faFlask,
-  faBoxOpen,
-  faBox,
-  faArrowRotateRight,
-  faDroplet,
-  faTrash,
-  faList,
-  faBan,
-  faMagnet,
-  faArrowDown,
-  faArrowUp,
-  faStop,
-  faDiagramProject,
-  faRuler,
-  faRobot,
-  faOilWell,
-  faPlay
-} from '@fortawesome/free-solid-svg-icons';
+import { DrillTelemetry } from '../common/ros-interfaces';
+import { faWeightHanging, faFlask, faBoxOpen, faBox, faArrowRotateRight, faDroplet, faTrash, faList, faBan, faMagnet, faArrowDown, faArrowUp, faArrowLeft, faArrowRight, faMinus, faPlus, faStop, faDiagramProject, faRuler, faOilWell, faPlay, faPaperPlane } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useEffect, useState, useRef } from 'react';
 import { Topic, Service } from 'roslib';
 
+
+
 import Button from '../components/button';
 import Dropdown from '../components/dropdown';
+import Input from '../components/input';
 import Label from '../components/label';
+
 
 const STORAGE_OPTIONS = [
   { name: 'Sand Storage', value: 'sand', icon: faFlask },
@@ -38,10 +26,10 @@ const STORAGE_OPTIONS = [
   { name: 'Drill', value: 'drill', icon: faOilWell }
 ];
 // Drill ROS clients
-let drillWeightTopic: any;
-let drillWeightService: any;
-let drillAutoStartService: any;
-let drillAutoStopService: any;
+let drillBTopic: any;
+let drillCTopic: any;
+let drillAutonomyTopic: any;
+let drillTelemetryTopic: any;
 
 // Global ROS clients
 let sandWeightTopic: any;
@@ -134,26 +122,26 @@ window.addEventListener('ros-connect', () => {
     serviceType: 'std_srvs/Trigger'
   });
 
-  // Drill topics/services
-  drillWeightTopic = new Topic({
+  // Drill topics
+  drillBTopic = new Topic({
     ros,
-    name: '/science/drill/weight',
-    messageType: 'std_msgs/Float32'
+    name: '/science/drill/b',
+    messageType: 'std_msgs/Int8'
   });
-  drillWeightService = new Service({
+  drillCTopic = new Topic({
     ros,
-    name: '/science/drill/weight/req',
-    serviceType: 'std_srvs/Trigger'
+    name: '/science/drill/c',
+    messageType: 'std_msgs/Int8'
   });
-  drillAutoStartService = new Service({
+  drillAutonomyTopic = new Topic({
     ros,
-    name: '/science/drill/auto/start',
-    serviceType: 'std_srvs/Trigger'
+    name: '/science/drill/autonomy',
+    messageType: 'std_msgs/UInt8'
   });
-  drillAutoStopService = new Service({
+  drillTelemetryTopic = new Topic({
     ros,
-    name: '/science/drill/auto/stop',
-    serviceType: 'std_srvs/Trigger'
+    name: '/science/drill/telemetry',
+    messageType: 'kalman_interfaces/DrillTelemetry'
   });
 
   window.dispatchEvent(new CustomEvent('science-subscribed'));
@@ -170,11 +158,6 @@ type SciencePanelProps = {
 
 type StorageContainerProps = {
   selectedStorage: string;
-  tareHistory: number[];
-  onTareHistoryChange: (history: number[]) => void;
-};
-
-type DrillContainerProps = {
   tareHistory: number[];
   onTareHistoryChange: (history: number[]) => void;
 };
@@ -217,8 +200,8 @@ export default function Science({ props }: SciencePanelProps) {
   };
 
   return (
-    <div className={styles['science']}>
-      <div className={styles['science-rows']}>
+    <div className={`${styles['science']} ${selectedStorage === 'drill' ? styles['science-drill'] : ''}`}>
+      <div className={`${styles['science-rows']} ${selectedStorage === 'drill' ? styles['science-drill-rows'] : ''}`}>
         <div className={styles['science-row']}>
           <Dropdown
             className={styles['science-row-item']}
@@ -244,9 +227,7 @@ export default function Science({ props }: SciencePanelProps) {
           />
         )}
 
-        {selectedStorage === 'drill' && (
-          <DrillContainer tareHistory={getTareHistory()} onTareHistoryChange={setTareHistory} />
-        )}
+        {selectedStorage === 'drill' && <DrillContainer />}
 
         {selectedStorage === 'ph' && <PHProbe />}
         {selectedStorage === 'magneto' && <Magnetometer />}
@@ -645,11 +626,19 @@ function Magnetometer() {
   );
 }
 
-function DrillContainer({ tareHistory, onTareHistoryChange }: DrillContainerProps) {
-  const [weight, setWeight] = useState<number | null>(null);
+function DrillContainer() {
+  const bInputRef = useRef<Input>(null);
+  const cInputRef = useRef<Input>(null);
+  const bSkipBlurRef = useRef(false);
+  const cSkipBlurRef = useRef(false);
+  const [bValue, setBValue] = useState(0);
+  const [cValue, setCValue] = useState(0);
+  const [autonomyState, setAutonomyState] = useState(0);
+  const [telemetry, setTelemetry] = useState<DrillTelemetry | null>(null);
+  const [lastTelemetryAt, setLastTelemetryAt] = useState<number | null>(null);
+  const [secondsSinceTelemetry, setSecondsSinceTelemetry] = useState<number | null>(null);
   const [rerenderCount, setRerenderCount] = useState(0);
 
-  // Rerender on science-subscribed event
   useEffect(() => {
     const updateScience = () => {
       setRerenderCount((count) => count + 1);
@@ -660,136 +649,284 @@ function DrillContainer({ tareHistory, onTareHistoryChange }: DrillContainerProp
     };
   }, []);
 
-  // Subscribe to drill weight topic
   useEffect(() => {
-    setWeight(null);
-    if (!drillWeightTopic) return;
-    const cb = (msg: { data: number }) => {
-      setWeight(msg.data);
+    setTelemetry(null);
+    setLastTelemetryAt(null);
+    setSecondsSinceTelemetry(null);
+
+    console.log(drillTelemetryTopic);
+    if (!drillTelemetryTopic) {
+      console.log('xc');
+      return;
+    }
+
+    const cb = (msg: DrillTelemetry) => {
+      setTelemetry(msg);
+      setLastTelemetryAt(Date.now());
+      setSecondsSinceTelemetry(0);
     };
-    drillWeightTopic.subscribe(cb);
-    return () => drillWeightTopic.unsubscribe(cb);
+
+    drillTelemetryTopic.subscribe(cb);
+    return () => drillTelemetryTopic.unsubscribe(cb);
   }, [rerenderCount]);
 
-  // Service call helpers
-  function callDrillWeightService() {
-    if (drillWeightService) {
-      drillWeightService.callService({}, () => {});
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSecondsSinceTelemetry(lastTelemetryAt === null ? null : Math.floor((Date.now() - lastTelemetryAt) / 1000));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [lastTelemetryAt]);
+
+  const autonomyStates = [
+    { label: 'Stop', value: 0, icon: faStop, tooltip: 'Set drill autonomy to emergency stop' },
+    { label: 'Drill', value: 1, icon: faPlay, tooltip: 'Set drill autonomy to drilling' },
+    { label: 'Home', value: 2, icon: faArrowRotateRight, tooltip: 'Set drill autonomy to homing' }
+  ] as const;
+
+  const normalizeInteger = (value: unknown, min: number, max: number, fallback: number) => {
+    const parsedValue = typeof value === 'number' ? value : parseFloat(String(value));
+    if (!Number.isFinite(parsedValue)) {
+      return fallback;
     }
-  }
+    return Math.max(min, Math.min(Math.round(parsedValue), max));
+  };
 
-  function handleTare() {
-    if (weight !== null) {
-      const currentTareOffset = tareHistory.reduce((sum, value) => sum + value, 0);
-      const tareValue = weight - currentTareOffset;
-      const newHistory = [...tareHistory, tareValue];
-      onTareHistoryChange(newHistory);
-    }
-  }
+  const publishBridge = (topic: any, value: number) => {
+    topic?.publish({ data: normalizeInteger(value, -100, 100, 0) });
+  };
 
-  function clearTareHistory() {
-    onTareHistoryChange([]);
-  }
+  const commitBridgeB = (rawValue?: unknown, skipBlur = false) => {
+    const nextValue = normalizeInteger(rawValue ?? bInputRef.current?.getValue(), -100, 100, bValue);
+    bSkipBlurRef.current = skipBlur;
+    setBValue(nextValue);
+    bInputRef.current?.setValue(nextValue);
+    publishBridge(drillBTopic, nextValue);
+  };
 
-  function handleStartAutonomy() {
-    if (drillAutoStartService) {
-      drillAutoStartService.callService({}, () => {});
-    }
-  }
+  const commitBridgeC = (rawValue?: unknown, skipBlur = false) => {
+    const nextValue = normalizeInteger(rawValue ?? cInputRef.current?.getValue(), -100, 100, cValue);
+    cSkipBlurRef.current = skipBlur;
+    setCValue(nextValue);
+    cInputRef.current?.setValue(nextValue);
+    publishBridge(drillCTopic, nextValue);
+  };
 
-  function handleStopAutonomy() {
-    if (drillAutoStopService) {
-      drillAutoStopService.callService({}, () => {});
-    }
-  }
+  const setBridgeBDirection = (positive: boolean) => {
+    const magnitude = Math.abs(normalizeInteger(bInputRef.current?.getValue(), -100, 100, bValue));
+    commitBridgeB(positive ? magnitude : -magnitude);
+  };
 
-  const tareOffset = tareHistory.reduce((sum, value) => sum + value, 0);
-  const displayWeight = weight !== null ? weight - tareOffset : null;
+  const setBridgeCDirection = (positive: boolean) => {
+    const magnitude = Math.abs(normalizeInteger(cInputRef.current?.getValue(), -100, 100, cValue));
+    commitBridgeC(positive ? magnitude : -magnitude);
+  };
 
-  const style = getComputedStyle(document.body);
-  const magentaBg = style.getPropertyValue('--magenta-background');
-  const greenBg = style.getPropertyValue('--green-background');
-  const darkBg = style.getPropertyValue('--dark-background');
+  const stopBridgeB = () => {
+    bSkipBlurRef.current = false;
+    setBValue(0);
+    bInputRef.current?.setValue(0);
+    publishBridge(drillBTopic, 0);
+  };
+
+  const stopBridgeC = () => {
+    cSkipBlurRef.current = false;
+    setCValue(0);
+    cInputRef.current?.setValue(0);
+    publishBridge(drillCTopic, 0);
+  };
+
+  const publishAutonomy = (rawValue: number) => {
+    const value = normalizeInteger(rawValue, 0, 2, 0);
+    setAutonomyState(value);
+    drillAutonomyTopic?.publish({ data: value });
+  };
+
+  const formatNumber = (value: number | undefined, digits = 1) => {
+    return value !== undefined ? value.toFixed(digits) : '---';
+  };
+
+  const formatBool = (value: boolean | undefined) => {
+    if (value === undefined) return '---';
+    return value ? 'Yes' : 'No';
+  };
+
+  const formatHex = (value: number | undefined, width = 2) => {
+    return value !== undefined ? `0x${value.toString(16).toUpperCase().padStart(width, '0')}` : '---';
+  };
 
   return (
-    <>
-      <div className={styles['science-row']}>
-        <Label color={magentaBg}>
-          <FontAwesomeIcon icon={faRobot} />
-        </Label>
-        <Button className={styles['science-row-item']} tooltip='Start drill autonomy' onClick={handleStartAutonomy}>
-          <FontAwesomeIcon icon={faPlay} />
-          &nbsp;&nbsp;Start
-        </Button>
-        <Button className={styles['science-row-item']} tooltip='Stop drill autonomy' onClick={handleStopAutonomy}>
-          <FontAwesomeIcon icon={faStop} />
-          &nbsp;&nbsp;Stop
-        </Button>
-      </div>
+    <div className={styles['science-drill-grid']}>
+      <div>
+        <div className={styles['science-field-header']}>Bridge B</div>
+        <div className={styles['science-row']}>
+          <Button className={styles['science-row-item']} tooltip='Move rack up' onClick={() => setBridgeBDirection(true)}>
+            <FontAwesomeIcon icon={faArrowUp} />
+            &nbsp;&nbsp;Up
+          </Button>
+          <Button className={styles['science-row-item']} tooltip='Move rack down' onClick={() => setBridgeBDirection(false)}>
+            <FontAwesomeIcon icon={faArrowDown} />
+            &nbsp;&nbsp;Down
+          </Button>
+        </div>
+        <div className={styles['science-row']}>
+          <Button className={styles['science-step-button']} tooltip='Decrease value by 1' onClick={() => commitBridgeB(bValue - 1)}>
+            <FontAwesomeIcon icon={faMinus} />
+          </Button>
+          <Input
+            ref={bInputRef}
+            type='float'
+            className={styles['science-input']}
+            placeholder='Bridge B speed'
+            defaultValue={String(bValue)}
+            onChange={(text) => setBValue(normalizeInteger(text, -100, 100, bValue))}
+            onSubmit={(text) => commitBridgeB(text, true)}
+            onBlur={() => {
+              if (bSkipBlurRef.current) {
+                bSkipBlurRef.current = false;
+                return;
+              }
+              commitBridgeB();
+            }}
+          />
+          <Button className={styles['science-step-button']} tooltip='Increase value by 1' onClick={() => commitBridgeB(bValue + 1)}>
+            <FontAwesomeIcon icon={faPlus} />
+          </Button>
+        </div>
+        <div className={styles['science-row']}>
+          <Button className={styles['science-row-item']} tooltip='Send drill command' onClick={() => commitBridgeB()}>
+            <FontAwesomeIcon icon={faPaperPlane} />
+            &nbsp;&nbsp;Send
+          </Button>
+          <Button className={styles['science-row-item'] + ' ' + styles['colored-button'] + ' red'} tooltip='Stop drill command' onClick={stopBridgeB}>
+            <FontAwesomeIcon icon={faStop} />
+            &nbsp;&nbsp;Stop
+          </Button>
+        </div>
 
-      <div className={styles['science-row']}>
-        <Label color={greenBg}>
-          <FontAwesomeIcon icon={faWeightHanging} />
-        </Label>
-        <Label color={darkBg} className={styles['science-row-item'] + ' ' + styles['science-selectable']}>
-          {displayWeight !== null ? `${displayWeight.toFixed(2)} g` : '---'}
-        </Label>
-        <Button tooltip='Refresh weight measurement' onClick={callDrillWeightService}>
-          <FontAwesomeIcon icon={faArrowRotateRight} />
-        </Button>
-      </div>
+        <div className={styles['science-field-header']}>Bridge C</div>
+        <div className={styles['science-row']}>
+          <Button className={styles['science-row-item']} tooltip='Rotate drill right' onClick={() => setBridgeCDirection(true)}>
+            <FontAwesomeIcon icon={faArrowRight} />
+            &nbsp;&nbsp;Right
+          </Button>
+          <Button className={styles['science-row-item']} tooltip='Rotate drill left' onClick={() => setBridgeCDirection(false)}>
+            <FontAwesomeIcon icon={faArrowLeft} />
+            &nbsp;&nbsp;Left
+          </Button>
+        </div>
+        <div className={styles['science-row']}>
+          <Button className={styles['science-step-button']} tooltip='Decrease value by 1' onClick={() => commitBridgeC(cValue - 1)}>
+            <FontAwesomeIcon icon={faMinus} />
+          </Button>
+          <Input
+            ref={cInputRef}
+            type='float'
+            className={styles['science-input']}
+            placeholder='Bridge C speed'
+            defaultValue={String(cValue)}
+            onChange={(text) => setCValue(normalizeInteger(text, -100, 100, cValue))}
+            onSubmit={(text) => commitBridgeC(text, true)}
+            onBlur={() => {
+              if (cSkipBlurRef.current) {
+                cSkipBlurRef.current = false;
+                return;
+              }
+              commitBridgeC();
+            }}
+          />
+          <Button className={styles['science-step-button']} tooltip='Increase value by 1' onClick={() => commitBridgeC(cValue + 1)}>
+            <FontAwesomeIcon icon={faPlus} />
+          </Button>
+        </div>
+        <div className={styles['science-row']}>
+          <Button className={styles['science-row-item']} tooltip='Send drill command' onClick={() => commitBridgeC()}>
+            <FontAwesomeIcon icon={faPaperPlane} />
+            &nbsp;&nbsp;Send
+          </Button>
+          <Button className={styles['science-row-item'] + ' ' + styles['colored-button'] + ' red'} tooltip='Stop drill command' onClick={stopBridgeC}>
+            <FontAwesomeIcon icon={faStop} />
+            &nbsp;&nbsp;Stop
+          </Button>
+        </div>
 
-      <div className={styles['science-row']}>
-        <Button
-          className={styles['science-row-item']}
-          tooltip='Set current weight as zero (tare)'
-          onClick={handleTare}
-          disabled={weight === null}
-        >
-          <FontAwesomeIcon icon={faWeightHanging} />
-          &nbsp;&nbsp;Tare
-        </Button>
-      </div>
-
-      <div className={styles['science-row']}>
-        <div className={styles['tare-history']}>
-          <div className={styles['science-row']}>
-            <Label className={styles['tare-history-header']}>
-              <FontAwesomeIcon icon={tareHistory.length > 0 ? faList : faBan} />
-              &nbsp; {tareHistory.length > 0 ? '' : 'No'} Tare History
-            </Label>
-          </div>
-          {tareHistory.map((tareValue, index) => (
-            <div key={index} className={styles['science-row']}>
-              <Label className={styles['tare-entry']}>
-                {index + 1}. {tareValue.toFixed(2)} g
-              </Label>
-            </div>
+        <div className={styles['science-field-header']}>Autonomy</div>
+        <div className={styles['science-row']}>
+          {autonomyStates.map((state) => (
+            <Button
+              key={state.value}
+              className={`${styles['science-row-item']} ${
+                autonomyState === state.value ? styles['science-toggle-active'] : styles['science-toggle-inactive']
+              }`}
+              tooltip={state.tooltip}
+              onClick={() => publishAutonomy(state.value)}
+            >
+              <FontAwesomeIcon icon={state.icon} />
+              &nbsp;&nbsp;{state.label}
+            </Button>
           ))}
         </div>
       </div>
-
-      {tareHistory.length > 0 && (
+      <div>
+        <div className={styles['science-field-header']}>Telemetry</div>
         <div className={styles['science-row']}>
-          <Button
-            className={styles['science-row-item']}
-            tooltip='Clear all tare history'
-            onClick={() => {
-              modalRef.current?.showConfirm({
-                title: 'Clear tare history',
-                icon: faTrash,
-                message: 'Are you sure you want to clear all tare history?',
-                confirmText: 'Clear',
-                cancelText: 'Cancel',
-                onConfirm: clearTareHistory
-              });
-            }}
-          >
-            <FontAwesomeIcon icon={faTrash} />
-            &nbsp;&nbsp;Clear History
-          </Button>
+          <Label color='var(--dark-active)' className={styles['science-telemetry-label']}>Depth</Label>
+          <div className={styles['science-disabled-input'] + ' ' + styles['science-selectable']}>
+            <input value={`${formatNumber(telemetry?.depth_mm)} mm`} disabled readOnly />
+          </div>
         </div>
-      )}
-    </>
+        <div className={styles['science-row']}>
+          <Label color='var(--dark-active)' className={styles['science-telemetry-label']}>Rack I</Label>
+          <div className={styles['science-disabled-input'] + ' ' + styles['science-selectable']}>
+            <input value={`${formatNumber(telemetry?.rack_current, 2)} A`} disabled readOnly />
+          </div>
+        </div>
+        <div className={styles['science-row']}>
+          <Label color='var(--dark-active)' className={styles['science-telemetry-label']}>Drill I</Label>
+          <div className={styles['science-disabled-input'] + ' ' + styles['science-selectable']}>
+            <input value={`${formatNumber(telemetry?.drill_current, 2)} A`} disabled readOnly />
+          </div>
+        </div>
+        <div className={styles['science-row']}>
+          <Label color='var(--dark-active)' className={styles['science-telemetry-label']}>Flags</Label>
+          <div className={styles['science-disabled-input'] + ' ' + styles['science-selectable']}>
+            <input value={formatHex(telemetry?.flags)} disabled readOnly />
+          </div>
+        </div>
+        <div className={styles['science-row']}>
+          <Label color='var(--dark-active)' className={styles['science-telemetry-label']}>Upper</Label>
+          <div className={styles['science-disabled-input'] + ' ' + styles['science-selectable']}>
+            <input value={formatBool(telemetry?.upper_limit_pressed)} disabled readOnly />
+          </div>
+        </div>
+        <div className={styles['science-row']}>
+          <Label color='var(--dark-active)' className={styles['science-telemetry-label']}>Lower</Label>
+          <div className={styles['science-disabled-input'] + ' ' + styles['science-selectable']}>
+            <input value={formatBool(telemetry?.lower_limit_pressed)} disabled readOnly />
+          </div>
+        </div>
+        <div className={styles['science-row']}>
+          <Label color='var(--dark-active)' className={styles['science-telemetry-label']}>Active</Label>
+          <div className={styles['science-disabled-input'] + ' ' + styles['science-selectable']}>
+            <input value={formatBool(telemetry?.autonomy_active)} disabled readOnly />
+          </div>
+        </div>
+        <div className={styles['science-row']}>
+          <Label color='var(--dark-active)' className={styles['science-telemetry-label']}>Homed</Label>
+          <div className={styles['science-disabled-input'] + ' ' + styles['science-selectable']}>
+            <input value={formatBool(telemetry?.homed)} disabled readOnly />
+          </div>
+        </div>
+        <div className={styles['science-row']}>
+          <Label color='var(--dark-active)' className={styles['science-telemetry-label']}>State</Label>
+          <div className={styles['science-disabled-input'] + ' ' + styles['science-selectable']}>
+            <input value={String(telemetry?.autonomy_state ?? '---')} disabled readOnly />
+          </div>
+        </div>
+        <div className={styles['science-received-text']}>
+          {secondsSinceTelemetry === null ? 'Received ---' : `Received ${secondsSinceTelemetry} s ago`}
+        </div>
+      </div>
+    </div>
   );
 }

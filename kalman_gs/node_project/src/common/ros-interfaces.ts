@@ -216,6 +216,18 @@ export type Drive = {
   rotation?: number;
 };
 
+export type DrillTelemetry = {
+  depth_mm?: number;
+  rack_current?: number;
+  drill_current?: number;
+  flags?: number;
+  upper_limit_pressed?: boolean;
+  lower_limit_pressed?: boolean;
+  autonomy_active?: boolean;
+  homed?: boolean;
+  autonomy_state?: number;
+};
+
 export type ArmFkCommand = {
   gripper?: number;
   joint_1?: number;
