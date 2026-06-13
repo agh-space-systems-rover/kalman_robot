@@ -130,6 +130,7 @@ def launch_setup(context):
             "wheel_driver",
             "ueuos_driver",
             "autonomy_spammer",
+            "laser_driver",
         ],
         "gs": [
             "master_com",
@@ -147,7 +148,7 @@ def launch_setup(context):
             "sand_storage_driver",
             "ph_driver",
             "wexlab_driver",
-            "laser_driver"
+            "laser_driver",
         ],
         "arm": [
             "master_com",
