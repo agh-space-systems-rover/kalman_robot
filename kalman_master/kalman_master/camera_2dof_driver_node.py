@@ -42,7 +42,6 @@ class Camera2DofDriver(Node):
         self.cmd_sub = self.create_subscription(
             Camera2Dof, "camera_2dof/cmd", self.camera_cmd_cb, 1
         )
-        print("sperma2")
 
     def camera_cmd_cb(self, msg: Camera2Dof):
         yaw_val = angle_to_uint8(msg.yaw, self.yaw_min, self.yaw_max)
