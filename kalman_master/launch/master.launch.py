@@ -89,6 +89,10 @@ def launch_setup(context):
             package="kalman_master",
             executable="tunnel_client",
         ),
+        "laser_driver": Node(
+            package="kalman_master",
+            executable="laser_driver",
+        ),
         "drill_driver": Node(
             package="kalman_master",
             executable="drill_driver",
@@ -143,6 +147,7 @@ def launch_setup(context):
             "sand_storage_driver",
             "ph_driver",
             "wexlab_driver",
+            "laser_driver"
         ],
         "arm": [
             "master_com",
