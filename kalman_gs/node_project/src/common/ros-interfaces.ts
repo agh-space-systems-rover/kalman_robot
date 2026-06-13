@@ -257,6 +257,12 @@ export type WExLabLedSingle = {
   color?: ColorRGBA;
 };
 
+export type Camera2Dof = {
+  camera_id?: number;
+  yaw?: number;
+  pitch?: number;
+};
+
 export type SetUeuosColorRequest = {
   color?: ColorRGBA;
 };
