@@ -30,7 +30,7 @@ rclcpp_components_register_node(
 )
 
 ament_export_targets(kalman_master-targets)
-install(TARGETS arm_twist_driver_node rfid_driver_node 
+install(TARGETS arm_twist_driver_node rfid_driver_node
   EXPORT kalman_master-targets
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
@@ -53,6 +53,7 @@ install(PROGRAMS
   scripts/storage_driver
   scripts/storage_mock
   scripts/sand_storage_driver
+  scripts/drop_of_antenna_driver
   scripts/tunnel_client
   scripts/ueuos_driver
   scripts/wexlab_driver

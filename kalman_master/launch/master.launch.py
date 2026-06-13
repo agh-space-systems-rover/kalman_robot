@@ -109,6 +109,10 @@ def launch_setup(context):
             package="kalman_master",
             executable="sand_storage_driver",
         ),
+        "drop_of_antenna_driver": Node(
+            package="kalman_master",
+            executable="drop_of_antenna_driver",
+        ),
         "ph_driver": Node(
             package="kalman_master",
             executable="ph_driver",
@@ -141,6 +145,7 @@ def launch_setup(context):
             "tunnel_client",
             "storage_driver",
             "sand_storage_driver",
+            "drop_of_antenna_driver",
             "ph_driver",
             "wexlab_driver",
         ],
