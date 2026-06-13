@@ -1,6 +1,75 @@
 from kalman_supervisor.module import Module
 from kalman_interfaces.msg import ArcRscpRequest, ArcRscpResponse
 
+class ArcRscpResponseGenerator:
+    @staticmethod
+    def ack() -> ArcRscpResponse:
+        ret = ArcRscpResponse()
+        ret.type = ArcRscpResponse.ACK
+        return ret
+
+    @staticmethod
+    def task_finished() -> ArcRscpResponse:
+        ret = ArcRscpResponse()
+        ret.type = ArcRscpResponse.TASK_FINISHED
+        return ret
+
+    @staticmethod
+    def gps_coordinate(latitude: float, longitude: float, altitude: float) -> ArcRscpResponse:
+        ret = ArcRscpResponse()
+        ret.type = ArcRscpResponse.GPS_COORDINATE
+        ret.latitude = latitude
+        ret.longitude = longitude
+        ret.altitude = altitude
+        return ret
+
+    @staticmethod
+    def distance(distance_meters: float) -> ArcRscpResponse:
+        ret = ArcRscpResponse()
+        ret.type = ArcRscpResponse.DISTANCE
+        ret.distance_meters = distance_meters
+        return ret
+    
+    @staticmethod
+    def message(message: str) -> ArcRscpResponse:
+        ret = ArcRscpResponse()
+        ret.type = ArcRscpResponse.MESSAGE
+        ret.message = message
+        return ret
+    
+    @staticmethod
+    def rover_status(
+        rover_status: int,
+        latitude: float,
+        longitude: float,
+        altitude: float,
+        battery_voltage: float,
+        battery_current: float,
+        battery_state_of_charge: float,
+    ) -> ArcRscpResponse:
+        ret = ArcRscpResponse()
+        ret.type = ArcRscpResponse.ROVER_STATUS
+        ret.rover_status = rover_status
+
+        assert rover_status in [
+            ArcRscpResponse.ROVER_STATE_DISARMED,
+            ArcRscpResponse.ROVER_STATE_AUTONOMOUS,
+            ArcRscpResponse.ROVER_STATE_MANUAL,
+        ], "Invalid rover status"
+
+        assert 0.0 <= battery_state_of_charge <= 1.0, "State of charge must be between 0.0 and 1.0"
+
+        ret.latitude = latitude
+        ret.longitude = longitude
+        ret.altitude = altitude
+
+        ret.voltage = battery_voltage
+        ret.current = battery_current
+        ret.state_of_charge = battery_state_of_charge
+
+        return ret
+    
+
 
 class Rscp(Module):
     def __init__(self):
