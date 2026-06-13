@@ -18,21 +18,21 @@
 #include <std_msgs/msg/u_int8_multi_array.hpp>
 
 namespace {
-    std::optional<rscp::RoverState> convert_rover_state(int32_t rover_state){
-        switch (rover_state) {
-            case kalman_interfaces::msg::ArcRscpResponse::ROVER_STATE_DISARMED: {
-                return rscp::RoverState::DISARMED;
-            }
-            case kalman_interfaces::msg::ArcRscpResponse::ROVER_STATE_AUTONOMOUS: {
-                return rscp::RoverState::AUTONOMOUS;
-            }
-            case kalman_interfaces::msg::ArcRscpResponse::ROVER_STATE_MANUAL: {
-                return rscp::RoverState::MANUAL;
-            }
-        }
-        return {};
-    }
+std::optional<rscp::RoverState> convert_rover_state(int32_t rover_state) {
+	switch (rover_state) {
+	case kalman_interfaces::msg::ArcRscpResponse::ROVER_STATE_DISARMED: {
+		return rscp::RoverState::DISARMED;
+	}
+	case kalman_interfaces::msg::ArcRscpResponse::ROVER_STATE_AUTONOMOUS: {
+		return rscp::RoverState::AUTONOMOUS;
+	}
+	case kalman_interfaces::msg::ArcRscpResponse::ROVER_STATE_MANUAL: {
+		return rscp::RoverState::MANUAL;
+	}
+	}
+	return {};
 }
+} // namespace
 
 class RscpProtoNode final : public rclcpp::Node {
 	using UInt8MultiArray = std_msgs::msg::UInt8MultiArray;
@@ -145,51 +145,51 @@ private:
 			break;
 		}
 		case ArcRscpResponse::TASK_FINISHED: {
-			rscp::ResponseEnvelope response;
 			std::ignore =
 			    response.mutable_task_finished(); // No nothing to set inside
 			break;
 		}
 		case ArcRscpResponse::GPS_COORDINATE: {
-    		rscp::ResponseEnvelope response;
-    		auto gps_coordinate = response.mutable_gps_coordinate();
-            gps_coordinate->set_latitude(ros_response.latitude);
-            gps_coordinate->set_longitude(ros_response.longitude);
-            gps_coordinate->set_altitude(ros_response.altitude);
-    		break;
+			auto gps_coordinate = response.mutable_gps_coordinate();
+			gps_coordinate->set_latitude(ros_response.latitude);
+			gps_coordinate->set_longitude(ros_response.longitude);
+			gps_coordinate->set_altitude(ros_response.altitude);
+			break;
 		}
 		case ArcRscpResponse::DISTANCE: {
-    		rscp::ResponseEnvelope response;
-            response.set_distance(ros_response.distance);
-    		break;
+			response.set_distance(ros_response.distance);
+			break;
 		}
 		case ArcRscpResponse::MESSAGE: {
-    		rscp::ResponseEnvelope response;
-            response.set_message(ros_response.message);
-    		break;
+			response.set_message(ros_response.message);
+			break;
 		}
 		case ArcRscpResponse::ROVER_STATUS: {
-    		rscp::ResponseEnvelope response;
-            auto rover_status = response.mutable_rover_status();
-            auto rover_status_opt = convert_rover_state(ros_response.rover_state);
-            if (!rover_status_opt.has_value()){
-                RCLCPP_ERROR( this->get_logger(), "Rover status %d is invalid", ros_response.rover_state);
-                return;
-            }
-            rover_status->set_state(rover_status_opt.value());
+			auto rover_status = response.mutable_rover_status();
+			auto rover_status_opt =
+			    convert_rover_state(ros_response.rover_state);
+			if (!rover_status_opt.has_value()) {
+				RCLCPP_ERROR(
+				    this->get_logger(),
+				    "Rover status %d is invalid",
+				    ros_response.rover_state
+				);
+				return;
+			}
+			rover_status->set_state(rover_status_opt.value());
 
-            auto gps_coordinate = rover_status->coordinate();
-            gps_coordinate.set_altitude(ros_response.altitude);
-            gps_coordinate.set_longitude(ros_response.longitude);
-            gps_coordinate.set_latitude(ros_response.latitude);
+			auto gps_coordinate = rover_status->mutable_coordinate();
+			gps_coordinate->set_altitude(ros_response.altitude);
+			gps_coordinate->set_longitude(ros_response.longitude);
+			gps_coordinate->set_latitude(ros_response.latitude);
 
-            rover_status->set_heading(ros_response.heading);
+			rover_status->set_heading(ros_response.heading);
 
-            auto battery_state = rover_status->mutable_battery_state();
-            battery_state->set_voltage(ros_response.voltage);
-            battery_state->set_current(ros_response.current);
-            battery_state->set_state_of_charge(ros_response.state_of_charge);
-    		break;
+			auto battery_state = rover_status->mutable_battery_state();
+			battery_state->set_voltage(ros_response.voltage);
+			battery_state->set_current(ros_response.current);
+			battery_state->set_state_of_charge(ros_response.state_of_charge);
+			break;
 		}
 		default: {
 			RCLCPP_ERROR(
@@ -208,12 +208,14 @@ private:
 		    get_logger(), "Sending RSCP message: " << response.DebugString()
 		);
 		std::vector<uint8_t> bytes(response.ByteSizeLong());
-		if (!response.SerializeToArray(bytes.data(), bytes.size())){
-    		RCLCPP_ERROR( this->get_logger(), "Failed to serialize protobuf message" );
-            return;
+		if (!response.SerializeToArray(bytes.data(), bytes.size())) {
+			RCLCPP_ERROR(
+			    this->get_logger(), "Failed to serialize protobuf message"
+			);
+			return;
 		}
 		std::vector framed_bytes = cobs_encode(bytes.data(), bytes.size());
-		framed_bytes.push_back(0);  // Null terminate as in rscp repo examples
+		framed_bytes.push_back(0); // Null terminate as in rscp repo examples
 		UInt8MultiArray msg;
 		msg.data = std::move(framed_bytes);
 		serial_tx_pub_->publish(msg);

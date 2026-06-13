@@ -77,32 +77,7 @@ class RscpLavatubeSearchGate(State):
 
         gate = self.supervisor.aruco.gate_pos(GATE_MARKER_ID, WORKING_FRAME)
         if gate is not None:
-            p1, p2 = gate
-            p1_2d, p2_2d = p1[:2], p2[:2]
-
-            gate_mid = (p1_2d + p2_2d) / 2.0
-            v = p2_2d - p1_2d
-            v_len = np.linalg.norm(v)
-
-            if v_len < 0.1:
-                return None
-
-            v_dir = v / v_len
-            # gate_vec is the normal vector perpendicular to the gate plane
-            gate_vec = np.array([-v_dir[1], v_dir[0]])
-
-            # Ensure vector points into the tube (away from robot)
-            robot_pos = self.supervisor.tf.robot_pos(WORKING_FRAME)[:2]
-            if np.dot(gate_vec, gate_mid - robot_pos) < 0:
-                gate_vec = -gate_vec
-
-            entry_pos = gate_mid - ENTRY_DISTANCE * gate_vec
-
-            ctx = get_lavatube_context(self.supervisor)
-            ctx["gate_mid"] = gate_mid
-            ctx["gate_vec"] = gate_vec
-            ctx["entry_pos"] = entry_pos
-
+            self.calc_gate_entry_to_ctx(gate)
             self.supervisor.cmd_vel.send_cmd_vel(0.0, 0.0, 0.0)
             self.supervisor.get_logger().info(f"[RSCP] Gate found, moving to entry")
             return "rscp_lavatube_navigate_entry"
@@ -117,6 +92,34 @@ class RscpLavatubeSearchGate(State):
 
     def exit(self) -> None:
         self.supervisor.cmd_vel.send_cmd_vel(0.0, 0.0, 0.0)
+        
+    def calc_gate_entry_to_ctx(self, gate: np.ndarray):
+        p1, p2 = gate
+        p1_2d, p2_2d = p1[:2], p2[:2]
+
+        gate_mid = (p1_2d + p2_2d) / 2.0
+        v = p2_2d - p1_2d
+        v_len = np.linalg.norm(v)
+
+        if v_len < 0.1:
+            return None
+
+        v_dir = v / v_len
+        # gate_vec is the normal vector perpendicular to the gate plane
+        gate_vec = np.array([-v_dir[1], v_dir[0]])
+
+        # Ensure vector points into the tube (away from robot)
+        robot_pos = self.supervisor.tf.robot_pos(WORKING_FRAME)[:2]
+        if np.dot(gate_vec, gate_mid - robot_pos) < 0:
+            gate_vec = -gate_vec
+
+        entry_pos = gate_mid - ENTRY_DISTANCE * gate_vec
+
+        ctx = get_lavatube_context(self.supervisor)
+        ctx["gate_mid"] = gate_mid
+        ctx["gate_vec"] = gate_vec
+        ctx["entry_pos"] = entry_pos
+
 
 
 class RscpLavatubeNavigateEntry(State):

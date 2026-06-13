@@ -9,7 +9,7 @@
 #include <rclcpp/rclcpp.hpp>
 
 class IsRecentDetection : public BT::SimpleConditionNode {
-  public:
+public:
 	IsRecentDetection(
 	    const std::string           &name,
 	    const BT::NodeConfiguration &config,
@@ -18,7 +18,7 @@ class IsRecentDetection : public BT::SimpleConditionNode {
 
 	static BT::PortsList providedPorts();
 
-  private:
+private:
 	BT::NodeStatus check(void);
 
 	BT::NodeStatus tick() override;
@@ -26,7 +26,7 @@ class IsRecentDetection : public BT::SimpleConditionNode {
 	void
 	aruco_callback(const aruco_opencv_msgs::msg::ArucoDetection::SharedPtr msg);
 
-  private:
+private:
 	using ArucoDetection = aruco_opencv_msgs::msg::ArucoDetection;
 
 	rclcpp::Node                                   *parent_;

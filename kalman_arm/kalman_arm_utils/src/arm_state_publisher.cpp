@@ -7,7 +7,7 @@
 #include <string>
 
 class ArmStatePublisher : public rclcpp::Node {
-  public:
+public:
 	ArmStatePublisher() : Node("arm_state_publisher") {
 		this->declare_parameter<double>("rate", 10.0);
 		this->get_parameter("rate", rate_);
@@ -29,7 +29,7 @@ class ArmStatePublisher : public rclcpp::Node {
 		    );
 	}
 
-  private:
+private:
 	void sub_callback(const sensor_msgs::msg::JointState::SharedPtr msg) {
 		auto now = rclcpp::Clock().now();
 		if (now - last_time_ > rclcpp::Duration::from_seconds(1.0 / rate_)) {

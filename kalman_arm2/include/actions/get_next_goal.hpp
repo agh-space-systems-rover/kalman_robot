@@ -14,7 +14,7 @@
 #include <thread>
 
 class GetNextGoal : public BT::SyncActionNode {
-  public:
+public:
 	GetNextGoal(
 	    const std::string           &name,
 	    const BT::NodeConfiguration &config,
@@ -25,7 +25,7 @@ class GetNextGoal : public BT::SyncActionNode {
 
 	BT::NodeStatus tick() override;
 
-  private:
+private:
 	rclcpp::Node                                                  *parent_;
 	rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr arm_pub_;
 

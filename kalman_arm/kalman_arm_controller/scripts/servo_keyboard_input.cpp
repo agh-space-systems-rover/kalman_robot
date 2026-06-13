@@ -82,7 +82,7 @@ const std::string EE_FRAME_ID       = "arm_link_end";
 
 // A class for reading the key inputs from the terminal
 class KeyboardReader {
-  public:
+public:
 	KeyboardReader() : file_descriptor_(0) {
 		// get the console in raw mode
 		tcgetattr(file_descriptor_, &cooked_);
@@ -104,7 +104,7 @@ class KeyboardReader {
 		tcsetattr(file_descriptor_, TCSANOW, &cooked_);
 	}
 
-  private:
+private:
 	int            file_descriptor_;
 	struct termios cooked_;
 };
@@ -112,11 +112,11 @@ class KeyboardReader {
 // Converts key-presses to Twist or Jog commands for Servo, in lieu of a
 // controller
 class KeyboardServo {
-  public:
+public:
 	KeyboardServo();
 	int keyLoop();
 
-  private:
+private:
 	void spin();
 
 	rclcpp::Node::SharedPtr nh_;

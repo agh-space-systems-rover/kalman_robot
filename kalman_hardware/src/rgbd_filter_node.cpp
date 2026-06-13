@@ -16,7 +16,7 @@
 namespace kalman_hardware {
 
 class RgbdFilter : public rclcpp::Node {
-  public:
+public:
 	image_transport::SubscriberFilter                         color_sub;
 	image_transport::SubscriberFilter                         depth_sub;
 	message_filters::Subscriber<sensor_msgs::msg::CameraInfo> info_sub;

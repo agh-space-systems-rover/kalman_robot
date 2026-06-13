@@ -41,7 +41,7 @@ scale_affine(const cv::Affine3d &transform, double time_scale) {
 // Stored as velocity to allow time bounds to be altered while effectively
 // trimming the time window - not stretching nor squishing it.
 class Delta {
-  public:
+public:
 	rclcpp::Time start_time;
 	rclcpp::Time end_time;
 	cv::Affine3d velocity;
@@ -71,7 +71,7 @@ class DeltaSubscriber {
 	rclcpp::Time last_time;
 	cv::Affine3d last_pose;
 
-  public:
+public:
 	DeltaSubscriber(
 	    rclcpp::Node                     *node,
 	    const std::string                &topic,
@@ -175,9 +175,9 @@ class DeltaSubscriber {
 // this case we want to wait for readings from other sensors to arrive in order
 // to use their average velocity for more precise integration.
 class DeadReckoning : public rclcpp::Node {
-  public:
+public:
 	class ImuReading {
-	  public:
+	public:
 		rclcpp::Time time;
 		cv::Quatd    rot;
 
