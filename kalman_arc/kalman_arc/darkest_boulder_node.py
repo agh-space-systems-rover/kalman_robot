@@ -368,16 +368,14 @@ def select_darkest_candidate(
         camera_id = match_camera_id(detection, rgbd_ids)
         if camera_id is None:
             logger.debug(
-                "Skipping detection in frame '%s': no matching camera id.",
-                detection.header.frame_id,
+                f"Skipping detection in frame {detection.header.frame_id}: no matching camera id.",
             )
             continue
 
         cv_image = images_by_camera.get(camera_id)
         if cv_image is None:
             logger.debug(
-                "Skipping detection for camera '%s': synchronized image missing.",
-                camera_id,
+                f"Skipping detection for camera {camera_id}: synchronized image missing.",
             )
             continue
 
@@ -528,8 +526,7 @@ class DarkestBoulderFilter(Node):
         intrinsics = extract_camera_intrinsics(msg)
         if intrinsics is None:
             self.get_logger().error(
-                "Received invalid CameraInfo for '%s'; fx/fy must be positive.",
-                camera_id,
+                f"Received invalid CameraInfo for {camera_id}; fx/fy must be positive.",
             )
             return
 
@@ -604,9 +601,7 @@ class DarkestBoulderFilter(Node):
                 )
             except CvBridgeError as exc:
                 self.get_logger().error(
-                    "Failed to decode synchronized image for camera '%s': %s",
-                    camera_id,
-                    exc,
+                    f"Failed to decode synchronized image for camera {camera_id}: {exc}"
                 )
                 return
 
