@@ -2,12 +2,15 @@ import rclpy
 from rclpy.node import Node
 from kalman_interfaces.msg import Camera2Dof, MasterMessage
 
-# Angle range for a standard 180° servo mapped to uint8 (0–255).
-SERVO_ANGLE_MAX = 180.0
 
+def angle_to_uint8(angle: float, angle_min: float, angle_max: float) -> int:
+    """Map angle linearly onto [0, 255].
 
-def angle_to_uint8(angle: float) -> int:
-    return round(max(0.0, min(SERVO_ANGLE_MAX, angle)) / SERVO_ANGLE_MAX * 255)
+    angle_min → 0, angle_max → 255. Firmware mirrors this mapping
+    to recover the physical angle without precision loss.
+    """
+    angle = max(angle_min, min(angle_max, angle))
+    return round((angle - angle_min) / (angle_max - angle_min) * 255)
 
 
 class Camera2DofDriver(Node):
@@ -19,7 +22,8 @@ class Camera2DofDriver(Node):
         self.declare_parameter("yaw_servo_id", 0)
         self.declare_parameter("pitch_servo_id", 1)
 
-        # Physical angle limits in degrees (clamped before encoding).
+        # Physical angle range for each axis [degrees].
+        # 0 maps to *_min, 255 maps to *_max — firmware uses the same range.
         self.declare_parameter("yaw_min", 0.0)
         self.declare_parameter("yaw_max", 180.0)
         self.declare_parameter("pitch_min", 0.0)
@@ -40,14 +44,11 @@ class Camera2DofDriver(Node):
         )
 
     def camera_cmd_cb(self, msg: Camera2Dof):
-        yaw = max(self.yaw_min, min(self.yaw_max, msg.yaw))
-        pitch = max(self.pitch_min, min(self.pitch_max, msg.pitch))
-
-        yaw_val = angle_to_uint8(yaw)
-        pitch_val = angle_to_uint8(pitch)
+        yaw_val = angle_to_uint8(msg.yaw, self.yaw_min, self.yaw_max)
+        pitch_val = angle_to_uint8(msg.pitch, self.pitch_min, self.pitch_max)
 
         self.get_logger().debug(
-            f"cam={msg.camera_id} yaw={yaw:.1f}°→{yaw_val} pitch={pitch:.1f}°→{pitch_val}"
+            f"cam={msg.camera_id} yaw={msg.yaw:.1f}°→{yaw_val} pitch={msg.pitch:.1f}°→{pitch_val}"
         )
 
         self.master_pub.publish(
