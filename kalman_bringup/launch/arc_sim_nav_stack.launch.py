@@ -28,10 +28,10 @@ def generate_launch_description():
             #     "dict": "4X4_50",
             #     "size": "0.15",
             # },
-            # "yolo": {
-            #     "rgbd_ids": RGBD_IDS,
-            #     "config": "urc2024",
-            # },
+            "yolo": {
+                # "rgbd_ids": RGBD_IDS,
+                "config": "arc2026",
+            },
             "supervisor": {
                 # "aruco_rgbd_ids": RGBD_IDS,
                 # "aruco_deactivate_unused": "true",
