@@ -98,6 +98,7 @@ ament_target_dependencies(rqt_rscp
   rclcpp
   rqt_gui_cpp
   std_msgs
+)
 find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
