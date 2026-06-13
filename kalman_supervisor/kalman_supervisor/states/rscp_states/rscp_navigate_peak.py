@@ -40,7 +40,6 @@ class RscpNavigatePeak(State):
     def tick(self) -> str | None:
         # If we failed to set up navigation, return to idle
         if self.failed:
-            self.supervisor.rscp.clear_search_goal()
             return "rscp_idle"
 
         # Check if disarmed - abort and return to idle
@@ -48,7 +47,6 @@ class RscpNavigatePeak(State):
             self.supervisor.get_logger().warn(
                 "[RSCP] DISARM detected during navigation, aborting"
             )
-            self.supervisor.rscp.clear_search_goal()
             return "rscp_idle"
 
         # Check if navigation is complete
@@ -62,7 +60,6 @@ class RscpNavigatePeak(State):
                 f"[RSCP] Stage is not 1, current is {stage} while in NavigateToPeak "
             )
                 
-            self.supervisor.rscp.clear_search_goal()
             # Return to idle state to wait for next request
             return "rscp_drop_antenna"
 
@@ -73,6 +70,6 @@ class RscpNavigatePeak(State):
         # Cancel navigation if we're exiting prematurely
         if self.supervisor.nav.has_goal():
             self.supervisor.get_logger().info(
-                "[RSCP] Exiting rscp_navigate_gps, canceling navigation"
+                "[RSCP] Exiting rscp_navigate_peak, canceling navigation"
             )
             self.supervisor.nav.cancel_goal()

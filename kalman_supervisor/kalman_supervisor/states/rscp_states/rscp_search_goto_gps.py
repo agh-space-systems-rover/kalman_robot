@@ -49,7 +49,7 @@ class RSCPSearchGoToGPS(State):
             # Send TASK_FINISHED response
             self.supervisor.rscp.send_task_finished()
             stage = self.supervisor.rscp.get_current_stage()
-            if stage != 1:
+            if stage not in [1, 2]:
                 self.supervisor.get_logger().warn(
                 f"[RSCP] Stage is not 1, current is {stage} while in SearchGoToGps "
             )

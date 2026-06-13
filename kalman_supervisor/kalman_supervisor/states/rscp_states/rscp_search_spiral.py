@@ -11,7 +11,6 @@ from rcl_interfaces.msg import ParameterType, Parameter
 from std_srvs.srv import Trigger
 
  # the distance between the revolutions of the spiral
-SPIRAL_REVOLUTION_WIDTH = 5
 MIN_DISTANCE_TO_GOAL = 1.0
 PROGRESS_INCREMENT = 0.001
 
@@ -19,18 +18,18 @@ PROGRESS_INCREMENT = 0.001
 class RSCPSearchSpiral(State):
     def __init__(self):
         super().__init__("rscp_search_spiral")
-        revolutions = 2
-        self.revolutions = revolutions
-        self.init_progress = 0.5 / revolutions
-        self.flip_spiral = True  # switched to False on first reset
         self.clear_elevation_map_client = self.supervisor.create_client(
             Trigger, "/clear_elevation_map"
         )
+        self.spiral_pub = self.supervisor.create_publisher(
+            Path, "supervisor/spiral", 10
+        )
+        self.clear_boulder_client = self.supervisor.create_client(Trigger, "/boulder_position_clear" )
 
     def spiral_tr(self, progress: float, angle: float, revolutions: int) -> np.ndarray:
-        p = progress if not self.flip_spiral else -progress
+        p = progress
         t = 2 * np.pi * revolutions * p + angle
-        r = revolutions * SPIRAL_REVOLUTION_WIDTH * abs(p)
+        r = revolutions * self.SPIRAL_REVOLUTION_WIDTH * abs(p)
         return (t, r)
 
     def spiral(self, progress: float, angle: float, revolutions: int) -> np.ndarray:
@@ -79,20 +78,36 @@ class RSCPSearchSpiral(State):
 
         future.add_done_callback(callback)
 
-    def enter(self) -> None:
-        # Enable the detection node.
-        if self.supervisor.missions.has_mission():
-            mission = self.supervisor.missions.get_mission()
-            if isinstance(mission, Missions.GpsArUcoSearch):
-                self.supervisor.aruco.enable()
-            elif isinstance(mission, Missions.GpsYoloSearch):
-                self.supervisor.yolo.enable()
+    def reset_spiral(self, angle_offset: float) -> None:
+
+        self.progress = self.init_progress
+        self.center = self.entry_robot_pos
+        self.angle = self.entry_robot_rot + angle_offset
+        self.last_spiral_goal_time = 0
+
+        init_angle, _ = self.spiral_tr(self.init_progress, 0, self.revolutions)
+        self.angle -= init_angle + (np.pi / 2)
+        self.center -= self.spiral(self.init_progress, self.angle, self.revolutions)
 
         # Publish spiral for debugging.
-        self.spiral_pub = self.supervisor.create_publisher(
-            Path, "supervisor/spiral", 10
-        )
+        self.spiral_pub.publish(self.spiral_as_msg())
 
+    def enter(self) -> None:
+        # Enable the detection node.
+        stage = self.supervisor.rscp.get_current_stage()
+        if stage == 1:
+            self.SPIRAL_REVOLUTION_WIDTH = 5
+            revolutions = 2
+            self.revolutions = revolutions
+            self.init_progress = 0.5 / revolutions
+        elif stage == 2:
+            req = Trigger.Request()
+            self.clear_boulder_client.call_async(req)
+            self.SPIRAL_REVOLUTION_WIDTH = 3
+            revolutions = 3
+            self.revolutions = revolutions
+            self.init_progress = 0.5 / revolutions
+            
         # Init the spiral.
         self.entry_robot_pos = self.supervisor.tf.robot_pos()[:2]
         self.entry_robot_rot = self.supervisor.tf.robot_rot_2d()
@@ -112,10 +127,12 @@ class RSCPSearchSpiral(State):
         self.next_goal_timeout = 0.0
 
     def tick(self) -> str | None:
-        # Cancel the navigation if missions was ended early.
-        if not self.supervisor.missions.has_mission():
-            self.supervisor.nav.cancel_goal()
-            return "stop_to_teleop"
+        if not self.supervisor.rscp.is_armed():
+            self.supervisor.get_logger().warn(
+                "[RSCP] DISARM detected during navigation, aborting"
+            )
+            self.supervisor.rscp.clear_search_goal()
+            return "rscp_idle"
 
         # Until progress reaches 1, keep sending spiral goals.
         # Send goal if:
@@ -146,9 +163,6 @@ class RSCPSearchSpiral(State):
             self.supervisor.nav.send_goal(np.append(goal, 0))
             self.progress += PROGRESS_INCREMENT
             self.last_spiral_goal_time = now
-
-        # Check if the searched item was found and transition to approach.
-        mission = self.supervisor.missions.get_mission()
                 
         # Once we have the default approach distance, disable slow approach.
         if (
@@ -159,6 +173,19 @@ class RSCPSearchSpiral(State):
                 "[Search] Disabling slow approach in path follower."
             )
             self.toggle_follower_slow_approach(False)
+        
+        # If spiral is complete, transition to the choosen 
+        if self.progress >= 1.0:
+            if self.stage == 1:
+                self.supervisor.get_logger().info(
+                    "[RSCP] Transitioning to rscp_navigate_peak"
+                )
+                return "rscp_navigate_peak"
+            elif self.stage == 2:
+                self.supervisor.get_logger().info(
+                    "[RSCP] Transitioning to rscp_shackleton"
+                )
+                return "rscp_shackleton"
 
     def exit(self) -> None:
         # Reset slow approach in path follower.

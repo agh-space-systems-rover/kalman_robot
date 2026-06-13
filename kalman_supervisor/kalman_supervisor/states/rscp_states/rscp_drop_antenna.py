@@ -32,7 +32,6 @@ class RscpIdle(State):
 
             return "rscp_idle"
         
-        return "rscp_drop_antenna"
 
     def exit(self) -> None:
         self.start_time = None

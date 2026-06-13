@@ -20,7 +20,6 @@ def launch_setup(context):
             executable="travel_distance_meter",
             name="travel_distance_meter_node",
             parameters=[{"deadzone": float(deadzone_val)}],
-            output="screen",
             output="screen"
         ),
         Node(
