@@ -10,7 +10,7 @@
 #include <thread>
 
 class DoSomething : public BT::SyncActionNode {
-  public:
+public:
 	DoSomething(
 	    const std::string           &name,
 	    const BT::NodeConfiguration &config,
@@ -21,6 +21,6 @@ class DoSomething : public BT::SyncActionNode {
 
 	BT::NodeStatus tick() override;
 
-  private:
+private:
 	rclcpp::Node *parent_;
 };

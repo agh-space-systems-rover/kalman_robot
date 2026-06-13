@@ -27,7 +27,7 @@
  *   - filter(const tf2::Transform&)
  */
 class TransformEmaFilter {
-  public:
+public:
 	explicit TransformEmaFilter(double alpha = 0.2)
 	    : alpha_(clampAlpha(alpha)), initialized_(false) {}
 
@@ -99,7 +99,7 @@ class TransformEmaFilter {
 		return state_;
 	}
 
-  private:
+private:
 	static double clampAlpha(double a) {
 		const double eps = 1e-9;
 		return std::min(1.0, std::max(eps, a));

@@ -18,21 +18,21 @@
 #include <std_msgs/msg/u_int8_multi_array.hpp>
 
 namespace {
-    std::optional<rscp::RoverState> convert_rover_state(int32_t rover_state){
-        switch (rover_state) {
-            case kalman_interfaces::msg::ArcRscpResponse::ROVER_STATE_DISARMED: {
-                return rscp::RoverState::DISARMED;
-            }
-            case kalman_interfaces::msg::ArcRscpResponse::ROVER_STATE_AUTONOMOUS: {
-                return rscp::RoverState::AUTONOMOUS;
-            }
-            case kalman_interfaces::msg::ArcRscpResponse::ROVER_STATE_MANUAL: {
-                return rscp::RoverState::MANUAL;
-            }
-        }
-        return {};
-    }
+std::optional<rscp::RoverState> convert_rover_state(int32_t rover_state) {
+	switch (rover_state) {
+	case kalman_interfaces::msg::ArcRscpResponse::ROVER_STATE_DISARMED: {
+		return rscp::RoverState::DISARMED;
+	}
+	case kalman_interfaces::msg::ArcRscpResponse::ROVER_STATE_AUTONOMOUS: {
+		return rscp::RoverState::AUTONOMOUS;
+	}
+	case kalman_interfaces::msg::ArcRscpResponse::ROVER_STATE_MANUAL: {
+		return rscp::RoverState::MANUAL;
+	}
+	}
+	return {};
 }
+} // namespace
 
 class RscpProtoNode final : public rclcpp::Node {
 	using UInt8MultiArray = std_msgs::msg::UInt8MultiArray;
@@ -166,7 +166,8 @@ private:
 		}
 		case ArcRscpResponse::ROVER_STATUS: {
 			auto rover_status = response.mutable_rover_status();
-			auto rover_status_opt = convert_rover_state(ros_response.rover_state);
+			auto rover_status_opt =
+			    convert_rover_state(ros_response.rover_state);
 			if (!rover_status_opt.has_value()) {
 				RCLCPP_ERROR(
 				    this->get_logger(),
@@ -207,12 +208,14 @@ private:
 		    get_logger(), "Sending RSCP message: " << response.DebugString()
 		);
 		std::vector<uint8_t> bytes(response.ByteSizeLong());
-		if (!response.SerializeToArray(bytes.data(), bytes.size())){
-    		RCLCPP_ERROR( this->get_logger(), "Failed to serialize protobuf message" );
-            return;
+		if (!response.SerializeToArray(bytes.data(), bytes.size())) {
+			RCLCPP_ERROR(
+			    this->get_logger(), "Failed to serialize protobuf message"
+			);
+			return;
 		}
 		std::vector framed_bytes = cobs_encode(bytes.data(), bytes.size());
-		framed_bytes.push_back(0);  // Null terminate as in rscp repo examples
+		framed_bytes.push_back(0); // Null terminate as in rscp repo examples
 		UInt8MultiArray msg;
 		msg.data = std::move(framed_bytes);
 		serial_tx_pub_->publish(msg);

@@ -175,7 +175,7 @@ class Rscp(Module):
             # TODO: when ArcRscpResponse.ROVER_STATE_MANUAL should be set?
 
         msg.rover_state = get_rover_state()
-        
+
         robot_pos = self.supervisor.tf.robot_pos("base_link")
         msg.latitude, msg.longitude = self.point_to_latlon(robot_pos, "base_link")
         msg.altitude = 0.0  # Explicitly don't set altitude, docs are silent about it
@@ -185,7 +185,9 @@ class Rscp(Module):
 
         ## Battery state
         msg.voltage = 24.2
-        msg.current = 3.14 * abs(math.sin(self.supervisor.get_clock().now().nanoseconds / 1e9))
+        msg.current = 3.14 * abs(
+            math.sin(self.supervisor.get_clock().now().nanoseconds / 1e9)
+        )
         msg.state_of_charge = 0.42
 
         self.__res_pub.publish(msg)
@@ -200,7 +202,9 @@ class Rscp(Module):
         self.__navigation_goal = None
         self.supervisor.get_logger().info("[RSCP] Navigation goal cleared")
 
-    def point_to_latlon(self, point: np.ndarray, source_frame: str) -> tuple[float, float]:
+    def point_to_latlon(
+        self, point: np.ndarray, source_frame: str
+    ) -> tuple[float, float]:
         utm_point = self.supervisor.tf.transform_numpy(
             point,
             target_frame="utm",

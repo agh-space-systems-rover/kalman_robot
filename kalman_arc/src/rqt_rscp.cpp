@@ -20,9 +20,9 @@
 
 namespace {
 
-template<typename Widget>
+template <typename Widget>
 QWidget *add_form_row(QFormLayout *form, const QString &label, Widget *field) {
-	auto *row = new QWidget;
+	auto *row    = new QWidget;
 	auto *layout = new QFormLayout(row);
 	layout->setContentsMargins(0, 0, 0, 0);
 	layout->addRow(label, field);
@@ -47,23 +47,27 @@ RqtRscp::RqtRscp() {
 }
 
 void RqtRscp::initPlugin(qt_gui_cpp::PluginContext &context) {
-	widget_ = new QWidget;
+	widget_      = new QWidget;
 	auto *layout = new QVBoxLayout(widget_);
-	auto *form = new QFormLayout;
+	auto *form   = new QFormLayout;
 	layout->addLayout(form);
 
 	request_type_ = new QComboBox;
 	request_type_->addItems(
-	    {"Arm/disarm", "Set stage", "Navigate to GPS", "Search area", "Start exploration"}
+	    {"Arm/disarm",
+	     "Set stage",
+	     "Navigate to GPS",
+	     "Search area",
+	     "Start exploration"}
 	);
 	form->addRow("Request", request_type_);
 
-	arm_ = new QCheckBox("Arm");
+	arm_     = new QCheckBox("Arm");
 	arm_row_ = add_form_row(form, "Arm/disarm", arm_);
 
 	stage_ = new QSpinBox;
 	stage_->setRange(0, std::numeric_limits<int>::max());
-	stage_name_ = new QLabel;
+	stage_name_        = new QLabel;
 	auto *stage_widget = new QWidget;
 	auto *stage_layout = new QVBoxLayout(stage_widget);
 	stage_layout->setContentsMargins(0, 0, 0, 0);
@@ -96,7 +100,7 @@ void RqtRscp::initPlugin(qt_gui_cpp::PluginContext &context) {
 	auto *publish = new QPushButton("Publish to rscp/serial/rx");
 	layout->addWidget(publish);
 	status_ = new QLabel("Ready");
-	bytes_ = new QLabel;
+	bytes_  = new QLabel;
 	bytes_->setTextInteractionFlags(Qt::TextSelectableByMouse);
 	bytes_->setWordWrap(true);
 	layout->addWidget(status_);
@@ -130,8 +134,7 @@ void RqtRscp::shutdownPlugin() {
 }
 
 void RqtRscp::saveSettings(
-    qt_gui_cpp::Settings &,
-    qt_gui_cpp::Settings &instance_settings
+    qt_gui_cpp::Settings &, qt_gui_cpp::Settings &instance_settings
 ) const {
 	instance_settings.setValue("request_type", request_type_->currentIndex());
 	instance_settings.setValue("arm", arm_->isChecked());
@@ -143,10 +146,11 @@ void RqtRscp::saveSettings(
 }
 
 void RqtRscp::restoreSettings(
-    const qt_gui_cpp::Settings &,
-    const qt_gui_cpp::Settings &instance_settings
+    const qt_gui_cpp::Settings &, const qt_gui_cpp::Settings &instance_settings
 ) {
-	request_type_->setCurrentIndex(instance_settings.value("request_type", 0).toInt());
+	request_type_->setCurrentIndex(
+	    instance_settings.value("request_type", 0).toInt()
+	);
 	arm_->setChecked(instance_settings.value("arm", false).toBool());
 	stage_->setValue(instance_settings.value("stage", 0).toInt());
 	latitude_->setValue(instance_settings.value("latitude", 0.0).toDouble());
@@ -193,17 +197,20 @@ void RqtRscp::publish_request() {
 		request.mutable_arm_disarm()->set_value(arm_->isChecked());
 		break;
 	case 1:
-		request.mutable_set_stage()->set_value(static_cast<uint32_t>(stage_->value()));
+		request.mutable_set_stage()->set_value(
+		    static_cast<uint32_t>(stage_->value())
+		);
 		break;
 	case 2: {
-		auto *coordinate = request.mutable_navigate_to_gps()->mutable_coordinate();
+		auto *coordinate =
+		    request.mutable_navigate_to_gps()->mutable_coordinate();
 		coordinate->set_latitude(latitude_->value());
 		coordinate->set_longitude(longitude_->value());
 		coordinate->set_altitude(static_cast<float>(altitude_->value()));
 		break;
 	}
 	case 3: {
-		auto *search = request.mutable_search_area();
+		auto *search     = request.mutable_search_area();
 		auto *coordinate = search->mutable_center_coordinate();
 		coordinate->set_latitude(latitude_->value());
 		coordinate->set_longitude(longitude_->value());

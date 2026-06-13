@@ -9,7 +9,7 @@
 #include <cstdint>
 
 class GripperRepublisher : public rclcpp::Node {
-  public:
+public:
 	GripperRepublisher() : Node("gripper_republisher") {
 		this->declare_parameter<double>("rate", 10.0);
 		this->get_parameter("rate", rate_);
@@ -40,7 +40,7 @@ class GripperRepublisher : public rclcpp::Node {
 		);
 	}
 
-  private:
+private:
 	void
 	fk_callback(const kalman_interfaces::msg::ArmFkCommand::SharedPtr msg) {
 		auto now = rclcpp::Clock().now();

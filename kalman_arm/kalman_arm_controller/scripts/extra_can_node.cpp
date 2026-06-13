@@ -21,7 +21,7 @@ extern "C" {
 
 namespace kalman_arm {
 class ExtraCanNode : public rclcpp::Node {
-  private:
+private:
 	CAN_driver::DriverVars_t extra_driver_ = {};
 
 	uint16_t gripper_position_;
@@ -62,7 +62,7 @@ class ExtraCanNode : public rclcpp::Node {
 		return gripper_position_;
 	}
 
-  public:
+public:
 	explicit ExtraCanNode(const rclcpp::NodeOptions &options)
 	    : Node("extra_can_node", options) {
 		this->declare_parameter<uint16_t>("max_gripper", 1250);
