@@ -7,6 +7,7 @@
 #include <rclcpp_components/register_node_macro.hpp>
 #include <rclcpp/rclcpp.hpp>
 
+#include <geometry_msgs/msg/pose_stamped.hpp>
 #include <geometry_msgs/msg/transform_stamped.hpp>
 #include <sensor_msgs/msg/point_cloud2.hpp>
 #include <sensor_msgs/point_cloud2_iterator.hpp>
@@ -17,6 +18,7 @@
 
 #include <grid_map_ros/GridMapRosConverter.hpp>
 #include <grid_map_msgs/msg/grid_map.hpp>
+#include <std_srvs/srv/trigger.hpp>
 
 namespace kalman_arc {
 
@@ -59,12 +61,29 @@ public:
 		map_pub_     = this->create_publisher<grid_map_msgs::msg::GridMap>(
             "out/elevation_map", map_qos
         );
+		peak_pos_pub_ = this->create_publisher<geometry_msgs::msg::PoseStamped>(
+		    "/peak_position", 10
+		);
 
 		peak_timer_ = this->create_wall_timer(
 		    std::chrono::seconds(2), std::bind(&PeakFinder::find_peak, this)
 		);
 
-		RCLCPP_INFO(this->get_logger(), "PeakFinder node initialized.");
+		clear_elevation_map_srv_ = this->create_service<std_srvs::srv::Trigger>(
+		    "clear_elevation_map",
+		    std::bind(
+		        &PeakFinder::clear_elevation_map_callback,
+		        this,
+		        std::placeholders::_1,
+		        std::placeholders::_2
+		    )
+		);
+
+		RCLCPP_INFO(
+		    this->get_logger(),
+		    "PeakFinder node initialized (service: %s).",
+		    clear_elevation_map_srv_->get_service_name()
+		);
 	}
 
 private:
@@ -172,6 +191,15 @@ private:
 		}
 
 		if (peak_found) {
+			geometry_msgs::msg::PoseStamped peak_pose;
+			peak_pose.header.stamp    = this->now();
+			peak_pose.header.frame_id = map_frame_;
+			peak_pose.pose.position.x = peak_pos.x();
+			peak_pose.pose.position.y = peak_pos.y();
+			peak_pose.pose.position.z = max_elevation;
+			peak_pose.pose.orientation.w = 1.0;
+			peak_pos_pub_->publish(peak_pose);
+
 			RCLCPP_INFO(
 			    this->get_logger(),
 			    "Peak found -> X: %.2f  Y: %.2f  Z: %.2f",
@@ -179,13 +207,26 @@ private:
 			    peak_pos.y(),
 			    max_elevation
 			);
-			// TODO: dispatch NavigateToPose action goal to peak_pos
 		} else {
 			RCLCPP_DEBUG(
 			    this->get_logger(),
 			    "No valid elevation data within search radius."
 			);
 		}
+	}
+
+	void clear_elevation_map_callback(
+	    const std::shared_ptr<std_srvs::srv::Trigger::Request> /*request*/,
+	    std::shared_ptr<std_srvs::srv::Trigger::Response> response
+	) {
+		map_.clearAll();
+		map_.setTimestamp(this->now().nanoseconds());
+		auto map_msg = grid_map::GridMapRosConverter::toMessage(map_);
+		map_pub_->publish(std::move(map_msg));
+
+		response->success = true;
+		response->message = "Elevation map cleared.";
+		RCLCPP_INFO(this->get_logger(), "Elevation map cleared via service.");
 	}
 
 	// ── Members ──────────────────────────────────────────────────────────────
@@ -198,7 +239,9 @@ private:
 	std::shared_ptr<tf2_ros::TransformListener>                    tf_listener_;
 	rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr pc_sub_;
 	rclcpp::Publisher<grid_map_msgs::msg::GridMap>::SharedPtr      map_pub_;
+	rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr peak_pos_pub_;
 	rclcpp::TimerBase::SharedPtr                                   peak_timer_;
+	rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr clear_elevation_map_srv_;
 };
 
 } // namespace kalman_arc

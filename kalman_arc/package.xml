@@ -32,6 +32,7 @@
   <depend>grid_map_ros</depend>
   <depend>grid_map_core</depend>
   <depend>grid_map_msgs</depend>
+  <depend>std_srvs</depend>
 
   <exec_depend>ros2launch</exec_depend>
 

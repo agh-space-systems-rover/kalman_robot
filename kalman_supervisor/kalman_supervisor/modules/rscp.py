@@ -22,6 +22,7 @@ class Rscp(Module):
         self.__current_stage: int | None = None
         self.__pending_request: ArcRscpRequest | None = None
         self.__navigation_goal: tuple[float, float] | None = None  # (lat, lon)
+        self.__search_goal: tuple[float, float] | None = None  # (lat, lon)
 
         # Subscribe to rscp/req
         self.__req_sub = self.supervisor.create_subscription(
@@ -195,6 +196,13 @@ class Rscp(Module):
 
     def get_navigation_goal(self) -> tuple[float, float] | None:
         return self.__navigation_goal
+    
+    def get_search_goal(self) -> tuple[float, float] | None:
+        return self.__search_goal
+    
+    def clear_search_goal(self) -> None:
+        self.__search_goal = None
+        self.supervisor.get_logger().info("[RSCP] Search goal cleared")
 
     def clear_navigation_goal(self) -> None:
         self.__navigation_goal = None

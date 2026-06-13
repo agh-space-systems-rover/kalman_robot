@@ -107,6 +107,7 @@ find_package(grid_map_ros REQUIRED)
 find_package(grid_map_core REQUIRED)
 find_package(grid_map_msgs REQUIRED)
 find_package(rclcpp_components REQUIRED)
+find_package(std_srvs REQUIRED)
 
 add_library(peak_finder_node SHARED src/peak_finder_node.cpp)
 ament_target_dependencies(peak_finder_node
@@ -119,13 +120,14 @@ ament_target_dependencies(peak_finder_node
   grid_map_core
   grid_map_msgs
   geometry_msgs
+  std_srvs
 )
 rclcpp_components_register_node(
   peak_finder_node
   PLUGIN "kalman_arc::PeakFinder"
   EXECUTABLE peak_finder
 )
-install(TARGETS peak_finder_node
+install(TARGETS peak_finder_node peak_finder
   EXPORT kalman_arc-targets
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
