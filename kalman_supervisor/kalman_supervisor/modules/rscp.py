@@ -18,6 +18,7 @@ class Rscp(Module):
         self.__current_stage: int | None = None
         self.__pending_request: ArcRscpRequest | None = None
         self.__navigation_goal: tuple[float, float] | None = None  # (lat, lon)
+        self.__exploration_start_requested = False
 
         # Subscribe to rscp/req
         self.__req_sub = self.supervisor.create_subscription(
@@ -86,6 +87,11 @@ class Rscp(Module):
                         f"[RSCP] NavigateToGPS received (lat={req.latitude}, lon={req.longitude}), sent ACK"
                     )
 
+            elif req.type == ArcRscpRequest.START_EXPLORATION:
+                self.__exploration_start_requested = True
+                self.send_ack()
+                self.supervisor.get_logger().info("[RSCP] START_EXPLORATION received, sent ACK")
+
     def deactivate(self) -> None:
         if not self.module_enabled:
             return
@@ -108,6 +114,13 @@ class Rscp(Module):
         self.__res_pub.publish(msg)
         self.supervisor.get_logger().info("[RSCP] Sent TASK_FINISHED")
 
+    def send_distance(self, distance: float) -> None:
+        msg = ArcRscpResponse()
+        msg.type = ArcRscpResponse.DISTANCE
+        msg.distance = float(distance)
+        self.__res_pub.publish(msg)
+        self.supervisor.get_logger().info(f"[RSCP] Sent DISTANCE: {distance}")
+
     def get_current_stage(self) -> int | None:
         return self.__current_stage
 
@@ -117,3 +130,10 @@ class Rscp(Module):
     def clear_navigation_goal(self) -> None:
         self.__navigation_goal = None
         self.supervisor.get_logger().info("[RSCP] Navigation goal cleared")
+
+    def exploration_start_requested(self) -> bool:
+        return self.__exploration_start_requested
+
+    def clear_exploration_start_request(self) -> None:
+        self.__exploration_start_requested = False
+        self.supervisor.get_logger().info("[RSCP] Exploration start request cleared")

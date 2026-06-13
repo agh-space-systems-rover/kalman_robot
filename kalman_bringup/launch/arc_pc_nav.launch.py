@@ -28,5 +28,8 @@ def generate_launch_description():
             "supervisor": {
                 "rscp_enabled": "true",
             },
+            "arc": {
+                "enable_rscp_hw_driver": "true",
+            },
         }
     )
