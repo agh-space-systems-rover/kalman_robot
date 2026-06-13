@@ -12,7 +12,6 @@
 
   <depend>rclpy</depend>
   <depend>rclcpp</depend>
-  <depend>ament_index_python</depend>
   <depend>std_msgs</depend>
   <depend>nav_msgs</depend>
   <depend>kalman_interfaces</depend>

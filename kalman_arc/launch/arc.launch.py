@@ -1,17 +1,19 @@
-from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch_ros.actions import Node
 from launch.actions import (
     DeclareLaunchArgument,
-    IncludeLaunchDescription,
     OpaqueFunction,
 )
-from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 
 
 def launch_setup(context):
-    deadzone_val = LaunchConfiguration("deadzone").perform(context)
+    def get_bool(name):
+        return LaunchConfiguration(name).perform(context).lower() == "true"
+
+    deadzone_val = LaunchConfiguration("travel_distance_meter_deadzone").perform(
+        context
+    )
     description = [
         Node(
             package="kalman_arc",
@@ -22,24 +24,30 @@ def launch_setup(context):
         )
     ]
 
+    if get_bool("enable_rscp_hw_driver"):
+        description += [
+            Node(
+                package="kalman_arc",
+                executable="rscp_node",
+            ),
+        ]
+
     return description
 
 
 def generate_launch_description():
-    rscp_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            [get_package_share_directory("kalman_arc"), "/launch/rscp.launch.py"]
-        )
-    )
-
     return LaunchDescription(
         [
             DeclareLaunchArgument(
-                "deadzone",
+                "travel_distance_meter_deadzone",
                 default_value="0.1",
                 description="Deadzone in meters below which distance is not tracked.",
             ),
+            DeclareLaunchArgument(
+                "enable_rscp_hw_driver",
+                default_value="false",
+                description="Run the RSCP protocol driver. Only use it on real hardware.",
+            ),
             OpaqueFunction(function=launch_setup),
-            rscp_launch,
         ]
     )
