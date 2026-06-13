@@ -9,7 +9,7 @@
 #include <cstdint>
 
 class ArmStateRepublisher : public rclcpp::Node {
-  public:
+public:
 	ArmStateRepublisher() : Node("arm_state_republisher") {
 		this->declare_parameter<double>("rate", 10.0);
 		this->get_parameter("rate", rate_);
@@ -30,7 +30,7 @@ class ArmStateRepublisher : public rclcpp::Node {
 		    );
 	}
 
-  private:
+private:
 	void sub_callback(const kalman_interfaces::msg::ArmState::SharedPtr msg) {
 		auto now = rclcpp::Clock().now();
 		if (now - last_time_ > rclcpp::Duration::from_seconds(1.0 / rate_)) {

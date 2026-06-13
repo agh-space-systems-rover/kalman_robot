@@ -382,7 +382,11 @@ function ValueEditor({ min, max, step = 1, placeholder, value = 0, onValueChange
   return (
     <>
       <div className={styles['wexlab-row']}>
-        <Button className={styles['wexlab-step-button']} tooltip={`Decrease value by ${step}`} onClick={() => shiftValue(-step)}>
+        <Button
+          className={styles['wexlab-step-button']}
+          tooltip={`Decrease value by ${step}`}
+          onClick={() => shiftValue(-step)}
+        >
           <FontAwesomeIcon icon={faMinus} />
         </Button>
         <Input
@@ -407,7 +411,11 @@ function ValueEditor({ min, max, step = 1, placeholder, value = 0, onValueChange
             commitValue();
           }}
         />
-        <Button className={styles['wexlab-step-button']} tooltip={`Increase value by ${step}`} onClick={() => shiftValue(step)}>
+        <Button
+          className={styles['wexlab-step-button']}
+          tooltip={`Increase value by ${step}`}
+          onClick={() => shiftValue(step)}
+        >
           <FontAwesomeIcon icon={faPlus} />
         </Button>
       </div>
@@ -567,7 +575,12 @@ function NumberInputRow({
 }: NumberInputRowProps) {
   return (
     <div className={styles['wexlab-row']}>
-      <Button className={styles['wexlab-step-button']} tooltip='Decrease value by 1' onClick={onDecrease} disabled={disabled}>
+      <Button
+        className={styles['wexlab-step-button']}
+        tooltip='Decrease value by 1'
+        onClick={onDecrease}
+        disabled={disabled}
+      >
         <FontAwesomeIcon icon={faMinus} />
       </Button>
       <Input
@@ -581,7 +594,12 @@ function NumberInputRow({
         onSubmit={onSubmit}
         onBlur={onBlur}
       />
-      <Button className={styles['wexlab-step-button']} tooltip='Increase value by 1' onClick={onIncrease} disabled={disabled}>
+      <Button
+        className={styles['wexlab-step-button']}
+        tooltip='Increase value by 1'
+        onClick={onIncrease}
+        disabled={disabled}
+      >
         <FontAwesomeIcon icon={faPlus} />
       </Button>
     </div>
@@ -695,7 +713,12 @@ function HeaterPanel({ props }: WexlabPanelProps) {
                 skipBlurRef.current[field.key] = false;
                 return;
               }
-              const nextValue = normalizeNumber(fieldRefs[field.key].current?.getValue(), 0, 100, props[field.key] ?? 0);
+              const nextValue = normalizeNumber(
+                fieldRefs[field.key].current?.getValue(),
+                0,
+                100,
+                props[field.key] ?? 0
+              );
               fieldRefs[field.key].current?.setValue(nextValue);
               setFieldValue(field.key, nextValue, true);
             }}
@@ -720,7 +743,11 @@ function HeaterPanel({ props }: WexlabPanelProps) {
         </Button>
       </div>
       <div className={styles['wexlab-row']}>
-        <Button className={styles['wexlab-row-item']} tooltip='Reset heater configuration to zero' onClick={resetHeater}>
+        <Button
+          className={styles['wexlab-row-item']}
+          tooltip='Reset heater configuration to zero'
+          onClick={resetHeater}
+        >
           <FontAwesomeIcon icon={faArrowRotateRight} />
           &nbsp;&nbsp;Reset
         </Button>
@@ -729,13 +756,7 @@ function HeaterPanel({ props }: WexlabPanelProps) {
   );
 }
 
-function ServoPanel({
-  value = 0,
-  onValueChange
-}: {
-  value?: number;
-  onValueChange: (value: number) => void;
-}) {
+function ServoPanel({ value = 0, onValueChange }: { value?: number; onValueChange: (value: number) => void }) {
   return (
     <>
       <div className={styles['wexlab-row']}>
@@ -897,7 +918,10 @@ function LedPanel({
       </div>
 
       <div className={styles['wexlab-row']}>
-        <Label className={styles['wexlab-hex-label']} style={{ backgroundColor: color, color: hexToGrayscaleReversed(color) }}>
+        <Label
+          className={styles['wexlab-hex-label']}
+          style={{ backgroundColor: color, color: hexToGrayscaleReversed(color) }}
+        >
           <FontAwesomeIcon icon={faHashtag} />
         </Label>
         <Input
@@ -1007,7 +1031,10 @@ function WeightPanel({
           {displayWeight !== null ? `${displayWeight.toFixed(2)} g` : '---'}
         </Label>
         <Button tooltip='Request weight measurement' onClick={requestWeight}>
-          <FontAwesomeIcon className={isPending ? styles['wexlab-loading-icon'] : undefined} icon={faArrowRotateRight} />
+          <FontAwesomeIcon
+            className={isPending ? styles['wexlab-loading-icon'] : undefined}
+            icon={faArrowRotateRight}
+          />
         </Button>
         <Button tooltip='Tare weight' onClick={tareWeight} disabled={weight === null}>
           <FontAwesomeIcon icon={faScaleBalanced} />
@@ -1173,11 +1200,17 @@ function TemperaturePanel() {
               <Label className={`${styles['wexlab-status-label']} ${statusClass}`}>
                 <FontAwesomeIcon icon={faTemperatureThreeQuarters} />
               </Label>
-              <Label color='var(--dark-background)' className={`${styles['wexlab-selectable']} ${styles['wexlab-temperature-value']}`}>
+              <Label
+                color='var(--dark-background)'
+                className={`${styles['wexlab-selectable']} ${styles['wexlab-temperature-value']}`}
+              >
                 {reading.value !== null ? `${reading.value.toFixed(2)} °C` : '---'}
               </Label>
               <Button tooltip={`Request temperature`} onClick={() => requestTemperature(reading.id)}>
-                <FontAwesomeIcon className={isPending ? styles['wexlab-loading-icon'] : undefined} icon={faArrowRotateRight} />
+                <FontAwesomeIcon
+                  className={isPending ? styles['wexlab-loading-icon'] : undefined}
+                  icon={faArrowRotateRight}
+                />
               </Button>
             </div>
           </div>

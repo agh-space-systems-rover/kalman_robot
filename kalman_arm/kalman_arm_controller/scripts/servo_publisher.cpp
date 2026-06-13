@@ -37,7 +37,7 @@ const std::string TRAJECTORY_ABORT_TOPIC = "/trajectory/abort";
 
 namespace arm_master {
 class MasterToServo : public rclcpp::Node {
-  public:
+public:
 	MasterToServo(const rclcpp::NodeOptions &options)
 	    : Node("servo_publisher", options) {
 		// Setup pub/sub
@@ -191,7 +191,7 @@ class MasterToServo : public rclcpp::Node {
 		return (double(data) / 100) - 1.0;
 	}
 
-  private:
+private:
 	rclcpp::Subscription<kalman_interfaces::msg::ArmCompressed>::SharedPtr
 	    joy_sub_;
 	rclcpp::Subscription<kalman_interfaces::msg::MasterMessage>::SharedPtr

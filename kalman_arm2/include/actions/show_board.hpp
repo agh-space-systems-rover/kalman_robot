@@ -24,7 +24,7 @@
 #include <visualization_msgs/msg/marker_array.hpp>
 
 class ShowBoard : public BT::StatefulActionNode {
-  public:
+public:
 	ShowBoard(
 	    const std::string           &name,
 	    const BT::NodeConfiguration &config,
@@ -37,7 +37,7 @@ class ShowBoard : public BT::StatefulActionNode {
 	BT::NodeStatus onRunning() override;
 	void           onHalted() override;
 
-  private:
+private:
 	rclcpp::Node *parent_;
 
 	rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr arm_pub_;

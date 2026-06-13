@@ -19,7 +19,7 @@
 namespace configurable_can_bridge {
 
 class CANMapping {
-  public:
+public:
 	CANMapping(
 	    uint32_t    can_id,
 	    std::string ros_topic,
@@ -39,13 +39,13 @@ class CANMapping {
 };
 
 class CANBridge : public rclcpp::Node {
-  public:
+public:
 	explicit CANBridge(
 	    const rclcpp::NodeOptions &options = rclcpp::NodeOptions()
 	);
 	virtual ~CANBridge();
 
-  private:
+private:
 	// CAN socket handling
 	int         can_socket_;
 	std::string can_interface_;
