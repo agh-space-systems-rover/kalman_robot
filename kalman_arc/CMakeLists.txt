@@ -21,8 +21,10 @@ find_package(nav_msgs REQUIRED)
 
 install(PROGRAMS
   scripts/travel_distance_meter
+  scripts/darkest_boulder
   DESTINATION lib/${PROJECT_NAME}
 )
+
 
 install(DIRECTORY launch
   DESTINATION share/${PROJECT_NAME}
