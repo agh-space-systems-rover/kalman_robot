@@ -32,8 +32,8 @@ class LaserDriverNode(Node):
         self.__subs = Subscriptions()
 
         self.__pubs.laser_dist_out = self.create_publisher(
-            UInt16, 
-            "laser_driver_out", 
+            Float32, 
+            "arc/laser_distance", 
             10
         )
         self.__subs.laser_dist_in = self.create_subscription(
@@ -52,7 +52,9 @@ class LaserDriverNode(Node):
             board_id, range_status, distance_mm = struct.unpack("<BBH", bytes(msg.data[:4]))
 
             if range_status == 0: #to oznacza ze zczytana odleglosc jest ponizej 3000mm
-                self.__pubs.laser_dist_out.publish(UInt16(data=distance_mm))
+                self.__pubs.laser_dist_out.publish(Float32(data=distance_mm / 1000.0))
+            else:
+                self.__pubs.laser_dist_out.publish(Float32(data=float('inf'))) #out of range
         
 
 
