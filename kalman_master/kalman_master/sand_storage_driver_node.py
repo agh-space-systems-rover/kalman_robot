@@ -2,7 +2,7 @@ import rclpy
 from rclpy.node import Node
 import numpy as np
 from kalman_interfaces.msg import MasterMessage
-from std_msgs.msg import Float32
+from std_msgs.msg import Float32, Empty
 
 VALUE_LIMIT = 50
 
@@ -15,6 +15,21 @@ class SandStorageDriver(Node):
         self.cmd_sub = self.create_subscription(
             Float32, "science/front_sand_storage/cmd_open_close", self.cmd_open_close_cb, 10
         )
+
+        self.drop_antena_sub = self.create_subscription(
+            Empty, "science/front_sand_storage/drop_of_antenna", self.drop_of_antenna, 10
+        )
+
+    def drop_of_antenna(self, msg: Empty):
+        # 0x5E GS_TO_UNIVERSAL
+        # 0 - id universal
+        # 0 - Id hbridge
+
+        out_msg = MasterMessage()
+        out_msg.cmd = MasterMessage.GS_TO_UNIVERSAL
+        out_msg.data = [0, 0]
+
+        self.master_pub.publish(out_msg)
 
     def cmd_open_close_cb(self, msg: Float32):
         # 0x53 SAND_STORAGE_CMD
@@ -35,7 +50,7 @@ class SandStorageDriver(Node):
         out_msg = MasterMessage()
         out_msg.cmd = MasterMessage.SAND_STORAGE_CMD
         out_msg.data = [0, 0, speed, direction]
-        
+
         self.master_pub.publish(out_msg)
 
 def main():

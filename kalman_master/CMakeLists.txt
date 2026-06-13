@@ -53,7 +53,6 @@ install(PROGRAMS
   scripts/storage_driver
   scripts/storage_mock
   scripts/sand_storage_driver
-  scripts/drop_of_antenna_driver
   scripts/tunnel_client
   scripts/ueuos_driver
   scripts/wexlab_driver

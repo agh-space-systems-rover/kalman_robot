@@ -7,7 +7,7 @@ class Arc(Module):
     def __init__(self):
         super().__init__("arch")
         self.distance_sub = None
-        self.cmd_open_close_publisher: Publisher = None
+        self.drop_off_antenna: Publisher = None
 
     def activate(self) -> None:
         self.distance_sub = self.supervisor.create_subscription(
@@ -16,7 +16,7 @@ class Arc(Module):
             self._distance_callback,
             10
         )
-        self.cmd_open_close_publisher = self.supervisor.create_publisher(
+        self.drop_off_antenna = self.supervisor.create_publisher(
             Empty,
             "/science/front_sand_storage/drop_of_antenna",
             10
@@ -33,4 +33,4 @@ class Arc(Module):
         return self._distance_traveled
 
     def drop_off_antenna(self, msg = Empty()) -> None:
-        self.cmd_open_close_publisher.publish(msg)
+        self.drop_off_antenna.publish(msg)
