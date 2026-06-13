@@ -17,11 +17,19 @@
   <depend>io_context</depend>
   <depend>serial_driver</depend>
   <depend>kalman_interfaces</depend>
+  <depend>pluginlib</depend>
+  <depend>qt_gui_cpp</depend>
+  <depend>rqt_gui</depend>
+  <depend>rqt_gui_cpp</depend>
+  <depend>std_msgs</depend>
+
+  <build_depend>qtbase5-dev</build_depend>
 
   <build_depend>protobuf-dev</build_depend>
   <exec_depend>protobuf-dev</exec_depend>
 
   <export>
     <build_type>ament_cmake</build_type>
+    <rqt_gui plugin="${prefix}/plugin.xml"/>
   </export>
 </package>
