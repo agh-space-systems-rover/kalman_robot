@@ -1,5 +1,3 @@
-"""Select the darkest boulder detection using synchronized camera images and TF2."""
-
 from __future__ import annotations
 
 import math
@@ -12,48 +10,41 @@ import numpy as np
 import rclpy
 from cv_bridge import CvBridge, CvBridgeError
 import yolo_ros.detection_msg_utils as msg_utils
-from geometry_msgs.msg import PointStamped, PoseStamped
+from geometry_msgs.msg import PoseStamped
 from rclpy.node import Node
 from rclpy.qos import DurabilityPolicy, QoSProfile, ReliabilityPolicy
 from sensor_msgs.msg import CameraInfo, CompressedImage
 from tf2_geometry_msgs import do_transform_pose_stamped
 from tf2_ros import Buffer, TransformException, TransformListener
 from vision_msgs.msg import Detection2D, Detection2DArray
-from visualization_msgs.msg import Marker
 from std_srvs.srv import Trigger
 
 
 @dataclass(frozen=True)
 class BoulderCandidate:
     """A boulder that passed geometric filters and has a measured luma score."""
-
     luma: float
-    position: PointStamped
+    pose: PoseStamped
 
 
 @dataclass(frozen=True)
 class CameraIntrinsics:
     """Pinhole camera focal lengths extracted from CameraInfo.K."""
-
     fx: float
     fy: float
 
 
 def parse_rgbd_ids(rgbd_ids_param: str) -> list[str]:
-    """Split a space-separated camera id parameter into a clean list."""
     return [camera_id for camera_id in rgbd_ids_param.split(" ") if camera_id]
 
 
 def extract_camera_intrinsics(camera_info: CameraInfo) -> CameraIntrinsics | None:
-    """Extract fx and fy from the 3x3 camera matrix K."""
     if len(camera_info.k) < 5:
         return None
-
     fx = float(camera_info.k[0])
     fy = float(camera_info.k[4])
     if fx <= 0.0 or fy <= 0.0:
         return None
-
     return CameraIntrinsics(fx=fx, fy=fy)
 
 
@@ -64,7 +55,6 @@ def resolve_camera_intrinsics(
     warned_cameras: set[str],
     logger,
 ) -> CameraIntrinsics | None:
-    """Return stored intrinsics, a configured fallback, or None."""
     stored = camera_intrinsics.get(camera_id)
     if stored is not None:
         return stored
@@ -72,54 +62,37 @@ def resolve_camera_intrinsics(
     if default_focal_length_px > 0.0:
         if camera_id not in warned_cameras:
             logger.warning(
-                f"CameraInfo not yet received for {camera_id}; using default focal length {default_focal_length_px:.1f} px.",
+                f"CameraInfo not yet received for {camera_id}; using default focal length {default_focal_length_px:.1f} px."
             )
             warned_cameras.add(camera_id)
-        return CameraIntrinsics(
-            fx=default_focal_length_px,
-            fy=default_focal_length_px,
-        )
+        return CameraIntrinsics(fx=default_focal_length_px, fy=default_focal_length_px)
 
     if camera_id not in warned_cameras:
-        logger.warning(f"Skipping detections for camera {camera_id}: CameraInfo not received and ")
-        logger.warning(f"'default_focal_length_px' is unset ({default_focal_length_px:.1f} px).")
+        logger.warning(f"Skipping detections for camera {camera_id}: CameraInfo not received and 'default_focal_length_px' is unset.")
         warned_cameras.add(camera_id)
     return None
 
 
 def detection_camera_depth(detection: Detection2D) -> float | None:
-    """Return positive Z-depth of the detection in its native camera frame."""
     if not detection.results:
         return None
-
     depth = float(detection.results[0].pose.pose.position.z)
-    if depth <= 0.0:
-        return None
-
-    return depth
+    return depth if depth > 0.0 else None
 
 
 def compute_physical_bbox_size_m(
-    detection: Detection2D,
-    depth_m: float,
-    intrinsics: CameraIntrinsics,
+    detection: Detection2D, depth_m: float, intrinsics: CameraIntrinsics
 ) -> tuple[float, float] | None:
-    """Estimate physical bbox width and height in meters using pinhole geometry."""
     if depth_m <= 0.0 or intrinsics.fx <= 0.0 or intrinsics.fy <= 0.0:
         return None
-
     physical_width_m = (float(detection.bbox.size_x) * depth_m) / intrinsics.fx
     physical_height_m = (float(detection.bbox.size_y) * depth_m) / intrinsics.fy
     return physical_width_m, physical_height_m
 
 
 def boulder_passes_physical_size_filter(
-    physical_width_m: float,
-    physical_height_m: float,
-    min_boulder_size_m: float,
-    max_boulder_size_m: float,
+    physical_width_m: float, physical_height_m: float, min_boulder_size_m: float, max_boulder_size_m: float
 ) -> bool:
-    """Return True when both physical bbox dimensions are within configured bounds."""
     return (
         min_boulder_size_m <= physical_width_m <= max_boulder_size_m
         and min_boulder_size_m <= physical_height_m <= max_boulder_size_m
@@ -127,26 +100,17 @@ def boulder_passes_physical_size_filter(
 
 
 def match_camera_id(detection: Detection2D, rgbd_ids: Sequence[str]) -> str | None:
-    """Map a detection header frame to one of the configured camera ids."""
-    frame_id = detection.header.frame_id
     for camera_id in rgbd_ids:
-        if camera_id in frame_id:
+        if camera_id in detection.header.frame_id:
             return camera_id
     return None
 
 
 def compute_inner_roi_bounds(
-    center_x: int,
-    center_y: int,
-    bbox_width: float,
-    bbox_height: float,
-    image_width: int,
-    image_height: int,
+    center_x: int, center_y: int, bbox_width: float, bbox_height: float, image_width: int, image_height: int
 ) -> tuple[int, int, int, int] | None:
-    """Return safe [x1, y1, x2, y2) bounds for the inner 50% of a bounding box."""
     if image_width <= 0 or image_height <= 0:
         return None
-
     half_width = max(int(bbox_width / 4), 0)
     half_height = max(int(bbox_height / 4), 0)
     if half_width == 0 or half_height == 0:
@@ -157,29 +121,14 @@ def compute_inner_roi_bounds(
     x2 = max(0, min(image_width, center_x + half_width))
     y2 = max(0, min(image_height, center_y + half_height))
 
-    if x2 <= x1 or y2 <= y1:
-        return None
-
-    return x1, y1, x2, y2
+    return (x1, y1, x2, y2) if x2 > x1 and y2 > y1 else None
 
 
 def extract_inner_roi_luma(
-    cv_image: np.ndarray,
-    center_x: int,
-    center_y: int,
-    bbox_width: float,
-    bbox_height: float,
+    cv_image: np.ndarray, center_x: int, center_y: int, bbox_width: float, bbox_height: float
 ) -> float | None:
-    """Compute mean grayscale luma for the inner 50% crop of a bounding box."""
     image_height, image_width = cv_image.shape[:2]
-    bounds = compute_inner_roi_bounds(
-        center_x,
-        center_y,
-        bbox_width,
-        bbox_height,
-        image_width,
-        image_height,
-    )
+    bounds = compute_inner_roi_bounds(center_x, center_y, bbox_width, bbox_height, image_width, image_height)
     if bounds is None:
         return None
 
@@ -198,45 +147,29 @@ def extract_inner_roi_luma(
     return float(np.mean(gray_roi))
 
 
-def transform_detection_position(
-    detection: Detection2D,
-    target_frame: str,
-    tf_buffer: Buffer,
-    logger,
-) -> PointStamped | None:
-    """Transform a detection pose into the configured global frame."""
+def transform_detection_pose(
+    detection: Detection2D, target_frame: str, tf_buffer: Buffer, logger
+) -> PoseStamped | None:
     pose_stamped = PoseStamped()
     pose_stamped.header = detection.header
     pose_stamped.pose = detection.results[0].pose.pose
 
     if pose_stamped.header.frame_id == target_frame:
-        point = PointStamped()
-        point.header = pose_stamped.header
-        point.point = pose_stamped.pose.position
-        return point
+        return pose_stamped
 
     try:
         transform = tf_buffer.lookup_transform(
-            target_frame,
-            pose_stamped.header.frame_id,
-            pose_stamped.header.stamp,
+            target_frame, pose_stamped.header.frame_id, pose_stamped.header.stamp
         )
-        transformed_pose = do_transform_pose_stamped(pose_stamped, transform)
+        return do_transform_pose_stamped(pose_stamped, transform)
     except TransformException as exc:
-        logger.warning(
-            f"Skipping detection in frame {pose_stamped.header.frame_id}: failed to transform to '{target_frame}': {exc}"
-        )
+        logger.warning(f"Failed to transform to '{target_frame}': {exc}")
         return None
 
-    point = PointStamped()
-    point.header = transformed_pose.header
-    point.point = transformed_pose.pose.position
-    return point
 
-
-def point_distance(point: PointStamped) -> float:
-    """Euclidean distance of a point from the origin of its frame."""
-    return math.hypot(point.point.x, point.point.y, point.point.z)
+def pose_distance(pose_stamped: PoseStamped) -> float:
+    pos = pose_stamped.pose.position
+    return math.hypot(pos.x, pos.y, pos.z)
 
 
 def evaluate_boulder_candidate(
@@ -253,79 +186,42 @@ def evaluate_boulder_candidate(
     tf_buffer: Buffer,
     logger,
 ) -> BoulderCandidate | None:
-    """Apply physical-size, distance, and luma checks for a single detection."""
     if not detection.results:
-        logger.debug("Skipping detection without pose results.")
         return None
 
     intrinsics = resolve_camera_intrinsics(
-        camera_id,
-        camera_intrinsics,
-        default_focal_length_px,
-        warned_cameras,
-        logger,
+        camera_id, camera_intrinsics, default_focal_length_px, warned_cameras, logger
     )
     if intrinsics is None:
         return None
 
     depth_m = detection_camera_depth(detection)
     if depth_m is None:
-        logger.debug(f"Skipping detection in frame {detection.header.frame_id}: invalid or non-positive camera depth.")
         return None
 
     physical_size = compute_physical_bbox_size_m(detection, depth_m, intrinsics)
     if physical_size is None:
-        logger.debug(f"Skipping detection in frame {detection.header.frame_id}: failed to compute physical bbox size.")
         return None
 
     physical_width_m, physical_height_m = physical_size
     if not boulder_passes_physical_size_filter(
-        physical_width_m,
-        physical_height_m,
-        min_boulder_size_m,
-        max_boulder_size_m,
+        physical_width_m, physical_height_m, min_boulder_size_m, max_boulder_size_m
     ):
-        logger.debug(
-            f"Skipping detection in frame {detection.header.frame_id}: physical size {physical_width_m:.3f}m x {physical_height_m:.3f}m outside "
-        )
-        logger.debug(
-            f"[{min_boulder_size_m:.3f}, {max_boulder_size_m:.3f}]m.",
-        )
         return None
 
-    transformed_point = transform_detection_position(
-        detection, global_frame, tf_buffer, logger
-    )
-    if transformed_point is None:
-        return None
-
-    if point_distance(transformed_point) > max_distance:
+    transformed_pose = transform_detection_pose(detection, global_frame, tf_buffer, logger)
+    if transformed_pose is None or pose_distance(transformed_pose) > max_distance:
         return None
 
     center_x = int(detection.bbox.center.position.x)
     center_y = int(detection.bbox.center.position.y)
 
     try:
-        luma = extract_inner_roi_luma(
-            cv_image,
-            center_x,
-            center_y,
-            detection.bbox.size_x,
-            detection.bbox.size_y,
-        )
-    except (cv2.error, ValueError, TypeError) as exc:
-        logger.error(
-            f"Failed to compute luma for detection in frame {detection.header.frame_id}: {exc}"
-        )
+        luma = extract_inner_roi_luma(cv_image, center_x, center_y, detection.bbox.size_x, detection.bbox.size_y)
+    except (cv2.error, ValueError, TypeError):
         return None
 
-    if luma is None:
-        logger.debug(
-            f"Skipping detection in frame {detection.header.frame_id}: ROI outside image bounds."
-        )
-        return None
-
-    return BoulderCandidate(luma=luma, position=transformed_point)
+    return BoulderCandidate(luma=luma, pose=transformed_pose) if luma is not None else None
 
 
 def select_darkest_candidate(
@@ -342,42 +238,24 @@ def select_darkest_candidate(
     tf_buffer: Buffer,
     logger,
 ) -> BoulderCandidate | None:
-    """Return the darkest valid boulder candidate across all detections."""
     darkest: BoulderCandidate | None = None
 
     for detection in detections:
         camera_id = match_camera_id(detection, rgbd_ids)
         if camera_id is None:
-            logger.debug(
-                f"Skipping detection in frame {detection.header.frame_id}: no matching camera id.",
-            )
             continue
 
         cv_image = images_by_camera.get(camera_id)
         if cv_image is None:
-            logger.debug(
-                f"Skipping detection for camera {camera_id}: synchronized image missing.",
-            )
             continue
 
         candidate = evaluate_boulder_candidate(
-            detection,
-            camera_id,
-            cv_image,
-            camera_intrinsics,
-            default_focal_length_px,
-            warned_cameras,
-            min_boulder_size_m,
-            max_boulder_size_m,
-            max_distance,
-            global_frame,
-            tf_buffer,
-            logger,
+            detection, camera_id, cv_image, camera_intrinsics, default_focal_length_px,
+            warned_cameras, min_boulder_size_m, max_boulder_size_m, max_distance,
+            global_frame, tf_buffer, logger
         )
-        if candidate is None:
-            continue
-
-        if darkest is None or candidate.luma < darkest.luma:
+        
+        if candidate is not None and (darkest is None or candidate.luma < darkest.luma):
             darkest = candidate
 
     return darkest
@@ -391,31 +269,20 @@ def apply_detection_filters(
     group_radius: float,
     merge_radius: float,
 ) -> Detection2DArray:
-    """Merge nearby detections and apply temporal stabilization."""
     if not detections_msg.detections:
         empty_msg = Detection2DArray()
         empty_msg.header = detections_msg.header
         return msg_utils.temporal_filter(
-            empty_msg,
-            temporal_history,
-            temporal_window,
-            temporal_threshold,
-            group_radius,
+            empty_msg, temporal_history, temporal_window, temporal_threshold, group_radius
         )
 
     merged_msg = msg_utils.merge_detections_by_distance(detections_msg, merge_radius)
     return msg_utils.temporal_filter(
-        merged_msg,
-        temporal_history,
-        temporal_window,
-        temporal_threshold,
-        group_radius,
+        merged_msg, temporal_history, temporal_window, temporal_threshold, group_radius
     )
 
 
 class DarkestBoulderFilter(Node):
-    """Find the darkest boulder among temporally filtered YOLO detections."""
-
     def __init__(self) -> None:
         super().__init__("darkest_boulder_filter")
 
@@ -442,9 +309,8 @@ class DarkestBoulderFilter(Node):
         self.max_distance = float(self.get_parameter("max_distance").value)
         self.global_frame = str(self.get_parameter("global_frame").value)
         self.rgbd_ids = parse_rgbd_ids(str(self.get_parameter("rgbd_ids").value))
-        self.default_focal_length_px = float(
-            self.get_parameter("default_focal_length_px").value
-        )
+        self.default_focal_length_px = float(self.get_parameter("default_focal_length_px").value)
+        
         detections_topic = str(self.get_parameter("detections_topic").value)
         sync_queue_size = int(self.get_parameter("sync_queue_size").value)
         sync_slop = float(self.get_parameter("sync_slop").value)
@@ -452,126 +318,87 @@ class DarkestBoulderFilter(Node):
         self.temporal_history: list[msg_utils.DetectionGroup] = []
         self.camera_intrinsics: dict[str, CameraIntrinsics] = {}
         self.missing_intrinsics_warned: set[str] = set()
+        self.camera_info_subs = {}  # Słownik przechowujący aktywne subskrypcje informacji o kamerach
+
         self.bridge = CvBridge()
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
 
         sensor_qos = QoSProfile(
-            depth=10,
-            reliability=ReliabilityPolicy.BEST_EFFORT,
-            durability=DurabilityPolicy.VOLATILE,
+            depth=10, reliability=ReliabilityPolicy.BEST_EFFORT, durability=DurabilityPolicy.VOLATILE
         )
         camera_info_qos = QoSProfile(
-            depth=1,
-            reliability=ReliabilityPolicy.RELIABLE,
-            durability=DurabilityPolicy.VOLATILE,
+            depth=1, reliability=ReliabilityPolicy.RELIABLE, durability=DurabilityPolicy.VOLATILE
         )
 
-        self.target_pub = self.create_publisher(PointStamped, "darkest_boulder_target", 10)
-        self.filtered_pub = self.create_publisher(
-            Detection2DArray, "boulder_detections_filtered", 10
-        )
-        self.marker_pub = self.create_publisher(Marker, "darkest_boulder_marker", 10)
+        # Jedyny wyjściowy topic
+        self.pose_pub = self.create_publisher(PoseStamped, "boulder_position", 10)
+        
+        # Service do czyszczenia historii
+        self.clear_service = self.create_service(Trigger, "boulder_position_clear", self.clear_history_callback)
 
         for camera_id in self.rgbd_ids:
-            self.create_subscription(
+            sub = self.create_subscription(
                 CameraInfo,
                 f"/{camera_id}/color/camera_info",
                 lambda msg, cid=camera_id: self._camera_info_callback(msg, cid),
                 camera_info_qos,
             )
+            self.camera_info_subs[camera_id] = sub
 
         if not self.rgbd_ids:
-            self.get_logger().warn(
-                "Parameter 'rgbd_ids' is empty; luma scoring is disabled until cameras are configured."
-            )
-            self.create_subscription(
-                Detection2DArray,
-                detections_topic,
-                self.detections_only_callback,
-                sensor_qos,
-            )
+            self.get_logger().warn("Parameter 'rgbd_ids' is empty; luma scoring is disabled.")
+            self.create_subscription(Detection2DArray, detections_topic, self.detections_only_callback, sensor_qos)
         else:
-            self._setup_synchronized_subscribers(
-                detections_topic, sensor_qos, sync_queue_size, sync_slop
-            )
+            self._setup_synchronized_subscribers(detections_topic, sensor_qos, sync_queue_size, sync_slop)
 
-        self.get_logger().info(f"Darkest boulder filter ready (global_frame='{self.global_frame}', cameras={self.rgbd_ids}, ")
-        self.get_logger().info(f"physical size=[{self.min_boulder_size_m:.1f}, {self.max_boulder_size_m:.1f}] m).")
+        self.get_logger().info(f"Darkest boulder filter ready (global_frame='{self.global_frame}')")
+
+    def clear_history_callback(self, request: Trigger.Request, response: Trigger.Response) -> Trigger.Response:
+        """Czyszczenie historii detekcji z yolo_ros."""
+        self.temporal_history.clear()
+        response.success = True
+        response.message = "Temporal detection history cleared successfully."
+        self.get_logger().info("Cleared temporal detection history via service call.")
+        return response
 
     def _camera_info_callback(self, msg: CameraInfo, camera_id: str) -> None:
         intrinsics = extract_camera_intrinsics(msg)
         if intrinsics is None:
-            self.get_logger().error(
-                f"Received invalid CameraInfo for {camera_id}; fx/fy must be positive.",
-            )
             return
-
+        
         self.camera_intrinsics[camera_id] = intrinsics
         self.missing_intrinsics_warned.discard(camera_id)
-        self.get_logger().info(
-            f"Updated intrinsics for '{camera_id}': fx={intrinsics.fx}, fy={intrinsics.fy}.",
-        )
+        
+        self.get_logger().info(f"Got intrinsics for '{camera_id}'. Destroying info subscription.")
+        
+        # Usuwamy subskrypcję po poprawnym odebraniu parametrów (optymalizacja)
+        if camera_id in self.camera_info_subs:
+            self.destroy_subscription(self.camera_info_subs[camera_id])
+            del self.camera_info_subs[camera_id]
 
-    def _setup_synchronized_subscribers(
-        self,
-        detections_topic: str,
-        qos: QoSProfile,
-        queue_size: int,
-        slop: float,
-    ) -> None:
-        detection_sub = message_filters.Subscriber(
-            self, Detection2DArray, detections_topic, qos_profile=qos
-        )
+    def _setup_synchronized_subscribers(self, detections_topic: str, qos: QoSProfile, queue_size: int, slop: float) -> None:
+        detection_sub = message_filters.Subscriber(self, Detection2DArray, detections_topic, qos_profile=qos)
         image_subs = [
-            message_filters.Subscriber(
-                self,
-                CompressedImage,
-                f"/{camera_id}/color/image_raw/compressed",
-                qos_profile=qos,
-            )
+            message_filters.Subscriber(self, CompressedImage, f"/{camera_id}/color/image_raw/compressed", qos_profile=qos)
             for camera_id in self.rgbd_ids
         ]
 
-        synchronizer = message_filters.ApproximateTimeSynchronizer(
-            [detection_sub, *image_subs],
-            queue_size=queue_size,
-            slop=slop,
-        )
+        synchronizer = message_filters.ApproximateTimeSynchronizer([detection_sub, *image_subs], queue_size=queue_size, slop=slop)
         synchronizer.registerCallback(self.synchronized_callback)
 
-        clear_service = self.create_service(
-            Trigger,
-            "boulder_position_clear",
-            self.clear_history_callback,
-        )
-
     def detections_only_callback(self, detections_msg: Detection2DArray) -> None:
-        """Handle the no-camera configuration by publishing filtered detections only."""
-        filtered_msg = apply_detection_filters(
-            detections_msg,
-            self.temporal_history,
-            self.temporal_window,
-            self.temporal_threshold,
-            self.group_radius,
-            self.merge_radius,
+        # Tylko aktualizujemy historię, brak obrazów uniemożliwia ocenę luma
+        apply_detection_filters(
+            detections_msg, self.temporal_history, self.temporal_window,
+            self.temporal_threshold, self.group_radius, self.merge_radius
         )
-        self.filtered_pub.publish(filtered_msg)
 
-    def synchronized_callback(
-        self,
-        detections_msg: Detection2DArray,
-        *image_msgs: CompressedImage,
-    ) -> None:
+    def synchronized_callback(self, detections_msg: Detection2DArray, *image_msgs: CompressedImage) -> None:
         filtered_msg = apply_detection_filters(
-            detections_msg,
-            self.temporal_history,
-            self.temporal_window,
-            self.temporal_threshold,
-            self.group_radius,
-            self.merge_radius,
+            detections_msg, self.temporal_history, self.temporal_window,
+            self.temporal_threshold, self.group_radius, self.merge_radius
         )
-        self.filtered_pub.publish(filtered_msg)
 
         if not filtered_msg.detections:
             return
@@ -579,59 +406,20 @@ class DarkestBoulderFilter(Node):
         images_by_camera: dict[str, np.ndarray] = {}
         for camera_id, image_msg in zip(self.rgbd_ids, image_msgs, strict=True):
             try:
-                images_by_camera[camera_id] = self.bridge.compressed_imgmsg_to_cv2(
-                    image_msg, desired_encoding="bgr8"
-                )
-            except CvBridgeError as exc:
-                self.get_logger().error(
-                    f"Failed to decode synchronized image for camera {camera_id}: {exc}"
-                )
+                images_by_camera[camera_id] = self.bridge.compressed_imgmsg_to_cv2(image_msg, desired_encoding="bgr8")
+            except CvBridgeError:
                 return
 
         darkest = select_darkest_candidate(
-            filtered_msg.detections,
-            images_by_camera,
-            self.rgbd_ids,
-            self.camera_intrinsics,
-            self.default_focal_length_px,
-            self.missing_intrinsics_warned,
-            self.min_boulder_size_m,
-            self.max_boulder_size_m,
-            self.max_distance,
-            self.global_frame,
-            self.tf_buffer,
-            self.get_logger(),
+            filtered_msg.detections, images_by_camera, self.rgbd_ids, self.camera_intrinsics,
+            self.default_focal_length_px, self.missing_intrinsics_warned, self.min_boulder_size_m,
+            self.max_boulder_size_m, self.max_distance, self.global_frame, self.tf_buffer, self.get_logger()
         )
-        if darkest is None:
-            return
-
-        self.publish_rviz_marker(darkest.position)
-        self.publish_target(darkest.position)
-
-    def publish_rviz_marker(self, point: PointStamped) -> None:
-        marker = Marker()
-        marker.header.frame_id = point.header.frame_id
-        marker.header.stamp = self.get_clock().now().to_msg()
-        marker.ns = "boulder_target"
-        marker.id = 0
-        marker.type = Marker.SPHERE
-        marker.action = Marker.ADD
-        marker.pose.position = point.point
-        marker.scale.x = 0.3
-        marker.scale.y = 0.3
-        marker.scale.z = 0.3
-        marker.color.r = 0.0
-        marker.color.g = 1.0
-        marker.color.b = 0.0
-        marker.color.a = 0.8
-        self.marker_pub.publish(marker)
-
-    def publish_target(self, point: PointStamped) -> None:
-        target_msg = PointStamped()
-        target_msg.header.frame_id = point.header.frame_id
-        target_msg.header.stamp = self.get_clock().now().to_msg()
-        target_msg.point = point.point
-        self.target_pub.publish(target_msg)
+        
+        if darkest is not None:
+            # Odświeżenie timestampu do obecnego czasu węzła
+            darkest.pose.header.stamp = self.get_clock().now().to_msg()
+            self.pose_pub.publish(darkest.pose)
 
 
 def main(args: list[str] | None = None) -> None:
