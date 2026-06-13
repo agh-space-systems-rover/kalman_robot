@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 
-#include "kalman_rscp/cobs.hpp"
+#include "kalman_arc/cobs.hpp"
 #include "proto/rscp.pb.h"
 #include <kalman_interfaces/msg/arc_rscp_request.hpp>
 #include <kalman_interfaces/msg/arc_rscp_response.hpp>

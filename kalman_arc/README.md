@@ -1,8 +1,10 @@
-# kalman_rscp
+# kalman_arc
+
+Package for ARC competition functionality.
 
 ## RSCP rqt publisher
 
-The package includes a small development-only rqt plugin that builds an RSCP
+The package includes a development-only rqt plugin that builds an RSCP
 `RequestEnvelope`, serializes it, applies COBS framing, appends the `0x00`
 delimiter, and publishes the resulting `std_msgs/msg/UInt8MultiArray` to
 `rscp/serial/rx`.
@@ -10,7 +12,7 @@ delimiter, and publishes the resulting `std_msgs/msg/UInt8MultiArray` to
 After building and sourcing the workspace, start it with:
 
 ```bash
-rqt --standalone kalman_rscp/RscpPublisher
+rqt --standalone kalman_arc/RscpPublisher
 ```
 
 It is also available in the regular rqt plugin menu under

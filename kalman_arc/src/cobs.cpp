@@ -1,4 +1,4 @@
-#include "kalman_rscp/cobs.hpp"
+#include "kalman_arc/cobs.hpp"
 
 // Code from https://github.com/anatolianroverchallenge/rscp
 std::vector<uint8_t> cobs_encode(const uint8_t* input, size_t length) {

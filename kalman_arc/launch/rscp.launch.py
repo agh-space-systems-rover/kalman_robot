@@ -6,7 +6,7 @@ from launch_ros.actions import Node
 def launch_setup(context):
     return [
         Node(
-            package="kalman_rscp",
+            package="kalman_arc",
             executable="rscp_node",
         ),
     ]

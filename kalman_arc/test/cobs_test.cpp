@@ -3,7 +3,7 @@
 
 #include <gtest/gtest.h>
 
-#include "kalman_rscp/cobs.hpp"
+#include "kalman_arc/cobs.hpp"
 
 TEST(CobsTest, RoundTripConversionWorks) {
 	const std::vector<std::vector<uint8_t>> cases{

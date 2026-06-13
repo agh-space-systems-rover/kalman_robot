@@ -1,5 +1,5 @@
 <library path="rqt_rscp">
-  <class name="kalman_rscp/RscpPublisher" type="kalman_rscp::RqtRscp" base_class_type="rqt_gui_cpp::Plugin">
+  <class name="kalman_arc/RscpPublisher" type="kalman_arc::RqtRscp" base_class_type="rqt_gui_cpp::Plugin">
     <description>Build and publish framed RSCP request protobuf messages.</description>
     <qtgui>
       <group>

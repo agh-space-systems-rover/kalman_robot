@@ -1,6 +1,6 @@
-#include "kalman_rscp/rqt_rscp.hpp"
+#include "kalman_arc/rqt_rscp.hpp"
 
-#include "kalman_rscp/cobs.hpp"
+#include "kalman_arc/cobs.hpp"
 #include "proto/rscp.pb.h"
 
 #include <QCheckBox>
@@ -40,7 +40,7 @@ QString bytes_to_hex(const std::vector<uint8_t> &bytes) {
 
 } // namespace
 
-namespace kalman_rscp {
+namespace kalman_arc {
 
 RqtRscp::RqtRscp() {
 	setObjectName("RqtRscp");
@@ -238,6 +238,6 @@ void RqtRscp::publish_request() {
 	bytes_->setText(bytes_to_hex(framed));
 }
 
-} // namespace kalman_rscp
+} // namespace kalman_arc
 
-PLUGINLIB_EXPORT_CLASS(kalman_rscp::RqtRscp, rqt_gui_cpp::Plugin)
+PLUGINLIB_EXPORT_CLASS(kalman_arc::RqtRscp, rqt_gui_cpp::Plugin)

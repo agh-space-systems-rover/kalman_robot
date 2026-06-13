@@ -11,7 +11,7 @@ class QDoubleSpinBox;
 class QLabel;
 class QSpinBox;
 
-namespace kalman_rscp {
+namespace kalman_arc {
 
 class RqtRscp final : public rqt_gui_cpp::Plugin {
 	Q_OBJECT
@@ -60,4 +60,4 @@ private:
 	rclcpp::Publisher<UInt8MultiArray>::SharedPtr publisher_;
 };
 
-} // namespace kalman_rscp
+} // namespace kalman_arc
