@@ -20,6 +20,7 @@ from tf2_geometry_msgs import do_transform_pose_stamped
 from tf2_ros import Buffer, TransformException, TransformListener
 from vision_msgs.msg import Detection2D, Detection2DArray
 from visualization_msgs.msg import Marker
+from std_srvs.srv import Trigger
 
 
 @dataclass(frozen=True)
@@ -495,12 +496,8 @@ class DarkestBoulderFilter(Node):
                 detections_topic, sensor_qos, sync_queue_size, sync_slop
             )
 
-        self.get_logger().info(
-            f"Darkest boulder filter ready (global_frame='{self.global_frame}', cameras={self.rgbd_ids}, ",
-        )
-        self.get_logger().info(
-            f"physical size=[{self.min_boulder_size_m}, {self.max_boulder_size_m}] m)."
-        )
+        self.get_logger().info(f"Darkest boulder filter ready (global_frame='{self.global_frame}', cameras={self.rgbd_ids}, ")
+        self.get_logger().info(f"physical size=[{self.min_boulder_size_m:.1f}, {self.max_boulder_size_m:.1f}] m).")
 
     def _camera_info_callback(self, msg: CameraInfo, camera_id: str) -> None:
         intrinsics = extract_camera_intrinsics(msg)
@@ -542,6 +539,12 @@ class DarkestBoulderFilter(Node):
             slop=slop,
         )
         synchronizer.registerCallback(self.synchronized_callback)
+
+        clear_service = self.create_service(
+            Trigger,
+            "boulder_position_clear",
+            self.clear_history_callback,
+        )
 
     def detections_only_callback(self, detections_msg: Detection2DArray) -> None:
         """Handle the no-camera configuration by publishing filtered detections only."""
