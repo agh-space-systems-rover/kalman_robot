@@ -3,7 +3,7 @@ import styles from './camera-2dof.module.css';
 import { alertsRef } from '../common/refs';
 import { ros } from '../common/ros';
 import { Camera2Dof } from '../common/ros-interfaces';
-import { faCamera, faGaugeHigh, faLeftRight, faUpDown } from '@fortawesome/free-solid-svg-icons';
+import { faCrosshairs, faGaugeHigh } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useEffect, useRef, useState } from 'react';
 import { Topic } from 'roslib';
@@ -21,151 +21,136 @@ window.addEventListener('ros-connect', () => {
   });
 });
 
-type AxisSliderProps = {
-  label: string;
-  labelColor: string;
-  labelTooltip: string;
-  icon: any;
-  value: number;
-  min: number;
-  max: number;
-  unit?: string;
-  onChange: (value: number) => void;
-};
-
-function AxisSlider({ label, labelColor, labelTooltip, icon, value, min, max, unit = '°', onChange }: AxisSliderProps) {
-  return (
-    <div className={styles['axis-row']}>
-      <Label color={labelColor} tooltip={labelTooltip}>
-        <FontAwesomeIcon icon={icon} />
-        <span className={styles['axis-label-text']}>{label}</span>
-      </Label>
-      <div className={styles['slider-container']}>
-        <input
-          className={styles['slider']}
-          type="range"
-          min={min}
-          max={max}
-          step={1}
-          value={value}
-          onChange={(e) => onChange(Number(e.target.value))}
-        />
-        <div className={styles['slider-labels']}>
-          <span>{min}{unit}</span>
-          <span className={styles['slider-value']}>{value}{unit}</span>
-          <span>{max}{unit}</span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export default function Camera2DofPanel() {
   const style = getComputedStyle(document.body);
-  const redBg = style.getPropertyValue('--red-background');
-  const greenBg = style.getPropertyValue('--green-background');
-  const blueBg = style.getPropertyValue('--blue-background');
   const yellowBg = style.getPropertyValue('--yellow-background');
 
-  const [cameraId, setCameraId] = useState(0);
-  const [yaw, setYaw] = useState(90);
-  const [pitch, setPitch] = useState(90);
+  // pos: { x, y } in [0, 1] — (0,0) = top-left, (1,1) = bottom-right
+  const [pos, setPos] = useState({ x: 0.5, y: 0.5 });
   const [autoSend, setAutoSend] = useState(false);
   const [rate, setRate] = useState(10);
 
-  // Keep refs so the interval always reads latest values without needing restart.
-  const yawRef = useRef(yaw);
-  const pitchRef = useRef(pitch);
-  const cameraIdRef = useRef(cameraId);
-  yawRef.current = yaw;
-  pitchRef.current = pitch;
-  cameraIdRef.current = cameraId;
+  // Ref so the interval always reads the latest pos without restart.
+  const posRef = useRef(pos);
+  posRef.current = pos;
 
-  function publish(id: number, y: number, p: number) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isDragging = useRef(false);
+
+  const yawDisplay = (pos.x * 180 - 90).toFixed(1);
+  const pitchDisplay = (pos.y * 180 - 90).toFixed(1);
+
+  function publish(x: number, y: number) {
     if (!cameraTopic) {
       alertsRef.current?.pushAlert('Camera 2DOF: ROS not connected.', 'error');
       return;
     }
-    cameraTopic.publish({ camera_id: id, yaw: y, pitch: p });
+    cameraTopic.publish({ camera_id: 0, yaw: Math.round(x * 180), pitch: Math.round(y * 180) });
   }
 
-  // Start / stop the publish interval when autoSend or rate changes.
   useEffect(() => {
     if (!autoSend) return;
-
     const id = setInterval(() => {
-      publish(cameraIdRef.current, yawRef.current, pitchRef.current);
+      const p = posRef.current;
+      publish(p.x, p.y);
     }, 1000 / rate);
-
     return () => clearInterval(id);
   }, [autoSend, rate]);
 
+  function updateFromPointer(e: React.PointerEvent) {
+    const container = containerRef.current;
+    if (!container) return;
+    const rect = container.getBoundingClientRect();
+    const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
+    setPos({ x, y });
+  }
+
+  function handlePointerDown(e: React.PointerEvent) {
+    isDragging.current = true;
+    containerRef.current?.setPointerCapture(e.pointerId);
+    updateFromPointer(e);
+  }
+
+  function handlePointerMove(e: React.PointerEvent) {
+    if (!isDragging.current) return;
+    updateFromPointer(e);
+  }
+
+  function handlePointerUp() {
+    isDragging.current = false;
+  }
+
   return (
     <div className={styles['camera-2dof']}>
-      <div className={styles['camera-id-row']}>
-        <Label color={blueBg} tooltip="Camera ID">
-          <FontAwesomeIcon icon={faCamera} />
-        </Label>
-        <Button tooltip="Previous camera" onClick={() => setCameraId(Math.max(0, cameraId - 1))}>
-          −
-        </Button>
-        <span className={styles['camera-id-value']}>{cameraId}</span>
-        <Button tooltip="Next camera" onClick={() => setCameraId(Math.min(7, cameraId + 1))}>
-          +
-        </Button>
+
+      <div className={styles['joystick-wrapper']}>
+        <div
+          className={styles['joystick-area']}
+          ref={containerRef}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+        >
+          <div className={styles['joystick-crosshair-h']} style={{ top: `${pos.y * 100}%` }} />
+          <div className={styles['joystick-crosshair-v']} style={{ left: `${pos.x * 100}%` }} />
+          <div className={styles['joystick-thumb']} style={{ left: `${pos.x * 100}%`, top: `${pos.y * 100}%` }} />
+        </div>
       </div>
 
-      <AxisSlider
-        label="YAW"
-        labelColor={redBg}
-        labelTooltip="Yaw — left/right"
-        icon={faLeftRight}
-        value={yaw}
-        min={0}
-        max={180}
-        onChange={setYaw}
-      />
-
-      <AxisSlider
-        label="PCH"
-        labelColor={greenBg}
-        labelTooltip="Pitch — up/down"
-        icon={faUpDown}
-        value={pitch}
-        min={0}
-        max={180}
-        onChange={setPitch}
-      />
+      <div className={styles['values-row']}>
+        <span className={styles['value-entry']}>
+          <span className={styles['value-label']}>YAW</span>
+          <span className={styles['value-number']}>{yawDisplay}°</span>
+        </span>
+        <span className={styles['value-entry']}>
+          <span className={styles['value-label']}>PCH</span>
+          <span className={styles['value-number']}>{pitchDisplay}°</span>
+        </span>
+      </div>
 
       <div className={styles['divider']} />
 
-      <div className={styles['bottom-row']}>
+      <div className={styles['controls-row']}>
         <Checkbox checked={autoSend} onChange={setAutoSend} label="Auto-send" />
+        <Button tooltip="Center joystick (90° / 90°)" onClick={() => setPos({ x: 0.5, y: 0.5 })}>
+          <FontAwesomeIcon icon={faCrosshairs} />
+        </Button>
       </div>
 
       {autoSend ? (
-        <AxisSlider
-          label="HZ"
-          labelColor={yellowBg}
-          labelTooltip="Publish rate (per second)"
-          icon={faGaugeHigh}
-          value={rate}
-          min={1}
-          max={60}
-          unit="/s"
-          onChange={setRate}
-        />
-      ) : (
-        <div className={styles['bottom-row']}>
-          <Button
-            className={styles['send-button']}
-            tooltip="Publish camera position to ROS"
-            onClick={() => publish(cameraId, yaw, pitch)}
-          >
-            Send
-          </Button>
+        <div className={styles['rate-row']}>
+          <Label color={yellowBg} tooltip="Publish rate (Hz)">
+            <FontAwesomeIcon icon={faGaugeHigh} />
+            <span className={styles['rate-label-text']}>HZ</span>
+          </Label>
+          <div className={styles['slider-container']}>
+            <input
+              className={styles['slider']}
+              type="range"
+              min={1}
+              max={60}
+              step={1}
+              value={rate}
+              onChange={(e) => setRate(Number(e.target.value))}
+            />
+            <div className={styles['slider-labels']}>
+              <span>1/s</span>
+              <span className={styles['slider-value']}>{rate}/s</span>
+              <span>60/s</span>
+            </div>
+          </div>
         </div>
+      ) : (
+        <Button
+          className={styles['send-button']}
+          tooltip="Publish camera position to ROS"
+          onClick={() => publish(pos.x, pos.y)}
+        >
+          Send
+        </Button>
       )}
+
     </div>
   );
 }

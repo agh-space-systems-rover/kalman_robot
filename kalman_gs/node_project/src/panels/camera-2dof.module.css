@@ -7,30 +7,124 @@
   width: 100%;
   height: 100%;
   box-sizing: border-box;
-  overflow-y: auto;
+  overflow: hidden;
   user-select: none;
 }
 
-.camera-id-row {
+/* ── Joystick ── */
+
+/* Wrapper grows to fill remaining vertical space; acts as a size container
+   so the joystick can be sized as min(available-width, available-height). */
+.joystick-wrapper {
+  flex: 1;
+  min-height: 0;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  justify-content: center;
+  container-type: size;
 }
 
-.camera-id-value {
-  min-width: 2rem;
-  text-align: center;
-  font-size: 1rem;
+.joystick-area {
+  position: relative;
+  /* Square: fit into the smaller of wrapper width / height */
+  width: min(100cqw, 100cqh);
+  height: min(100cqw, 100cqh);
+  border-radius: 16px;
+  border: 1px solid var(--weak-foreground);
+  cursor: crosshair;
+  overflow: hidden;
+  touch-action: none;
+}
+
+.joystick-crosshair-h {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-color: var(--foreground);
+  opacity: 0.12;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.joystick-crosshair-v {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background-color: var(--foreground);
+  opacity: 0.12;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.joystick-thumb {
+  position: absolute;
+  width: 44px;
+  height: 28px;
+  border-radius: 10px;
+  background-color: var(--blue-foreground, #4f9cff);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  box-shadow: 0 0 12px rgba(79, 156, 255, 0.45);
+  transition: box-shadow 0.1s ease;
+}
+
+/* ── Values display ── */
+
+.values-row {
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+}
+
+.value-entry {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+}
+
+.value-label {
+  font-size: 0.65rem;
+  font-weight: bold;
+  letter-spacing: 0.05em;
+  color: var(--weak-foreground);
+  text-transform: uppercase;
+}
+
+.value-number {
+  font-size: 1.1rem;
+  font-weight: bold;
   color: var(--foreground);
+  min-width: 3.5rem;
+  text-align: right;
 }
 
-.axis-row {
+/* ── Divider ── */
+
+.divider {
+  width: 100%;
+  height: 1px;
+  background-color: var(--weak-foreground);
+  opacity: 0.3;
+  flex-shrink: 0;
+}
+
+/* ── Controls ── */
+
+.controls-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.rate-row {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-.axis-label-text {
+.rate-label-text {
   margin-left: 0.3rem;
   font-size: 0.75rem;
   font-weight: bold;
@@ -61,19 +155,7 @@
   color: var(--foreground);
 }
 
-.divider {
-  width: 100%;
-  height: 1px;
-  background-color: var(--weak-foreground);
-  opacity: 0.3;
-}
-
-.bottom-row {
-  display: flex;
-  align-items: center;
-}
-
 .send-button {
-  flex: 1;
+  width: 100%;
   text-align: center;
 }
