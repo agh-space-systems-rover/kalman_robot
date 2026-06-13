@@ -18,6 +18,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/ArcRscpRequest.msg"
   "msg/ArcRscpResponse.msg"
   "msg/ArmAxesLocks.msg"
+  "msg/Camera2Dof.msg"
   "msg/ArmCompressed.msg"
   "msg/ArmFkCommand.msg"
   "msg/ArmGoalStatus.msg"
