@@ -101,7 +101,10 @@ class Ueuos(Module):
         # Map RSCP states to colors
         if rscp_state == Ueuos.RscpState.DISARMED:
             self.__wanted_color = ColorRGBA(r=1.0, g=0.0, b=0.0, a=1.0)
+            self.supervisor.rscp.__autonomous_from_ueuos = False
         elif rscp_state == Ueuos.RscpState.ARMED:
             self.__wanted_color = ColorRGBA(r=0.0, g=1.0, b=0.0, a=1.0)
+            self.supervisor.rscp.__autonomous_from_ueuos = False
         elif rscp_state == Ueuos.RscpState.AUTONOMOUS:
             self.__wanted_color = ColorRGBA(r=1.0, g=1.0, b=0.0, a=1.0)
+            self.supervisor.rscp.__autonomous_from_ueuos = True

@@ -39,5 +39,8 @@ def generate_launch_description():
                 # "yolo_deactivate_unused": "true",
                 "rscp_enabled": "true",
             },
+            "arc": {
+                "enable_rscp_hw_driver": "false",
+            },
         }
     )

@@ -23,3 +23,10 @@ from kalman_supervisor.states.rscp_states.rscp_approach_airlock import (
     RscpAirlockRotateToGate,
     RscpAirlockDriveThrough,
 )
+from kalman_supervisor.states.rscp_states.rscp_explore_lavatube import (
+    RscpWaitBeforeLavatube,
+    RscpLavatubeSearchGate,
+    RscpLavatubeNavigateEntry,
+    RscpLavatubeRotateToGate,
+    RscpLavatubeExplore,
+)
