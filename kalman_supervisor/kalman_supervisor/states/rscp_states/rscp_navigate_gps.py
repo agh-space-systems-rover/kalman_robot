@@ -12,6 +12,7 @@ class RscpNavigateGps(State):
 
         # Get the navigation goal from the RSCP module
         goal = self.supervisor.rscp.get_navigation_goal()
+        self.supervisor.rscp.clear_navigation_goal()
 
         if goal is None:
             self.supervisor.get_logger().error(
@@ -39,7 +40,6 @@ class RscpNavigateGps(State):
             self.supervisor.get_logger().warn(
                 "[RSCP] DISARM detected during navigation, aborting"
             )
-            # Navigation will be canceled in exit()
             return "rscp_idle"
 
         # Check if navigation is complete
@@ -47,8 +47,11 @@ class RscpNavigateGps(State):
             self.supervisor.get_logger().info("[RSCP] GPS navigation completed")
             # Send TASK_FINISHED response
             self.supervisor.rscp.send_task_finished()
-            # Clear the navigation goal
-            self.supervisor.rscp.clear_navigation_goal()
+
+            stage = self.supervisor.rscp.get_current_stage()
+            if stage == 4:
+                return "rscp_wait_before_airlock"
+
             # Return to idle state to wait for next request
             return "rscp_idle"
 

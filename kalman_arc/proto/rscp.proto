@@ -1,0 +1,131 @@
+syntax = "proto3";
+
+package rscp;
+
+// -----------------------------------------------------------------------------
+// Common messages
+// -----------------------------------------------------------------------------
+
+/**
+ * Acknowledge message.
+ */
+message Acknowledge {}
+
+/**
+ * Coordinate message.
+ * (EGM96 model is used.)
+ *
+ * https://cddis.nasa.gov/926/egm96/gendesc.html#:~:text=EGM96%20is%20a%20geopotential%20model,quadrature%20solution%20at%20degree%20360.
+ */
+message GPSCoordinate {
+  double latitude = 1;  // In degrees.
+  double longitude = 2; // In degrees.
+  float altitude = 3;   // In meters.
+}
+
+/**
+ * Battery state message.
+ */
+message BatteryState {
+  float voltage = 1;         // Battery voltage in volts.
+  float current = 2;         // Battery current in amperes.
+  float state_of_charge = 3; // Value between 0.0 and 1.0.
+}
+
+/**
+ * Rover state.
+ */
+enum RoverState {
+  DISARMED = 0;
+  AUTONOMOUS = 1;
+  MANUAL = 2;
+}
+
+// -----------------------------------------------------------------------------
+// Request messages (from host to rover)
+// -----------------------------------------------------------------------------
+
+/**
+ * Arm or disarm the rover.
+ */
+message ArmDisarm {
+    oneof value_wrapper { // True to arm, false to disarm.
+    bool value = 1;
+  }
+}
+
+/**
+ * Navigate to GPS coordinates.
+ */
+message NavigateToGPS {
+  GPSCoordinate coordinate = 1; // The coordinate to navigate to.
+}
+
+/**
+ * Search area message.
+ */
+message SearchArea {
+  GPSCoordinate center_coordinate = 1; // The center of the search area.
+  float radius = 2;                    // The radius (in meters).
+}
+
+/**
+ * Set the mission stage.
+ */
+message SetStage {
+  uint32 value = 1; // The stage to set.
+}
+
+/**
+ * Start exploration.
+ */
+message StartExploration {
+  bool dummy_field = 1;
+}
+
+/**
+ * Envelope for all request messages.
+ */
+message RequestEnvelope {
+  oneof request {
+    ArmDisarm arm_disarm = 1;               // Arm or disarm the rover.
+    SetStage set_stage = 2;                 // Set the mission stage.
+    NavigateToGPS navigate_to_gps = 3;      // Navigate to GPS coordinates.
+    SearchArea search_area = 4;             // Search an area.
+    StartExploration start_exploration = 5; // Start exploration.
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Response messages (from rover to host)
+// -----------------------------------------------------------------------------
+
+/**
+ * Task finished message.
+ */
+message TaskFinished {}
+
+/**
+ * Rover status update.
+ * At max 1Hz.
+ */
+message RoverStatus {
+  RoverState state = 1;           // The rover's current state.
+  GPSCoordinate coordinate = 2;   // The rover's current GPS coordinate.
+  float heading = 3;              // The rover's compass heading.
+  BatteryState battery_state = 4; // The rover's battery state.
+}
+
+/**
+ * Envelope for all response messages.
+ */
+message ResponseEnvelope {
+  oneof response {
+    Acknowledge acknowledge = 1;      // Acknowledge a received command.
+    TaskFinished task_finished = 2;   // Indicate that a task has finished.
+    GPSCoordinate gps_coordinate = 3; // Report a GPS coordinate.
+    double distance = 4;              // Report a measured distance.
+    string message = 5;               // A message from the rover.
+    RoverStatus rover_status = 6;     // Provide a full rover status update.
+  }
+}
