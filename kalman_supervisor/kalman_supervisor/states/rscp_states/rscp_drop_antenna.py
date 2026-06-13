@@ -25,14 +25,14 @@ class RscpIdle(State):
             return "rscp_idle"
 
         elapsed_time = self.supervisor.get_clock().now() - self.start_time
-        if elapsed_time.seconds_nanoseconds[0] >= 5:
+        if elapsed_time.seconds_nanoseconds[0] >= 6:
             self.supervisor.get_logger().info("[RSCP Antenna] Task finished, returning to idle...")
-            
+            self.supervisor.rscp.send_gps_coordinate(69, 67) # FIX ME 
             self.supervisor.rscp.send_task_finished()
 
             return "rscp_idle"
         
-        return "rscp_idle"
+        return "rscp_drop_antenna"
 
     def exit(self) -> None:
         self.start_time = None

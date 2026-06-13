@@ -44,12 +44,17 @@ class RscpIdle(State):
             
         search_goal = self.supervisor.rscp.get_search_goal()
         if search_goal is not None:
+            stage = self.supervisor.rscp.get_current_stage()
             if stage != 1:
                 self.supervisor.get_logger().warn(
                     f"[RSCP] SearchGoal recieved but unsupported stage {stage}"
                 )
-                self.supervisor.rscp.clear_search_goal()
-                return None
+            elif stage == 1:
+                self.supervisor.get_logger().info(
+                    f"[RSCP] NavigateToGPS in stage 1, transitioning to rscp_search_goto_gps"
+                )
+                return "rscp_navigate_goto_gps"
+                
         
 
             

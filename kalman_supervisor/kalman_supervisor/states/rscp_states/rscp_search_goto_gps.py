@@ -2,9 +2,9 @@ from kalman_supervisor.state import State
 from kalman_supervisor.modules import *
 
 
-class RscpNavigateGps(State):
+class RSCPSearchGoToGPS(State):
     def __init__(self):
-        super().__init__("rscp_navigate_gps")
+        super().__init__("rscp_search_goto_gps")
 
     def enter(self) -> None:
         # Set UEUOS to autonomous (yellow)
@@ -54,9 +54,7 @@ class RscpNavigateGps(State):
                 f"[RSCP] Stage is not 1, current is {stage} while in SearchGoToGps "
             )
                 
-            self.supervisor.rscp.clear_search_goal()
-            # Return to idle state to wait for next request
-            return "rscp_idle"
+            return "rscp_search_spiral"
 
         # Still navigating
         return None
