@@ -63,7 +63,13 @@ void RqtRscp::initPlugin(qt_gui_cpp::PluginContext &context) {
 
 	stage_ = new QSpinBox;
 	stage_->setRange(0, std::numeric_limits<int>::max());
-	stage_row_ = add_form_row(form, "Stage", stage_);
+	stage_name_ = new QLabel;
+	auto *stage_widget = new QWidget;
+	auto *stage_layout = new QVBoxLayout(stage_widget);
+	stage_layout->setContentsMargins(0, 0, 0, 0);
+	stage_layout->addWidget(stage_);
+	stage_layout->addWidget(stage_name_);
+	stage_row_ = add_form_row(form, "Stage", stage_widget);
 
 	latitude_ = new QDoubleSpinBox;
 	latitude_->setRange(-90.0, 90.0);
@@ -104,10 +110,17 @@ void RqtRscp::initPlugin(qt_gui_cpp::PluginContext &context) {
 	    &RqtRscp::update_visible_fields
 	);
 	connect(publish, &QPushButton::clicked, this, &RqtRscp::publish_request);
+	connect(
+	    stage_,
+	    qOverload<int>(&QSpinBox::valueChanged),
+	    this,
+	    &RqtRscp::update_stage_name
+	);
 
 	publisher_ = node_->create_publisher<UInt8MultiArray>(
 	    "rscp/serial/rx", rclcpp::SensorDataQoS()
 	);
+	update_stage_name(stage_->value());
 	update_visible_fields();
 	context.addWidget(widget_);
 }
@@ -151,6 +164,26 @@ void RqtRscp::update_visible_fields() {
 	longitude_row_->setVisible(type == 2 || type == 3);
 	altitude_row_->setVisible(type == 2 || type == 3);
 	radius_row_->setVisible(type == 3);
+}
+
+void RqtRscp::update_stage_name(int stage) {
+	switch (stage) {
+	case 1:
+		stage_name_->setText("Antenna Installation");
+		break;
+	case 2:
+		stage_name_->setText("Shackleton Crater");
+		break;
+	case 3:
+		stage_name_->setText("Lava Tube");
+		break;
+	case 4:
+		stage_name_->setText("Return to Airlock");
+		break;
+	default:
+		stage_name_->setText("Invalid stage number");
+		break;
+	}
 }
 
 void RqtRscp::publish_request() {

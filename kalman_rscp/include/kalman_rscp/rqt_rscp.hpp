@@ -32,6 +32,7 @@ public:
 
 private slots:
 	void update_visible_fields();
+	void update_stage_name(int stage);
 	void publish_request();
 
 private:
@@ -41,6 +42,7 @@ private:
 	QComboBox      *request_type_ = nullptr;
 	QCheckBox      *arm_ = nullptr;
 	QSpinBox       *stage_ = nullptr;
+	QLabel         *stage_name_ = nullptr;
 	QDoubleSpinBox *latitude_ = nullptr;
 	QDoubleSpinBox *longitude_ = nullptr;
 	QDoubleSpinBox *altitude_ = nullptr;
