@@ -71,9 +71,7 @@ def resolve_camera_intrinsics(
     if default_focal_length_px > 0.0:
         if camera_id not in warned_cameras:
             logger.warning(
-                "CameraInfo not yet received for '%s'; using default focal length %.1f px.",
-                camera_id,
-                default_focal_length_px,
+                f"CameraInfo not yet received for {camera_id}; using default focal length {default_focal_length_px:.1f} px.",
             )
             warned_cameras.add(camera_id)
         return CameraIntrinsics(
@@ -82,11 +80,8 @@ def resolve_camera_intrinsics(
         )
 
     if camera_id not in warned_cameras:
-        logger.warning(
-            "Skipping detections for camera '%s': CameraInfo not received and "
-            "'default_focal_length_px' is unset.",
-            camera_id,
-        )
+        logger.warning(f"Skipping detections for camera {camera_id}: CameraInfo not received and ")
+        logger.warning(f"'default_focal_length_px' is unset ({default_focal_length_px:.1f} px).")
         warned_cameras.add(camera_id)
     return None
 
@@ -228,10 +223,7 @@ def transform_detection_position(
         transformed_pose = do_transform_pose_stamped(pose_stamped, transform)
     except TransformException as exc:
         logger.warning(
-            "Skipping detection in frame '%s': failed to transform to '%s': %s",
-            pose_stamped.header.frame_id,
-            target_frame,
-            exc,
+            f"Skipping detection in frame {pose_stamped.header.frame_id}: failed to transform to '{target_frame}': {exc}"
         )
         return None
 
@@ -277,18 +269,12 @@ def evaluate_boulder_candidate(
 
     depth_m = detection_camera_depth(detection)
     if depth_m is None:
-        logger.debug(
-            "Skipping detection in frame '%s': invalid or non-positive camera depth.",
-            detection.header.frame_id,
-        )
+        logger.debug(f"Skipping detection in frame {detection.header.frame_id}: invalid or non-positive camera depth.")
         return None
 
     physical_size = compute_physical_bbox_size_m(detection, depth_m, intrinsics)
     if physical_size is None:
-        logger.debug(
-            "Skipping detection in frame '%s': failed to compute physical bbox size.",
-            detection.header.frame_id,
-        )
+        logger.debug(f"Skipping detection in frame {detection.header.frame_id}: failed to compute physical bbox size.")
         return None
 
     physical_width_m, physical_height_m = physical_size
@@ -299,13 +285,10 @@ def evaluate_boulder_candidate(
         max_boulder_size_m,
     ):
         logger.debug(
-            "Skipping detection in frame '%s': physical size %.3fm x %.3fm outside "
-            "[%.3f, %.3f]m.",
-            detection.header.frame_id,
-            physical_width_m,
-            physical_height_m,
-            min_boulder_size_m,
-            max_boulder_size_m,
+            f"Skipping detection in frame {detection.header.frame_id}: physical size {physical_width_m:.3f}m x {physical_height_m:.3f}m outside "
+        )
+        logger.debug(
+            f"[{min_boulder_size_m:.3f}, {max_boulder_size_m:.3f}]m.",
         )
         return None
 
@@ -331,16 +314,13 @@ def evaluate_boulder_candidate(
         )
     except (cv2.error, ValueError, TypeError) as exc:
         logger.error(
-            "Failed to compute luma for detection in frame '%s': %s",
-            detection.header.frame_id,
-            exc,
+            f"Failed to compute luma for detection in frame {detection.header.frame_id}: {exc}"
         )
         return None
 
     if luma is None:
         logger.debug(
-            "Skipping detection in frame '%s': ROI outside image bounds.",
-            detection.header.frame_id,
+            f"Skipping detection in frame {detection.header.frame_id}: ROI outside image bounds."
         )
         return None
 
