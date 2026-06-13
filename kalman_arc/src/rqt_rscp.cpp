@@ -1,7 +1,6 @@
 #include "kalman_arc/rqt_rscp.hpp"
 
-#include "kalman_arc/cobs.hpp"
-#include "proto/rscp.pb.h"
+#include <kalman_interfaces/msg/arc_rscp_request.h>
 
 #include <QCheckBox>
 #include <QComboBox>
@@ -12,6 +11,8 @@
 #include <QSpinBox>
 #include <QStringList>
 #include <QVBoxLayout>
+#include <kalman_interfaces/msg/detail/arc_rscp_request__struct.hpp>
+#include <kalman_interfaces/msg/detail/arc_rscp_response__traits.hpp>
 #include <pluginlib/class_list_macros.hpp>
 
 #include <cstdint>
@@ -28,14 +29,6 @@ QWidget *add_form_row(QFormLayout *form, const QString &label, Widget *field) {
 	layout->addRow(label, field);
 	form->addRow(row);
 	return row;
-}
-
-QString bytes_to_hex(const std::vector<uint8_t> &bytes) {
-	QStringList values;
-	for (const auto byte : bytes) {
-		values.append(QStringLiteral("%1").arg(byte, 2, 16, QLatin1Char('0')));
-	}
-	return values.join(QLatin1Char(' '));
 }
 
 } // namespace
@@ -100,11 +93,7 @@ void RqtRscp::initPlugin(qt_gui_cpp::PluginContext &context) {
 	auto *publish = new QPushButton("Publish to rscp/serial/rx");
 	layout->addWidget(publish);
 	status_ = new QLabel("Ready");
-	bytes_  = new QLabel;
-	bytes_->setTextInteractionFlags(Qt::TextSelectableByMouse);
-	bytes_->setWordWrap(true);
 	layout->addWidget(status_);
-	layout->addWidget(bytes_);
 	layout->addStretch();
 
 	connect(
@@ -121,9 +110,7 @@ void RqtRscp::initPlugin(qt_gui_cpp::PluginContext &context) {
 	    &RqtRscp::update_stage_name
 	);
 
-	publisher_ = node_->create_publisher<UInt8MultiArray>(
-	    "rscp/serial/rx", rclcpp::SensorDataQoS()
-	);
+	publisher_ = node_->create_publisher<ArcRscpRequest>("rscp/req", 10);
 	update_stage_name(stage_->value());
 	update_visible_fields();
 	context.addWidget(widget_);
@@ -191,58 +178,44 @@ void RqtRscp::update_stage_name(int stage) {
 }
 
 void RqtRscp::publish_request() {
-	rscp::RequestEnvelope request;
+	ArcRscpRequest message{};
 	switch (request_type_->currentIndex()) {
 	case 0:
-		request.mutable_arm_disarm()->set_value(arm_->isChecked());
+		message.type = ArcRscpRequest::ARM_DISARM;
+		message.arm = arm_->isChecked();
 		break;
 	case 1:
-		request.mutable_set_stage()->set_value(
-		    static_cast<uint32_t>(stage_->value())
-		);
+		message.type = ArcRscpRequest::SET_STAGE;
+		message.stage = stage_->value();
 		break;
 	case 2: {
-		auto *coordinate =
-		    request.mutable_navigate_to_gps()->mutable_coordinate();
-		coordinate->set_latitude(latitude_->value());
-		coordinate->set_longitude(longitude_->value());
-		coordinate->set_altitude(static_cast<float>(altitude_->value()));
+		message.type = ArcRscpRequest::NAV_TO_GPS;
+		message.latitude = latitude_->value();
+		message.longitude = longitude_->value();
 		break;
 	}
 	case 3: {
-		auto *search     = request.mutable_search_area();
-		auto *coordinate = search->mutable_center_coordinate();
-		coordinate->set_latitude(latitude_->value());
-		coordinate->set_longitude(longitude_->value());
-		coordinate->set_altitude(static_cast<float>(altitude_->value()));
-		search->set_radius(static_cast<float>(radius_->value()));
+		message.type = ArcRscpRequest::SEARCH_AREA;
+		message.latitude = latitude_->value();
+		message.longitude = longitude_->value();
+		message.radius = static_cast<float>(radius_->value());
 		break;
 	}
 	case 4:
-		request.mutable_start_exploration()->set_dummy_field(true);
+		message.type = ArcRscpRequest::START_EXPLORATION;
 		break;
 	default:
 		status_->setText("Invalid request type");
 		return;
 	}
 
-	std::vector<uint8_t> serialized(request.ByteSizeLong());
-	if (!request.SerializeToArray(serialized.data(), serialized.size())) {
-		status_->setText("Failed to serialize protobuf");
-		return;
-	}
-
-	auto framed = cobs_encode(serialized.data(), serialized.size());
-	framed.push_back(0);
-
-	UInt8MultiArray message;
-	message.data = framed;
 	publisher_->publish(message);
 
+	const auto message_string = kalman_interfaces::msg::to_yaml(message);
+
 	status_->setText(
-	    QStringLiteral("Published %1 framed bytes").arg(framed.size())
+	    QStringLiteral("Published:\n%1").arg(QString::fromStdString(message_string))
 	);
-	bytes_->setText(bytes_to_hex(framed));
 }
 
 } // namespace kalman_arc

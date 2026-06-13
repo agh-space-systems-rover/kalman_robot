@@ -1,6 +1,8 @@
 #pragma once
 
 #include <QWidget>
+#include <kalman_interfaces/msg/arc_rscp_request.hpp>
+#include <kalman_interfaces/msg/detail/arc_rscp_request__struct.hpp>
 #include <rclcpp/publisher.hpp>
 #include <rqt_gui_cpp/plugin.h>
 #include <std_msgs/msg/u_int8_multi_array.hpp>
@@ -36,7 +38,7 @@ private slots:
 	void publish_request();
 
 private:
-	using UInt8MultiArray = std_msgs::msg::UInt8MultiArray;
+    using ArcRscpRequest = kalman_interfaces::msg::ArcRscpRequest;
 
 	QWidget        *widget_       = nullptr;
 	QComboBox      *request_type_ = nullptr;
@@ -48,7 +50,6 @@ private:
 	QDoubleSpinBox *altitude_     = nullptr;
 	QDoubleSpinBox *radius_       = nullptr;
 	QLabel         *status_       = nullptr;
-	QLabel         *bytes_        = nullptr;
 
 	QWidget *arm_row_       = nullptr;
 	QWidget *stage_row_     = nullptr;
@@ -57,7 +58,7 @@ private:
 	QWidget *altitude_row_  = nullptr;
 	QWidget *radius_row_    = nullptr;
 
-	rclcpp::Publisher<UInt8MultiArray>::SharedPtr publisher_;
+	rclcpp::Publisher<ArcRscpRequest>::SharedPtr publisher_;
 };
 
 } // namespace kalman_arc
