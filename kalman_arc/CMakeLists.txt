@@ -87,8 +87,6 @@ target_include_directories(rqt_rscp
 )
 
 target_link_libraries(rqt_rscp
-  kalman_arc_cobs
-  rscp_proto_messages
   Qt5::Widgets
 )
 
@@ -97,7 +95,7 @@ ament_target_dependencies(rqt_rscp
   qt_gui_cpp
   rclcpp
   rqt_gui_cpp
-  std_msgs
+  kalman_interfaces
 )
 
 install(PROGRAMS
