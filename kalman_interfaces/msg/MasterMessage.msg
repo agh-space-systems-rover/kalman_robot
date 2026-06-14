@@ -15,7 +15,7 @@ uint8 SCALE_REQ = 0x57
 uint8 PH_RES = 0x5C
 uint8 SCALE_RES = 0x5B
 uint8 PH_REQ = 0x59
-uint8 LASER_DIST = 0x5A
+uint8 LASER_DIST = 0x56
 
 uint8 GS_TO_UNIVERSAL = 0x5E
 

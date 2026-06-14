@@ -10,7 +10,7 @@ from rcl_interfaces.srv import SetParameters, GetParameters
 from rcl_interfaces.msg import ParameterType, Parameter
 from std_srvs.srv import Trigger
 
- # the distance between the revolutions of the spiral
+# the distance between the revolutions of the spiral
 MIN_DISTANCE_TO_GOAL = 1.0
 PROGRESS_INCREMENT = 0.001
 
@@ -43,7 +43,7 @@ class RSCPSearchSpiral(State):
             pose.pose.position.y = xy[1]
             msg.poses.append(pose)
         return msg
-    
+
     def clear_elevation_map(self) -> None:
         req = Trigger.Request()
         self.clear_elevation_map_client.call_async(req)
@@ -93,7 +93,9 @@ class RSCPSearchSpiral(State):
         self.spiral_pub = self.supervisor.create_publisher(
             Path, "supervisor/spiral", 10
         )
-        self.clear_boulder_client = self.supervisor.create_client(Trigger, "/boulder_position_clear" )
+        self.clear_boulder_client = self.supervisor.create_client(
+            Trigger, "/boulder_position_clear"
+        )
 
         stage = self.supervisor.rscp.get_current_stage()
         if stage == 1:
@@ -104,11 +106,11 @@ class RSCPSearchSpiral(State):
         elif stage == 2:
             req = Trigger.Request()
             self.clear_boulder_client.call_async(req)
-            self.SPIRAL_REVOLUTION_WIDTH = 3
+            self.SPIRAL_REVOLUTION_WIDTH = 2
             revolutions = 3
             self.revolutions = revolutions
             self.init_progress = 0.5 / revolutions
-            
+
         # Init the spiral.
         self.entry_robot_pos = self.supervisor.tf.robot_pos()[:2]
         self.entry_robot_rot = self.supervisor.tf.robot_rot_2d()
@@ -134,7 +136,7 @@ class RSCPSearchSpiral(State):
             )
             self.supervisor.rscp.clear_search_goal()
             return "rscp_idle"
-        
+
         # Until progress reaches 1, keep sending spiral goals.
         # Send goal if:
         # - there is no goal
@@ -164,7 +166,7 @@ class RSCPSearchSpiral(State):
             self.supervisor.nav.send_goal(np.append(goal, 0))
             self.progress += PROGRESS_INCREMENT
             self.last_spiral_goal_time = now
-                
+
         # Once we have the default approach distance, disable slow approach.
         if (
             self.default_follower_approach_distance is not None
@@ -174,8 +176,8 @@ class RSCPSearchSpiral(State):
                 "[Search] Disabling slow approach in path follower."
             )
             self.toggle_follower_slow_approach(False)
-        
-        # If spiral is complete, transition to the choosen 
+
+        # If spiral is complete, transition to the choosen
         stage = self.supervisor.rscp.get_current_stage()
         if self.progress >= 1.0:
             if stage == 1:
@@ -201,5 +203,3 @@ class RSCPSearchSpiral(State):
             self.toggle_follower_slow_approach(True)
 
         self.supervisor.destroy_publisher(self.spiral_pub)
-
-        

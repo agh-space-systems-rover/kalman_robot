@@ -3,6 +3,7 @@
 #include <limits>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include <rclcpp_components/register_node_macro.hpp>
 #include <rclcpp/rclcpp.hpp>
@@ -46,13 +47,25 @@ public:
 		tf_listener_ =
 		    std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
 
-		pc_sub_ = this->create_subscription<sensor_msgs::msg::PointCloud2>(
-		    "/d455_right/point_cloud",
-		    rclcpp::SensorDataQoS(),
-		    std::bind(
-		        &PeakFinder::pointcloud_callback, this, std::placeholders::_1
-		    )
+		camera_ids_ = this->declare_parameter<std::vector<std::string>>(
+		    "camera_ids",
+		    {"d455_front", "d455_left", "d455_right", "d455_back"}
 		);
+		pc_subs_.reserve(camera_ids_.size());
+		for (const auto &camera_id : camera_ids_) {
+			const std::string topic = "/" + camera_id + "/point_cloud";
+			pc_subs_.push_back(
+			    this->create_subscription<sensor_msgs::msg::PointCloud2>(
+			        topic,
+			        rclcpp::SensorDataQoS(),
+			        std::bind(
+			            &PeakFinder::pointcloud_callback,
+			            this,
+			            std::placeholders::_1
+			        )
+			    )
+			);
+		}
 
 		// Use transient_local so late subscribers (e.g. RViz) receive the last
 		// map immediately on connection instead of seeing nothing until the
@@ -229,7 +242,9 @@ private:
 
 	std::unique_ptr<tf2_ros::Buffer>                               tf_buffer_;
 	std::shared_ptr<tf2_ros::TransformListener>                    tf_listener_;
-	rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr pc_sub_;
+	std::vector<std::string>                                       camera_ids_;
+	std::vector<rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr>
+	                                                               pc_subs_;
 	rclcpp::Publisher<grid_map_msgs::msg::GridMap>::SharedPtr      map_pub_;
 	rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr peak_pos_pub_;
 	rclcpp::TimerBase::SharedPtr                                   peak_timer_;
