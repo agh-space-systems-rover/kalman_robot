@@ -35,7 +35,7 @@ export default class FileInput extends Component<Props, State> {
   };
 
   private get emptyLabel() {
-    return this.props.emptyLabel ?? 'Choose image...';
+    return this.props.emptyLabel ?? 'Choose file...';
   }
 
   componentDidUpdate(prevProps: Props) {
@@ -66,9 +66,12 @@ export default class FileInput extends Component<Props, State> {
   clear() {
     if (!this.ref.current) return;
     this.ref.current.value = '';
-    this.updateLabelFromInput();
     this.props.onChange?.(null);
     this.props.onClear?.();
+    this.setState({
+      label: this.emptyLabel,
+      hasFiles: false
+    });
   }
 
   render() {
@@ -77,7 +80,7 @@ export default class FileInput extends Component<Props, State> {
     const { label, hasFiles } = this.state;
 
     return (
-      <div className={`${styles['file-input-container']}${className ? ` ${className}` : ''}`} {...props}>
+      <>
         {/* hidden real input */}
         <input
           ref={this.ref}
@@ -92,29 +95,28 @@ export default class FileInput extends Component<Props, State> {
           }}
         />
 
-        {/* main button */}
-        <Button
-          className={styles['file-main']}
-          tooltip={hasFiles ? 'Change file' : 'Choose file'}
-          onClick={() => this.openPicker()}
-          disabled={disabled}
-        >
-          <span className={styles['file-main-inner']}>
-            <FontAwesomeIcon icon={faUpload} />
-            <span className={styles['file-main-text']}>{label}</span>
-          </span>
-        </Button>
+        <div className={`${styles['file-input-container']}${className ? ` ${className}` : ''}`} {...props}>
+          <Button
+            className={styles['file-main']}
+            tooltip={hasFiles ? 'Change file' : 'Choose file'}
+            onClick={() => this.openPicker()}
+            disabled={disabled}
+          >
+            <span className={styles['file-main-inner']}>
+              <FontAwesomeIcon icon={faUpload} />
+              <span className={styles['file-main-text']}>{label}</span>
+            </span>
+          </Button>
 
-        {/* clear button (X) */}
-        <Button
-          className={styles['file-clear']}
-          tooltip='Usuń'
-          onClick={() => this.clear()}
-          disabled={(disabled || !hasFiles) && !this.props.canClearEmpty}
-        >
-          <FontAwesomeIcon icon={faXmark} />
-        </Button>
-      </div>
+          <Button
+            tooltip='Remove selected files.'
+            onClick={() => this.clear()}
+            disabled={(disabled || !hasFiles) && !this.props.canClearEmpty}
+          >
+            <FontAwesomeIcon icon={faXmark} />
+          </Button>
+        </div>
+      </>
     );
   }
 }
