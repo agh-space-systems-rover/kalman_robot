@@ -11,6 +11,7 @@
 #include <tf2_ros/transform_listener.h>
 #include <vision_msgs/msg/detection2_d_array.hpp>
 #include <geometry_msgs/msg/pose_stamped.hpp>
+#include <sensor_msgs/msg/point_cloud2.hpp>
 
 #include <mutex>
 
@@ -27,11 +28,13 @@ class DarkestRockFinder : public rclcpp::Node {
   public:
 	using Detection2DArray = vision_msgs::msg::Detection2DArray;
 	using PoseStamped      = geometry_msgs::msg::PoseStamped;
+	using PointCloud2      = sensor_msgs::msg::PointCloud2;
 	using Trigger          = std_srvs::srv::Trigger;
 	using CloudI           = pcl::PointCloud<pcl::PointXYZI>;
 
 	rclcpp::Subscription<Detection2DArray>::SharedPtr sub_;
 	rclcpp::Publisher<PoseStamped>::SharedPtr         pub_;
+	rclcpp::Publisher<PointCloud2>::SharedPtr         debug_pub_;
 	rclcpp::Service<Trigger>::SharedPtr               clear_srv_;
 	rclcpp::TimerBase::SharedPtr                      timer_;
 
@@ -43,13 +46,14 @@ class DarkestRockFinder : public rclcpp::Node {
 
 	DarkestRockFinder(const rclcpp::NodeOptions &options)
 	    : Node("darkest_rock_finder", options) {
-		declare_parameter("map_frame",         std::string("map"));
-		declare_parameter("queue_size",        default_queue_size);
-		declare_parameter("voxel_leaf",        default_voxel_leaf);
-		declare_parameter("outlier_mean_k",    default_outlier_mean_k);
-		declare_parameter("outlier_std_mul",   default_outlier_std_mul);
-		declare_parameter("knn_blur_k",        default_knn_blur_k);
-		declare_parameter("publish_rate",      default_publish_rate);
+		declare_parameter("map_frame",           std::string("map"));
+		declare_parameter("queue_size",          default_queue_size);
+		declare_parameter("voxel_leaf",          default_voxel_leaf);
+		declare_parameter("outlier_mean_k",      default_outlier_mean_k);
+		declare_parameter("outlier_std_mul",     default_outlier_std_mul);
+		declare_parameter("knn_blur_k",          default_knn_blur_k);
+		declare_parameter("publish_rate",        default_publish_rate);
+		declare_parameter("publish_debug_cloud", true);
 
 		int queue_size = get_parameter("queue_size").as_int();
 
@@ -64,7 +68,8 @@ class DarkestRockFinder : public rclcpp::Node {
 		    std::bind(&DarkestRockFinder::detections_cb, this, std::placeholders::_1)
 		);
 
-		pub_ = create_publisher<PoseStamped>("/boulder_position", queue_size);
+		pub_       = create_publisher<PoseStamped>("/boulder_position", queue_size);
+		debug_pub_ = create_publisher<PointCloud2>("/debug_cloud", queue_size);
 
 		clear_srv_ = create_service<Trigger>(
 		    "/boulder_position_clear",
@@ -149,12 +154,20 @@ class DarkestRockFinder : public rclcpp::Node {
 			cloud_copy = std::make_shared<CloudI>(*cloud_);
 		}
 
-		int   mean_k    = get_parameter("outlier_mean_k").as_int();
-		float std_mul   = get_parameter("outlier_std_mul").as_double();
-		int   knn_k     = get_parameter("knn_blur_k").as_int();
+		int         mean_k    = get_parameter("outlier_mean_k").as_int();
+		float       std_mul   = get_parameter("outlier_std_mul").as_double();
+		int         knn_k     = get_parameter("knn_blur_k").as_int();
 		std::string map_frame = get_parameter("map_frame").as_string();
+		bool        dbg_cloud = get_parameter("publish_debug_cloud").as_bool();
 
-		// outlier removal
+		if (dbg_cloud) {
+			PointCloud2 dbg_msg;
+			pcl::toROSMsg(*cloud_copy, dbg_msg);
+			dbg_msg.header.stamp    = now();
+			dbg_msg.header.frame_id = map_frame;
+			debug_pub_->publish(dbg_msg);
+		}
+
 		if ((int)cloud_copy->size() > mean_k) {
 			pcl::StatisticalOutlierRemoval<pcl::PointXYZI> sor;
 			sor.setInputCloud(cloud_copy);
