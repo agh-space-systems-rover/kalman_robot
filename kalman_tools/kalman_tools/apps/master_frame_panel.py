@@ -2,14 +2,10 @@ import os
 import streamlit as st
 import roslibpy
 
-
 ROSBRIDGE_HOST = os.environ.get("KALMAN_TOOLS_ROSBRIDGE_HOST", "localhost")
 ROSBRIDGE_PORT = int(os.environ.get("KALMAN_TOOLS_ROSBRIDGE_PORT", "3001"))
-BASE_TOPIC_NAME = "/master_com/ros_to_master"
-TOPIC_TYPE = "kalman_interfaces/msg/MasterMessage"
 
 def connect_to_rosbridge() -> roslibpy.Ros:
-
     if "ros_client" not in st.session_state:
         st.session_state.ros_client = None
 
@@ -24,6 +20,22 @@ def connect_to_rosbridge() -> roslibpy.Ros:
     client = st.session_state.ros_client
     return client
 
+def send_custom_message(client: roslibpy.Ros, cmd: int, data: list[int]) -> None:
+    """
+    Sends a custom ROS message to the master topic using the specific
+    dictionary payload structure expected by the bridge.
+    """
+    talker = roslibpy.Topic(client, '/master_com/ros_to_master', 'kalman_interfaces/msg/MasterMessage')
+
+    # Payload format directly aligned with the ros_bridge publishing structure
+    payload = {
+        "cmd": int(cmd),
+        "data": [int(b) for b in data]
+    }
+
+    talker.publish(roslibpy.Message(payload))
+    talker.unadvertise()
+
 def page_panel(client: roslibpy.Ros):
     st.set_page_config(page_title="Master Sender", layout="centered")
     st.title("📡 Master Frame Sender")
@@ -33,18 +45,8 @@ def page_panel(client: roslibpy.Ros):
 
         if st.button("Send Message to Master", type="primary", use_container_width=True):
             try:
-                talker = roslibpy.Topic(
-                    client,
-                    BASE_TOPIC_NAME,
-                    TOPIC_TYPE,
-                )
-
-                payload = {"cmd": 0x5e, "data": [100, 1, 0, 255]}
-
-                talker.publish(roslibpy.Message(payload))
+                send_custom_message(client, cmd=0x5e, data=[0, 0])
                 st.toast("Message successfully sent to master!", icon="🚀")
-
-                talker.unadvertise()
             except Exception as e:
                 st.error(f"Failed to transmit frame: {e}")
     else:
