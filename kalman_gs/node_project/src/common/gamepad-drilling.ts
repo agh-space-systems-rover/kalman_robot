@@ -3,25 +3,80 @@ import { ros } from './ros';
 import { Topic } from 'roslib';
 
 const RATE = 10;
+const MAX_SPEED = 100;
+
+const clampSpeed = (value: number) => Math.max(-MAX_SPEED, Math.min(MAX_SPEED, Math.round(value * MAX_SPEED)));
 
 window.addEventListener('ros-connect', () => {
-  const sendDrillData = new Topic({
-    ros: ros,
-    name: '/science/drill/cmd',
-    messageType: 'kalman_interfaces/Drill'
+  const drillBTopic = new Topic<{ data: number }>({
+    ros,
+    name: '/science/drill/b',
+    messageType: 'std_msgs/Int8'
+  });
+  const drillCTopic = new Topic<{ data: number }>({
+    ros,
+    name: '/science/drill/c',
+    messageType: 'std_msgs/Int8'
+  });
+  const drillAutonomyTopic = new Topic<{ data: number }>({
+    ros,
+    name: '/science/drill/autonomy',
+    messageType: 'std_msgs/UInt8'
+  });
+  const drillWeightReqTopic = new Topic<{ data: number }>({
+    ros,
+    name: '/science/drill/weight/request',
+    messageType: 'std_msgs/UInt8'
   });
 
+  let lastBridgeB = 0;
+  let lastBridgeC = 0;
+  let lastStopButton = 0;
+  let lastDrillButton = 0;
+  let lastHomeButton = 0;
+  let lastTareButton = 0;
+  let lastWeighButton = 0;
+
   setInterval(() => {
-    // let armAxis = readGamepads('left-y', 'drill') ;
-    let rackAxis = readGamepads('right-y', 'drill');
-    let drilling = (readGamepads('right-trigger', 'drill') + readGamepads('left-trigger', 'drill')) * 0.5;
+    const bridgeB = clampSpeed(readGamepads('right-y', 'drill'));
+    const bridgeC = clampSpeed(readGamepads('left-x', 'drill'));
 
-    // if(Number.isNaN(armAxis)) armAxis = 0;
-    if (Number.isNaN(rackAxis)) rackAxis = 0;
-    if (Number.isNaN(drilling)) drilling = 0;
+    if (bridgeB !== lastBridgeB) {
+      drillBTopic.publish({ data: bridgeB });
+      lastBridgeB = bridgeB;
+    }
+    if (bridgeC !== lastBridgeC) {
+      drillCTopic.publish({ data: bridgeC });
+      lastBridgeC = bridgeC;
+    }
 
-    // const drillData = { arm: armAxis, rack: rackAxis, drill: drilling };
-    const drillData = { rack: rackAxis, drill: drilling };
-    sendDrillData.publish(drillData);
+    const stopButton = readGamepads('b-button', 'drill');
+    const drillButton = readGamepads('a-button', 'drill');
+    const homeButton = readGamepads('y-button', 'drill');
+    const tareButton = readGamepads('left-shoulder', 'drill');
+    const weighButton = readGamepads('right-shoulder', 'drill');
+
+    if (stopButton > 0 && lastStopButton === 0) {
+      drillAutonomyTopic.publish({ data: 0 });
+    }
+    if (drillButton > 0 && lastDrillButton === 0) {
+      drillAutonomyTopic.publish({ data: 1 });
+    }
+    if (homeButton > 0 && lastHomeButton === 0) {
+      drillAutonomyTopic.publish({ data: 2 });
+    }
+
+    if (tareButton > 0 && lastTareButton === 0) {
+      drillWeightReqTopic.publish({ data: 0 });
+    }
+    if (weighButton > 0 && lastWeighButton === 0) {
+      drillWeightReqTopic.publish({ data: 1 });
+    }
+
+    lastStopButton = stopButton;
+    lastDrillButton = drillButton;
+    lastHomeButton = homeButton;
+    lastTareButton = tareButton;
+    lastWeighButton = weighButton;
   }, 1000 / RATE);
 });
