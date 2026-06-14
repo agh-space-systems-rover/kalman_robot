@@ -1,18 +1,15 @@
 import styles from './file-input.module.css';
 
-
-
 import Button from './button';
 import { faXmark, faUpload } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Component, createRef } from 'react';
 
-
 type Props = {
   accept?: string;
   multiple?: boolean;
 
-  emptyLabel?: string;
+  emptyLabel?: string | null;
   onChange?: (files: FileList | null) => void;
   onClear?: () => void;
 
@@ -33,21 +30,31 @@ export default class FileInput extends Component<Props, State> {
   private ref = createRef<HTMLInputElement>();
 
   state: State = {
-    label: this.props.emptyLabel ?? 'Choose image...',
+    label: this.emptyLabel,
     hasFiles: false
   };
+
+  private get emptyLabel() {
+    return this.props.emptyLabel ?? 'Choose image...';
+  }
+
+  componentDidUpdate(prevProps: Props) {
+    if (prevProps.emptyLabel !== this.props.emptyLabel && !this.state.hasFiles) {
+      this.setState({ label: this.emptyLabel });
+    }
+  }
 
   private updateLabelFromInput() {
     const files = this.ref.current?.files;
     if (!files || files.length === 0) {
       this.setState({
-        label: this.props.emptyLabel ?? 'Choose image...',
+        label: this.emptyLabel,
         hasFiles: false
       });
       return;
     }
 
-    const label = files.length === 1 ? files[0].name : `${files.length} plików`;
+    const label = files.length === 1 ? files[0].name : `${files.length} files`;
     this.setState({ label, hasFiles: true });
   }
 

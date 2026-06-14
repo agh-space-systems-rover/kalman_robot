@@ -1,5 +1,6 @@
 import styles from './settings.module.css';
 
+import { BackgroundImage, getBackgroundImagesLabel, setBackgroundImages } from '../common/background-images';
 import { keybinds, resetAllKeybinds, resetKeybind, setKeybind } from '../common/keybinds';
 import { Theme, currentTheme, setTheme } from '../common/themes';
 import Button from './button';
@@ -57,17 +58,41 @@ function keyCodeToName(code: string) {
   return code;
 }
 
+function readBackgroundImage(file: File) {
+  return new Promise<BackgroundImage>((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      const dataUrl = reader.result;
+
+      if (typeof dataUrl === 'string') {
+        resolve({
+          name: file.name,
+          dataUrl
+        });
+      } else {
+        reject(new Error(`Could not read ${file.name}.`));
+      }
+    };
+
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
+
 type State = {
   shown: boolean;
   listeningForNewKeybind: string | null;
   searchTerm: string;
+  backgroundImagesLabel: string | null;
 };
 
 export default class Settings extends Component<{}, State> {
   static defaultState: State = {
     shown: false,
     listeningForNewKeybind: null,
-    searchTerm: ''
+    searchTerm: '',
+    backgroundImagesLabel: getBackgroundImagesLabel()
   };
   state = Settings.defaultState;
 
@@ -89,7 +114,8 @@ export default class Settings extends Component<{}, State> {
     this.setState({
       shown: true,
       listeningForNewKeybind: null,
-      searchTerm: ''
+      searchTerm: '',
+      backgroundImagesLabel: getBackgroundImagesLabel()
     });
     window.addEventListener('keydown', this.escHandler);
     // Reset scroll in scrollable-options
@@ -288,31 +314,25 @@ export default class Settings extends Component<{}, State> {
                   <div className={styles['background-selector']}>
                     <FileInput
                       accept='image/*'
-                      emptyLabel={localStorage.getItem('panel-manager-background-image-name')}
+                      multiple
+                      emptyLabel={this.state.backgroundImagesLabel}
                       onChange={(files) => {
                         if (!files || files.length === 0) return;
 
-                        const file = files[0];
-                        const reader = new FileReader();
-
-                        reader.onload = () => {
-                          const base64 = reader.result;
-
-                          if (typeof base64 === 'string') {
-                            localStorage.setItem('panel-manager-background-image', base64);
-                            localStorage.setItem('panel-manager-background-image-name', file.name);
+                        Promise.all(Array.from(files).map(readBackgroundImage))
+                          .then((images) => {
+                            setBackgroundImages(images);
+                            this.setState({ backgroundImagesLabel: getBackgroundImagesLabel(images) });
                             window.dispatchEvent(new Event('panel-manager-rerender'));
-                          }
-                        };
-
-                        reader.readAsDataURL(file);
+                          })
+                          .catch(console.error);
                       }}
                       onClear={() => {
-                        localStorage.removeItem('panel-manager-background-image');
-                        localStorage.removeItem('panel-manager-background-image-name');
+                        setBackgroundImages([]);
+                        this.setState({ backgroundImagesLabel: null });
                         window.dispatchEvent(new Event('panel-manager-rerender'));
                       }}
-                      canClearEmpty={!!localStorage.getItem('panel-manager-background-image-name')}
+                      canClearEmpty={!!this.state.backgroundImagesLabel}
                     />
                   </div>
                 </>

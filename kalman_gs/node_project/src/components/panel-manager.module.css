@@ -89,6 +89,7 @@
   overflow: hidden;
   flex: 1;
   background-color: var(--background);
+  position: relative;
 }
 
 .background-image {
@@ -101,5 +102,5 @@
   opacity: 0.03;
   pointer-events: none;
   user-select: none;
-  z-index: 0;
+  z-index: 1;
 }
