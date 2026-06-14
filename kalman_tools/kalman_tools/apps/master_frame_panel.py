@@ -5,6 +5,8 @@ import roslibpy
 
 ROSBRIDGE_HOST = os.environ.get("KALMAN_TOOLS_ROSBRIDGE_HOST", "localhost")
 ROSBRIDGE_PORT = int(os.environ.get("KALMAN_TOOLS_ROSBRIDGE_PORT", "3001"))
+BASE_TOPIC_NAME = "/master_com/ros_to_master"
+TOPIC_TYPE = "kalman_interfaces/msg/MasterMessage"
 
 def connect_to_rosbridge() -> roslibpy.Ros:
 
@@ -31,9 +33,13 @@ def page_panel(client: roslibpy.Ros):
 
         if st.button("Send Message to Master", type="primary", use_container_width=True):
             try:
-                talker = roslibpy.Topic(client, '/master_com/ros_to_master', 'kalman_interfaces/msg/MasterMessage')
+                talker = roslibpy.Topic(
+                    client,
+                    BASE_TOPIC_NAME,
+                    TOPIC_TYPE,
+                )
 
-                payload = {'data': [100, 1, 0, 255]}
+                payload = {"cmd": 0x5e, "data": [100, 1, 0, 255]}
 
                 talker.publish(roslibpy.Message(payload))
                 st.toast("Message successfully sent to master!", icon="🚀")

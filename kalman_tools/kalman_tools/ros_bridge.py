@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import atexit
+import logging
 import threading
 import time
 from collections import deque
@@ -11,6 +12,9 @@ from typing import Callable
 from roslibpy import Message, Ros, Topic
 
 from kalman_tools.master_message_catalog import cmd_to_receive_topic
+
+# Set up logging for background thread diagnostics
+logger = logging.getLogger(__name__)
 
 MASTER_MESSAGE_TYPE = "kalman_interfaces/msg/MasterMessage"
 SEND_TOPIC = "master_com/ros_to_master"
@@ -107,8 +111,8 @@ class MasterRosBridge:
             ros.on("close", on_close)
             ros.run()  # blocks until ros.terminate() is called
 
-        except Exception:
-            pass
+        except Exception as e:
+            logger.exception("Exception occurred in the core ROS loop thread: %s", e)
         finally:
             with self._lock:
                 self._publisher = None
@@ -205,7 +209,9 @@ class MasterRosBridge:
                 try:
                     self.send_frame(cmd, data)
                 except RuntimeError:
-                    break
+                    # FIX: Do not drop the thread completely. Network drops are expected,
+                    # so log the incident and gracefully wait for the next iteration window.
+                    logger.warning("Spam thread '%s' failed to write frame (disconnected). Retrying next frame tick...", key)
 
         thread = threading.Thread(target=spam_loop, daemon=True)
         with self._lock:
