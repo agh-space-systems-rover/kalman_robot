@@ -20,6 +20,7 @@ class RSCPShackleton(State):
         self.supervisor.get_logger().info("[RSCP] Looking for the darkest boulder..")
         boulder_pos = self.supervisor.arc.get_boulder_position()
         last_goal = self.supervisor.rscp.get_search_goal()
+        self.supervisor.rscp.clear_search_goal()
 
         if last_goal is None:
             self.supervisor.get_logger().error(

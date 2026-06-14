@@ -50,7 +50,7 @@ class RscpIdle(State):
                 )
             elif stage == 1 or stage == 2:
                 self.supervisor.get_logger().info(
-                    f"[RSCP] NavigateToGPS in stage 1 or 2, transitioning to rscp_search_goto_gps"
+                    f"[RSCP] SearchGoal in stage 1 or 2, transitioning to rscp_search_goto_gps"
                 )
                 return "rscp_search_goto_gps"
 
