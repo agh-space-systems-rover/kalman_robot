@@ -10,7 +10,7 @@ from kalman_interfaces.msg import ArcRscpRequest
 import rclpy
 
 
-class RscpShackleton(State):
+class RSCPShackleton(State):
     def __init__(self):
         super().__init__("rscp_shackleton")
         self.start_time = None

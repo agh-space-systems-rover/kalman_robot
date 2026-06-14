@@ -100,8 +100,13 @@ class Rscp(Module):
                     self.supervisor.get_logger().warn(
                         "[RSCP] SearchArea request received but not implemented"
                     )
+                    self.__search_goal = (req.latitude, req.longitude)
                     self.send_ack()
-                    # TODO: Implement search area handling
+                    self.supervisor.get_logger().info(
+                        "[RSCP] Seach_AREA received "
+                        f"(lat={req.latitude}, lon={req.longitude}), sent ACK"
+                    )
+
             elif req.type == ArcRscpRequest.START_EXPLORATION:
                 if not self.is_armed():
                     self.supervisor.get_logger().warn(

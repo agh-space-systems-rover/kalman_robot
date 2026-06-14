@@ -2,9 +2,10 @@ from kalman_supervisor.state import State
 from kalman_supervisor.modules import *
 import utm
 
-class RscpNavigatePeak(State):
+class RSCPNavigatePeak(State):
     def __init__(self):
         super().__init__("rscp_navigate_peak")
+        self.failed = False
 
     def enter(self) -> None:
         # Set UEUOS to autonomous (yellow)
@@ -12,13 +13,12 @@ class RscpNavigatePeak(State):
 
         # Get the navigation goal from the RSCP module
         start = self.supervisor.rscp.get_search_goal()
-        self.supervisor.rscp.clear_search_goal()
         peak_pos = self.supervisor.arc.get_peak_position()
 
         zone_number = utm.latlon_to_zone_number(
-                    start.init_lat, start.init_lon
+                    start[0], start[1]
                 )
-        zone_letter = utm.latitude_to_zone_letter(start.init_lat)
+        zone_letter = utm.latitude_to_zone_letter(start[0])
         lat, lon = utm.to_latlon(
                     peak_pos[0], peak_pos[1], zone_number, zone_letter
                 )
@@ -40,6 +40,7 @@ class RscpNavigatePeak(State):
     def tick(self) -> str | None:
         # If we failed to set up navigation, return to idle
         if self.failed:
+            self.supervisor.rscp.clear_search_goal()
             return "rscp_idle"
 
         # Check if disarmed - abort and return to idle
@@ -47,6 +48,7 @@ class RscpNavigatePeak(State):
             self.supervisor.get_logger().warn(
                 "[RSCP] DISARM detected during navigation, aborting"
             )
+            self.supervisor.rscp.clear_search_goal()
             return "rscp_idle"
 
         # Check if navigation is complete

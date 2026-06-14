@@ -18,13 +18,6 @@ PROGRESS_INCREMENT = 0.001
 class RSCPSearchSpiral(State):
     def __init__(self):
         super().__init__("rscp_search_spiral")
-        self.clear_elevation_map_client = self.supervisor.create_client(
-            Trigger, "/clear_elevation_map"
-        )
-        self.spiral_pub = self.supervisor.create_publisher(
-            Path, "supervisor/spiral", 10
-        )
-        self.clear_boulder_client = self.supervisor.create_client(Trigger, "/boulder_position_clear" )
 
     def spiral_tr(self, progress: float, angle: float, revolutions: int) -> np.ndarray:
         p = progress
@@ -94,9 +87,17 @@ class RSCPSearchSpiral(State):
 
     def enter(self) -> None:
         # Enable the detection node.
+        self.clear_elevation_map_client = self.supervisor.create_client(
+            Trigger, "/peak_finder_node/clear_elevation_map"
+        )
+        self.spiral_pub = self.supervisor.create_publisher(
+            Path, "supervisor/spiral", 10
+        )
+        self.clear_boulder_client = self.supervisor.create_client(Trigger, "/boulder_position_clear" )
+
         stage = self.supervisor.rscp.get_current_stage()
         if stage == 1:
-            self.SPIRAL_REVOLUTION_WIDTH = 5
+            self.SPIRAL_REVOLUTION_WIDTH = 3
             revolutions = 2
             self.revolutions = revolutions
             self.init_progress = 0.5 / revolutions
@@ -133,7 +134,7 @@ class RSCPSearchSpiral(State):
             )
             self.supervisor.rscp.clear_search_goal()
             return "rscp_idle"
-
+        
         # Until progress reaches 1, keep sending spiral goals.
         # Send goal if:
         # - there is no goal
@@ -175,13 +176,14 @@ class RSCPSearchSpiral(State):
             self.toggle_follower_slow_approach(False)
         
         # If spiral is complete, transition to the choosen 
+        stage = self.supervisor.rscp.get_current_stage()
         if self.progress >= 1.0:
-            if self.stage == 1:
+            if stage == 1:
                 self.supervisor.get_logger().info(
                     "[RSCP] Transitioning to rscp_navigate_peak"
                 )
                 return "rscp_navigate_peak"
-            elif self.stage == 2:
+            elif stage == 2:
                 self.supervisor.get_logger().info(
                     "[RSCP] Transitioning to rscp_shackleton"
                 )

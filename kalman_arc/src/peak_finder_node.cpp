@@ -47,7 +47,7 @@ public:
 		    std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
 
 		pc_sub_ = this->create_subscription<sensor_msgs::msg::PointCloud2>(
-		    "/d455_front/point_cloud",
+		    "/d455_right/point_cloud",
 		    rclcpp::SensorDataQoS(),
 		    std::bind(
 		        &PeakFinder::pointcloud_callback, this, std::placeholders::_1
@@ -70,7 +70,7 @@ public:
 		);
 
 		clear_elevation_map_srv_ = this->create_service<std_srvs::srv::Trigger>(
-		    "clear_elevation_map",
+		    "~/clear_elevation_map",
 		    std::bind(
 		        &PeakFinder::clear_elevation_map_callback,
 		        this,
