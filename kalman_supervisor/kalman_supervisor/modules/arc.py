@@ -4,7 +4,6 @@ from kalman_supervisor.module import Module
 from std_msgs.msg import Float32
 from geometry_msgs.msg import PoseStamped
 from std_msgs.msg import Empty
-from example_interfaces.msg import Empty
 
 
 class Arc(Module):

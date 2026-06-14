@@ -14,6 +14,7 @@ class RSCPShackleton(State):
     def __init__(self):
         super().__init__("rscp_shackleton")
         self.start_time = None
+        self.failed = False
 
     def enter(self) -> None:
         self.supervisor.get_logger().info("[RSCP] Looking for the darkest boulder..")
@@ -26,9 +27,19 @@ class RSCPShackleton(State):
             )
             self.failed = True
             return
+        
+        init_lat, init_lon = last_goal
 
-        zone_number = utm.latlon_to_zone_number(last_goal.init_lat, last_goal.init_lon)
-        zone_letter = utm.latitude_to_zone_letter(last_goal.init_lat)
+        if boulder_pos is None:
+            self.supervisor.get_logger().error(
+                "[RSCP] No boulder position available! Returning to rscp_idle"
+            )
+            self.supervisor.rscp.send_message("No boulder position available")
+            self.failed = True
+            return
+
+        zone_number = utm.latlon_to_zone_number(init_lat, init_lon)
+        zone_letter = utm.latitude_to_zone_letter(init_lat)
         lat, lon = utm.to_latlon(
             boulder_pos[0], boulder_pos[1], zone_number, zone_letter
         )
