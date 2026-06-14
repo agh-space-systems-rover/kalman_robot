@@ -68,13 +68,11 @@ class DrillDriver(Node):
         )
 
     def master_res_cb(self, msg: MasterMessage):
-        if len(msg.data) >= 10 and msg.data[0] == MasterMessage.DRILL_TELEMETRY and msg.data[1] == 8:
-            payload = msg.data[2:10]
-        elif len(msg.data) >= 8:
-            payload = msg.data[:8]
-        else:
+        if len(msg.data) != 8:
             self.get_logger().warn("Received invalid drill telemetry length")
             return
+
+        payload = msg.data
 
         depth_raw = struct.unpack("<h", bytes(payload[0:2]))[0]
         rack_current_raw = payload[2]

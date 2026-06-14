@@ -113,10 +113,6 @@ def launch_setup(context):
             package="kalman_master",
             executable="ph_driver",
         ),
-        "wexlab_driver": Node(
-            package="kalman_master",
-            executable="wexlab_driver",
-        ),
     }
 
     mode_configs = {
@@ -142,7 +138,6 @@ def launch_setup(context):
             "storage_driver",
             "sand_storage_driver",
             "ph_driver",
-            "wexlab_driver",
         ],
         "arm": [
             "master_com",

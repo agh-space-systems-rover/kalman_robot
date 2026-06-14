@@ -55,7 +55,6 @@ install(PROGRAMS
   scripts/sand_storage_driver
   scripts/tunnel_client
   scripts/ueuos_driver
-  scripts/wexlab_driver
   scripts/wheel_driver
   DESTINATION lib/${PROJECT_NAME}
 )
