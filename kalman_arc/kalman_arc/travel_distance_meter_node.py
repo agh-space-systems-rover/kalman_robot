@@ -7,13 +7,16 @@ from std_msgs.msg import Float32
 
 from launch.substitutions import LaunchConfiguration
 
+
 class TravelDistanceMeterNode(Node):
     def __init__(self):
         super().__init__("travel_distance_meter_node")
 
         self.declare_parameter("deadzone", 0.01)
-        self.deadzone = self.get_parameter("deadzone").get_parameter_value().double_value
-        
+        self.deadzone = (
+            self.get_parameter("deadzone").get_parameter_value().double_value
+        )
+
         publish_period = 1
         self.total_distance = 0.0
         self.last_x = None

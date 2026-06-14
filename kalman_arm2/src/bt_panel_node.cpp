@@ -28,7 +28,7 @@
 
 namespace kalman_arm2 {
 class BTPanel : public rclcpp::Node {
-  public:
+public:
 	using ArmMission = kalman_interfaces::action::ArmMission;
 	using GoalHandle = rclcpp_action::ServerGoalHandle<ArmMission>;
 
@@ -124,7 +124,7 @@ class BTPanel : public rclcpp::Node {
 		stop_requested_ = false;
 	}
 
-  private:
+private:
 	rclcpp_action::GoalResponse handle_goal(
 	    const rclcpp_action::GoalUUID          &uuid,
 	    std::shared_ptr<const ArmMission::Goal> goal

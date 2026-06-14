@@ -12,7 +12,7 @@
 namespace kalman_master {
 
 class ArmTwistDriver : public rclcpp::Node {
-  public:
+public:
 	ArmTwistDriver(const rclcpp::NodeOptions &options)
 	    : Node("arm_twist_driver", options) {
 		this->declare_parameter<double>("rate", 10.0);
@@ -41,7 +41,7 @@ class ArmTwistDriver : public rclcpp::Node {
 		    );
 	}
 
-  private:
+private:
 	void sub_callback(const geometry_msgs::msg::Twist::SharedPtr msg) {
 		auto now = rclcpp::Clock().now();
 		if (now - last_time_ > rclcpp::Duration::from_seconds(1.0 / rate_)) {

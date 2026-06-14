@@ -12,7 +12,7 @@ struct MarkerInfo {
 };
 
 class PanelLayout : public rclcpp::Node {
-  public:
+public:
 	PanelLayout(const rclcpp::NodeOptions &options)
 	    : Node("panel_layout", options) {
 
@@ -26,7 +26,7 @@ class PanelLayout : public rclcpp::Node {
 		publishLayout();
 	}
 
-  private:
+private:
 	void loadLayout() {
 		try {
 			YAML::Node config = YAML::LoadFile(yaml_path_);

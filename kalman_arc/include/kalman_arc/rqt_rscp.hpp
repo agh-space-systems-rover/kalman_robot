@@ -38,24 +38,24 @@ private slots:
 private:
 	using UInt8MultiArray = std_msgs::msg::UInt8MultiArray;
 
-	QWidget        *widget_ = nullptr;
+	QWidget        *widget_       = nullptr;
 	QComboBox      *request_type_ = nullptr;
-	QCheckBox      *arm_ = nullptr;
-	QSpinBox       *stage_ = nullptr;
-	QLabel         *stage_name_ = nullptr;
-	QDoubleSpinBox *latitude_ = nullptr;
-	QDoubleSpinBox *longitude_ = nullptr;
-	QDoubleSpinBox *altitude_ = nullptr;
-	QDoubleSpinBox *radius_ = nullptr;
-	QLabel         *status_ = nullptr;
-	QLabel         *bytes_ = nullptr;
+	QCheckBox      *arm_          = nullptr;
+	QSpinBox       *stage_        = nullptr;
+	QLabel         *stage_name_   = nullptr;
+	QDoubleSpinBox *latitude_     = nullptr;
+	QDoubleSpinBox *longitude_    = nullptr;
+	QDoubleSpinBox *altitude_     = nullptr;
+	QDoubleSpinBox *radius_       = nullptr;
+	QLabel         *status_       = nullptr;
+	QLabel         *bytes_        = nullptr;
 
-	QWidget *arm_row_ = nullptr;
-	QWidget *stage_row_ = nullptr;
-	QWidget *latitude_row_ = nullptr;
+	QWidget *arm_row_       = nullptr;
+	QWidget *stage_row_     = nullptr;
+	QWidget *latitude_row_  = nullptr;
 	QWidget *longitude_row_ = nullptr;
-	QWidget *altitude_row_ = nullptr;
-	QWidget *radius_row_ = nullptr;
+	QWidget *altitude_row_  = nullptr;
+	QWidget *radius_row_    = nullptr;
 
 	rclcpp::Publisher<UInt8MultiArray>::SharedPtr publisher_;
 };

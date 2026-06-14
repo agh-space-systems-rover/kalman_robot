@@ -7,7 +7,7 @@
 #include <cstdint>
 
 class JointRepublisher : public rclcpp::Node {
-  public:
+public:
 	JointRepublisher() : Node("joint_republisher") {
 		this->declare_parameter<double>("rate", 10.0);
 		this->get_parameter("rate", rate_);
@@ -29,7 +29,7 @@ class JointRepublisher : public rclcpp::Node {
 		    );
 	}
 
-  private:
+private:
 	void
 	sub_callback(const kalman_interfaces::msg::ArmFkCommand::SharedPtr msg) {
 		auto now = rclcpp::Clock().now();
