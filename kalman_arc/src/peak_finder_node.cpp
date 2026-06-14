@@ -199,14 +199,6 @@ private:
 			peak_pose.pose.position.z = max_elevation;
 			peak_pose.pose.orientation.w = 1.0;
 			peak_pos_pub_->publish(peak_pose);
-
-			RCLCPP_INFO(
-			    this->get_logger(),
-			    "Peak found -> X: %.2f  Y: %.2f  Z: %.2f",
-			    peak_pos.x(),
-			    peak_pos.y(),
-			    max_elevation
-			);
 		} else {
 			RCLCPP_DEBUG(
 			    this->get_logger(),
