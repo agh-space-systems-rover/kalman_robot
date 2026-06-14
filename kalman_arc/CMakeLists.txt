@@ -25,6 +25,15 @@ find_package(Qt5 REQUIRED COMPONENTS Widgets)
 find_package(qt_gui_cpp REQUIRED)
 find_package(rqt_gui_cpp REQUIRED)
 
+# darkest rock finder deps
+find_package(rclcpp_components REQUIRED)
+find_package(pcl_ros REQUIRED)
+find_package(pcl_conversions REQUIRED)
+find_package(vision_msgs REQUIRED)
+find_package(tf2_ros REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
+find_package(std_srvs REQUIRED)
+
 add_library(rscp_proto_messages
   proto/rscp.proto
 )
@@ -132,6 +141,29 @@ install(TARGETS peak_finder_node peak_finder
   ARCHIVE DESTINATION lib
 )
 
+# >>> darkest rock finder
+
+add_library(darkest_rock_finder_node SHARED src/darkest_rock_finder_node.cpp)
+ament_target_dependencies(darkest_rock_finder_node
+  rclcpp
+  rclcpp_components
+  pcl_ros
+  pcl_conversions
+  vision_msgs
+  tf2_ros
+  tf2_geometry_msgs
+  std_srvs
+  # This dependency is completely unnnecessary, but compilation fails without it. I don't know why. I don't think I want to know:
+  grid_map_core # 67
+)
+rclcpp_components_register_node(
+  darkest_rock_finder_node
+  PLUGIN "rock_finder::DarkestRockFinder"
+  EXECUTABLE darkest_rock_finder
+)
+
+# <<< darkest rock finder
+
 install(PROGRAMS
   scripts/travel_distance_meter
   DESTINATION lib/${PROJECT_NAME}
@@ -142,6 +174,7 @@ install(TARGETS
   rscp_proto_messages
   rscp_node
   rqt_rscp
+  darkest_rock_finder_node
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION lib/${PROJECT_NAME}

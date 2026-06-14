@@ -20,15 +20,19 @@ def launch_setup(context):
             executable="travel_distance_meter",
             name="travel_distance_meter_node",
             parameters=[{"deadzone": float(deadzone_val)}],
-            output="screen"
+            output="screen",
+        ),
+        Node(
+            package="kalman_arc",
+            executable="darkest_rock_finder",
         ),
         Node(
             package="kalman_arc",
             executable="peak_finder",
             name="peak_finder_node",
             parameters=[{"map_resolution": 0.3}],
-            output="screen"
-        )
+            output="screen",
+        ),
     ]
 
     if get_bool("enable_rscp_hw_driver"):
