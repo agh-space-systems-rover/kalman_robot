@@ -18,7 +18,7 @@
 namespace kalman_arm2 {
 
 class TwistIK : public rclcpp::Node {
-  public:
+public:
 	// ROS interfaces
 	rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr twist_sub;
 	rclcpp::Subscription<kalman_interfaces::msg::ArmValues>::SharedPtr

@@ -1,4 +1,5 @@
 import numpy as np
+import time
 
 from rclpy import Future
 from lifecycle_msgs.srv import ChangeState, GetState
@@ -17,6 +18,7 @@ class ArUco(Module):
         self.supervisor.declare_parameter("aruco.deactivate_unused", False)
         self.supervisor.declare_parameter("aruco.num_cameras", 0)
         self.supervisor.declare_parameter("aruco.max_detection_distance", 5.0)
+        self.supervisor.declare_parameter("aruco.cluster_distance", 2.0)
 
     def activate(self) -> None:
         self.module_enabled = self.supervisor.get_parameter("aruco.enabled").value
@@ -48,7 +50,7 @@ class ArUco(Module):
         self.__should_be_enabled = False  # forces disable on first tick
         self.__get_state_futures: list[Future] = []
         self.__change_state_futures: list[Future] = []
-        self.__detections: dict[int, tuple[np.ndarray, str]] = {}
+        self.__detections: dict[int, list[tuple[np.ndarray, str, float]]] = {}
 
     def tick(self) -> None:
         if not self.module_enabled or not self.deactivate_unused:
@@ -141,10 +143,9 @@ class ArUco(Module):
         max_detection_distance = self.supervisor.get_parameter(
             "aruco.max_detection_distance"
         ).value
+        cluster_distance = self.supervisor.get_parameter("aruco.cluster_distance").value
 
         frame = msg.header.frame_id
-
-        # This should not happen, but just in case.
         if not self.supervisor.tf.can_transform(
             self.supervisor.tf.world_frame(), frame
         ) or not self.supervisor.tf.can_transform(
@@ -152,9 +153,8 @@ class ArUco(Module):
         ):
             return
 
-        marker_msg: MarkerPose
         for marker_msg in msg.markers:
-            id = marker_msg.marker_id
+            marker_id = marker_msg.marker_id
             pos = np.array(
                 [
                     marker_msg.pose.position.x,
@@ -163,40 +163,91 @@ class ArUco(Module):
                 ]
             )
 
-            # Transform to a frame in which markers should stay static
             world_pos = self.supervisor.tf.transform_numpy(
                 pos, self.supervisor.tf.world_frame(), frame
             )
 
-            # Compare the distance to the maximum detection distance
             robot_pos = self.supervisor.tf.robot_pos()
-            distance = np.linalg.norm(world_pos - robot_pos)
-            if distance > max_detection_distance:
-                return
+            if np.linalg.norm(world_pos - robot_pos) > max_detection_distance:
+                continue
 
-            # Log the detection
-            if id not in self.__detections:
+            if marker_id not in self.__detections:
+                self.__detections[marker_id] = []
+
+            # check if this is a new instance or an update to an existing one
+            found_existing = False
+            for i, (existing_pos, _, _) in enumerate(self.__detections[marker_id]):
+                if np.linalg.norm(world_pos - existing_pos) < cluster_distance:
+                    self.__detections[marker_id][i] = (
+                        world_pos,
+                        self.supervisor.tf.world_frame(),
+                        time.time(),
+                    )
+                    found_existing = True
+                    break
+
+            if not found_existing:
                 self.supervisor.get_logger().info(
-                    f"[ArUco] Detected marker #{id} in frame {frame}."
+                    f"[ArUco] Detected new instance of marker #{marker_id}."
                 )
-
-            self.__detections[id] = (world_pos, self.supervisor.tf.world_frame())
+                self.__detections[marker_id].append(
+                    (world_pos, self.supervisor.tf.world_frame(), time.time())
+                )
 
     def clear_detections(self) -> None:
         self.__detections.clear()
 
-    def marker_pos(self, id: int, frame: str = "") -> np.ndarray | None:
+    def marker_pos(self, id: int, frame: str = "", timeout: float = 1000000.0) -> np.ndarray | None:
         if not id in self.__detections:
             return None
 
         if frame == "":
             frame = self.supervisor.tf.world_frame()
 
-        pos, pos_frame = self.__detections[id]
+        # filter out instances that have not been seen recently
+        now = time.time()
+        valid_detections = [d for d in self.__detections[id] if (now - d[2]) < timeout]
+        if len(valid_detections) < 2:
+            return None
+
+        # sort by timestamp descending to get the most recent detections
+        recent_detections = sorted(
+            valid_detections, key=lambda x: x[2], reverse=True
+        )
+
+        pos, pos_frame, timestamp = recent_detections[0]
         if frame != pos_frame:
             pos = self.supervisor.tf.transform_numpy(pos, frame, pos_frame)
 
         return pos
+
+    def gate_pos(
+        self, id: int, frame: str = "", timeout: float = 2.0
+    ) -> tuple[np.ndarray, np.ndarray] | None:
+        if id not in self.__detections:
+            return None
+
+        # filter out instances that have not been seen recently
+        now = time.time()
+        valid_detections = [d for d in self.__detections[id] if (now - d[2]) < timeout]
+
+        if len(valid_detections) < 2:
+            return None
+
+        if frame == "":
+            frame = self.supervisor.tf.world_frame()
+
+        # sort by timestamp descending to ensure we use the two freshest detections
+        valid_detections.sort(key=lambda x: x[2], reverse=True)
+
+        (p1, f1, t1), (p2, f2, t2) = valid_detections[:2]
+
+        if frame != f1:
+            p1 = self.supervisor.tf.transform_numpy(p1, frame, f1)
+        if frame != f2:
+            p2 = self.supervisor.tf.transform_numpy(p2, frame, f2)
+
+        return (p1, p2)
 
     def enabled(self) -> bool:
         return self.__enabled

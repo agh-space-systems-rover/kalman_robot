@@ -21,7 +21,7 @@
 #include <thread>
 
 class TransformEmaFilter {
-  public:
+public:
 	explicit TransformEmaFilter(double alpha = 0.2)
 	    : alpha_(clampAlpha(alpha)), initialized_(false) {}
 
@@ -77,7 +77,7 @@ class TransformEmaFilter {
 		return state_;
 	}
 
-  private:
+private:
 	static double clampAlpha(double a) {
 		// constrain to sensible range (avoid 0 to keep filter “alive”)
 		const double eps = 1e-9;
@@ -91,7 +91,7 @@ class TransformEmaFilter {
 };
 
 class AveragePose : public BT::StatefulActionNode {
-  public:
+public:
 	AveragePose(
 	    const std::string           &name,
 	    const BT::NodeConfiguration &config,
@@ -104,7 +104,7 @@ class AveragePose : public BT::StatefulActionNode {
 	BT::NodeStatus onRunning() override;
 	void           onHalted() override;
 
-  private:
+private:
 	void
 	aruco_callback(const aruco_opencv_msgs::msg::ArucoDetection::SharedPtr msg);
 

@@ -19,39 +19,42 @@ class RscpIdle(State):
         )
 
     def tick(self) -> str | None:
-        # Check for pending requests (ARM_DISARM and SET_STAGE are handled by module)
-        if not self.supervisor.rscp.has_pending_request():
-            return None
+        goal = self.supervisor.rscp.get_navigation_goal()
+        if goal is not None:
+            stage = self.supervisor.rscp.get_current_stage()
 
-        # Get the pending request
-        req = self.supervisor.rscp.pop_pending_request()
-
-        if req.type == ArcRscpRequest.NAV_TO_GPS:
-            # Check if we're armed before allowing navigation
-            if not self.supervisor.rscp.is_armed():
+            if stage is None or stage in [1, 2]:
                 self.supervisor.get_logger().warn(
-                    "[RSCP] NavigateToGPS rejected: rover is DISARMED"
+                    f"[RSCP] NavigateToGPS received but unsupported stage {stage}"
                 )
-                # Could send a NACK here if we had such a message type
-                # For now, just stay in idle
+                self.supervisor.rscp.clear_navigation_goal()
+                return None
+            elif stage in [3, 4]:
+                self.supervisor.get_logger().info(
+                    f"[RSCP] NavigateToGPS in stage 4, transitioning to rscp_navigate_gps"
+                )
+                return "rscp_navigate_gps"
+            else:
+                self.supervisor.get_logger().warn(
+                    f"[RSCP] NavigateToGPS received but unknown stage {stage}"
+                )
+                self.supervisor.rscp.clear_navigation_goal()
                 return None
 
-            # Handle NavigateToGPS request
-            # Store the goal in the module for the navigate state to use
-            self.supervisor.rscp.set_navigation_goal(req.latitude, req.longitude)
-            self.supervisor.rscp.send_ack()
-            self.supervisor.get_logger().info(
-                f"[RSCP] NavigateToGPS received (lat={req.latitude}, lon={req.longitude}), "
-                f"sent ACK, transitioning to rscp_navigate_gps"
-            )
-            # Transition to navigate state
-            return "rscp_navigate_gps"
+        search_goal = self.supervisor.rscp.get_search_goal()
+        if search_goal is not None:
+            stage = self.supervisor.rscp.get_current_stage()
+            if stage not in [1, 2]:
+                self.supervisor.get_logger().warn(
+                    f"[RSCP] SearchGoal recieved but unsupported stage {stage}"
+                )
+            elif stage == 1 or stage == 2:
+                self.supervisor.get_logger().info(
+                    f"[RSCP] SearchGoal in stage 1 or 2, transitioning to rscp_search_goto_gps"
+                )
+                return "rscp_search_goto_gps"
 
-        else:
-            self.supervisor.get_logger().warn(
-                f"[RSCP] Unknown request type {req.type}, ignoring"
-            )
-            return None
+        return None
 
     def exit(self) -> None:
         pass

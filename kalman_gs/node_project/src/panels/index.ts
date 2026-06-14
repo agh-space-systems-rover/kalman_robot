@@ -9,8 +9,8 @@ import Science from './science';
 import Supervisor from './supervisor';
 import Ueuos from './ueuos';
 import Waypoints from './waypoints';
-import Wheels from './wheels';
 import Wexlab from './wexlab';
+import Wheels from './wheels';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import {
   faBullseye,

@@ -26,7 +26,7 @@ template <typename T> auto &ith_joint_val(T &msg, size_t i) {
 }
 
 class GotoJointPose : public rclcpp::Node {
-  public:
+public:
 	// ROS interfaces
 	rclcpp::Subscription<kalman_interfaces::msg::ArmValues>::SharedPtr
 	    joint_pos_sub;

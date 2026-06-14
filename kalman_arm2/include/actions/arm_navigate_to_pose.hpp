@@ -13,7 +13,7 @@
 #include <thread>
 
 class ArmNavigateToPose : public BT::StatefulActionNode {
-  public:
+public:
 	ArmNavigateToPose(
 	    const std::string           &name,
 	    const BT::NodeConfiguration &config,
@@ -26,7 +26,7 @@ class ArmNavigateToPose : public BT::StatefulActionNode {
 	BT::NodeStatus onRunning() override;
 	void           onHalted() override;
 
-  private:
+private:
 	rclcpp::Node::SharedPtr action_node_;
 	rclcpp::Node           *parent_;
 	rclcpp_action::Client<

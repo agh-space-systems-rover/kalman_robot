@@ -24,7 +24,7 @@
 namespace kalman_arch {
 
 class RecordVideo : public rclcpp::Node {
-  public:
+public:
 	// Subscribers
 	image_transport::ImageTransport it;
 	image_transport::Subscriber     image_sub;

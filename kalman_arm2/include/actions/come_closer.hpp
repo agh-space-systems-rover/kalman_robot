@@ -17,7 +17,7 @@
 #include <thread>
 
 class ComeCloser : public BT::StatefulActionNode {
-  public:
+public:
 	ComeCloser(
 	    const std::string           &name,
 	    const BT::NodeConfiguration &config,
@@ -30,7 +30,7 @@ class ComeCloser : public BT::StatefulActionNode {
 	BT::NodeStatus onRunning() override;
 	void           onHalted() override;
 
-  private:
+private:
 	void
 	aruco_callback(const aruco_opencv_msgs::msg::ArucoDetection::SharedPtr msg);
 

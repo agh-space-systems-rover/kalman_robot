@@ -26,7 +26,7 @@
 namespace kalman_arch {
 
 class SlamSerialization : public rclcpp::Node {
-  public:
+public:
 	message_filters::Subscriber<sensor_msgs::msg::PointCloud2> cloud_sub;
 	message_filters::Subscriber<nav_msgs::msg::Path>           path_sub;
 	std::shared_ptr<message_filters::TimeSynchronizer<

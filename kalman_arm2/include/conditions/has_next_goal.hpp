@@ -8,7 +8,7 @@
 #include "mission_state.hpp"
 
 class HasNextGoal : public BT::SimpleConditionNode {
-  public:
+public:
 	HasNextGoal(
 	    const std::string           &name,
 	    const BT::NodeConfiguration &config,
@@ -19,7 +19,7 @@ class HasNextGoal : public BT::SimpleConditionNode {
 
 	BT::NodeStatus tick() override;
 
-  private:
+private:
 	rclcpp::Node *parent_{};
 	// MissionHelper* mission_helper{};
 };

@@ -93,6 +93,10 @@ def launch_setup(context):
             package="kalman_master",
             executable="tunnel_client",
         ),
+        "laser_driver": Node(
+            package="kalman_master",
+            executable="laser_driver",
+        ),
         "drill_driver": Node(
             package="kalman_master",
             executable="drill_driver",
@@ -129,7 +133,8 @@ def launch_setup(context):
             "link_pc_to_gs",
             "wheel_driver",
             "ueuos_driver",
-            "autonomy_spammer"
+            "autonomy_spammer",
+            "laser_driver",
         ],
         "gs": [
             "master_com",
@@ -147,7 +152,8 @@ def launch_setup(context):
             "sand_storage_driver",
             "ph_driver",
             "wexlab_driver",
-            "camera_2dof_driver"
+            "camera_2dof_driver",
+            "laser_driver",
         ],
         "arm": [
             "master_com",

@@ -4,6 +4,13 @@
 from typing import Literal, TypedDict
 
 
+class Arc(TypedDict):
+    travel_distance_meter_deadzone: str
+    "Deadzone in meters below which distance is not tracked."
+    enable_rscp_hw_driver: str
+    "Run the RSCP protocol driver. Only use it on real hardware."
+
+
 class Arch(TypedDict):
     component_container: str
     "Name of an existing component container to use. Empty to disable composition."
@@ -26,6 +33,11 @@ class Arm(TypedDict):
     "Path to the YAML configuration file"
     can_interface: str
     "CAN interface to use"
+
+
+class Arm2(TypedDict):
+    component_container: str
+    "Name of an existing component container to use. Empty to disable composition."
 
 
 class ArmGs(TypedDict):
@@ -73,8 +85,10 @@ class Clouds(TypedDict):
 
 
 class Description(TypedDict):
-    layout: Literal["arm", "autonomy", "autonomy_90deg_cams", "dev_pole"]
-    "layout of the robot: autonomy, arm. Valid choices are: ['autonomy', 'arm', 'autonomy_90deg_cams', 'dev_pole']"
+    layout: Literal[
+        "arm", "arm_autonomy", "autonomy", "autonomy_90deg_cams", "dev_pole"
+    ]
+    "layout of the robot: autonomy, arm. Valid choices are: ['autonomy', 'arm', 'arm_autonomy', 'autonomy_90deg_cams', 'dev_pole']"
     joint_state_publisher_gui: Literal["false", "true"]
     "Start the joint state publisher in GUI mode. Valid choices are: ['true', 'false']"
 
@@ -98,6 +112,10 @@ class Hardware(TypedDict):
     "Start the GPS driver. Valid choices are: ['true', 'false']"
 
 
+class Health(TypedDict):
+    pass
+
+
 class Master(TypedDict):
     mode: Literal["arm", "gs", "pc"]
     "On what hardware is this module being run? Available modes: gs, pc, arm. Valid choices are: ['gs', 'pc', 'arm']"
@@ -108,8 +126,8 @@ class Nav2(TypedDict):
     "Name of an existing component container to use. Empty by default to disable composition."
     rgbd_ids: str
     "Space-separated IDs of the depth cameras to use."
-    static_map: Literal["", "erc2023", "erc2024"]
-    "Name of the static map to use. Maps are stored in kalman_nav2/maps. Empty by default to disable static map. Valid choices are: ['', 'erc2024', 'erc2023']"
+    static_map: Literal["", "erc2023", "erc2024", "erc2025"]
+    "Name of the static map to use. Maps are stored in kalman_nav2/maps. Empty by default to disable static map. Valid choices are: ['', 'erc2025', 'erc2023', 'erc2024']"
     driving_mode: Literal["backward", "forward", "hybrid"]
     "Direction to drive in. The default 'hybrid' mode allows driving in both directions. Valid choices are: ['hybrid', 'forward', 'backward']"
 
@@ -126,8 +144,8 @@ class Slam(TypedDict):
     "Space-separated IDs of the depth cameras to use."
     gps_datum: str
     "The 'latitude longitude' of the map frame. Only used if GPS is enabled. Empty to assume first recorded GPS fix."
-    fiducials: Literal["", "erc2024", "terc2024"]
-    "Name of the list of fiducials to use. Empty disables fiducial odometry. Valid choices are: ['', 'erc2024', 'terc2024']"
+    fiducials: Literal["", "erc2024", "erc2025", "terc2024", "terc2025"]
+    "Name of the list of fiducials to use. Empty disables fiducial odometry. Valid choices are: ['', 'terc2024', 'erc2025', 'erc2024', 'terc2025']"
     use_mag: Literal["false", "true"]
     "Use IMU yaw readings for global EKF. If disabled, heading will drift over time. Valid choices are: ['true', 'false']"
     slam_rgbd_ids: str
@@ -149,6 +167,8 @@ class Supervisor(TypedDict):
     "Deactivate YOLO detection when supervisor is not actively looking for objects. Valid choices are: ['true', 'false']"
     arch_camera_ids: str
     "Space-separated IDs of the cameras to take photos with during the ARCh 2025 mapping mission."
+    rscp_enabled: Literal["false", "true"]
+    "Enable RSCP mode (start in rscp_idle instead of teleop). Valid choices are: ['true', 'false']"
 
 
 class UnitySim(TypedDict):
@@ -169,14 +189,18 @@ class Yolo(TypedDict):
     rgbd_ids: str
     "Space-separated IDs of the depth cameras to use."
     config: Literal["arch2025", "urc2024"]
-    "name of the configuration to load. Valid choices are: {'arch2025', 'urc2024'}"
+    "name of the configuration to load. Valid choices are: {'urc2024', 'arch2025'}"
 
 
 class BringupConfig(TypedDict):
+    arc: Arc
+    "Package for ARC competition"
     arch: Arch
     "configuration + launch files for robot_localization and RTAB-Map"
     arm: Arm
     "configuration and launch files for the arm"
+    arm2: Arm2
+    "new arm"
     arm_gs: ArmGs
     "scripts for gs site for interfacing with arm"
     aruco: Aruco
@@ -189,6 +213,8 @@ class BringupConfig(TypedDict):
     "ReactJS-based GUI for the rover"
     hardware: Hardware
     "drivers, tools and launch scripts for the physical hardware onboard; Only to be run separately from the simulation on a physical robot."
+    health: Health
+    "package to monitor topics"
     master: Master
     "driver for our custom Master device"
     nav2: Nav2

@@ -2,7 +2,13 @@ import struct
 import rclpy
 from rclpy.node import Node
 import numpy as np
-from kalman_interfaces.msg import MasterMessage, WExLabHeaterCfg, WExLabLedAll, WExLabLedSingle, WExLabTemperature
+from kalman_interfaces.msg import (
+    MasterMessage,
+    WExLabHeaterCfg,
+    WExLabLedAll,
+    WExLabLedSingle,
+    WExLabTemperature,
+)
 from std_msgs.msg import Float32, Bool, Empty, UInt8
 
 
@@ -16,7 +22,9 @@ class WExLabDriver(Node):
         self.declare_parameter("weight_bias", -1.046478)
 
         # Master comms
-        self.master_pub = self.create_publisher(MasterMessage, "master_com/ros_to_master", 10)
+        self.master_pub = self.create_publisher(
+            MasterMessage, "master_com/ros_to_master", 10
+        )
 
         self.master_sub = self.create_subscription(
             MasterMessage,
@@ -25,23 +33,45 @@ class WExLabDriver(Node):
             10,
         )
 
-        self.pump_sub = self.create_subscription(Float32, "wexlab/pump/rate_cmd", self.pump_rate_cb, 10)
+        self.pump_sub = self.create_subscription(
+            Float32, "wexlab/pump/rate_cmd", self.pump_rate_cb, 10
+        )
 
-        self.heater_toggle_sub = self.create_subscription(Bool, "wexlab/heater/on_off", self.heater_toggle_cb, 10)
-        self.heater_cfg_sub = self.create_subscription(WExLabHeaterCfg, "wexlab/heater/cfg", self.heater_cfg_cb, 10)
+        self.heater_toggle_sub = self.create_subscription(
+            Bool, "wexlab/heater/on_off", self.heater_toggle_cb, 10
+        )
+        self.heater_cfg_sub = self.create_subscription(
+            WExLabHeaterCfg, "wexlab/heater/cfg", self.heater_cfg_cb, 10
+        )
 
-        self.weight_req_sub = self.create_subscription(Empty, "wexlab/weight/req", self.weight_req_cb, 10)
-        self.weight_tare_pub = self.create_subscription(Empty, "wexlab/weight/tare", self.weight_tare_cb, 10)
+        self.weight_req_sub = self.create_subscription(
+            Empty, "wexlab/weight/req", self.weight_req_cb, 10
+        )
+        self.weight_tare_pub = self.create_subscription(
+            Empty, "wexlab/weight/tare", self.weight_tare_cb, 10
+        )
         self.weight_res_pub = self.create_publisher(Float32, "wexlab/weight/res", 10)
 
-        self.temperature_req_sub = self.create_subscription(UInt8, "wexlab/temperature/req", self.temperature_req_cb, 10)
-        self.temperature_res_pub = self.create_publisher(WExLabTemperature, "wexlab/temperature/res", 10)
+        self.temperature_req_sub = self.create_subscription(
+            UInt8, "wexlab/temperature/req", self.temperature_req_cb, 10
+        )
+        self.temperature_res_pub = self.create_publisher(
+            WExLabTemperature, "wexlab/temperature/res", 10
+        )
 
-        self.lid_open_sub = self.create_subscription(Float32, "wexlab/lid/open_cmd", self.lid_open_cb, 10)
-        self.lid_toggle_sub = self.create_subscription(Bool, "wexlab/lid/on_off", self.lid_toggle_cb, 10)
+        self.lid_open_sub = self.create_subscription(
+            Float32, "wexlab/lid/open_cmd", self.lid_open_cb, 10
+        )
+        self.lid_toggle_sub = self.create_subscription(
+            Bool, "wexlab/lid/on_off", self.lid_toggle_cb, 10
+        )
 
-        self.led_all_sub = self.create_subscription(WExLabLedAll, "wexlab/led/all", self.led_all_cb, 10)
-        self.led_single_sub = self.create_subscription(WExLabLedSingle, "wexlab/led/single", self.led_single_cb, 10)
+        self.led_all_sub = self.create_subscription(
+            WExLabLedAll, "wexlab/led/all", self.led_all_cb, 10
+        )
+        self.led_single_sub = self.create_subscription(
+            WExLabLedSingle, "wexlab/led/single", self.led_single_cb, 10
+        )
 
         # Track lid state to reconstruct commands
         self.lid_is_on = False
@@ -125,11 +155,13 @@ class WExLabDriver(Node):
             packed_temp = bytes(msg.data[4:6])
             temperature = struct.unpack("<h", packed_temp)[0] / 100.0
 
-            self.temperature_res_pub.publish(WExLabTemperature(
-                temperature_id=temperature_id,
-                temperature=temperature,
-                temperature_error=temperature_error
-            ))
+            self.temperature_res_pub.publish(
+                WExLabTemperature(
+                    temperature_id=temperature_id,
+                    temperature=temperature,
+                    temperature_error=temperature_error,
+                )
+            )
 
     def update_lid_servo(self):
         out_msg = MasterMessage()
@@ -161,7 +193,7 @@ class WExLabDriver(Node):
             3,
             int(msg.color.r * 255),
             int(msg.color.g * 255),
-            int(msg.color.b * 255)
+            int(msg.color.b * 255),
         ]
         self.master_pub.publish(out_msg)
 
@@ -174,7 +206,7 @@ class WExLabDriver(Node):
             int(msg.led_id),
             int(msg.color.r * 255),
             int(msg.color.g * 255),
-            int(msg.color.b * 255)
+            int(msg.color.b * 255),
         ]
         self.master_pub.publish(out_msg)
 
