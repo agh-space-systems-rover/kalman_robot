@@ -13,6 +13,10 @@
   <depend>rclpy</depend>
   <depend>rclcpp</depend>
   <depend>std_msgs</depend>
+  <depend>rclcpp_components</depend>
+  <depend>sensor_msgs</depend>
+  <depend>message_filters</depend>
+  <depend>geometry_msgs</depend>
   <depend>nav_msgs</depend>
   <depend>kalman_interfaces</depend>
   <depend>pluginlib</depend>
@@ -23,6 +27,12 @@
   <build_depend>protobuf-dev</build_depend>
   <exec_depend>protobuf-dev</exec_depend>
   <build_depend>qtbase5-dev</build_depend>
+  <depend>tf2_ros</depend>
+  <depend>tf2_sensor_msgs</depend>
+  <depend>grid_map_ros</depend>
+  <depend>grid_map_core</depend>
+  <depend>grid_map_msgs</depend>
+  <depend>std_srvs</depend>
 
   <exec_depend>ros2launch</exec_depend>
 
