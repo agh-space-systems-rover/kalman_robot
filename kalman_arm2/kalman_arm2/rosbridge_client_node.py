@@ -126,10 +126,7 @@ class RosbridgeWsBridge(Node):
     def ws_recv_loop(self):
         def on_message(ws, message):
             msg_obj = json.loads(message)
-            if (
-                msg_obj.get("op") == "publish"
-                and msg_obj.get("topic") == self.topic
-            ):
+            if msg_obj.get("op") == "publish" and msg_obj.get("topic") == self.topic:
                 ros_msg = self.dict_to_ros_msg(msg_obj["msg"], self.msg_class)
                 self.publisher.publish(ros_msg)
 
@@ -149,6 +146,7 @@ class RosbridgeWsBridge(Node):
                 time.sleep(0.1)
             if self.ws:
                 self.ws.close()
+
         self.recv_sigint_monitor_thread = threading.Thread(target=monitor_sigint)
         self.recv_sigint_monitor_thread.start()
 
@@ -194,6 +192,7 @@ class RosbridgeWsBridge(Node):
             return {k: self.set_nan_where_null(v) for k, v in data.items()}
         else:
             return data
+
 
 def main():
     try:

@@ -12,7 +12,6 @@ from kalman_interfaces.msg import (
     WheelTemperature,
 )
 
-
 METRIC_VELOCITY_TO_MOTOR_VALUE_FACTOR = 100
 MAX_RATE = 10
 MIN_DT = 1 / MAX_RATE

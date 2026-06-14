@@ -14,8 +14,8 @@ ArmNavigateToPose::ArmNavigateToPose(
     rclcpp::Node                *parent
 )
     : BT::StatefulActionNode(name, config),
-    action_node_{std::make_shared<rclcpp::Node>("action_node")},
-    parent_{parent} {
+      action_node_{std::make_shared<rclcpp::Node>("action_node")},
+      parent_{parent} {
 	client_ = rclcpp_action::create_client<
 	    kalman_interfaces::action::ArmGotoJointPose>(action_node_, "goto_pose");
 }
@@ -74,18 +74,22 @@ BT::NodeStatus ArmNavigateToPose::onStart() {
 
 	goal_handle_future_ = client_->async_send_goal(goal, send_opts);
 
-	RCLCPP_INFO(parent_->get_logger(), "[ArmNavigateToPose] onStart() returning");
+	RCLCPP_INFO(
+	    parent_->get_logger(), "[ArmNavigateToPose] onStart() returning"
+	);
 
 	return BT::NodeStatus::RUNNING;
 }
 
 BT::NodeStatus ArmNavigateToPose::onRunning() {
 
-  RCLCPP_INFO(parent_->get_logger(), "[ArmNavigateToPose] onRunning()");
+	RCLCPP_INFO(parent_->get_logger(), "[ArmNavigateToPose] onRunning()");
 	// If cancellation was requested via halt(), report SUCCESS so the Parallel
 	// can finish.
 	if (cancelled_) {
-    RCLCPP_INFO(parent_->get_logger(), "[ArmNavigateToPose] onRunning() CANCELLED");
+		RCLCPP_INFO(
+		    parent_->get_logger(), "[ArmNavigateToPose] onRunning() CANCELLED"
+		);
 		return BT::NodeStatus::SUCCESS;
 	}
 
@@ -93,19 +97,28 @@ BT::NodeStatus ArmNavigateToPose::onRunning() {
 	std::lock_guard<std::mutex> lk(m_);
 	if (last_result_) {
 		if (*last_result_ == rclcpp_action::ResultCode::SUCCEEDED) {
-      RCLCPP_INFO(parent_->get_logger(), "[ArmNavigateToPose] onRunning() returning SUCCESS");
+			RCLCPP_INFO(
+			    parent_->get_logger(),
+			    "[ArmNavigateToPose] onRunning() returning SUCCESS"
+			);
 			return BT::NodeStatus::SUCCESS;
 		} else {
-      RCLCPP_INFO(parent_->get_logger(), "[ArmNavigateToPose] onRunning() returning FAILURE");
+			RCLCPP_INFO(
+			    parent_->get_logger(),
+			    "[ArmNavigateToPose] onRunning() returning FAILURE"
+			);
 			return BT::NodeStatus::FAILURE;
 		}
 	}
-  RCLCPP_INFO(parent_->get_logger(), "[ArmNavigateToPose] onRunning() returning RUNNING");
+	RCLCPP_INFO(
+	    parent_->get_logger(),
+	    "[ArmNavigateToPose] onRunning() returning RUNNING"
+	);
 	return BT::NodeStatus::RUNNING;
 }
 
 void ArmNavigateToPose::onHalted() {
-  RCLCPP_INFO(parent_->get_logger(), "[ArmNavigateToPose] onHalted()");
+	RCLCPP_INFO(parent_->get_logger(), "[ArmNavigateToPose] onHalted()");
 	client_->async_cancel_all_goals();
 	// Cancel active goal when the subtree is halted (e.g., monitor trips)
 	cancelled_ = true;

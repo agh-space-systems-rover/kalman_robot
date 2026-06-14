@@ -39,7 +39,7 @@ namespace kalman_master {
 class RfidDriver : public rclcpp::Node {
 	using MasterMessage = kalman_interfaces::msg::MasterMessage;
 
-  public:
+public:
 	RfidDriver(const rclcpp::NodeOptions &options)
 	    : Node("rfid_driver", options) {
 		master_sub_ = this->create_subscription<MasterMessage>(
@@ -53,7 +53,7 @@ class RfidDriver : public rclcpp::Node {
 		RCLCPP_INFO(this->get_logger(), "rfid_node has been started.");
 	}
 
-  private:
+private:
 	void master_callback(const MasterMessage::SharedPtr master_msg) {
 		const auto now = std::chrono::high_resolution_clock::now();
 		if (now - last_update > std::chrono::seconds(120)) {
@@ -67,12 +67,13 @@ class RfidDriver : public rclcpp::Node {
 			);
 		}
 		const std::vector<uint8_t> &data = master_msg->data;
-		if (data.size() < 17){
+		if (data.size() < 17) {
 			return;
 		}
 
-		const std::string str_part = std::string(data.begin(), data.begin() + 16);
-		const uint8_t     msg_id   = data.at(16);
+		const std::string str_part =
+		    std::string(data.begin(), data.begin() + 16);
+		const uint8_t msg_id = data.at(16);
 		if (msg_id >= data_.arr.size()) {
 			return;
 		}

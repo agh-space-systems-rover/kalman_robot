@@ -49,27 +49,31 @@ BT::NodeStatus BuildUV::onStart() {
 		);
 		return BT::NodeStatus::FAILURE;
 	}
-	const auto& markers = mission_helper->state.layout_.markers;
+	const auto &markers = mission_helper->state.layout_.markers;
 
-	std::vector<UVAnchor> anchors = { };
+	std::vector<UVAnchor> anchors = {};
 
-	for(const auto&[id, marker_info] : markers){
+	for (const auto &[id, marker_info] : markers) {
 		UVAnchor anchor;
-		anchor.tf_name = "marker_" + std::to_string(id) + "_avg"; // TODO: make this a helper in state, to ensure consistency accross nodes
+		anchor.tf_name = "marker_" + std::to_string(id) +
+		                 "_avg"; // TODO: make this a helper in state, to ensure
+		                         // consistency accross nodes
 		anchor.uv = {marker_info.u, -marker_info.v};
 		anchors.emplace_back(std::move(anchor));
 	}
 
 	Eigen::Isometry3d T_base_to_board{};
-	if (!buildUnitScale(anchors, *tf_buffer_, "base_link", "uv_board", T_base_to_board)) {
+	if (!buildUnitScale(
+	        anchors, *tf_buffer_, "base_link", "uv_board", T_base_to_board
+	    )) {
 		return BT::NodeStatus::FAILURE;
 	}
 
 	geometry_msgs::msg::TransformStamped ts;
-    ts.header.stamp = parent_->now();
-    ts.header.frame_id = "base_link";
-    ts.child_frame_id  = "uv_board";
-    ts.transform = tf2::eigenToTransform(T_base_to_board).transform;
+	ts.header.stamp    = parent_->now();
+	ts.header.frame_id = "base_link";
+	ts.child_frame_id  = "uv_board";
+	ts.transform       = tf2::eigenToTransform(T_base_to_board).transform;
 	static_broadcaster_->sendTransform(ts);
 
 	return BT::NodeStatus::SUCCESS;

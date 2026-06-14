@@ -12,13 +12,12 @@ struct MarkerInfo {
 };
 
 class PanelLayout : public rclcpp::Node {
-  public:
+public:
 	PanelLayout(const rclcpp::NodeOptions &options)
 	    : Node("panel_layout", options) {
 
-		yaml_path_ = declare_parameter<std::string>(
-		    "layout_yaml", "panel_layout.yaml"
-		);
+		yaml_path_ =
+		    declare_parameter<std::string>("layout_yaml", "panel_layout.yaml");
 
 		static_broadcaster_ =
 		    std::make_shared<tf2_ros::StaticTransformBroadcaster>(this);
@@ -27,7 +26,7 @@ class PanelLayout : public rclcpp::Node {
 		publishLayout();
 	}
 
-  private:
+private:
 	void loadLayout() {
 		try {
 			YAML::Node config = YAML::LoadFile(yaml_path_);

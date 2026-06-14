@@ -73,13 +73,5 @@ def generate_launch_description():
     )
 
     return LaunchDescription(
-        [
-            arm_controller,
-            master,
-            servo,
-            hardware,
-            move_group,
-            trajectories,
-            can_bridge
-        ]
+        [arm_controller, master, servo, hardware, move_group, trajectories, can_bridge]
     )

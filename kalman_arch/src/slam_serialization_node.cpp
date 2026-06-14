@@ -26,7 +26,7 @@
 namespace kalman_arch {
 
 class SlamSerialization : public rclcpp::Node {
-  public:
+public:
 	message_filters::Subscriber<sensor_msgs::msg::PointCloud2> cloud_sub;
 	message_filters::Subscriber<nav_msgs::msg::Path>           path_sub;
 	std::shared_ptr<message_filters::TimeSynchronizer<
@@ -49,12 +49,14 @@ class SlamSerialization : public rclcpp::Node {
 		sync = std::make_shared<message_filters::TimeSynchronizer<
 		    sensor_msgs::msg::PointCloud2,
 		    nav_msgs::msg::Path>>(cloud_sub, path_sub, 10);
-		sync->registerCallback(std::bind(
-		    &SlamSerialization::callback,
-		    this,
-		    std::placeholders::_1,
-		    std::placeholders::_2
-		));
+		sync->registerCallback(
+		    std::bind(
+		        &SlamSerialization::callback,
+		        this,
+		        std::placeholders::_1,
+		        std::placeholders::_2
+		    )
+		);
 	}
 	void callback(
 	    const sensor_msgs::msg::PointCloud2::ConstSharedPtr &cloud_msg,
@@ -67,8 +69,9 @@ class SlamSerialization : public rclcpp::Node {
 			    static_cast<int64_t>(cloud_msg->header.stamp.nanosec / 1e3);
 		}
 
-		pcl::PointCloud<pcl::PointXYZRGB>::Ptr
-		    cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+		pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(
+		    new pcl::PointCloud<pcl::PointXYZRGB>
+		);
 		pcl::fromROSMsg(*cloud_msg, *cloud);
 		std::string cloud_save_path =
 		    (cloud_dir / ("cloud-" + std::to_string(first_stamp_us) + ".ply"))
@@ -81,8 +84,8 @@ class SlamSerialization : public rclcpp::Node {
 		save_yaml_from_msg(path_msg);
 	}
 
-	void save_yaml_from_msg(const nav_msgs::msg::Path::ConstSharedPtr &path_msg
-	) {
+	void
+	save_yaml_from_msg(const nav_msgs::msg::Path::ConstSharedPtr &path_msg) {
 		std::vector<geometry_msgs::msg::PoseStamped> positions;
 
 		for (const auto &pose : path_msg->poses) {

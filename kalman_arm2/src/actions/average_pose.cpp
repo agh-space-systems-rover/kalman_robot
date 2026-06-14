@@ -93,7 +93,7 @@ BT::NodeStatus AveragePose::onRunning() {
 		RCLCPP_ERROR_STREAM(
 		    parent_->get_logger(), name() << ": returning SUCCESS"
 		);
-    mark_done_in_mission_helper();
+		mark_done_in_mission_helper();
 		return BT::NodeStatus::SUCCESS;
 	}
 
@@ -213,16 +213,20 @@ void AveragePose::update_board_from_marker(
 	}
 }
 void AveragePose::mark_done_in_mission_helper() {
-	auto mission_helper_opt = getInput<std::shared_ptr<MissionHelper>>("mission_helper");
-  if (!mission_helper_opt.has_value()){
-    RCLCPP_ERROR_STREAM(parent_->get_logger(), name() << ": mission helper not set");
-    return;
-  }
-  auto mission_helper = mission_helper_opt.value();
-  if (nullptr == mission_helper){
-    RCLCPP_ERROR_STREAM(parent_->get_logger(), name() << ": mission helper is nullptr");
-    return;
-  }
-  mission_helper->state.visited_map_[this->tracked_marker] = true;
+	auto mission_helper_opt =
+	    getInput<std::shared_ptr<MissionHelper>>("mission_helper");
+	if (!mission_helper_opt.has_value()) {
+		RCLCPP_ERROR_STREAM(
+		    parent_->get_logger(), name() << ": mission helper not set"
+		);
+		return;
+	}
+	auto mission_helper = mission_helper_opt.value();
+	if (nullptr == mission_helper) {
+		RCLCPP_ERROR_STREAM(
+		    parent_->get_logger(), name() << ": mission helper is nullptr"
+		);
+		return;
+	}
+	mission_helper->state.visited_map_[this->tracked_marker] = true;
 }
-

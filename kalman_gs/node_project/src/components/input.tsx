@@ -1,9 +1,6 @@
 import styles from './input.module.css';
 
-
-
 import { Component, createRef } from 'react';
-
 
 type Props = {
   type?: string;

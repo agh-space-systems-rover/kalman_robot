@@ -22,7 +22,7 @@
 #include <thread>
 
 class IKNavigateToPose : public BT::StatefulActionNode {
-  public:
+public:
 	IKNavigateToPose(
 	    const std::string           &name,
 	    const BT::NodeConfiguration &config,
@@ -35,12 +35,12 @@ class IKNavigateToPose : public BT::StatefulActionNode {
 	BT::NodeStatus onRunning() override;
 	void           onHalted() override;
 
-  private:
+private:
 	rclcpp::Node                                                  *parent_;
 	rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr arm_pub_;
 	std::unique_ptr<tf2_ros::Buffer>                               tf_buffer_;
 	std::shared_ptr<tf2_ros::TransformListener>                    tf_listener_;
-  geometry_msgs::msg::Pose pose;
+	geometry_msgs::msg::Pose                                       pose;
 
 	std::shared_ptr<tf2_ros::StaticTransformBroadcaster> static_broadcaster_;
 };

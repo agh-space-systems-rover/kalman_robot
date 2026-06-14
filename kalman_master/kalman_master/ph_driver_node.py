@@ -14,6 +14,7 @@ RAIL_BOARD_ID = 0
 RAIL_CHANNEL_ID = 1
 RAIL_MAX_SPEED = 100
 
+
 class PHDriver(Node):
     def __init__(self):
         super().__init__("ph_driver")
@@ -29,16 +30,11 @@ class PHDriver(Node):
         )
 
         self.rail_control_sub = self.create_subscription(
-            Float32,
-            "science/ph/rail/target_vel",
-            self.cb_rail_control,
-            10
+            Float32, "science/ph/rail/target_vel", self.cb_rail_control, 10
         )
 
         # Master comms
-        self.requester = self.create_publisher(
-            UInt8MultiArray, "/kutong/request", 10
-        )
+        self.requester = self.create_publisher(UInt8MultiArray, "/kutong/request", 10)
         self.data_response = self.create_subscription(
             UInt8MultiArray,
             "kutong/data",
@@ -56,10 +52,15 @@ class PHDriver(Node):
     def cb_rail_control(self, msg: Float32):
         target_vel = max(-1.0, min(1.0, msg.data))
         target_vel_int = int(abs(target_vel * RAIL_MAX_SPEED))
-        
+
         rail_msg = MasterMessage()
         rail_msg.cmd = MasterMessage.PH_RAIL
-        rail_msg.data = [RAIL_BOARD_ID, RAIL_CHANNEL_ID, target_vel_int, 0 if target_vel < 0 else 1]
+        rail_msg.data = [
+            RAIL_BOARD_ID,
+            RAIL_CHANNEL_ID,
+            target_vel_int,
+            0 if target_vel < 0 else 1,
+        ]
         # self.master_pub.publish(rail_msg)
 
     def cb_data_response(self, msg: UInt8MultiArray):
@@ -89,6 +90,7 @@ class PHDriver(Node):
             self.get_logger().warn(f"Calibration file not found: {path}")
 
         self.value_pub.publish(Float32(data=float(ph_value)))
+
 
 def main():
     try:

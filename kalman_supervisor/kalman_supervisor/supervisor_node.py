@@ -22,6 +22,7 @@ class Supervisor(Node):
         super().__init__("supervisor")
 
         # Set per-module type hints for autocomplete.
+        self.arc: Arc
         self.arch: Arch
         self.aruco: ArUco
         self.cmd_vel: CmdVel
@@ -29,6 +30,7 @@ class Supervisor(Node):
         self.missions: Missions
         self.nav: Nav
         self.position_history: PositionHistory
+        self.rscp: Rscp
         self.tf: TF
         self.ueuos: Ueuos
 
@@ -91,7 +93,11 @@ class Supervisor(Node):
                 module.activate()
 
             # Enter initial state.
-            self.state = "teleop"
+            # If RSCP module is enabled, start in rscp_idle, otherwise teleop
+            if self.rscp.module_enabled:
+                self.state = "rscp_idle"
+            else:
+                self.state = "teleop"
             self.__state_dict[self.state].enter()
 
             # Start ticking.

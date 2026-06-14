@@ -7,11 +7,15 @@ uint8 MOTOR_GET_ESTOP = 0x45
 uint8 MOTOR_GET_WHEELS = 0x4F
 
 uint8 SERVO_SET = 0x50
+uint8 DRILL_DRILL = 0x51
+uint8 SAND_STORAGE_CMD = 0x53
+uint8 DRILL_RACK = 0x53
 uint8 PH_RAIL = 0x53
 uint8 SCALE_REQ = 0x57
 uint8 PH_RES = 0x5C
 uint8 SCALE_RES = 0x5B
 uint8 PH_REQ = 0x59
+uint8 LASER_DIST = 0x56
 
 uint8 GS_TO_UNIVERSAL = 0x5E
 
@@ -38,9 +42,6 @@ uint8 ARM_SEND_SPACEMOUSE = 0xB4
 # uint8 DRILL_RACK = 0xD1
 # uint8 DRILL_DRILL = 0xD2
 # uint8 DRILL_AUTONOMY = 0xD5
-
-uint8 DRILL_RACK = 0x53
-uint8 DRILL_DRILL = 0x51
 
 # command number
 uint8 cmd

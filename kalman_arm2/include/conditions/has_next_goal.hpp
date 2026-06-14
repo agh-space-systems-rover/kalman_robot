@@ -7,19 +7,19 @@
 
 #include "mission_state.hpp"
 
-class HasNextGoal : public BT::SimpleConditionNode
-{
+class HasNextGoal : public BT::SimpleConditionNode {
 public:
-  HasNextGoal(
-    const std::string & name,
-    const BT::NodeConfiguration & config,
-    rclcpp::Node* parent);
+	HasNextGoal(
+	    const std::string           &name,
+	    const BT::NodeConfiguration &config,
+	    rclcpp::Node                *parent
+	);
 
-  static BT::PortsList providedPorts();
+	static BT::PortsList providedPorts();
 
-  BT::NodeStatus tick() override;
+	BT::NodeStatus tick() override;
 
 private:
-  rclcpp::Node* parent_{};
-  // MissionHelper* mission_helper{};
+	rclcpp::Node *parent_{};
+	// MissionHelper* mission_helper{};
 };

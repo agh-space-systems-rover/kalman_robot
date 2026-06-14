@@ -6,34 +6,23 @@ from nav_msgs.msg import Odometry
 from tf2_ros import Buffer, TransformListener
 from rclpy.time import Duration
 
+
 class FiducialOdometry(Node):
     def __init__(self) -> None:
         super().__init__("fiducial_odometry")
 
-        self.fiducials_path = self.declare_parameter(
-            "fiducials_path", ""
-        )
+        self.fiducials_path = self.declare_parameter("fiducials_path", "")
         self.rate = self.declare_parameter(
             "rate", 3.0
-        ) # Look for new TFs at this rate.
+        )  # Look for new TFs at this rate.
         self.time_offset = self.declare_parameter(
             "time_offset", 0.5
-        ) # Look at TFs from that much seconds ago.
-        self.odom_frame = self.declare_parameter(
-            "odom_frame", "map"
-        )
-        self.robot_frame = self.declare_parameter(
-            "robot_frame", "base_link"
-        )
-        self.variance = self.declare_parameter(
-            "variance", 1.0
-        )
-        self.max_dist = self.declare_parameter(
-            "max_dist", 5.0
-        )
-        self.max_num = self.declare_parameter(
-            "max_num", 1
-        )
+        )  # Look at TFs from that much seconds ago.
+        self.odom_frame = self.declare_parameter("odom_frame", "map")
+        self.robot_frame = self.declare_parameter("robot_frame", "base_link")
+        self.variance = self.declare_parameter("variance", 1.0)
+        self.max_dist = self.declare_parameter("max_dist", 5.0)
+        self.max_num = self.declare_parameter("max_num", 1)
 
         result = self.trigger_configure()
         if result != TransitionCallbackReturn.SUCCESS:
@@ -56,7 +45,7 @@ class FiducialOdometry(Node):
             except yaml.YAMLError as e:
                 self.get_logger().error(f"Failed to load fiducials: {e}")
                 return TransitionCallbackReturn.ERROR
-            
+
         self.get_logger().info(f"Loaded {len(self.fiducials)} fiducials.")
 
         # Create the publisher.
@@ -68,11 +57,15 @@ class FiducialOdometry(Node):
         return TransitionCallbackReturn.SUCCESS
 
     def timer_callback(self):
-        lookup_time = self.get_clock().now() - Duration(nanoseconds=int(self.time_offset.value * 1e9))
+        lookup_time = self.get_clock().now() - Duration(
+            nanoseconds=int(self.time_offset.value * 1e9)
+        )
 
         # Get the current transform from odom to robot.
         try:
-            t = self.tf_buffer.lookup_transform(self.odom_frame.value, self.robot_frame.value, lookup_time)
+            t = self.tf_buffer.lookup_transform(
+                self.odom_frame.value, self.robot_frame.value, lookup_time
+            )
         except Exception as e:
             self.get_logger().error(f"Failed to lookup transform: {e}")
             return
@@ -83,7 +76,9 @@ class FiducialOdometry(Node):
         for frame, pos in self.fiducials.items():
             try:
                 # Lookup TF from odom to fiducial.
-                t = self.tf_buffer.lookup_transform(self.odom_frame.value, frame, lookup_time)
+                t = self.tf_buffer.lookup_transform(
+                    self.odom_frame.value, frame, lookup_time
+                )
             except Exception as e:
                 # If the TF lookup fails, it is likely because the fiducial is not visible.
                 continue
@@ -103,7 +98,9 @@ class FiducialOdometry(Node):
         # Sort fiducials by distance (ascending) and limit to max_num.
         valid_fiducials.sort(key=lambda x: x[3])  # Sort by distance (4th item in tuple)
         if self.max_num.value > 0:
-            valid_fiducials = valid_fiducials[:self.max_num.value]  # Take closest `max_num` fiducials
+            valid_fiducials = valid_fiducials[
+                : self.max_num.value
+            ]  # Take closest `max_num` fiducials
 
         # Compute the error using only the closest fiducials.
         avg_error = np.zeros(2)
@@ -126,7 +123,6 @@ class FiducialOdometry(Node):
         else:
             self.published_first_odometry = True
         self.pub.publish(msg)
-
 
     def on_deactivate(self, state: State) -> TransitionCallbackReturn:
         # Destroy the publisher.

@@ -4,15 +4,15 @@ from launch.actions import DeclareLaunchArgument, OpaqueFunction
 from launch.substitutions import LaunchConfiguration
 from ament_index_python.packages import get_package_share_path
 
+
 def get_yaml_params(name: str) -> str:
-    return str(
-        get_package_share_path("kalman_wheels") / "config" / f"{name}.yaml"
-    )
+    return str(get_package_share_path("kalman_wheels") / "config" / f"{name}.yaml")
+
 
 def launch_setup(context):
     joy = LaunchConfiguration("joy").perform(context).lower()
 
-    if joy != '' and joy != 'gamepad' and joy != 'arduino':
+    if joy != "" and joy != "gamepad" and joy != "arduino":
         raise RuntimeError("Invalid joy. Choose 'gamepad' or 'arduino'.")
 
     description = [
@@ -28,7 +28,7 @@ def launch_setup(context):
         ),
     ]
 
-    if joy == 'gamepad':
+    if joy == "gamepad":
         description += [
             Node(
                 package="joy_linux",
@@ -43,9 +43,9 @@ def launch_setup(context):
                 package="kalman_wheels",
                 executable="gamepad_driving",
                 parameters=[get_yaml_params("gamepad_driving")],
-            )
+            ),
         ]
-    elif joy == 'arduino':
+    elif joy == "arduino":
         description += [
             Node(
                 package="joy_linux",
@@ -60,10 +60,11 @@ def launch_setup(context):
                 package="kalman_wheels",
                 executable="arduino_driving",
                 parameters=[get_yaml_params("arduino_driving")],
-            )
+            ),
         ]
 
     return description
+
 
 def generate_launch_description():
     return LaunchDescription(

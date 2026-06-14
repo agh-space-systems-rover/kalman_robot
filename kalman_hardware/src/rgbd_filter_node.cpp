@@ -100,13 +100,15 @@ public:
 		    sensor_msgs::msg::Image,
 		    sensor_msgs::msg::Image,
 		    sensor_msgs::msg::CameraInfo>>(color_sub, depth_sub, info_sub, 10);
-		sync->registerCallback(std::bind(
-		    &RgbdFilter::callback,
-		    this,
-		    std::placeholders::_1,
-		    std::placeholders::_2,
-		    std::placeholders::_3
-		));
+		sync->registerCallback(
+		    std::bind(
+		        &RgbdFilter::callback,
+		        this,
+		        std::placeholders::_1,
+		        std::placeholders::_2,
+		        std::placeholders::_3
+		    )
+		);
 	}
 
 	void callback(

@@ -33,9 +33,7 @@ BT::PortsList ComeCloser::providedPorts() {
 }
 
 BT::NodeStatus ComeCloser::onStart() {
-  RCLCPP_ERROR_STREAM(
-      parent_->get_logger(), name() << ": onStart()"
-  );
+	RCLCPP_ERROR_STREAM(parent_->get_logger(), name() << ": onStart()");
 
 	const auto aruco_id_opt = getInput<uint16_t>("aruco_id");
 	if (!aruco_id_opt.has_value()) {
@@ -88,8 +86,7 @@ BT::NodeStatus ComeCloser::onRunning() {
 		arm_pub_->publish(zero_vel);
 
 		RCLCPP_ERROR_STREAM(
-		    parent_->get_logger(),
-		    name() << ": returning SUCCESS"
+		    parent_->get_logger(), name() << ": returning SUCCESS"
 		);
 		return BT::NodeStatus::SUCCESS;
 	}
@@ -108,7 +105,8 @@ void ComeCloser::aruco_callback(
     const aruco_opencv_msgs::msg::ArucoDetection::SharedPtr msg
 ) {
 	// RCLCPP_INFO_STREAM(
-	//     parent_->get_logger(), name() << ": tracked marker is " << size_t(tracked_marker)
+	//     parent_->get_logger(), name() << ": tracked marker is " <<
+	//     size_t(tracked_marker)
 	// );
 	if (msg->markers.empty()) {
 		return;

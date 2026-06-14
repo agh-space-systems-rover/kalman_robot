@@ -84,9 +84,30 @@ All `kalman_` modules are designed to work together and exchange data in a compl
 
 As mentioned in [Launch Hierarchy](#launch-hierarchy), top-level modules may include other modules that are not shown in the diagram. Each module contains a set of nodes that actually perform the data processing and exchange.
 
+## SSH setup
+
+In order to connect to the rover on-board computer via SSH perform following steps:
+1. Set up static ip address on your PC to `192.168.1.1` (this IP address is configured as default gateway on the rover's computer) with subnet mask `255.255.255.0`
+2. Test connection using ping command
+
+```bash
+ping 192.168.1.3
+```
+
+3. Connect to the rover using SSH
+
+```bash
+ssh kalman@192.168.1.3
+```
+
+Using password:
+
+```
+x
+```
+
 ## Guidelines
 
-- When committing new code, please follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) specification.
 - The `scripts` directory should only contain scripts that are meant to be installed as ROS executables.
 - The `tools` directory should only contain developer utilities and not ROS-related code.
 - Whenever possible, design your C++ nodes as components. See [this tutorial](https://docs.ros.org/en/iron/Tutorials/Intermediate/Writing-a-Composable-Node.html) for more information.

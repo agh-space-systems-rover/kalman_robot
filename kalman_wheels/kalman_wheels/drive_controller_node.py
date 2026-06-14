@@ -4,26 +4,34 @@ import time
 from kalman_interfaces.msg import Drive, WheelStates
 from rclpy.node import Node
 
+
 def lerp(a, b, t):
     return a + (b - a) * t
 
+
 def cos_from_sin(sin):
-    return np.sqrt(1 - sin ** 2)
+    return np.sqrt(1 - sin**2)
+
 
 class State:
     pass
 
+
 class SetupDriving(State):
     pass
+
 
 class Driving(State):
     pass
 
+
 class SetupRotating(State):
     pass
 
+
 class Rotating(State):
     pass
+
 
 class RotatingTimeout(State):
     def __init__(self, timeout):
@@ -37,13 +45,19 @@ class DriveController(Node):
         self.rate = self.declare_parameter("rate", 30)
         self.timeout = self.declare_parameter("timeout", 1.0)
         self.max_speed = self.declare_parameter("max_speed", 1)
-        self.max_rotation_speed = self.declare_parameter("max_rotation_speed", np.pi / 2)
+        self.max_rotation_speed = self.declare_parameter(
+            "max_rotation_speed", np.pi / 2
+        )
         self.min_turn_radius = self.declare_parameter("min_turn_radius", 0.75)
-        self.sideways_turn_radius_scale = self.declare_parameter("sideways_turn_radius_scale", 2.0)
+        self.sideways_turn_radius_scale = self.declare_parameter(
+            "sideways_turn_radius_scale", 2.0
+        )
         self.rotation_timeout = self.declare_parameter("rotation_timeout", 0.5)
         self.swivel_speed = self.declare_parameter("swivel_speed", np.pi / 2)
         self.motor_accel = self.declare_parameter("motor_accel", 4.0)
-        self.max_wheel_angle = self.declare_parameter("max_wheel_angle", 110 * np.pi / 180) # larger than 90
+        self.max_wheel_angle = self.declare_parameter(
+            "max_wheel_angle", 110 * np.pi / 180
+        )  # larger than 90
 
         self.drive_sub = self.create_subscription(
             Drive, "drive", self.drive_cb, qos_profile=10
@@ -52,7 +66,7 @@ class DriveController(Node):
             WheelStates, "wheel_states", qos_profile=10
         )
         self.create_timer(1.0 / self.rate.value, self.tick)
-        
+
         self.last_drive_msg = Drive()
         self.last_drive_msg_time = 0
         self.state: State = SetupDriving()
@@ -60,7 +74,6 @@ class DriveController(Node):
         self.target_velocities = [0, 0, 0, 0]
         self.current_angles = [0, 0, 0, 0]
         self.current_velocities = [0, 0, 0, 0]
-    
 
     def drive_cb(self, msg: Drive):
         self.last_drive_msg = msg
@@ -68,7 +81,7 @@ class DriveController(Node):
 
     def send_twist(self, x, y, angular, speed=1.0):
         # self.get_logger().info(f"Sending twist: x={x}, y={y}, angular={angular}, speed={speed}")
-        
+
         TURN_VECTORS = [
             vec / np.linalg.norm(vec)
             for vec in [
@@ -116,6 +129,7 @@ class DriveController(Node):
         def flip_angle(angle):
             angle += np.pi
             return np.arctan2(np.sin(angle), np.cos(angle))
+
         for i in range(len(wheel_angles)):
             if abs(wheel_angles[i]) > self.max_wheel_angle.value + 1e-3:
                 wheel_angles[i] = flip_angle(wheel_angles[i])
@@ -134,7 +148,6 @@ class DriveController(Node):
         msg.back_right.velocity = self.target_velocities[3]
         msg.back_right.angle = self.target_angles[3]
         self.wheel_states_pub.publish(msg)
-    
 
     def tick(self):
         # Skip tick if no drive message has been received recently.
@@ -145,7 +158,9 @@ class DriveController(Node):
         dt = 1.0 / self.rate.value
         for i in range(len(self.target_angles)):
             dx = self.target_angles[i] - self.current_angles[i]
-            dx = np.clip(dx, -self.swivel_speed.value * dt, self.swivel_speed.value * dt)
+            dx = np.clip(
+                dx, -self.swivel_speed.value * dt, self.swivel_speed.value * dt
+            )
             self.current_angles[i] += dx
 
         # Update current velocities.
@@ -156,12 +171,20 @@ class DriveController(Node):
 
         # Compute turn radius.
         msg = self.last_drive_msg
-        forwards_inv_radius = np.clip(msg.inv_radius, -1.0 / self.min_turn_radius.value, 1.0 / self.min_turn_radius.value)
-        sideways_inv_radius = forwards_inv_radius / self.sideways_turn_radius_scale.value
+        forwards_inv_radius = np.clip(
+            msg.inv_radius,
+            -1.0 / self.min_turn_radius.value,
+            1.0 / self.min_turn_radius.value,
+        )
+        sideways_inv_radius = (
+            forwards_inv_radius / self.sideways_turn_radius_scale.value
+        )
         speed = np.clip(msg.speed, -self.max_speed.value, self.max_speed.value)
         if abs(msg.sin_angle) <= 1:
             # regular driving
-            inv_radius = lerp(forwards_inv_radius, sideways_inv_radius, np.abs(msg.sin_angle))
+            inv_radius = lerp(
+                forwards_inv_radius, sideways_inv_radius, np.abs(msg.sin_angle)
+            )
 
             x = cos_from_sin(msg.sin_angle)
             y = msg.sin_angle
@@ -170,17 +193,23 @@ class DriveController(Node):
             # over-translated driving
             sin_angle = (2 - abs(msg.sin_angle)) * np.sign(msg.sin_angle)
             angle = np.arctan2(sin_angle, -cos_from_sin(sin_angle))
-            angle = np.clip(angle, -self.max_wheel_angle.value, self.max_wheel_angle.value)
-            over_translate_factor = (abs(angle) - np.pi / 2) / (self.max_wheel_angle.value - np.pi / 2)
+            angle = np.clip(
+                angle, -self.max_wheel_angle.value, self.max_wheel_angle.value
+            )
+            over_translate_factor = (abs(angle) - np.pi / 2) / (
+                self.max_wheel_angle.value - np.pi / 2
+            )
 
             inv_radius = lerp(sideways_inv_radius, 0, over_translate_factor)
 
             x = -cos_from_sin(sin_angle)
             y = sin_angle
             angular = inv_radius
-        
+
         # rotation twist
-        rotation_angular = np.clip(msg.rotation, -self.max_rotation_speed.value, self.max_rotation_speed.value)
+        rotation_angular = np.clip(
+            msg.rotation, -self.max_rotation_speed.value, self.max_rotation_speed.value
+        )
 
         if isinstance(self.state, SetupDriving):
             self.send_twist(x, y, angular, 0.001)
@@ -196,7 +225,9 @@ class DriveController(Node):
             self.send_twist(x, y, angular, speed)
 
             # Transition to rotation if the rotation is non-zero and the weheels are stopped.
-            if msg.rotation != 0 and np.allclose(self.current_velocities, [0, 0, 0, 0], atol=0.1):
+            if msg.rotation != 0 and np.allclose(
+                self.current_velocities, [0, 0, 0, 0], atol=0.1
+            ):
                 self.state = SetupRotating()
         elif isinstance(self.state, SetupRotating):
             self.send_twist(0, 0, 0.001)
@@ -224,6 +255,7 @@ class DriveController(Node):
             # Cancel timeout if rotation is non-zero.
             if msg.rotation != 0:
                 self.state = Rotating()
+
 
 def main():
     try:

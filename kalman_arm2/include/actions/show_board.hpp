@@ -24,7 +24,7 @@
 #include <visualization_msgs/msg/marker_array.hpp>
 
 class ShowBoard : public BT::StatefulActionNode {
-  public:
+public:
 	ShowBoard(
 	    const std::string           &name,
 	    const BT::NodeConfiguration &config,
@@ -37,7 +37,7 @@ class ShowBoard : public BT::StatefulActionNode {
 	BT::NodeStatus onRunning() override;
 	void           onHalted() override;
 
-  private:
+private:
 	rclcpp::Node *parent_;
 
 	rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr arm_pub_;
@@ -46,5 +46,6 @@ class ShowBoard : public BT::StatefulActionNode {
 	std::shared_ptr<tf2_ros::TransformBroadcaster>       tf_broadcaster_;
 	std::shared_ptr<tf2_ros::StaticTransformBroadcaster> static_broadcaster_;
 
-	rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr marker_pub_;
+	rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr
+	    marker_pub_;
 };

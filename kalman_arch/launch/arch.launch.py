@@ -20,7 +20,6 @@ def launch_setup(context):
         Node(
             package="kalman_arch",
             executable="cube_clouds",
-
         )
     ]
 

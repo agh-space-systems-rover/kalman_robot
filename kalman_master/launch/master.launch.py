@@ -4,7 +4,6 @@ from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 from ament_index_python import get_package_share_path
 
-
 BAUD_RATES = {
     "pc": 115200,
     "gs": 38400,
@@ -90,6 +89,10 @@ def launch_setup(context):
             package="kalman_master",
             executable="tunnel_client",
         ),
+        "laser_driver": Node(
+            package="kalman_master",
+            executable="laser_driver",
+        ),
         "drill_driver": Node(
             package="kalman_master",
             executable="drill_driver",
@@ -106,9 +109,17 @@ def launch_setup(context):
             package="kalman_master",
             executable="storage_driver",
         ),
+        "sand_storage_driver": Node(
+            package="kalman_master",
+            executable="sand_storage_driver",
+        ),
         "ph_driver": Node(
             package="kalman_master",
             executable="ph_driver",
+        ),
+        "wexlab_driver": Node(
+            package="kalman_master",
+            executable="wexlab_driver",
         ),
     }
 
@@ -119,6 +130,7 @@ def launch_setup(context):
             "wheel_driver",
             "ueuos_driver",
             "autonomy_spammer",
+            "laser_driver",
         ],
         "gs": [
             "master_com",
@@ -133,7 +145,10 @@ def launch_setup(context):
             "rfid_driver",
             "tunnel_client",
             "storage_driver",
+            "sand_storage_driver",
             "ph_driver",
+            "wexlab_driver",
+            "laser_driver",
         ],
         "arm": [
             "master_com",
