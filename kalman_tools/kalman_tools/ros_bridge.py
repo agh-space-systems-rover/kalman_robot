@@ -13,8 +13,8 @@ from roslibpy import Message, Ros, Topic
 
 from kalman_tools.master_message_catalog import cmd_to_receive_topic
 
-# Set up logging for background thread diagnostics
-logger = logging.getLogger(__name__)
+# Configure standard structured logging
+logger = logging.getLogger("kalman_tools.ros_bridge")
 
 MASTER_MESSAGE_TYPE = "kalman_interfaces/msg/MasterMessage"
 SEND_TOPIC = "master_com/ros_to_master"
@@ -60,7 +60,7 @@ class MasterRosBridge:
         self._spam_threads: dict[str, tuple[threading.Event, threading.Thread]] = {}
         self._received: deque[ReceivedMessage] = deque(maxlen=MAX_LOG_SIZE)
 
-        # Kick off the persistent connection runner on a dedicated daemon thread
+        # Separate thread initialization from connection lifecycles
         self._ros_thread = threading.Thread(target=self._run_ros_loop, daemon=True)
         self._ros_thread.start()
         atexit.register(self.close)
@@ -76,14 +76,18 @@ class MasterRosBridge:
                 return
             self._connected = connected
         if self._on_connection_change is not None:
-            self._on_connection_change(connected)
+            try:
+                self._on_connection_change(connected)
+            except Exception as e:
+                logger.error("Error executing connection state callback: %s", e)
 
     def _run_ros_loop(self) -> None:
+        """Runs the persistent ROS client event loop using safe run_forever hooks."""
         try:
             ros = Ros(host=self.host, port=self.port)
 
             def on_ready(*_) -> None:
-                # Triggered automatically upon initial connection AND every subsequent auto-reconnect
+                logger.info("Successfully connected to Rosbridge server at ws://%s:%s", self.host, self.port)
                 publisher = Topic(ros, SEND_TOPIC, MASTER_MESSAGE_TYPE)
                 publisher.advertise()
                 with self._lock:
@@ -94,6 +98,7 @@ class MasterRosBridge:
                 self._set_connected(True)
 
             def on_close(*_) -> None:
+                logger.warning("Rosbridge connection lost or closed.")
                 with self._lock:
                     self._publisher = None
                     self._subscribers.clear()
@@ -102,12 +107,11 @@ class MasterRosBridge:
             ros.on("ready", on_ready)
             ros.on("close", on_close)
 
-            # run_forever safely blocks this daemon thread and runs the event loop exactly once.
-            # roslibpy automatically re-establishes dropped connections internally.
+            # Safe blocking loop execution; natively manages internal reconnections
             ros.run_forever()
 
         except Exception as e:
-            logger.error("ROS bridge event loop encountered an error: %s", e)
+            logger.critical("Fatal failure in core ROS bridge runner: %s", e, exc_info=True)
         finally:
             with self._lock:
                 self._publisher = None
@@ -128,18 +132,23 @@ class MasterRosBridge:
         topic_name = cmd_to_receive_topic(cmd)
         topic = Topic(ros, topic_name, MASTER_MESSAGE_TYPE)
         topic.subscribe(
-            lambda message, cmd=cmd, topic_name=topic_name: self._on_message(
-                cmd, topic_name, message
-            )
+            lambda message, c=cmd, t=topic_name: self._on_message(c, t, message)
         )
         self._subscribers[cmd] = topic
 
     def _on_message(self, cmd: int, topic: str, message: dict) -> None:
-        data = [int(byte) for byte in message.get("data", [])]
+        try:
+            data = [int(byte) for byte in message.get("data", [])]
+        except (ValueError, TypeError):
+            logger.error("Malformed subscription frame data dropped from topic: %s", topic)
+            return
+
         with self._lock:
             filters = list(self._filters)
+
         if not self._matches_filters(data, filters):
             return
+
         received = ReceivedMessage(
             time=datetime.now(timezone.utc),
             cmd=cmd,
@@ -158,49 +167,36 @@ class MasterRosBridge:
                 return False
             left = data[filt.index]
             right = filt.value
-            if filt.op == "==":
-                if left != right:
-                    return False
-            elif filt.op == "!=":
-                if left == right:
-                    return False
-            elif filt.op == "<":
-                if not left < right:
-                    return False
-            elif filt.op == ">":
-                if not left > right:
-                    return False
-            elif filt.op == "<=":
-                if not left <= right:
-                    return False
-            elif filt.op == ">=":
-                if not left >= right:
-                    return False
-            else:
-                return False
+            if filt.op == "==" and left != right: return False
+            elif filt.op == "!=" and left == right: return False
+            elif filt.op == "<" and not left < right: return False
+            elif filt.op == ">" and not left > right: return False
+            elif filt.op == "<=" and not left <= right: return False
+            elif filt.op == ">=" and not left >= right: return False
         return True
 
     def send_frame(self, cmd: int, data: list[int]) -> None:
         with self._lock:
             publisher = self._publisher
         if publisher is None:
-            raise RuntimeError("Not connected to rosbridge")
-
+            raise RuntimeError("Not connected to Rosbridge node.")
         publisher.publish(Message({"cmd": int(cmd), "data": [int(b) for b in data]}))
 
     def start_spam(self, key: str, cmd: int, data: list[int], interval_s: float) -> None:
         if interval_s <= 0:
-            raise ValueError("Spam interval must be positive")
+            raise ValueError("Spam interval must be a positive float value.")
         self.stop_spam(key)
 
         stop_event = threading.Event()
 
         def spam_loop() -> None:
+            logger.info("Spam generator thread started for key '%s'", key)
             while not stop_event.wait(interval_s):
                 try:
                     self.send_frame(cmd, data)
                 except RuntimeError:
-                    logger.warning("Spam thread '%s' failed to write frame (disconnected). Retrying next tick...", key)
+                    # Resilient handling: drop warning and keep trying until stop_event triggers
+                    logger.warning("Spam key '%s' failed to write frame (link down). Retrying next tick...", key)
 
         thread = threading.Thread(target=spam_loop, daemon=True)
         with self._lock:
@@ -215,6 +211,7 @@ class MasterRosBridge:
         stop_event, thread = entry
         stop_event.set()
         thread.join(timeout=1.0)
+        logger.info("Spam generator thread terminated for key '%s'", key)
 
     def stop_all_spam(self) -> None:
         with self._lock:

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import uuid
+import time
 import streamlit as st
 
 from kalman_tools.master_message_catalog import (
@@ -93,13 +94,10 @@ def _render_sidebar(bridge: MasterRosBridge) -> float:
 
 
 def _render_send_tab(bridge: MasterRosBridge) -> None:
-    st.subheader("Transmit Commands")
-    st.caption("Dispatches payload envelopes onto `/master_com/ros_to_master`.")
-
     catalog_labels = _catalog_labels()
     rows: list[dict] = st.session_state.send_rows
 
-    if st.button("＋ Append Frame Sequence", key="add_send_row", use_container_width=True):
+    if st.button("＋ Append Frame Sequence", key="add_send_row", width="stretch"):
         rows.append({**DEFAULT_SEND_ROW, "id": str(uuid.uuid4())})
         st.rerun()
 
@@ -115,11 +113,11 @@ def _render_send_tab(bridge: MasterRosBridge) -> None:
             with hcols[0]:
                 row["name"] = st.text_input("Label / Operational Alias", key=f"send_name_{row_id}", disabled=spamming)
             with hcols[1]:
-                if st.button("🗑", key=f"remove_send_{row_id}", help="Drop Sequence", use_container_width=True):
+                if st.button("🗑", key=f"remove_send_{row_id}", help="Drop Sequence", width="content"):
                     remove_ids.append(row_id)
                     bridge.stop_spam(row_id)
             with hcols[2]:
-                if st.button("⎘", key=f"dup_send_{row_id}", help="Clone Sequence", use_container_width=True):
+                if st.button("⎘", key=f"dup_send_{row_id}", help="Clone Sequence", width="content"):
                     duplicate_rows.append({**row, "id": str(uuid.uuid4())})
 
             fcols = st.columns([1, 1])
@@ -161,7 +159,7 @@ def _render_send_tab(bridge: MasterRosBridge) -> None:
 
             acols = st.columns([1, 1, 2])
             with acols[0]:
-                if st.button("Send Once", key=f"send_now_{row_id}", disabled=disabled_action, type="primary", use_container_width=True):
+                if st.button("Send Once", key=f"send_now_{row_id}", disabled=disabled_action, type="primary", width="content"):
                     try:
                         bridge.send_frame(cmd_val, data_val)  # type: ignore[arg-type]
                         st.toast("Single frame written to bus.", icon="✅")
@@ -170,7 +168,7 @@ def _render_send_tab(bridge: MasterRosBridge) -> None:
 
             with acols[1]:
                 if not spamming:
-                    if st.button("▶ Start Spam", key=f"start_spam_{row_id}", disabled=disabled_action, use_container_width=True):
+                    if st.button("▶ Start Spam", key=f"start_spam_{row_id}", disabled=disabled_action, width="content"):
                         try:
                             bridge.start_spam(row_id, cmd_val, data_val, interval_s)  # type: ignore[arg-type]
                             st.toast("Continuous scheduler engaged.", icon="📡")
@@ -178,7 +176,7 @@ def _render_send_tab(bridge: MasterRosBridge) -> None:
                         except Exception as exc:
                             st.error(str(exc))
                 else:
-                    if st.button("⏹ Stop Spam", key=f"stop_spam_{row_id}", type="primary", use_container_width=True):
+                    if st.button("⏹ Stop Spam", key=f"stop_spam_{row_id}", type="primary", width="content"):
                         bridge.stop_spam(row_id)
                         st.rerun()
 
@@ -196,56 +194,52 @@ def _render_send_tab(bridge: MasterRosBridge) -> None:
         st.rerun()
 
     st.divider()
-    if st.button("⏹ Emergency Intercept: Cease All Spams", type="primary", key="stop_all_spam", use_container_width=True):
+    if st.button("⏹ Emergency Intercept: Cease All Spams", type="primary", key="stop_all_spam", width="content"):
         bridge.stop_all_spam()
         st.rerun()
 
 
-# Wrap the entire logs terminal layout inside an isolated Streamlit Fragment
-@st.fragment
 def _render_isolated_log_terminal(bridge: MasterRosBridge, selected_cmds: set[int], refresh_ms: float) -> None:
-    """Reruns strictly this function block at specified refresh intervals, matching optimal UX."""
     ctrl = st.columns([1, 1, 4])
-    if ctrl[0].button("🗑 Flush Buffer", key="clear_log", use_container_width=True):
+    if ctrl[0].button("🗑 Flush Buffer", key="clear_log", width="content"):
         bridge.clear_received_messages()
         st.rerun()
-    if ctrl[1].button("⟳ Manual Sync", key="refresh_log", use_container_width=True):
+    if ctrl[1].button("⟳ Manual Sync", key="refresh_log", width="content"):
         st.rerun()
 
-    messages = bridge.get_received_messages()
+    # Calculate interval in seconds. If 0, auto-refresh is disabled.
+    interval = refresh_ms / 1000.0 if refresh_ms > 0 else None
 
-    if bridge.connected and selected_cmds and not messages:
-        st.info("Awaiting bus frames. Ensure telemetry transmitters or loopbacks are activated.")
+    # An inner fragment captures the dynamic interval variable safely on every loop
+    @st.fragment(run_every=interval)
+    def _log_display_loop() -> None:
+        messages = bridge.get_received_messages()
 
-    if not messages:
-        st.write("Frame buffer empty.")
-        return
+        if bridge.connected and selected_cmds and not messages:
+            st.info("Awaiting bus frames. Ensure telemetry transmitters or loopbacks are activated.")
 
-    rows_data = []
-    for msg in reversed(messages):
-        local_time = msg.time.astimezone().strftime("%H:%M:%S.%f")[:-3]
-        rows_data.append(
-            {
-                "Timestamp": local_time,
-                "Command Directive": _cmd_display(msg.cmd),
-                "Destination Topic": msg.topic,
-                "Data (Dec)": format_payload(msg.data),
-                "Data (Hex)": format_payload_hex(msg.data),
-            }
-        )
-    st.dataframe(rows_data, use_container_width=True, hide_index=True)
+        if not messages:
+            st.write("Frame buffer empty.")
+            return
 
-    # Re-trigger only this fragment without causing global text-box resets or focus losses
-    if refresh_ms > 0:
-        st.cache_resource.get_id() # Keep dynamic fragment bindings alive
-        time_s = refresh_ms / 1000.0
-        st.rerun(scope="fragment")
+        rows_data = []
+        for msg in reversed(messages):
+            local_time = msg.time.astimezone().strftime("%H:%M:%S.%f")[:-3]
+            rows_data.append(
+                {
+                    "Timestamp": local_time,
+                    "Command Directive": _cmd_display(msg.cmd),
+                    "Destination Topic": msg.topic,
+                    "Data (Dec)": format_payload(msg.data),
+                    "Data (Hex)": format_payload_hex(msg.data),
+                }
+            )
+        st.dataframe(rows_data, width="content", hide_index=True)
+
+    _log_display_loop()
 
 
 def _render_receive_tab(bridge: MasterRosBridge, refresh_ms: float) -> None:
-    st.subheader("Bus Monitor Terminal")
-    st.caption("Eavesdrops on downstream command topics matching `master_com/master_to_ros/xNN`.")
-
     frames = list_frame_definitions()
     label_to_cmd = {frame.label: frame.cmd for frame in frames}
 
@@ -257,7 +251,6 @@ def _render_receive_tab(bridge: MasterRosBridge, refresh_ms: float) -> None:
     st.session_state.receive_cmds = selected_labels
     selected_cmds = {label_to_cmd[lbl] for lbl in selected_labels}
 
-    # Handle Filter Conditions safely
     st.markdown("**Logical Payload Filters** (All conditions must resolve — AND Constraint)")
     filter_rows: list[dict] = st.session_state.receive_filters
     if st.button("＋ Inject Logic Filter", key="add_filter"):
@@ -271,7 +264,7 @@ def _render_receive_tab(bridge: MasterRosBridge, refresh_ms: float) -> None:
         filt["index"] = fcols[0].number_input("Index Target", min_value=0, value=int(filt.get("index", 0)), key=f"fi_{i}")
         filt["op"] = fcols[1].selectbox("Operator", options=FILTER_OPS, index=FILTER_OPS.index(filt.get("op", "==")), key=f"fo_{i}")
         filt["value"] = fcols[2].number_input("Byte Constraint", min_value=0, max_value=255, value=int(filt.get("value", 0)), key=f"fv_{i}")
-        if fcols[3].button("🗑", key=f"rm_filter_{i}", use_container_width=True):
+        if fcols[3].button("🗑", key=f"rm_filter_{i}", width="content"):
             remove_filter_idxs.append(i)
         else:
             parsed_filters.append(Filter(index=int(filt["index"]), op=str(filt["op"]), value=int(filt["value"])))
@@ -281,8 +274,6 @@ def _render_receive_tab(bridge: MasterRosBridge, refresh_ms: float) -> None:
         st.rerun()
 
     bridge.set_subscriptions(selected_cmds, parsed_filters)
-
-    # Hand over to the isolated fragment rendering module
     _render_isolated_log_terminal(bridge, selected_cmds, refresh_ms)
 
 
@@ -294,11 +285,21 @@ def main() -> None:
     bridge = _get_bridge()
     refresh_ms = _render_sidebar(bridge)
 
-    send_tab, receive_tab = st.tabs(["📤 Command Uplink Hub", "📥 Diagnostic Telemetry Logs"])
-    with send_tab:
-        _render_send_tab(bridge)
-    with receive_tab:
-        _render_receive_tab(bridge, refresh_ms)
+    left_column, right_column = st.columns(2, gap="large")
+
+    # Left Column: Command Generation Panel
+    with left_column:
+        st.subheader("📤 Transmit Commands")
+        st.caption("Dispatches payload envelopes onto `/master_com/ros_to_master`.")
+        with st.container(height=800):
+            _render_send_tab(bridge)
+
+    # Right Column: Live Diagnostic Telemetry Monitor
+    with right_column:
+        st.subheader("📥 Diagnostic Telemetry Logs")
+        st.caption("Eavesdrops on downstream command topics matching `master_com/master_to_ros/xNN`.")
+        with st.container(height=800):
+            _render_receive_tab(bridge, refresh_ms)
 
 
 if __name__ == "__main__":
