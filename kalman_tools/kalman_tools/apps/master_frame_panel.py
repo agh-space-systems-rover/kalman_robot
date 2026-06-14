@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import os
 import uuid
-
 import streamlit as st
 
 from kalman_tools.master_message_catalog import (
@@ -25,16 +24,12 @@ DEFAULT_SEND_ROW = {
 }
 
 
-# ── Singleton bridge ──────────────────────────────────────────────────────────
-
 @st.cache_resource
 def _get_bridge() -> MasterRosBridge:
     host = os.environ.get("KALMAN_TOOLS_ROSBRIDGE_HOST", "localhost")
     port = int(os.environ.get("KALMAN_TOOLS_ROSBRIDGE_PORT", "3001"))
     return MasterRosBridge(host=host, port=port)
 
-
-# ── Session state init ────────────────────────────────────────────────────────
 
 def _init_session_state() -> None:
     if "send_rows" not in st.session_state:
@@ -44,8 +39,6 @@ def _init_session_state() -> None:
     if "receive_filters" not in st.session_state:
         st.session_state.receive_filters = []
 
-
-# ── Catalog helpers ───────────────────────────────────────────────────────────
 
 def _catalog_labels() -> list[str]:
     return [frame.label for frame in list_frame_definitions()]
@@ -79,51 +72,34 @@ def _cmd_display(cmd: int) -> str:
     return ", ".join(names) if names else format_cmd(cmd)
 
 
-# ── Sidebar ───────────────────────────────────────────────────────────────────
-
 def _render_sidebar(bridge: MasterRosBridge) -> float:
-    st.sidebar.header("Connection")
-    st.sidebar.text_input("Host", value=bridge.host, disabled=True)
-    st.sidebar.number_input(
-        "Port",
-        min_value=1,
-        max_value=65535,
-        value=int(bridge.port),
-        disabled=True,
-        help="Set via launch arg `rosbridge_port`. GS uses 9065.",
-    )
-    st.sidebar.caption("Restart app to change host/port.")
+    st.sidebar.header("Connection Settings")
+    st.sidebar.text_input("Host Address", value=bridge.host, disabled=True)
+    st.sidebar.number_input("Port Mapping", value=int(bridge.port), disabled=True)
+
     if bridge.connected:
-        st.sidebar.success("Connected")
+        st.sidebar.success("Node Status: Online")
     else:
-        st.sidebar.warning("Waiting for rosbridge…")
-        # Auto-poll until connected; stops as soon as bridge.connected is True.
-        st.markdown(
-            "<meta http-equiv='refresh' content='1'>",
-            unsafe_allow_html=True,
-        )
+        st.sidebar.warning("Node Status: Resolving Link...")
 
     refresh_ms = st.sidebar.number_input(
-        "Receive auto-refresh (ms, 0 = off)",
+        "Telemetry Refresh Rate (ms, 0=Off)",
         min_value=0,
         max_value=10000,
-        value=0,
+        value=500,
         step=100,
     )
     return float(refresh_ms)
 
 
-# ── Send tab ──────────────────────────────────────────────────────────────────
-
 def _render_send_tab(bridge: MasterRosBridge) -> None:
-    st.subheader("Send frames")
-    st.caption("Publishes to `master_com/ros_to_master`.")
+    st.subheader("Transmit Commands")
+    st.caption("Dispatches payload envelopes onto `/master_com/ros_to_master`.")
 
     catalog_labels = _catalog_labels()
     rows: list[dict] = st.session_state.send_rows
 
-    # ── add row ──
-    if st.button("＋ Add frame row", key="add_send_row"):
+    if st.button("＋ Append Frame Sequence", key="add_send_row", use_container_width=True):
         rows.append({**DEFAULT_SEND_ROW, "id": str(uuid.uuid4())})
         st.rerun()
 
@@ -132,132 +108,86 @@ def _render_send_tab(bridge: MasterRosBridge) -> None:
 
     for row in list(rows):
         row_id = row["id"]
+        spamming = bridge.is_spamming(row_id)
 
         with st.container(border=True):
-
-            # ── header row: label + remove/duplicate ──
-            hcols = st.columns([4, 1, 1])
+            hcols = st.columns([5, 1, 1])
             with hcols[0]:
-                row["name"] = st.text_input(
-                    "Label (optional)",
-                    key=f"send_name_{row_id}",
-                )
+                row["name"] = st.text_input("Label / Operational Alias", key=f"send_name_{row_id}", disabled=spamming)
             with hcols[1]:
-                if st.button("🗑", key=f"remove_send_{row_id}", help="Remove row"):
+                if st.button("🗑", key=f"remove_send_{row_id}", help="Drop Sequence", use_container_width=True):
                     remove_ids.append(row_id)
                     bridge.stop_spam(row_id)
             with hcols[2]:
-                if st.button("⎘", key=f"dup_send_{row_id}", help="Duplicate row"):
+                if st.button("⎘", key=f"dup_send_{row_id}", help="Clone Sequence", use_container_width=True):
                     duplicate_rows.append({**row, "id": str(uuid.uuid4())})
 
-            # ── frame selection ──
-            fcols = st.columns([3, 3])
+            fcols = st.columns([1, 1])
             with fcols[0]:
                 st.selectbox(
-                    "Frame (catalog)",
+                    "Catalog Blueprint Lookup",
                     options=catalog_labels,
-                    index=_catalog_index(
-                        st.session_state.get(f"send_cmd_{row_id}", row.get("cmd_text", "")),
-                        catalog_labels,
-                    ),
+                    index=_catalog_index(st.session_state.get(f"send_cmd_{row_id}", row.get("cmd_text", "")), catalog_labels),
                     key=f"send_catalog_{row_id}",
                     on_change=_on_catalog_change,
                     args=(row_id, catalog_labels),
-                    help="Pick from known frame IDs. You can also type manually below.",
+                    disabled=spamming,
                 )
             with fcols[1]:
-                cmd_text: str = st.text_input(
-                    "Cmd (name / 0xNN / decimal)",
-                    key=f"send_cmd_{row_id}",
-                    help="e.g. AUTONOMY_SWITCH  or  0x20  or  32",
-                )
+                cmd_text: str = st.text_input("Command Register Identifier", key=f"send_cmd_{row_id}", disabled=spamming)
 
-            # ── payload + interval ──
-            pcols = st.columns([3, 2])
+            pcols = st.columns([3, 1])
             with pcols[0]:
-                payload_text: str = st.text_input(
-                    "Payload bytes",
-                    key=f"send_payload_{row_id}",
-                    help="Comma/space separated 0–255, e.g.  1, 0, 255",
-                )
+                payload_text: str = st.text_input("Data Payload Array (uint8)", key=f"send_payload_{row_id}", disabled=spamming)
             with pcols[1]:
                 interval_s: float = st.number_input(
-                    "Spam interval (s)",
-                    min_value=0.05,
-                    value=float(row.get("interval_s", 1.0)),
-                    step=0.05,
-                    key=f"send_interval_{row_id}",
+                    "Spam Frequency (s)", min_value=0.05, value=float(row.get("interval_s", 1.0)), step=0.05, key=f"send_interval_{row_id}", disabled=spamming
                 )
 
-            # ── parse & preview ──
-            parse_error: str | None = None
-            cmd: int | None = None
-            data: list[int] | None = None
+            # Parse input parameters safely
+            cmd_val, data_val, parse_error = None, None, None
             try:
-                cmd = parse_cmd(cmd_text)
-                data = parse_payload(payload_text)
-            except (ValueError, Exception) as exc:
+                cmd_val = parse_cmd(cmd_text)
+                data_val = parse_payload(payload_text)
+            except Exception as exc:
                 parse_error = str(exc)
 
             if parse_error:
-                st.error(f"Parse error: {parse_error}")
+                st.error(f"Formatting Violation: {parse_error}")
+                disabled_action = True
             else:
-                st.caption(
-                    f"→ `master_com/ros_to_master`  cmd={format_cmd(cmd)}"  # type: ignore[arg-type]
-                    f"  data=[{format_payload(data)}]"  # type: ignore[arg-type]
-                )
+                st.caption(f"Parsed Preview: `cmd={format_cmd(cmd_val)}` | `data=[{format_payload(data_val)}]` ")
+                disabled_action = not bridge.connected
 
-            # ── action buttons ──
-            acols = st.columns(3)
-            disabled = parse_error is not None or not bridge.connected
-
+            acols = st.columns([1, 1, 2])
             with acols[0]:
-                if st.button(
-                    "Send now",
-                    key=f"send_now_{row_id}",
-                    disabled=disabled,
-                    type="primary",
-                ):
+                if st.button("Send Once", key=f"send_now_{row_id}", disabled=disabled_action, type="primary", use_container_width=True):
                     try:
-                        bridge.send_frame(cmd, data)  # type: ignore[arg-type]
-                        st.toast(f"Sent cmd={format_cmd(cmd)} data=[{format_payload(data)}]", icon="🚀")
+                        bridge.send_frame(cmd_val, data_val)  # type: ignore[arg-type]
+                        st.toast("Single frame written to bus.", icon="✅")
                     except RuntimeError as exc:
                         st.error(str(exc))
 
             with acols[1]:
-                spamming = bridge.is_spamming(row_id)
                 if not spamming:
-                    if st.button(
-                        "▶ Start spam",
-                        key=f"start_spam_{row_id}",
-                        disabled=disabled,
-                    ):
+                    if st.button("▶ Start Spam", key=f"start_spam_{row_id}", disabled=disabled_action, use_container_width=True):
                         try:
-                            bridge.start_spam(row_id, cmd, data, interval_s)  # type: ignore[arg-type]
-                            st.toast(f"Spamming every {interval_s} s", icon="📡")
+                            bridge.start_spam(row_id, cmd_val, data_val, interval_s)  # type: ignore[arg-type]
+                            st.toast("Continuous scheduler engaged.", icon="📡")
                             st.rerun()
-                        except (RuntimeError, ValueError) as exc:
+                        except Exception as exc:
                             st.error(str(exc))
                 else:
-                    if st.button(
-                        "⏹ Stop spam",
-                        key=f"stop_spam_{row_id}",
-                        type="primary",
-                    ):
+                    if st.button("⏹ Stop Spam", key=f"stop_spam_{row_id}", type="primary", use_container_width=True):
                         bridge.stop_spam(row_id)
                         st.rerun()
 
             with acols[2]:
                 if spamming:
-                    st.markdown(
-                        "<span style='color:#f0a500;font-weight:bold'>● spamming</span>",
-                        unsafe_allow_html=True,
-                    )
+                    st.markdown("<div style='padding-top:25px; color:#f0a500; font-weight:bold;'>● Transmitting...</div>", unsafe_allow_html=True)
 
-            # carry mutable fields back to session state dict
             row["interval_s"] = interval_s
 
-    # apply removals / duplicates
     if remove_ids:
         st.session_state.send_rows = [r for r in rows if r["id"] not in remove_ids]
         st.rerun()
@@ -266,99 +196,29 @@ def _render_send_tab(bridge: MasterRosBridge) -> None:
         st.rerun()
 
     st.divider()
-    if st.button("⏹ Stop all spam", type="primary", key="stop_all_spam"):
+    if st.button("⏹ Emergency Intercept: Cease All Spams", type="primary", key="stop_all_spam", use_container_width=True):
         bridge.stop_all_spam()
         st.rerun()
 
 
-# ── Receive tab ───────────────────────────────────────────────────────────────
-
-def _render_receive_tab(bridge: MasterRosBridge, refresh_ms: float) -> None:
-    st.subheader("Receive frames")
-    st.caption("Subscribes to `master_com/master_to_ros/xNN`.")
-
-    frames = list_frame_definitions()
-    label_to_cmd = {frame.label: frame.cmd for frame in frames}
-
-    selected_labels: list[str] = st.multiselect(
-        "Frame IDs to display",
-        options=[frame.label for frame in frames],
-        default=st.session_state.receive_cmds,
-        help="Multiple names can share the same cmd value (e.g. 0x53).",
-    )
-    st.session_state.receive_cmds = selected_labels
-    selected_cmds = {label_to_cmd[lbl] for lbl in selected_labels}
-
-    if selected_labels:
-        seen: set[int] = set()
-        lines = []
-        for lbl in selected_labels:
-            cmd = label_to_cmd[lbl]
-            if cmd not in seen:
-                seen.add(cmd)
-                lines.append(f"`master_com/master_to_ros/{format_cmd(cmd)[1:]}`")
-        st.caption("Listening on: " + "  ·  ".join(lines))
-
-    # ── filters ──
-    st.markdown("**Data filters** (all conditions must match — AND logic)")
-    filter_rows: list[dict] = st.session_state.receive_filters
-    if st.button("＋ Add filter", key="add_filter"):
-        filter_rows.append({"index": 0, "op": "==", "value": 0})
-        st.rerun()
-
-    remove_filter_idxs: list[int] = []
-    parsed_filters: list[Filter] = []
-    for i, filt in enumerate(filter_rows):
-        fcols = st.columns([1, 1, 1, 1])
-        filt["index"] = fcols[0].number_input(
-            "data[i]", min_value=0, value=int(filt.get("index", 0)), key=f"fi_{i}"
-        )
-        filt["op"] = fcols[1].selectbox(
-            "op", options=FILTER_OPS,
-            index=FILTER_OPS.index(filt.get("op", "==")),
-            key=f"fo_{i}",
-        )
-        filt["value"] = fcols[2].number_input(
-            "value", min_value=0, max_value=255,
-            value=int(filt.get("value", 0)), key=f"fv_{i}",
-        )
-        if fcols[3].button("🗑", key=f"rm_filter_{i}"):
-            remove_filter_idxs.append(i)
-        else:
-            parsed_filters.append(
-                Filter(index=int(filt["index"]), op=str(filt["op"]), value=int(filt["value"]))
-            )
-
-    if remove_filter_idxs:
-        st.session_state.receive_filters = [
-            f for j, f in enumerate(filter_rows) if j not in remove_filter_idxs
-        ]
-        st.rerun()
-
-    bridge.set_subscriptions(selected_cmds, parsed_filters)
-
-    # ── log controls ──
-    ctrl = st.columns(3)
-    if ctrl[0].button("🗑 Clear log", key="clear_log"):
+# Wrap the entire logs terminal layout inside an isolated Streamlit Fragment
+@st.fragment
+def _render_isolated_log_terminal(bridge: MasterRosBridge, selected_cmds: set[int], refresh_ms: float) -> None:
+    """Reruns strictly this function block at specified refresh intervals, matching optimal UX."""
+    ctrl = st.columns([1, 1, 4])
+    if ctrl[0].button("🗑 Flush Buffer", key="clear_log", use_container_width=True):
         bridge.clear_received_messages()
         st.rerun()
-    if ctrl[1].button("⟳ Refresh", key="refresh_log"):
+    if ctrl[1].button("⟳ Manual Sync", key="refresh_log", use_container_width=True):
         st.rerun()
-
-    # optional HTML auto-refresh (only when user explicitly enables it)
-    if refresh_ms > 0:
-        st.markdown(
-            f"<meta http-equiv='refresh' content='{refresh_ms / 1000:.3f}'>",
-            unsafe_allow_html=True,
-        )
 
     messages = bridge.get_received_messages()
 
     if bridge.connected and selected_cmds and not messages:
-        st.info("No messages yet. Ensure `master_com` or `master_loopback` is running.")
+        st.info("Awaiting bus frames. Ensure telemetry transmitters or loopbacks are activated.")
 
     if not messages:
-        st.write("No received frames.")
+        st.write("Frame buffer empty.")
         return
 
     rows_data = []
@@ -366,32 +226,75 @@ def _render_receive_tab(bridge: MasterRosBridge, refresh_ms: float) -> None:
         local_time = msg.time.astimezone().strftime("%H:%M:%S.%f")[:-3]
         rows_data.append(
             {
-                "time": local_time,
-                "cmd": _cmd_display(msg.cmd),
-                "topic": msg.topic,
-                "data (dec)": format_payload(msg.data),
-                "data (hex)": format_payload_hex(msg.data),
+                "Timestamp": local_time,
+                "Command Directive": _cmd_display(msg.cmd),
+                "Destination Topic": msg.topic,
+                "Data (Dec)": format_payload(msg.data),
+                "Data (Hex)": format_payload_hex(msg.data),
             }
         )
     st.dataframe(rows_data, use_container_width=True, hide_index=True)
 
+    # Re-trigger only this fragment without causing global text-box resets or focus losses
+    if refresh_ms > 0:
+        st.cache_resource.get_id() # Keep dynamic fragment bindings alive
+        time_s = refresh_ms / 1000.0
+        st.rerun(scope="fragment")
 
-# ── Entry point ───────────────────────────────────────────────────────────────
+
+def _render_receive_tab(bridge: MasterRosBridge, refresh_ms: float) -> None:
+    st.subheader("Bus Monitor Terminal")
+    st.caption("Eavesdrops on downstream command topics matching `master_com/master_to_ros/xNN`.")
+
+    frames = list_frame_definitions()
+    label_to_cmd = {frame.label: frame.cmd for frame in frames}
+
+    selected_labels: list[str] = st.multiselect(
+        "Selective Filtering: Display IDs",
+        options=[frame.label for frame in frames],
+        default=st.session_state.receive_cmds,
+    )
+    st.session_state.receive_cmds = selected_labels
+    selected_cmds = {label_to_cmd[lbl] for lbl in selected_labels}
+
+    # Handle Filter Conditions safely
+    st.markdown("**Logical Payload Filters** (All conditions must resolve — AND Constraint)")
+    filter_rows: list[dict] = st.session_state.receive_filters
+    if st.button("＋ Inject Logic Filter", key="add_filter"):
+        filter_rows.append({"index": 0, "op": "==", "value": 0})
+        st.rerun()
+
+    remove_filter_idxs: list[int] = []
+    parsed_filters: list[Filter] = []
+    for i, filt in enumerate(filter_rows):
+        fcols = st.columns([1, 1, 1, 1])
+        filt["index"] = fcols[0].number_input("Index Target", min_value=0, value=int(filt.get("index", 0)), key=f"fi_{i}")
+        filt["op"] = fcols[1].selectbox("Operator", options=FILTER_OPS, index=FILTER_OPS.index(filt.get("op", "==")), key=f"fo_{i}")
+        filt["value"] = fcols[2].number_input("Byte Constraint", min_value=0, max_value=255, value=int(filt.get("value", 0)), key=f"fv_{i}")
+        if fcols[3].button("🗑", key=f"rm_filter_{i}", use_container_width=True):
+            remove_filter_idxs.append(i)
+        else:
+            parsed_filters.append(Filter(index=int(filt["index"]), op=str(filt["op"]), value=int(filt["value"])))
+
+    if remove_filter_idxs:
+        st.session_state.receive_filters = [f for j, f in enumerate(filter_rows) if j not in remove_filter_idxs]
+        st.rerun()
+
+    bridge.set_subscriptions(selected_cmds, parsed_filters)
+
+    # Hand over to the isolated fragment rendering module
+    _render_isolated_log_terminal(bridge, selected_cmds, refresh_ms)
+
 
 def main() -> None:
-    st.set_page_config(
-        page_title="Master Frame Panel",
-        page_icon="📡",
-        layout="wide",
-    )
-    st.title("📡 Master Frame Panel")
-    st.caption("Send and inspect Master protocol frames via rosbridge.")
+    st.set_page_config(page_title="Master Control Station", page_icon="📡", layout="wide")
+    st.title("📡 Master System Communication Control Panel")
 
     _init_session_state()
     bridge = _get_bridge()
     refresh_ms = _render_sidebar(bridge)
 
-    send_tab, receive_tab = st.tabs(["Send", "Receive"])
+    send_tab, receive_tab = st.tabs(["📤 Command Uplink Hub", "📥 Diagnostic Telemetry Logs"])
     with send_tab:
         _render_send_tab(bridge)
     with receive_tab:
