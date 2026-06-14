@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import atexit
+import base64
 import logging
 import threading
 import time
@@ -137,10 +138,22 @@ class MasterRosBridge:
         self._subscribers[cmd] = topic
 
     def _on_message(self, cmd: int, topic: str, message: dict) -> None:
+
+        logger.info(f"Received message: {message}")
+
         try:
-            data = [int(byte) for byte in message.get("data", [])]
-        except (ValueError, TypeError):
-            logger.error("Malformed subscription frame data dropped from topic: %s", topic)
+            raw_data = message.get("data", [])
+
+            # If Rosbridge compressed the uint8[] array into a Base64 string:
+            if isinstance(raw_data, str):
+                data = list(base64.b64decode(raw_data))
+            else:
+                data = [int(byte) for byte in raw_data]
+
+        except Exception as exc:
+            # Safe logging prevents the background websocket thread from failing silently
+            import sys
+            logger.error(f"[Bridge Decoder Error] Failed parsing topic {topic}: {exc}", file=sys.stderr)
             return
 
         with self._lock:

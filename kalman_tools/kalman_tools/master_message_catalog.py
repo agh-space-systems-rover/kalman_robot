@@ -109,8 +109,8 @@ def parse_cmd(text: str) -> int:
 
 
 def format_payload(data: Iterable[int]) -> str:
-    return ", ".join(str(byte) for byte in data)
+    return ", ".join(str(byte) for byte in data) if data else "Empty"
 
 
 def format_payload_hex(data: Iterable[int]) -> str:
-    return " ".join(f"0x{byte:02x}" for byte in data)
+    return " ".join(f"0x{byte:02x}" for byte in data) if data else "Empty"
