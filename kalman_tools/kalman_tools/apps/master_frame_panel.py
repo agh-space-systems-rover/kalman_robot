@@ -1,62 +1,49 @@
 import os
 import streamlit as st
-import roslibpy
+from kalman_tools.ros_bridge import MasterRosBridge
 
 ROSBRIDGE_HOST = os.environ.get("KALMAN_TOOLS_ROSBRIDGE_HOST", "localhost")
 ROSBRIDGE_PORT = int(os.environ.get("KALMAN_TOOLS_ROSBRIDGE_PORT", "3001"))
 
-def connect_to_rosbridge() -> roslibpy.Ros:
-    if "ros_client" not in st.session_state:
-        st.session_state.ros_client = None
-
-    if st.session_state.ros_client is None or not st.session_state.ros_client.is_connected:
-        try:
-            client = roslibpy.Ros(host=ROSBRIDGE_HOST, port=ROSBRIDGE_PORT)
-            client.run(timeout=1.5)
-            if client.is_connected:
-                st.session_state.ros_client = client
-        except Exception:
-            st.session_state.ros_client = None
-    client = st.session_state.ros_client
-    return client
-
-def send_custom_message(client: roslibpy.Ros, cmd: int, data: list[int]) -> None:
+def get_ros_bridge() -> MasterRosBridge:
     """
-    Sends a custom ROS message to the master topic using the specific
-    dictionary payload structure expected by the bridge.
+    Retrieves or initializes the long-running MasterRosBridge instance
+    inside Streamlit's session state.
     """
-    talker = roslibpy.Topic(client, '/master_com/ros_to_master', 'kalman_interfaces/msg/MasterMessage')
+    if "ros_bridge" not in st.session_state:
+        # MasterRosBridge handles background thread looping and auto-reconnection internally
+        st.session_state.ros_bridge = MasterRosBridge(host=ROSBRIDGE_HOST, port=ROSBRIDGE_PORT)
+    return st.session_state.ros_bridge
 
-    # Payload format directly aligned with the ros_bridge publishing structure
-    payload = {
-        "cmd": int(cmd),
-        "data": [int(b) for b in data]
-    }
+def send_custom_message(bridge: MasterRosBridge, cmd: int, data: list[int]) -> None:
+    """
+    Wraps the bridge's send_frame execution to keep message sending clean.
+    """
+    bridge.send_frame(cmd, data)
 
-    talker.publish(roslibpy.Message(payload))
-    talker.unadvertise()
-
-def page_panel(client: roslibpy.Ros):
+def page_panel(bridge: MasterRosBridge):
     st.set_page_config(page_title="Master Sender", layout="centered")
     st.title("📡 Master Frame Sender")
 
-    if client and client.is_connected:
+    # Utilize the bridge's thread-safe connection property
+    if bridge.connected:
         st.success(f"Connected to Rosbridge at ws://{ROSBRIDGE_HOST}:{ROSBRIDGE_PORT}")
 
         if st.button("Send Message to Master", type="primary", use_container_width=True):
             try:
-                send_custom_message(client, cmd=0x5e, data=[0, 0])
+                # Retaining simple hardcoded values for testing
+                send_custom_message(bridge, cmd=100, data=[0, 0])
                 st.toast("Message successfully sent to master!", icon="🚀")
             except Exception as e:
                 st.error(f"Failed to transmit frame: {e}")
     else:
         st.error(f"Offline: Unable to reach Rosbridge server at ws://{ROSBRIDGE_HOST}:{ROSBRIDGE_PORT}")
-        if st.button("Retry Connection"):
+        if st.button("Check/Retry Status"):
             st.rerun()
 
 def main() -> None:
-    client = connect_to_rosbridge()
-    page_panel(client)
+    bridge = get_ros_bridge()
+    page_panel(bridge)
 
 if __name__ == "__main__":
     main()

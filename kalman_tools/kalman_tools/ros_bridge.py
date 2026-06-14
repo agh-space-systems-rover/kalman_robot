@@ -60,6 +60,7 @@ class MasterRosBridge:
         self._spam_threads: dict[str, tuple[threading.Event, threading.Thread]] = {}
         self._received: deque[ReceivedMessage] = deque(maxlen=MAX_LOG_SIZE)
 
+        # Kick off the persistent connection runner on a dedicated daemon thread
         self._ros_thread = threading.Thread(target=self._run_ros_loop, daemon=True)
         self._ros_thread.start()
         atexit.register(self.close)
@@ -78,24 +79,16 @@ class MasterRosBridge:
             self._on_connection_change(connected)
 
     def _run_ros_loop(self) -> None:
-        ros: Ros | None = None
         try:
-            # max_reconnection_attempts=-1: roslibpy retries inside the same
-            # Twisted reactor run — no reactor restart needed.
-            ros = Ros(
-                host=self.host,
-                port=self.port,
-                retry_startup_delay=2.0,
-                max_reconnection_attempts=-1,
-            )
+            ros = Ros(host=self.host, port=self.port)
 
             def on_ready(*_) -> None:
+                # Triggered automatically upon initial connection AND every subsequent auto-reconnect
                 publisher = Topic(ros, SEND_TOPIC, MASTER_MESSAGE_TYPE)
                 publisher.advertise()
                 with self._lock:
                     self._ros = ros
                     self._publisher = publisher
-                    # clear any stale subscribers from a previous connection
                     self._subscribers.clear()
                     self._resubscribe_locked()
                 self._set_connected(True)
@@ -104,26 +97,23 @@ class MasterRosBridge:
                 with self._lock:
                     self._publisher = None
                     self._subscribers.clear()
-                    self._ros = None
                 self._set_connected(False)
 
             ros.on("ready", on_ready)
             ros.on("close", on_close)
-            ros.run()  # blocks until ros.terminate() is called
+
+            # run_forever safely blocks this daemon thread and runs the event loop exactly once.
+            # roslibpy automatically re-establishes dropped connections internally.
+            ros.run_forever()
 
         except Exception as e:
-            logger.exception("Exception occurred in the core ROS loop thread: %s", e)
+            logger.error("ROS bridge event loop encountered an error: %s", e)
         finally:
             with self._lock:
                 self._publisher = None
                 self._subscribers.clear()
                 self._ros = None
             self._set_connected(False)
-            if ros is not None:
-                try:
-                    ros.terminate()
-                except Exception:
-                    pass
 
     def _resubscribe_locked(self) -> None:
         ros = self._ros
@@ -195,6 +185,7 @@ class MasterRosBridge:
             publisher = self._publisher
         if publisher is None:
             raise RuntimeError("Not connected to rosbridge")
+
         publisher.publish(Message({"cmd": int(cmd), "data": [int(b) for b in data]}))
 
     def start_spam(self, key: str, cmd: int, data: list[int], interval_s: float) -> None:
@@ -209,9 +200,7 @@ class MasterRosBridge:
                 try:
                     self.send_frame(cmd, data)
                 except RuntimeError:
-                    # FIX: Do not drop the thread completely. Network drops are expected,
-                    # so log the incident and gracefully wait for the next iteration window.
-                    logger.warning("Spam thread '%s' failed to write frame (disconnected). Retrying next frame tick...", key)
+                    logger.warning("Spam thread '%s' failed to write frame (disconnected). Retrying next tick...", key)
 
         thread = threading.Thread(target=spam_loop, daemon=True)
         with self._lock:
