@@ -1,4 +1,5 @@
 import Arms from './arm';
+import Camera2Dof from './camera-2dof';
 import Feeds from './feeds';
 import Imu from './imu';
 import Map from './map';
@@ -13,6 +14,7 @@ import Wheels from './wheels';
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import {
   faBullseye,
+  faCamera,
   faCube,
   faLocationDot,
   faVideo,
@@ -36,7 +38,8 @@ export type PanelID =
   | 'mobile'
   | 'ueuos'
   | 'science'
-  | 'wexlab';
+  | 'wexlab'
+  | 'camera-2dof';
 export const defaultPanel: PanelID = 'map';
 export const panelInfos: Panels = {
   imu: {
@@ -94,6 +97,11 @@ export const panelInfos: Panels = {
     Component: Wexlab,
     name: 'WExLab',
     icon: faMicroscope
+  },
+  'camera-2dof': {
+    Component: Camera2Dof,
+    name: 'Camera 2DOF',
+    icon: faCamera
   }
 };
 
