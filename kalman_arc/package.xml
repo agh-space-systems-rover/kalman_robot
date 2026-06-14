@@ -29,9 +29,7 @@
   <build_depend>qtbase5-dev</build_depend>
   <depend>tf2_ros</depend>
   <depend>tf2_sensor_msgs</depend>
-  <depend>grid_map_ros</depend>
-  <depend>grid_map_core</depend>
-  <depend>grid_map_msgs</depend>
+  <depend>grid_map</depend>
   <depend>std_srvs</depend>
 
   <exec_depend>ros2launch</exec_depend>

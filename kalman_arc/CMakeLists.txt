@@ -153,6 +153,8 @@ ament_target_dependencies(darkest_rock_finder_node
   tf2_ros
   tf2_geometry_msgs
   std_srvs
+  # This dependency is completely unnnecessary, but compilation fails without it. I don't know why. I don't think I want to know:
+  grid_map_core # 67
 )
 rclcpp_components_register_node(
   darkest_rock_finder_node
