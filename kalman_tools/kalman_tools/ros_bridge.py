@@ -1,11 +1,8 @@
 from __future__ import annotations
 
 import atexit
-import json
-import os
 import threading
 import time
-import urllib.request
 from collections import deque
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -18,40 +15,6 @@ from kalman_tools.master_message_catalog import cmd_to_receive_topic
 MASTER_MESSAGE_TYPE = "kalman_interfaces/msg/MasterMessage"
 SEND_TOPIC = "master_com/ros_to_master"
 MAX_LOG_SIZE = 500
-DEBUG_LOG_PATH = "/home/wiktor/programming/students_research_group/agh_space_systems/kalman_ws/.cursor/debug-cebf79.log"
-DEBUG_SESSION_ID = "cebf79"
-DEBUG_INGEST_URL = "http://127.0.0.1:7506/ingest/07c2b1c4-cc73-4d5a-b1d6-172fb49d8897"
-
-
-def _debug_log(hypothesis_id: str, location: str, message: str, data: dict) -> None:
-    payload = {
-        "sessionId": DEBUG_SESSION_ID,
-        "runId": f"pid-{os.getpid()}",
-        "hypothesisId": hypothesis_id,
-        "location": location,
-        "message": message,
-        "data": data,
-        "timestamp": int(time.time() * 1000),
-    }
-    try:
-        request = urllib.request.Request(
-            DEBUG_INGEST_URL,
-            data=json.dumps(payload).encode("utf-8"),
-            headers={
-                "Content-Type": "application/json",
-                "X-Debug-Session-Id": DEBUG_SESSION_ID,
-            },
-            method="POST",
-        )
-        with urllib.request.urlopen(request, timeout=0.2):
-            pass
-    except Exception:
-        pass
-    try:
-        with open(DEBUG_LOG_PATH, "a", encoding="utf-8") as debug_file:
-            debug_file.write(json.dumps(payload, separators=(",", ":")) + "\n")
-    except Exception:
-        pass
 
 
 @dataclass(frozen=True)
@@ -92,21 +55,6 @@ class MasterRosBridge:
 
         self._spam_threads: dict[str, tuple[threading.Event, threading.Thread]] = {}
         self._received: deque[ReceivedMessage] = deque(maxlen=MAX_LOG_SIZE)
-        self._loop_iteration = 0
-
-        # region agent log
-        _debug_log(
-            "H2",
-            "ros_bridge.py:82",
-            "MasterRosBridge init",
-            {
-                "instanceId": id(self),
-                "host": self.host,
-                "port": self.port,
-                "thread": threading.current_thread().name,
-            },
-        )
-        # endregion
 
         self._ros_thread = threading.Thread(target=self._run_ros_loop, daemon=True)
         self._ros_thread.start()
@@ -126,126 +74,52 @@ class MasterRosBridge:
             self._on_connection_change(connected)
 
     def _run_ros_loop(self) -> None:
-        while not self._closed:
-            ros: Ros | None = None
-            try:
-                self._loop_iteration += 1
-                # region agent log
-                _debug_log(
-                    "H1",
-                    "ros_bridge.py:107",
-                    "_run_ros_loop iteration start",
-                    {
-                        "instanceId": id(self),
-                        "loopIteration": self._loop_iteration,
-                        "closed": self._closed,
-                    },
-                )
-                # endregion
-                ros = Ros(host=self.host, port=self.port)
+        ros: Ros | None = None
+        try:
+            # max_reconnection_attempts=-1: roslibpy retries inside the same
+            # Twisted reactor run — no reactor restart needed.
+            ros = Ros(
+                host=self.host,
+                port=self.port,
+                retry_startup_delay=2.0,
+                max_reconnection_attempts=-1,
+            )
 
-                def on_ready(*_) -> None:
-                    # region agent log
-                    _debug_log(
-                        "H4",
-                        "ros_bridge.py:122",
-                        "on_ready callback",
-                        {
-                            "instanceId": id(self),
-                            "loopIteration": self._loop_iteration,
-                            "argCount": len(_),
-                        },
-                    )
-                    # endregion
-                    if ros is None:
-                        return
-                    publisher = Topic(ros, SEND_TOPIC, MASTER_MESSAGE_TYPE)
-                    publisher.advertise()
-                    with self._lock:
-                        self._ros = ros
-                        self._publisher = publisher
-                        self._resubscribe_locked()
-                    self._set_connected(True)
+            def on_ready(*_) -> None:
+                publisher = Topic(ros, SEND_TOPIC, MASTER_MESSAGE_TYPE)
+                publisher.advertise()
+                with self._lock:
+                    self._ros = ros
+                    self._publisher = publisher
+                    # clear any stale subscribers from a previous connection
+                    self._subscribers.clear()
+                    self._resubscribe_locked()
+                self._set_connected(True)
 
-                ros.on("ready", on_ready)
-                # region agent log
-                _debug_log(
-                    "H1",
-                    "ros_bridge.py:148",
-                    "calling ros.run",
-                    {
-                        "instanceId": id(self),
-                        "loopIteration": self._loop_iteration,
-                    },
-                )
-                # endregion
-                ros.run()
-                # region agent log
-                _debug_log(
-                    "H5",
-                    "ros_bridge.py:156",
-                    "ros.run returned, stopping loop to avoid Twisted reactor restart",
-                    {
-                        "instanceId": id(self),
-                        "loopIteration": self._loop_iteration,
-                    },
-                )
-                # endregion
-                break
-
-            except Exception as exc:
-                # region agent log
-                _debug_log(
-                    "H1",
-                    "ros_bridge.py:160",
-                    "_run_ros_loop exception",
-                    {
-                        "instanceId": id(self),
-                        "loopIteration": self._loop_iteration,
-                        "exceptionType": type(exc).__name__,
-                        "exceptionMessage": str(exc),
-                    },
-                )
-                # endregion
-                self._set_connected(False)
-                if exc.__class__.__name__ == "ReactorNotRestartable":
-                    # region agent log
-                    _debug_log(
-                        "H5",
-                        "ros_bridge.py:178",
-                        "ReactorNotRestartable caught, breaking retry loop",
-                        {
-                            "instanceId": id(self),
-                            "loopIteration": self._loop_iteration,
-                        },
-                    )
-                    # endregion
-                    break
-            finally:
+            def on_close(*_) -> None:
                 with self._lock:
                     self._publisher = None
                     self._subscribers.clear()
                     self._ros = None
                 self._set_connected(False)
-                if ros is not None:
-                    try:
-                        # region agent log
-                        _debug_log(
-                            "H3",
-                            "ros_bridge.py:180",
-                            "calling ros.terminate",
-                            {
-                                "instanceId": id(self),
-                                "loopIteration": self._loop_iteration,
-                            },
-                        )
-                        # endregion
-                        ros.terminate()
-                    except Exception:
-                        pass
 
-            if not self._closed:
-                time.sleep(1.0)
+            ros.on("ready", on_ready)
+            ros.on("close", on_close)
+            ros.run()  # blocks until ros.terminate() is called
+
+        except Exception:
+            pass
+        finally:
+            with self._lock:
+                self._publisher = None
+                self._subscribers.clear()
+                self._ros = None
+            self._set_connected(False)
+            if ros is not None:
+                try:
+                    ros.terminate()
+                except Exception:
+                    pass
 
     def _resubscribe_locked(self) -> None:
         ros = self._ros
@@ -317,7 +191,7 @@ class MasterRosBridge:
             publisher = self._publisher
         if publisher is None:
             raise RuntimeError("Not connected to rosbridge")
-        publisher.publish(Message({"cmd": int(cmd), "data": [int(byte) for byte in data]}))
+        publisher.publish(Message({"cmd": int(cmd), "data": [int(b) for b in data]}))
 
     def start_spam(self, key: str, cmd: int, data: list[int], interval_s: float) -> None:
         if interval_s <= 0:
@@ -353,6 +227,10 @@ class MasterRosBridge:
         for key in keys:
             self.stop_spam(key)
 
+    def is_spamming(self, key: str) -> bool:
+        with self._lock:
+            return key in self._spam_threads
+
     def set_subscriptions(self, cmds: set[int], filters: list[Filter]) -> None:
         with self._lock:
             self._filters = list(filters)
@@ -383,17 +261,6 @@ class MasterRosBridge:
             if self._closed:
                 return
             self._closed = True
-        # region agent log
-        _debug_log(
-            "H3",
-            "ros_bridge.py:319",
-            "close called",
-            {
-                "instanceId": id(self),
-                "loopIteration": self._loop_iteration,
-            },
-        )
-        # endregion
         self.stop_all_spam()
         with self._lock:
             for topic in self._subscribers.values():
