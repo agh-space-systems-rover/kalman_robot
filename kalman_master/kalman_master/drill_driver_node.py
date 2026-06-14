@@ -2,7 +2,7 @@ import struct
 import rclpy
 from rclpy.node import Node
 from kalman_interfaces.msg import DrillTelemetry, MasterMessage
-from std_msgs.msg import Int8, UInt8
+from std_msgs.msg import Float32, Int8, UInt8
 
 MIN_BRIDGE_VALUE = -100
 MAX_BRIDGE_VALUE = 100
@@ -21,10 +21,17 @@ class DrillDriver(Node):
             self.master_res_cb,
             10,
         )
+        self.weight_master_sub = self.create_subscription(
+            MasterMessage,
+            f"master_com/master_to_ros/{hex(MasterMessage.DRILL_WEIGHT_VALUE)[1:]}",
+            self.weight_master_res_cb,
+            10,
+        )
 
         self.telemetry_pub = self.create_publisher(
             DrillTelemetry, "science/drill/telemetry", 10
         )
+        self.weight_pub = self.create_publisher(Float32, "science/drill/weight", 10)
 
         self.drill_b_sub = self.create_subscription(
             Int8, "science/drill/b", self.drill_b_cb, 10
@@ -34,6 +41,9 @@ class DrillDriver(Node):
         )
         self.autonomy_sub = self.create_subscription(
             UInt8, "science/drill/autonomy", self.autonomy_cb, 10
+        )
+        self.weight_req_sub = self.create_subscription(
+            UInt8, "science/drill/weight/request", self.weight_req_cb, 10
         )
 
     def drill_b_cb(self, msg: Int8):
@@ -53,6 +63,18 @@ class DrillDriver(Node):
         self.master_pub.publish(
             MasterMessage(
                 cmd=MasterMessage.DRILL_AUTONOMY,
+                data=[value],
+            )
+        )
+
+    def weight_req_cb(self, msg: UInt8):
+        # Weight request values:
+        #   0 = tare
+        #   1 = request measurement
+        value = max(0, min(int(msg.data), 1))
+        self.master_pub.publish(
+            MasterMessage(
+                cmd=MasterMessage.DRILL_WEIGHT_REQ,
                 data=[value],
             )
         )
@@ -89,10 +111,18 @@ class DrillDriver(Node):
                 upper_limit_pressed=bool(flags & 0x01),
                 lower_limit_pressed=bool(flags & 0x02),
                 autonomy_active=bool(flags & 0x04),
-                homed=bool(flags & 0x08),
+                based=bool(flags & 0x08),
                 autonomy_state=autonomy_state,
             )
         )
+
+    def weight_master_res_cb(self, msg: MasterMessage):
+        if len(msg.data) != 4:
+            self.get_logger().warn("Received invalid drill weight length")
+            return
+
+        weight = struct.unpack("<f", bytes(msg.data))[0]
+        self.weight_pub.publish(Float32(data=float(weight)))
 
 
 def main():

@@ -15,7 +15,7 @@
   flex-direction: column;
   justify-content: stretch;
   align-items: stretch;
-  max-width: min(100%, 300px);
+  max-width: min(100%, 320px);
   min-width: 250px;
 }
 
@@ -62,7 +62,7 @@
 }
 
 .telemetry-label {
-  flex: 0 0 76px;
+  flex: 0 0 120px;
 }
 
 .disabled-input {

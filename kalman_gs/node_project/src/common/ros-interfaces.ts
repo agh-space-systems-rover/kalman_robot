@@ -224,7 +224,7 @@ export type DrillTelemetry = {
   upper_limit_pressed?: boolean;
   lower_limit_pressed?: boolean;
   autonomy_active?: boolean;
-  homed?: boolean;
+  based?: boolean;
   autonomy_state?: number;
 };
 

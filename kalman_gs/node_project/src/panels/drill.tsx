@@ -12,7 +12,8 @@ import {
   faPaperPlane,
   faPlay,
   faPlus,
-  faStop
+  faStop,
+  faWeightHanging
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useEffect, useRef, useState } from 'react';
@@ -26,6 +27,8 @@ let drillBTopic: Topic<{ data: number }> | undefined;
 let drillCTopic: Topic<{ data: number }> | undefined;
 let drillAutonomyTopic: Topic<{ data: number }> | undefined;
 let drillTelemetryTopic: Topic<DrillTelemetry> | undefined;
+let drillWeightReqTopic: Topic<{ data: number }> | undefined;
+let drillWeightTopic: Topic<{ data: number }> | undefined;
 
 const ensureDrillTopics = () => {
   if (!ros.isConnected) return;
@@ -50,6 +53,16 @@ const ensureDrillTopics = () => {
     name: '/science/drill/telemetry',
     messageType: 'kalman_interfaces/DrillTelemetry'
   });
+  drillWeightReqTopic ??= new Topic({
+    ros,
+    name: '/science/drill/weight/request',
+    messageType: 'std_msgs/UInt8'
+  });
+  drillWeightTopic ??= new Topic({
+    ros,
+    name: '/science/drill/weight',
+    messageType: 'std_msgs/Float32'
+  });
 };
 
 window.addEventListener('ros-connect', () => {
@@ -66,6 +79,7 @@ export default function Drill() {
   const [cValue, setCValue] = useState(0);
   const [autonomyState, setAutonomyState] = useState(0);
   const [telemetry, setTelemetry] = useState<DrillTelemetry | null>(null);
+  const [weight, setWeight] = useState<number | null>(null);
   const [lastTelemetryAt, setLastTelemetryAt] = useState<number | null>(null);
   const [secondsSinceTelemetry, setSecondsSinceTelemetry] = useState<number | null>(null);
   const [rerenderCount, setRerenderCount] = useState(0);
@@ -86,20 +100,28 @@ export default function Drill() {
     setTelemetry(null);
     setLastTelemetryAt(null);
     setSecondsSinceTelemetry(null);
+    setWeight(null);
 
     ensureDrillTopics();
 
-    const topic = drillTelemetryTopic;
-    if (!topic) return;
+    const telemetryTopic = drillTelemetryTopic;
+    const weightTopic = drillWeightTopic;
 
-    const cb = (msg: DrillTelemetry) => {
+    const telemetryCb = (msg: DrillTelemetry) => {
       setTelemetry(msg);
       setLastTelemetryAt(Date.now());
       setSecondsSinceTelemetry(0);
     };
+    const weightCb = (msg: { data: number }) => {
+      setWeight(msg.data);
+    };
 
-    topic.subscribe(cb);
-    return () => topic.unsubscribe(cb);
+    telemetryTopic?.subscribe(telemetryCb);
+    weightTopic?.subscribe(weightCb);
+    return () => {
+      telemetryTopic?.unsubscribe(telemetryCb);
+      weightTopic?.unsubscribe(weightCb);
+    };
   }, [rerenderCount]);
 
   useEffect(() => {
@@ -176,17 +198,41 @@ export default function Drill() {
     drillAutonomyTopic?.publish({ data: value });
   };
 
+  const requestWeight = () => {
+    ensureDrillTopics();
+    drillWeightReqTopic?.publish({ data: 1 });
+  };
+
+  const tareWeight = () => {
+    ensureDrillTopics();
+    drillWeightReqTopic?.publish({ data: 0 });
+  };
+
   const formatNumber = (value: number | undefined, digits = 1) => {
     return value !== undefined ? value.toFixed(digits) : '---';
   };
 
-  const formatBool = (value: boolean | undefined) => {
+  const formatLimit = (value: boolean | undefined) => {
     if (value === undefined) return '---';
-    return value ? 'Yes' : 'No';
+    return value ? 'Pressed' : 'Free';
   };
 
-  const formatHex = (value: number | undefined, width = 2) => {
-    return value !== undefined ? `0x${value.toString(16).toUpperCase().padStart(width, '0')}` : '---';
+  const formatAutonomyActive = (value: boolean | undefined) => {
+    if (value === undefined) return '---';
+    return value ? 'Active' : 'Manual';
+  };
+
+  const formatBased = (value: boolean | undefined) => {
+    if (value === undefined) return '---';
+    return value ? 'Ready' : 'Required';
+  };
+
+  const formatAutonomyState = (value: number | undefined) => {
+    if (value === undefined) return '---';
+    if (value === 0) return 'Stop';
+    if (value === 1) return 'Drilling';
+    if (value === 2) return 'Homing';
+    return `Unknown ${value}`;
   };
 
   return (
@@ -289,6 +335,20 @@ export default function Drill() {
         </div>
 
         <div className={styles['bridge-section']}>
+          <div className={styles['section-header']}>Scale</div>
+          <div className={styles['button-row']}>
+            <Button className={styles['large-button']} tooltip='Request drill weight measurement' onClick={requestWeight}>
+              <FontAwesomeIcon icon={faWeightHanging} />
+              &nbsp;&nbsp;Weigh
+            </Button>
+            <Button className={styles['large-button']} tooltip='Tare drill scale' onClick={tareWeight}>
+              <FontAwesomeIcon icon={faWeightHanging} />
+              &nbsp;&nbsp;Tare
+            </Button>
+          </div>
+        </div>
+
+        <div className={styles['bridge-section']}>
           <div className={styles['section-header']}>Autonomy</div>
           <div className={styles['button-row']}>
             {autonomyStates.map((state) => (
@@ -317,55 +377,57 @@ export default function Drill() {
           </div>
         </div>
         <div className={styles['drill-row']}>
-          <Label color='var(--dark-active)' className={styles['telemetry-label']}>Rack I</Label>
+          <Label color='var(--dark-active)' className={styles['telemetry-label']}>Rack Current I</Label>
           <div className={styles['disabled-input'] + ' ' + styles['selectable']}>
             <input value={`${formatNumber(telemetry?.rack_current, 2)} A`} disabled readOnly />
           </div>
         </div>
         <div className={styles['drill-row']}>
-          <Label color='var(--dark-active)' className={styles['telemetry-label']}>Drill I</Label>
+          <Label color='var(--dark-active)' className={styles['telemetry-label']}>Drill Current I</Label>
           <div className={styles['disabled-input'] + ' ' + styles['selectable']}>
             <input value={`${formatNumber(telemetry?.drill_current, 2)} A`} disabled readOnly />
           </div>
         </div>
         <div className={styles['drill-row']}>
-          <Label color='var(--dark-active)' className={styles['telemetry-label']}>Flags</Label>
+          <Label color='var(--dark-active)' className={styles['telemetry-label']}>Upper Limit</Label>
           <div className={styles['disabled-input'] + ' ' + styles['selectable']}>
-            <input value={formatHex(telemetry?.flags)} disabled readOnly />
+            <input value={formatLimit(telemetry?.upper_limit_pressed)} disabled readOnly />
           </div>
         </div>
         <div className={styles['drill-row']}>
-          <Label color='var(--dark-active)' className={styles['telemetry-label']}>Upper</Label>
+          <Label color='var(--dark-active)' className={styles['telemetry-label']}>Lower Limit</Label>
           <div className={styles['disabled-input'] + ' ' + styles['selectable']}>
-            <input value={formatBool(telemetry?.upper_limit_pressed)} disabled readOnly />
+            <input value={formatLimit(telemetry?.lower_limit_pressed)} disabled readOnly />
           </div>
         </div>
         <div className={styles['drill-row']}>
-          <Label color='var(--dark-active)' className={styles['telemetry-label']}>Lower</Label>
+          <Label color='var(--dark-active)' className={styles['telemetry-label']}>Autonomy</Label>
           <div className={styles['disabled-input'] + ' ' + styles['selectable']}>
-            <input value={formatBool(telemetry?.lower_limit_pressed)} disabled readOnly />
+            <input value={formatAutonomyActive(telemetry?.autonomy_active)} disabled readOnly />
           </div>
         </div>
         <div className={styles['drill-row']}>
-          <Label color='var(--dark-active)' className={styles['telemetry-label']}>Active</Label>
+          <Label color='var(--dark-active)' className={styles['telemetry-label']}>Based</Label>
           <div className={styles['disabled-input'] + ' ' + styles['selectable']}>
-            <input value={formatBool(telemetry?.autonomy_active)} disabled readOnly />
-          </div>
-        </div>
-        <div className={styles['drill-row']}>
-          <Label color='var(--dark-active)' className={styles['telemetry-label']}>Homed</Label>
-          <div className={styles['disabled-input'] + ' ' + styles['selectable']}>
-            <input value={formatBool(telemetry?.homed)} disabled readOnly />
+            <input value={formatBased(telemetry?.based)} disabled readOnly />
           </div>
         </div>
         <div className={styles['drill-row']}>
           <Label color='var(--dark-active)' className={styles['telemetry-label']}>State</Label>
           <div className={styles['disabled-input'] + ' ' + styles['selectable']}>
-            <input value={String(telemetry?.autonomy_state ?? '---')} disabled readOnly />
+            <input value={formatAutonomyState(telemetry?.autonomy_state)} disabled readOnly />
           </div>
         </div>
         <div className={styles['received-text']}>
           {secondsSinceTelemetry === null ? 'Received ---' : `Received ${secondsSinceTelemetry} s ago`}
+        </div>
+
+        <div className={styles['section-header']}>Scale</div>
+        <div className={styles['drill-row']}>
+          <Label color='var(--dark-active)' className={styles['telemetry-label']}>Weight</Label>
+          <div className={styles['disabled-input'] + ' ' + styles['selectable']}>
+            <input value={weight !== null ? `${weight.toFixed(2)} g` : '---'} disabled readOnly />
+          </div>
         </div>
       </div>
     </div>
