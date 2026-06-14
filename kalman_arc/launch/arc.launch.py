@@ -26,6 +26,13 @@ def launch_setup(context):
             package="kalman_arc",
             executable="darkest_rock_finder",
         ),
+        Node(
+            package="kalman_arc",
+            executable="peak_finder",
+            name="peak_finder_node",
+            parameters=[{"map_resolution": 0.3}],
+            output="screen",
+        ),
     ]
 
     if get_bool("enable_rscp_hw_driver"):

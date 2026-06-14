@@ -23,6 +23,7 @@ class Rscp(Module):
         self.__current_stage: int | None = None
         self.__pending_request: ArcRscpRequest | None = None
         self.__navigation_goal: tuple[float, float] | None = None  # (lat, lon)
+        self.__search_goal: tuple[float, float] | None = None  # (lat, lon)
         self.__exploration_start_requested = False
 
         # Subscribe to rscp/req
@@ -92,6 +93,7 @@ class Rscp(Module):
                         "[RSCP] NavigateToGPS received "
                         f"(lat={req.latitude}, lon={req.longitude}), sent ACK"
                     )
+            
             elif req.type == ArcRscpRequest.SEARCH_AREA:
                 if not self.is_armed():
                     self.supervisor.get_logger().warn(
@@ -101,8 +103,13 @@ class Rscp(Module):
                     self.supervisor.get_logger().warn(
                         "[RSCP] SearchArea request received but not implemented"
                     )
+                    self.__search_goal = (req.latitude, req.longitude)
                     self.send_ack()
-                    # TODO: Implement search area handling
+                    self.supervisor.get_logger().info(
+                        "[RSCP] Seach_AREA received "
+                        f"(lat={req.latitude}, lon={req.longitude}), sent ACK"
+                    )
+
             elif req.type == ArcRscpRequest.START_EXPLORATION:
                 self.__exploration_start_requested = True
                 self.send_ack()
@@ -196,6 +203,13 @@ class Rscp(Module):
 
     def get_navigation_goal(self) -> tuple[float, float] | None:
         return self.__navigation_goal
+    
+    def get_search_goal(self) -> tuple[float, float] | None:
+        return self.__search_goal
+    
+    def clear_search_goal(self) -> None:
+        self.__search_goal = None
+        self.supervisor.get_logger().info("[RSCP] Search goal cleared")
 
     def clear_navigation_goal(self) -> None:
         self.__navigation_goal = None
