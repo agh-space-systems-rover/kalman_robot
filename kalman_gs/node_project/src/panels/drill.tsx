@@ -30,6 +30,13 @@ let drillTelemetryTopic: Topic<DrillTelemetry> | undefined;
 let drillWeightReqTopic: Topic<{ data: number }> | undefined;
 let drillWeightTopic: Topic<{ data: number }> | undefined;
 
+type DrillGamepadUpdate = {
+  bridgeB?: number;
+  bridgeC?: number;
+  autonomy?: 0 | 1 | 2;
+  weightRequest?: 0 | 1;
+};
+
 const ensureDrillTopics = () => {
   if (!ros.isConnected) return;
 
@@ -82,17 +89,40 @@ export default function Drill() {
   const [weight, setWeight] = useState<number | null>(null);
   const [lastTelemetryAt, setLastTelemetryAt] = useState<number | null>(null);
   const [secondsSinceTelemetry, setSecondsSinceTelemetry] = useState<number | null>(null);
+  const [activeScaleAction, setActiveScaleAction] = useState<0 | 1 | null>(null);
   const [rerenderCount, setRerenderCount] = useState(0);
 
   useEffect(() => {
     const updateDrill = () => {
       setRerenderCount((count) => count + 1);
     };
+    const updateFromGamepad = (event: Event) => {
+      const detail = (event as CustomEvent<DrillGamepadUpdate>).detail;
+      if (detail.bridgeB !== undefined) {
+        setBValue(detail.bridgeB);
+        bInputRef.current?.setValue(detail.bridgeB);
+      }
+      if (detail.bridgeC !== undefined) {
+        setCValue(detail.bridgeC);
+        cInputRef.current?.setValue(detail.bridgeC);
+      }
+      if (detail.autonomy !== undefined) {
+        setAutonomyState(detail.autonomy);
+      }
+      if (detail.weightRequest !== undefined) {
+        setActiveScaleAction(detail.weightRequest);
+        window.setTimeout(() => {
+          setActiveScaleAction((current) => (current === detail.weightRequest ? null : current));
+        }, 200);
+      }
+    };
     ensureDrillTopics();
     window.addEventListener('drill-subscribed', updateDrill);
+    window.addEventListener('drill-gamepad-update', updateFromGamepad);
     window.dispatchEvent(new CustomEvent('drill-subscribed'));
     return () => {
       window.removeEventListener('drill-subscribed', updateDrill);
+      window.removeEventListener('drill-gamepad-update', updateFromGamepad);
     };
   }, []);
 
@@ -241,17 +271,31 @@ export default function Drill() {
         <div className={styles['bridge-section']}>
           <div className={styles['section-header']}>Bridge B</div>
           <div className={styles['button-row']}>
-            <Button className={styles['large-button']} tooltip='Move rack up' onClick={() => setBridgeBDirection(true)}>
+            <Button
+              className={styles['large-button']}
+              active={bValue > 0}
+              tooltip='Move rack up'
+              onClick={() => setBridgeBDirection(true)}
+            >
               <FontAwesomeIcon icon={faArrowUp} />
               &nbsp;&nbsp;Up
             </Button>
-            <Button className={styles['large-button']} tooltip='Move rack down' onClick={() => setBridgeBDirection(false)}>
+            <Button
+              className={styles['large-button']}
+              active={bValue < 0}
+              tooltip='Move rack down'
+              onClick={() => setBridgeBDirection(false)}
+            >
               <FontAwesomeIcon icon={faArrowDown} />
               &nbsp;&nbsp;Down
             </Button>
           </div>
           <div className={styles['input-row']}>
-            <Button className={styles['step-button']} tooltip='Decrease value by 1' onClick={() => commitBridgeB(bValue - 1)}>
+            <Button
+              className={styles['step-button']}
+              tooltip='Decrease value by 1'
+              onClick={() => commitBridgeB(bValue - 1)}
+            >
               <FontAwesomeIcon icon={faMinus} />
             </Button>
             <Input
@@ -270,7 +314,11 @@ export default function Drill() {
                 commitBridgeB();
               }}
             />
-            <Button className={styles['step-button']} tooltip='Increase value by 1' onClick={() => commitBridgeB(bValue + 1)}>
+            <Button
+              className={styles['step-button']}
+              tooltip='Increase value by 1'
+              onClick={() => commitBridgeB(bValue + 1)}
+            >
               <FontAwesomeIcon icon={faPlus} />
             </Button>
           </div>
@@ -279,7 +327,11 @@ export default function Drill() {
               <FontAwesomeIcon icon={faPaperPlane} />
               &nbsp;&nbsp;Send
             </Button>
-            <Button className={styles['large-button'] + ' ' + styles['danger-button']} tooltip='Stop bridge B' onClick={stopBridgeB}>
+            <Button
+              className={styles['large-button'] + ' ' + styles['danger-button']}
+              tooltip='Stop bridge B'
+              onClick={stopBridgeB}
+            >
               <FontAwesomeIcon icon={faStop} />
               &nbsp;&nbsp;Stop
             </Button>
@@ -289,17 +341,31 @@ export default function Drill() {
         <div className={styles['bridge-section']}>
           <div className={styles['section-header']}>Bridge C</div>
           <div className={styles['button-row']}>
-            <Button className={styles['large-button']} tooltip='Rotate drill right' onClick={() => setBridgeCDirection(true)}>
+            <Button
+              className={styles['large-button']}
+              active={cValue > 0}
+              tooltip='Rotate drill right'
+              onClick={() => setBridgeCDirection(true)}
+            >
               <FontAwesomeIcon icon={faArrowRight} />
               &nbsp;&nbsp;Right
             </Button>
-            <Button className={styles['large-button']} tooltip='Rotate drill left' onClick={() => setBridgeCDirection(false)}>
+            <Button
+              className={styles['large-button']}
+              active={cValue < 0}
+              tooltip='Rotate drill left'
+              onClick={() => setBridgeCDirection(false)}
+            >
               <FontAwesomeIcon icon={faArrowLeft} />
               &nbsp;&nbsp;Left
             </Button>
           </div>
           <div className={styles['input-row']}>
-            <Button className={styles['step-button']} tooltip='Decrease value by 1' onClick={() => commitBridgeC(cValue - 1)}>
+            <Button
+              className={styles['step-button']}
+              tooltip='Decrease value by 1'
+              onClick={() => commitBridgeC(cValue - 1)}
+            >
               <FontAwesomeIcon icon={faMinus} />
             </Button>
             <Input
@@ -318,7 +384,11 @@ export default function Drill() {
                 commitBridgeC();
               }}
             />
-            <Button className={styles['step-button']} tooltip='Increase value by 1' onClick={() => commitBridgeC(cValue + 1)}>
+            <Button
+              className={styles['step-button']}
+              tooltip='Increase value by 1'
+              onClick={() => commitBridgeC(cValue + 1)}
+            >
               <FontAwesomeIcon icon={faPlus} />
             </Button>
           </div>
@@ -327,7 +397,11 @@ export default function Drill() {
               <FontAwesomeIcon icon={faPaperPlane} />
               &nbsp;&nbsp;Send
             </Button>
-            <Button className={styles['large-button'] + ' ' + styles['danger-button']} tooltip='Stop bridge C' onClick={stopBridgeC}>
+            <Button
+              className={styles['large-button'] + ' ' + styles['danger-button']}
+              tooltip='Stop bridge C'
+              onClick={stopBridgeC}
+            >
               <FontAwesomeIcon icon={faStop} />
               &nbsp;&nbsp;Stop
             </Button>
@@ -337,11 +411,21 @@ export default function Drill() {
         <div className={styles['bridge-section']}>
           <div className={styles['section-header']}>Scale</div>
           <div className={styles['button-row']}>
-            <Button className={styles['large-button']} tooltip='Request drill weight measurement' onClick={requestWeight}>
+            <Button
+              className={styles['large-button']}
+              active={activeScaleAction === 1}
+              tooltip='Request drill weight measurement'
+              onClick={requestWeight}
+            >
               <FontAwesomeIcon icon={faWeightHanging} />
               &nbsp;&nbsp;Weigh
             </Button>
-            <Button className={styles['large-button']} tooltip='Tare drill scale' onClick={tareWeight}>
+            <Button
+              className={styles['large-button']}
+              active={activeScaleAction === 0}
+              tooltip='Tare drill scale'
+              onClick={tareWeight}
+            >
               <FontAwesomeIcon icon={faWeightHanging} />
               &nbsp;&nbsp;Tare
             </Button>
@@ -371,49 +455,65 @@ export default function Drill() {
       <div className={styles['telemetry']}>
         <div className={styles['section-header']}>Telemetry</div>
         <div className={styles['drill-row']}>
-          <Label color='var(--dark-active)' className={styles['telemetry-label']}>Depth</Label>
+          <Label color='var(--dark-active)' className={styles['telemetry-label']}>
+            Depth
+          </Label>
           <div className={styles['disabled-input'] + ' ' + styles['selectable']}>
             <input value={`${formatNumber(telemetry?.depth_mm)} mm`} disabled readOnly />
           </div>
         </div>
         <div className={styles['drill-row']}>
-          <Label color='var(--dark-active)' className={styles['telemetry-label']}>Rack Current I</Label>
+          <Label color='var(--dark-active)' className={styles['telemetry-label']}>
+            Rack Current I
+          </Label>
           <div className={styles['disabled-input'] + ' ' + styles['selectable']}>
             <input value={`${formatNumber(telemetry?.rack_current, 2)} A`} disabled readOnly />
           </div>
         </div>
         <div className={styles['drill-row']}>
-          <Label color='var(--dark-active)' className={styles['telemetry-label']}>Drill Current I</Label>
+          <Label color='var(--dark-active)' className={styles['telemetry-label']}>
+            Drill Current I
+          </Label>
           <div className={styles['disabled-input'] + ' ' + styles['selectable']}>
             <input value={`${formatNumber(telemetry?.drill_current, 2)} A`} disabled readOnly />
           </div>
         </div>
         <div className={styles['drill-row']}>
-          <Label color='var(--dark-active)' className={styles['telemetry-label']}>Upper Limit</Label>
+          <Label color='var(--dark-active)' className={styles['telemetry-label']}>
+            Upper Limit
+          </Label>
           <div className={styles['disabled-input'] + ' ' + styles['selectable']}>
             <input value={formatLimit(telemetry?.upper_limit_pressed)} disabled readOnly />
           </div>
         </div>
         <div className={styles['drill-row']}>
-          <Label color='var(--dark-active)' className={styles['telemetry-label']}>Lower Limit</Label>
+          <Label color='var(--dark-active)' className={styles['telemetry-label']}>
+            Lower Limit
+          </Label>
           <div className={styles['disabled-input'] + ' ' + styles['selectable']}>
             <input value={formatLimit(telemetry?.lower_limit_pressed)} disabled readOnly />
           </div>
         </div>
         <div className={styles['drill-row']}>
-          <Label color='var(--dark-active)' className={styles['telemetry-label']}>Autonomy</Label>
+          <Label color='var(--dark-active)' className={styles['telemetry-label']}>
+            Autonomy
+          </Label>
           <div className={styles['disabled-input'] + ' ' + styles['selectable']}>
             <input value={formatAutonomyActive(telemetry?.autonomy_active)} disabled readOnly />
           </div>
         </div>
         <div className={styles['drill-row']}>
-          <Label color='var(--dark-active)' className={styles['telemetry-label']}>Based</Label>
+          <Label color='var(--dark-active)' className={styles['telemetry-label']}>
+            Based
+          </Label>
           <div className={styles['disabled-input'] + ' ' + styles['selectable']}>
             <input value={formatBased(telemetry?.based)} disabled readOnly />
           </div>
         </div>
         <div className={styles['drill-row']}>
-          <Label color='var(--dark-active)' className={styles['telemetry-label']}>State</Label>
+          <Label color='var(--dark-active)' className={styles['telemetry-label']}>
+            State
+          </Label>
           <div className={styles['disabled-input'] + ' ' + styles['selectable']}>
             <input value={formatAutonomyState(telemetry?.autonomy_state)} disabled readOnly />
           </div>
@@ -424,7 +524,9 @@ export default function Drill() {
 
         <div className={styles['section-header']}>Scale</div>
         <div className={styles['drill-row']}>
-          <Label color='var(--dark-active)' className={styles['telemetry-label']}>Weight</Label>
+          <Label color='var(--dark-active)' className={styles['telemetry-label']}>
+            Weight
+          </Label>
           <div className={styles['disabled-input'] + ' ' + styles['selectable']}>
             <input value={weight !== null ? `${weight.toFixed(2)} g` : '---'} disabled readOnly />
           </div>

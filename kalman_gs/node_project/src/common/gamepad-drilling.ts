@@ -5,7 +5,18 @@ import { Topic } from 'roslib';
 const RATE = 10;
 const MAX_SPEED = 100;
 
+type DrillGamepadUpdate = {
+  bridgeB?: number;
+  bridgeC?: number;
+  autonomy?: 0 | 1 | 2;
+  weightRequest?: 0 | 1;
+};
+
 const clampSpeed = (value: number) => Math.max(-MAX_SPEED, Math.min(MAX_SPEED, Math.round(value * MAX_SPEED)));
+
+const dispatchDrillGamepadUpdate = (detail: DrillGamepadUpdate) => {
+  window.dispatchEvent(new CustomEvent<DrillGamepadUpdate>('drill-gamepad-update', { detail }));
+};
 
 window.addEventListener('ros-connect', () => {
   const drillBTopic = new Topic<{ data: number }>({
@@ -43,10 +54,12 @@ window.addEventListener('ros-connect', () => {
 
     if (bridgeB !== lastBridgeB) {
       drillBTopic.publish({ data: bridgeB });
+      dispatchDrillGamepadUpdate({ bridgeB });
       lastBridgeB = bridgeB;
     }
     if (bridgeC !== lastBridgeC) {
       drillCTopic.publish({ data: bridgeC });
+      dispatchDrillGamepadUpdate({ bridgeC });
       lastBridgeC = bridgeC;
     }
 
@@ -58,19 +71,24 @@ window.addEventListener('ros-connect', () => {
 
     if (stopButton > 0 && lastStopButton === 0) {
       drillAutonomyTopic.publish({ data: 0 });
+      dispatchDrillGamepadUpdate({ autonomy: 0 });
     }
     if (drillButton > 0 && lastDrillButton === 0) {
       drillAutonomyTopic.publish({ data: 1 });
+      dispatchDrillGamepadUpdate({ autonomy: 1 });
     }
     if (homeButton > 0 && lastHomeButton === 0) {
       drillAutonomyTopic.publish({ data: 2 });
+      dispatchDrillGamepadUpdate({ autonomy: 2 });
     }
 
     if (tareButton > 0 && lastTareButton === 0) {
       drillWeightReqTopic.publish({ data: 0 });
+      dispatchDrillGamepadUpdate({ weightRequest: 0 });
     }
     if (weighButton > 0 && lastWeighButton === 0) {
       drillWeightReqTopic.publish({ data: 1 });
+      dispatchDrillGamepadUpdate({ weightRequest: 1 });
     }
 
     lastStopButton = stopButton;
