@@ -29,7 +29,7 @@ def generate_launch_description():
                 "size": "0.20",
             },
             "yolo": {
-                "rgbd_ids": "d455_front",
+                "rgbd_ids": "d455_right",
                 "config": "arc2026",
             },
             "supervisor": {

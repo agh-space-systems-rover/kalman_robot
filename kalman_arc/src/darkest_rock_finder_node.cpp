@@ -69,7 +69,7 @@ class DarkestRockFinder : public rclcpp::Node {
 		);
 
 		pub_       = create_publisher<PoseStamped>("/boulder_position", queue_size);
-		debug_pub_ = create_publisher<PointCloud2>("/debug_cloud", queue_size);
+		debug_pub_ = create_publisher<PointCloud2>("/boulder_cloud", queue_size);
 
 		clear_srv_ = create_service<Trigger>(
 		    "/boulder_position_clear",
@@ -112,6 +112,7 @@ class DarkestRockFinder : public rclcpp::Node {
 			// transform pose to map frame
 			geometry_msgs::msg::PoseStamped pose_in, pose_out;
 			pose_in.header        = msg->header;
+			pose_in.header.stamp  = rclcpp::Time(0); // use latest transform
 			pose_in.pose          = det.results[0].pose.pose;
 
 			try {
@@ -161,8 +162,26 @@ class DarkestRockFinder : public rclcpp::Node {
 		bool        dbg_cloud = get_parameter("publish_debug_cloud").as_bool();
 
 		if (dbg_cloud) {
+			pcl::PointCloud<pcl::PointXYZRGB> rgb_cloud;
+			rgb_cloud.reserve(cloud_copy->size());
+
+			for (const auto &p : *cloud_copy) {
+				pcl::PointXYZRGB rgb_p;
+				rgb_p.x = p.x;
+				rgb_p.y = p.y;
+				rgb_p.z = p.z;
+
+				// assuming intensity is the field to map
+				uint8_t g = static_cast<uint8_t>(p.intensity * 255.0f);
+				rgb_p.r = g;
+				rgb_p.g = g;
+				rgb_p.b = g;
+
+				rgb_cloud.push_back(rgb_p);
+			}
+
 			PointCloud2 dbg_msg;
-			pcl::toROSMsg(*cloud_copy, dbg_msg);
+			pcl::toROSMsg(rgb_cloud, dbg_msg);
 			dbg_msg.header.stamp    = now();
 			dbg_msg.header.frame_id = map_frame;
 			debug_pub_->publish(dbg_msg);
