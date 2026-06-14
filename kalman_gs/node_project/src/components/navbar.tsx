@@ -26,7 +26,7 @@ export default function Navbar() {
 
   const rerenderNavbarAndPanelManager = useCallback(() => {
     setRerenderCounter(rerenderCounter + 1);
-    window.dispatchEvent(new CustomEvent('rerender-panel-manager'));
+    window.dispatchEvent(new CustomEvent('panel-manager-rerender'));
   }, [rerenderCounter]);
 
   return (

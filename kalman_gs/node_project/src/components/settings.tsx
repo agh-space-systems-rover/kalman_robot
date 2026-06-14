@@ -1,9 +1,11 @@
 import styles from './settings.module.css';
 
+import { BackgroundImage, getBackgroundImagesLabel, setBackgroundImages } from '../common/background-images';
 import { keybinds, resetAllKeybinds, resetKeybind, setKeybind } from '../common/keybinds';
 import { Theme, currentTheme, setTheme } from '../common/themes';
 import Button from './button';
 import Dropdown from './dropdown';
+import FileInput from './file-input';
 import Input from './input';
 import { faRaspberryPi } from '@fortawesome/free-brands-svg-icons';
 import {
@@ -11,6 +13,7 @@ import {
   faCloudMoon,
   faKeyboard,
   faPalette,
+  faPhotoFilm,
   faRefresh,
   faSun,
   faXmark
@@ -55,17 +58,41 @@ function keyCodeToName(code: string) {
   return code;
 }
 
+function readBackgroundImage(file: File) {
+  return new Promise<BackgroundImage>((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      const dataUrl = reader.result;
+
+      if (typeof dataUrl === 'string') {
+        resolve({
+          name: file.name,
+          dataUrl
+        });
+      } else {
+        reject(new Error(`Could not read ${file.name}.`));
+      }
+    };
+
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
+
 type State = {
   shown: boolean;
   listeningForNewKeybind: string | null;
   searchTerm: string;
+  backgroundImagesLabel: string | null;
 };
 
 export default class Settings extends Component<{}, State> {
   static defaultState: State = {
     shown: false,
     listeningForNewKeybind: null,
-    searchTerm: ''
+    searchTerm: '',
+    backgroundImagesLabel: getBackgroundImagesLabel()
   };
   state = Settings.defaultState;
 
@@ -87,7 +114,8 @@ export default class Settings extends Component<{}, State> {
     this.setState({
       shown: true,
       listeningForNewKeybind: null,
-      searchTerm: ''
+      searchTerm: '',
+      backgroundImagesLabel: getBackgroundImagesLabel()
     });
     window.addEventListener('keydown', this.escHandler);
     // Reset scroll in scrollable-options
@@ -277,6 +305,38 @@ export default class Settings extends Component<{}, State> {
                 </>
               )}
               {searchedKeybinds}
+              {this.isSearchedFor('background image anime') && (
+                <>
+                  <h2>
+                    <FontAwesomeIcon icon={faPhotoFilm} />
+                    &nbsp;&nbsp;Background Image
+                  </h2>
+                  <div className={styles['background-selector']}>
+                    <FileInput
+                      accept='image/*'
+                      multiple
+                      emptyLabel={this.state.backgroundImagesLabel}
+                      onChange={(files) => {
+                        if (!files || files.length === 0) return;
+
+                        Promise.all(Array.from(files).map(readBackgroundImage))
+                          .then((images) => {
+                            setBackgroundImages(images);
+                            this.setState({ backgroundImagesLabel: getBackgroundImagesLabel(images) });
+                            window.dispatchEvent(new Event('panel-manager-rerender'));
+                          })
+                          .catch(console.error);
+                      }}
+                      onClear={() => {
+                        setBackgroundImages([]);
+                        this.setState({ backgroundImagesLabel: null });
+                        window.dispatchEvent(new Event('panel-manager-rerender'));
+                      }}
+                      canClearEmpty={!!this.state.backgroundImagesLabel}
+                    />
+                  </div>
+                </>
+              )}
               <div className={styles['no-search-results']}>
                 <div className={styles['no-search-results-text']}>
                   <FontAwesomeIcon icon={faBan} />
