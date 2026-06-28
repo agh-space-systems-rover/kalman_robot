@@ -15,6 +15,7 @@ uint8 SCALE_REQ = 0x57
 uint8 PH_RES = 0x5C
 uint8 SCALE_RES = 0x5B
 uint8 PH_REQ = 0x59
+uint8 LASER_DIST = 0x56
 
 uint8 GS_TO_UNIVERSAL = 0x5E
 
@@ -35,6 +36,8 @@ uint8 FEED_SET_CHANNEL = 0xB2
 uint8 FEED_SET_POWER = 0xB3
 
 uint8 ARM_SEND_SPACEMOUSE = 0xB4
+
+uint8 CAM_2DOF_SET = 0xBF
 
 uint8 DRILL_ARM = 0xD0
 uint8 DRILL_RACK = 0xD1

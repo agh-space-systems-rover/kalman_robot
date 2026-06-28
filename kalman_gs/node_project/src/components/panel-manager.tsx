@@ -1,5 +1,6 @@
 import styles from './panel-manager.module.css';
 
+import { getRandomBackgroundImage } from '../common/background-images';
 import {
   HorizontalPanelLayout,
   LeafPanelLayout,
@@ -19,6 +20,8 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
 }
 
+const BACKGROUND_IMAGE_DISABLED_PANELS = new Set<PanelID>(['map', 'imu']);
+
 export default function PanelManager() {
   const [rerenderCounter, setRerenderCounter] = useState(0);
 
@@ -34,9 +37,9 @@ export default function PanelManager() {
 
   // Expose a custom event that allows to re-render the panel manager.
   useEffect(() => {
-    window.addEventListener('rerender-panel-manager', rerender);
+    window.addEventListener('panel-manager-rerender', rerender);
     return () => {
-      window.removeEventListener('rerender-panel-manager', rerender);
+      window.removeEventListener('panel-manager-rerender', rerender);
     };
   }, [rerender]);
 
@@ -178,10 +181,21 @@ export default function PanelManager() {
           </div>
         );
       } else {
-        const panel = panelInfos[(layout as LeafPanelLayout).panel];
+        const panelId = (layout as LeafPanelLayout).panel;
+        const panel = panelInfos[panelId];
         const panelRef = createRef(); // TODO: Is this the right way? We can't call useRef in a loop.
+        const backgroundImage = BACKGROUND_IMAGE_DISABLED_PANELS.has(panelId) ? null : getRandomBackgroundImage();
         return (
           <>
+            {backgroundImage && (
+              <img
+                src={backgroundImage.dataUrl}
+                alt=''
+                className={styles['background-image']}
+                aria-hidden='true'
+                draggable='false'
+              />
+            )}
             <div className={styles['panel-header']}>
               <div className={styles['panel-selector']}>
                 <Dropdown
@@ -306,7 +320,6 @@ export default function PanelManager() {
               </div>
             </div>
             <div className={styles['panel-container']}>
-              {/* <panel.Component props={(layout as LeafPanelLayout).props} /> */}
               {/* If component is a class component, assign a ref */}
               {panel.Component.prototype instanceof Component ? (
                 <panel.Component ref={panelRef} props={(layout as LeafPanelLayout).props} />

@@ -74,6 +74,10 @@ def launch_setup(context):
             package="kalman_master",
             executable="autonomy_switch_spam",
         ),
+        "camera_2dof_driver": Node(
+            package="kalman_master",
+            executable="camera_2dof_driver",
+        ),
         "link_pc_to_gs": start_ros_link(side="rover", rover_endpoint="pc"),
         "link_arm_to_gs": start_ros_link(side="rover", rover_endpoint="arm"),
         "link_gs_to_pc": start_ros_link(side="station", rover_endpoint="pc"),
@@ -88,6 +92,10 @@ def launch_setup(context):
         "tunnel_client": Node(
             package="kalman_master",
             executable="tunnel_client",
+        ),
+        "laser_driver": Node(
+            package="kalman_master",
+            executable="laser_driver",
         ),
         "drill_driver": Node(
             package="kalman_master",
@@ -122,6 +130,7 @@ def launch_setup(context):
             "wheel_driver",
             "ueuos_driver",
             "autonomy_spammer",
+            "laser_driver",
         ],
         "gs": [
             "master_com",
@@ -138,6 +147,8 @@ def launch_setup(context):
             "storage_driver",
             "sand_storage_driver",
             "ph_driver",
+            "camera_2dof_driver",
+            "laser_driver",
         ],
         "arm": [
             "master_com",

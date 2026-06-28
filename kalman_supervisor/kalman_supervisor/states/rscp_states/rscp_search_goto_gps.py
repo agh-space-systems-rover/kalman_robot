@@ -2,17 +2,16 @@ from kalman_supervisor.state import State
 from kalman_supervisor.modules import *
 
 
-class RscpNavigateGps(State):
+class RSCPSearchGoToGPS(State):
     def __init__(self):
-        super().__init__("rscp_navigate_gps")
+        super().__init__("rscp_search_goto_gps")
 
     def enter(self) -> None:
         # Set UEUOS to autonomous (yellow)
         self.supervisor.ueuos.set_rscp_state(Ueuos.RscpState.AUTONOMOUS)
 
         # Get the navigation goal from the RSCP module
-        goal = self.supervisor.rscp.get_navigation_goal()
-        self.supervisor.rscp.clear_navigation_goal()
+        goal = self.supervisor.rscp.get_search_goal()
 
         if goal is None:
             self.supervisor.get_logger().error(
@@ -33,6 +32,7 @@ class RscpNavigateGps(State):
     def tick(self) -> str | None:
         # If we failed to set up navigation, return to idle
         if self.failed:
+            self.supervisor.rscp.clear_search_goal()
             return "rscp_idle"
 
         # Check if disarmed - abort and return to idle
@@ -40,22 +40,21 @@ class RscpNavigateGps(State):
             self.supervisor.get_logger().warn(
                 "[RSCP] DISARM detected during navigation, aborting"
             )
+            self.supervisor.rscp.clear_search_goal()
             return "rscp_idle"
 
         # Check if navigation is complete
         if not self.supervisor.nav.has_goal():
-            self.supervisor.get_logger().info("[RSCP] GPS navigation completed")
+            self.supervisor.get_logger().info("[RSCP] SearchGoToGPS navigation completed")
             # Send TASK_FINISHED response
             self.supervisor.rscp.send_task_finished()
-
             stage = self.supervisor.rscp.get_current_stage()
-            if stage == 4:
-                return "rscp_wait_before_airlock"
-            if stage == 3:
-                return "rscp_wait_before_lavatube"
-
-            # Return to idle state to wait for next request
-            return "rscp_idle"
+            if stage not in [1, 2]:
+                self.supervisor.get_logger().warn(
+                f"[RSCP] Stage is not 1, current is {stage} while in SearchGoToGps "
+            )
+                
+            return "rscp_search_spiral"
 
         # Still navigating
         return None

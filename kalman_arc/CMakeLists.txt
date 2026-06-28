@@ -25,6 +25,15 @@ find_package(Qt5 REQUIRED COMPONENTS Widgets)
 find_package(qt_gui_cpp REQUIRED)
 find_package(rqt_gui_cpp REQUIRED)
 
+# darkest rock finder deps
+find_package(rclcpp_components REQUIRED)
+find_package(pcl_ros REQUIRED)
+find_package(pcl_conversions REQUIRED)
+find_package(vision_msgs REQUIRED)
+find_package(tf2_ros REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
+find_package(std_srvs REQUIRED)
+
 add_library(rscp_proto_messages
   proto/rscp.proto
 )
@@ -87,8 +96,6 @@ target_include_directories(rqt_rscp
 )
 
 target_link_libraries(rqt_rscp
-  kalman_arc_cobs
-  rscp_proto_messages
   Qt5::Widgets
 )
 
@@ -97,8 +104,65 @@ ament_target_dependencies(rqt_rscp
   qt_gui_cpp
   rclcpp
   rqt_gui_cpp
-  std_msgs
+  kalman_interfaces
 )
+find_package(sensor_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(tf2_ros REQUIRED)
+find_package(tf2_sensor_msgs REQUIRED)
+find_package(grid_map_ros REQUIRED)
+find_package(grid_map_core REQUIRED)
+find_package(grid_map_msgs REQUIRED)
+find_package(rclcpp_components REQUIRED)
+find_package(std_srvs REQUIRED)
+
+add_library(peak_finder_node SHARED src/peak_finder_node.cpp)
+ament_target_dependencies(peak_finder_node
+  rclcpp
+  rclcpp_components
+  sensor_msgs
+  tf2_ros
+  tf2_sensor_msgs
+  grid_map_ros
+  grid_map_core
+  grid_map_msgs
+  geometry_msgs
+  std_srvs
+)
+rclcpp_components_register_node(
+  peak_finder_node
+  PLUGIN "kalman_arc::PeakFinder"
+  EXECUTABLE peak_finder
+)
+install(TARGETS peak_finder_node peak_finder
+  EXPORT kalman_arc-targets
+  RUNTIME DESTINATION bin
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+)
+
+# >>> darkest rock finder
+
+add_library(darkest_rock_finder_node SHARED src/darkest_rock_finder_node.cpp)
+ament_target_dependencies(darkest_rock_finder_node
+  rclcpp
+  rclcpp_components
+  pcl_ros
+  pcl_conversions
+  vision_msgs
+  tf2_ros
+  tf2_geometry_msgs
+  std_srvs
+  # This dependency is completely unnnecessary, but compilation fails without it. I don't know why. I don't think I want to know:
+  grid_map_core # 67
+)
+rclcpp_components_register_node(
+  darkest_rock_finder_node
+  PLUGIN "rock_finder::DarkestRockFinder"
+  EXECUTABLE darkest_rock_finder
+)
+
+# <<< darkest rock finder
 
 install(PROGRAMS
   scripts/travel_distance_meter
@@ -110,6 +174,7 @@ install(TARGETS
   rscp_proto_messages
   rscp_node
   rqt_rscp
+  darkest_rock_finder_node
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION lib/${PROJECT_NAME}
