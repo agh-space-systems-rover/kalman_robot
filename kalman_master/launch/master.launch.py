@@ -135,6 +135,7 @@ def launch_setup(context):
             "ueuos_driver",
             "autonomy_spammer",
             "laser_driver",
+            "sand_storage_driver"
         ],
         "gs": [
             "master_com",
@@ -149,7 +150,7 @@ def launch_setup(context):
             "rfid_driver",
             "tunnel_client",
             "storage_driver",
-            "sand_storage_driver",
+            # "sand_storage_driver",
             "ph_driver",
             "wexlab_driver",
             "camera_2dof_driver",

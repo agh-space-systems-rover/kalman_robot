@@ -30,12 +30,12 @@ class SandStorageDriver(Node):
         )
 
     def drop_of_antenna(self, msg: Empty):
-        # 0x5E GS_TO_UNIVERSAL
+        # 0x5E TO_UNIVERSAL
         # 0 - id universal
         # 0 - Id hbridge
 
         out_msg = MasterMessage()
-        out_msg.cmd = MasterMessage.GS_TO_UNIVERSAL
+        out_msg.cmd = MasterMessage.TO_UNIVERSAL
         out_msg.data = [0, 0]
 
         self.master_pub.publish(out_msg)
