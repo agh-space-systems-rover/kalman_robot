@@ -33,6 +33,10 @@ def launch_setup(context):
             parameters=[{"map_resolution": 0.3}],
             output="screen",
         ),
+        Node(
+            package="kalman_arc",
+            executable="tunnel_follower",
+        ),
     ]
 
     if get_bool("enable_rscp_hw_driver"):
