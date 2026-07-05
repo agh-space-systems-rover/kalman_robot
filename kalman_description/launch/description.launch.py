@@ -78,7 +78,7 @@ def generate_launch_description():
             DeclareLaunchArgument(
                 "layout",
                 choices=[*get_layouts()],
-                description="layout of the robot: autonomy, arm",
+                description="layout of the robot: autonomy, arm, autonomy_science",
             ),
             DeclareLaunchArgument(
                 "joint_state_publisher_gui",
