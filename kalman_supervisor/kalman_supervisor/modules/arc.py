@@ -4,6 +4,7 @@ from kalman_supervisor.module import Module
 from std_msgs.msg import Float32
 from geometry_msgs.msg import PoseStamped
 from std_msgs.msg import Empty
+from std_srvs.srv import SetBool
 
 
 class Arc(Module):
@@ -13,7 +14,8 @@ class Arc(Module):
         self._boulder_position: PoseStamped = None
         self.distance_sub = None
         self.laser_sub = None
-        self.drop_off_antenna_pub = None
+        self.antenna_drop_pub = None
+        self.tunnel_follower_client = None
         self._distance_traveled = 0.0
         self._laser_distance = float('inf')
         
@@ -37,6 +39,9 @@ class Arc(Module):
             self._laser_callback,
             10
         )
+        self.tunnel_follower_client = self.supervisor.create_client(
+            SetBool, "/arc/follow_tunnel"
+        )
 
     def _distance_callback(self, msg: Float32) -> None:
         self._distance_traveled = msg.data
@@ -55,8 +60,10 @@ class Arc(Module):
             self.supervisor.destroy_subscription(self.distance_sub)
         if self.laser_sub:
             self.supervisor.destroy_subscription(self.laser_sub)
-        if self.drop_off_antenna_pub:
-            self.supervisor.destroy_publisher(self.drop_off_antenna_pub)
+        if self.antenna_drop_pub:
+            self.supervisor.destroy_publisher(self.antenna_drop_pub)
+        if self.tunnel_follower_client:
+            self.supervisor.destroy_client(self.tunnel_follower_client)
 
     def get_distance_traveled(self) -> float:
         return self._distance_traveled
@@ -104,3 +111,8 @@ class Arc(Module):
 
     def drop_antenna(self, msg: Empty) -> None:
         self.antenna_drop_pub.publish(msg)
+
+    def toggle_tunnel_follower(self, enabled: bool) -> None:
+        request = SetBool.Request()
+        request.data = enabled
+        self.tunnel_follower_client.call_async(request)

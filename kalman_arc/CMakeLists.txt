@@ -166,6 +166,7 @@ rclcpp_components_register_node(
 
 install(PROGRAMS
   scripts/travel_distance_meter
+  scripts/tunnel_follower
   DESTINATION lib/${PROJECT_NAME}
 )
 

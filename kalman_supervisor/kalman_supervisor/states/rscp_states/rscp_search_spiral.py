@@ -86,6 +86,7 @@ class RSCPSearchSpiral(State):
         self.spiral_pub.publish(self.spiral_as_msg())
 
     def enter(self) -> None:
+        self.supervisor.get_logger().info("[RSCP] Starting spiral...")
         # Enable the detection node.
         self.clear_elevation_map_client = self.supervisor.create_client(
             Trigger, "/peak_finder_node/clear_elevation_map"
@@ -96,9 +97,9 @@ class RSCPSearchSpiral(State):
         self.clear_boulder_client = self.supervisor.create_client(
             Trigger, "/boulder_position_clear"
         )
-
         stage = self.supervisor.rscp.get_current_stage()
         if stage == 1:
+            self.clear_elevation_map()
             self.SPIRAL_REVOLUTION_WIDTH = 3
             revolutions = 2
             self.revolutions = revolutions
@@ -125,7 +126,6 @@ class RSCPSearchSpiral(State):
         )
         self.default_follower_approach_distance: float | None = None
         self.fetch_default_follower_approach_distance()
-        self.clear_elevation_map()
         self.slow_approach_enabled = True
         self.next_goal_timeout = 0.0
 

@@ -9,7 +9,7 @@ def generate_launch_description():
                 "selective_launch": "no_rs_pub",
             },
             "rviz": {
-                "configs": "autonomy",
+                "configs": "arc_sim_dev",
             },
             "gs": {},
             "wheels": {},
