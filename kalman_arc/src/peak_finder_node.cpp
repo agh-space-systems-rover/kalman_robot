@@ -38,9 +38,6 @@ public:
 		map_.setFrameId(map_frame_);
 		map_.setGeometry(grid_map::Length(map_size, map_size), resolution);
 		map_.setBasicLayers({"elevation"});
-		// CRITICAL: explicitly fill all cells with NaN so toMessage serialises
-		// a well-defined layer; Eigen does NOT guarantee NaN for uninitialized
-		// floats.
 		map_.clearAll();
 
 		tf_buffer_ = std::make_unique<tf2_ros::Buffer>(this->get_clock());
@@ -67,9 +64,6 @@ public:
 			);
 		}
 
-		// Use transient_local so late subscribers (e.g. RViz) receive the last
-		// map immediately on connection instead of seeing nothing until the
-		// next publish.
 		auto map_qos = rclcpp::QoS(1).transient_local().reliable();
 		map_pub_     = this->create_publisher<grid_map_msgs::msg::GridMap>(
             "out/elevation_map", map_qos
@@ -100,7 +94,6 @@ public:
 	}
 
 private:
-	// ── Pointcloud callback ──────────────────────────────────────────────────
 	void
 	pointcloud_callback(const sensor_msgs::msg::PointCloud2::SharedPtr msg) {
 		geometry_msgs::msg::TransformStamped sensor_to_map_tf;
@@ -124,26 +117,53 @@ private:
 			return;
 		}
 
-		// Move the sliding window map to follow the robot.
-		// Newly exposed cells are cleared to NaN automatically for basic
-		// layers.
 		grid_map::Position robot_pos(
 		    robot_to_map_tf.transform.translation.x,
 		    robot_to_map_tf.transform.translation.y
 		);
 		map_.move(robot_pos);
 
-		// Transform cloud into map frame
 		sensor_msgs::msg::PointCloud2 cloud_map;
-		tf2::doTransform(*msg, cloud_map, sensor_to_map_tf);
+		try {
+			tf2::doTransform(*msg, cloud_map, sensor_to_map_tf);
+		} catch (const tf2::TransformException &ex) {
+			RCLCPP_WARN_THROTTLE(
+				this->get_logger(),
+				*this->get_clock(),
+				2000,
+				"TF error during cloud transform: %s",
+				ex.what()
+			);
+			return;
+		} catch (const std::exception &ex) {
+			RCLCPP_WARN(this->get_logger(), "Exception during cloud transform: %s", ex.what());
+			return;
+		}
+
+		if (cloud_map.data.empty() || cloud_map.point_step == 0u) {
+			RCLCPP_DEBUG(this->get_logger(), "Received empty or malformed pointcloud; skipping");
+			return;
+		}
+
+		auto has_field = [&](const sensor_msgs::msg::PointCloud2 &pc, const std::string &name) {
+			for (const auto &f : pc.fields) {
+				if (f.name == name) return true;
+			}
+			return false;
+		};
+
+		if (!has_field(cloud_map, "x") || !has_field(cloud_map, "y") || !has_field(cloud_map, "z")) {
+			RCLCPP_WARN_THROTTLE(this->get_logger(), *this->get_clock(), 2000,
+			                     "PointCloud missing x/y/z fields; skipping");
+			return;
+		}
 
 		sensor_msgs::PointCloud2ConstIterator<float> iter_x(cloud_map, "x");
 		sensor_msgs::PointCloud2ConstIterator<float> iter_y(cloud_map, "y");
 		sensor_msgs::PointCloud2ConstIterator<float> iter_z(cloud_map, "z");
 
 		for (; iter_x != iter_x.end(); ++iter_x, ++iter_y, ++iter_z) {
-			if (std::isnan(*iter_x) || std::isnan(*iter_y) ||
-			    std::isnan(*iter_z)) {
+			if (std::isnan(*iter_x) || std::isnan(*iter_y) || std::isnan(*iter_z)) {
 				continue;
 			}
 			const grid_map::Position pos(*iter_x, *iter_y);
@@ -151,21 +171,16 @@ private:
 				continue;
 			}
 			float &cell = map_.atPosition("elevation", pos);
-			// Keep the maximum observed height per cell (max-height fusion).
 			if (std::isnan(cell) || *iter_z > cell) {
 				cell = *iter_z;
 			}
 		}
 
-		// Always update the timestamp; publish unconditionally (transient_local
-		// means the last retained message is useful even for future
-		// subscribers).
 		map_.setTimestamp(rclcpp::Time(msg->header.stamp).nanoseconds());
 		auto map_msg = grid_map::GridMapRosConverter::toMessage(map_);
 		map_pub_->publish(std::move(map_msg));
 	}
 
-	// ── Peak search timer ────────────────────────────────────────────────────
 	void find_peak() {
 		geometry_msgs::msg::TransformStamped robot_to_map_tf;
 		try {
@@ -234,7 +249,6 @@ private:
 		RCLCPP_INFO(this->get_logger(), "Elevation map cleared via service.");
 	}
 
-	// ── Members ──────────────────────────────────────────────────────────────
 	std::string       map_frame_;
 	std::string       robot_frame_;
 	double            search_radius_;
