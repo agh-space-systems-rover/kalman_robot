@@ -39,7 +39,6 @@ export type PanelID =
   | 'mobile'
   | 'ueuos'
   | 'science'
-  | 'wexlab'
   | 'camera-2dof'
   | 'drill';
 export const defaultPanel: PanelID = 'map';

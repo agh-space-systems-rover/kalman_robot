@@ -8,6 +8,10 @@ import {
   faArrowRight,
   faArrowRotateRight,
   faArrowUp,
+  faBroom,
+  faDoorClosed,
+  faDoorOpen,
+  faGear,
   faMinus,
   faPaperPlane,
   faPlay,
@@ -26,14 +30,48 @@ import Label from '../components/label';
 let drillBTopic: Topic<{ data: number }> | undefined;
 let drillCTopic: Topic<{ data: number }> | undefined;
 let drillAutonomyTopic: Topic<{ data: number }> | undefined;
+let drillGearTopic: Topic<{ data: number }> | undefined;
 let drillTelemetryTopic: Topic<DrillTelemetry> | undefined;
 let drillWeightReqTopic: Topic<{ data: number }> | undefined;
 let drillWeightTopic: Topic<{ data: number }> | undefined;
+let drillUniversalTopic: Topic<{ data: number }> | undefined;
+let drillChannel1Topic: Topic<{ data: number }> | undefined;
+let drillChannel2Topic: Topic<{ data: number }> | undefined;
+let drillChannel3Topic: Topic<{ data: number }> | undefined;
+let drillChannel4Topic: Topic<{ data: number }> | undefined;
+
+type AutonomyState = 0 | 1 | 2 | 3 | 4 | 5;
+type DrillGear = 1 | 2;
+type UniversalChannel = 0 | 1 | 2 | 3 | 4;
+
+type UniversalChannelConfig = {
+  channel: UniversalChannel;
+  label: string;
+  max: number;
+  placeholder: string;
+};
+
+const universalChannels: UniversalChannelConfig[] = [
+  { channel: 0, label: 'Carousel', max: 100, placeholder: '0-100' },
+  { channel: 1, label: 'Probe 1', max: 180, placeholder: '0-180' },
+  { channel: 2, label: 'Probe 2', max: 180, placeholder: '0-180' },
+  { channel: 3, label: 'Probe 3', max: 180, placeholder: '0-180' },
+  { channel: 4, label: 'Probe 4', max: 180, placeholder: '0-180' }
+];
+
+const initialUniversalValues = universalChannels.reduce(
+  (values, config) => ({
+    ...values,
+    [config.channel]: 0
+  }),
+  {} as Record<UniversalChannel, number>
+);
 
 type DrillGamepadUpdate = {
   bridgeB?: number;
   bridgeC?: number;
-  autonomy?: 0 | 1 | 2;
+  autonomy?: AutonomyState;
+  gear?: DrillGear;
   weightRequest?: 0 | 1;
 };
 
@@ -55,6 +93,11 @@ const ensureDrillTopics = () => {
     name: '/science/drill/autonomy',
     messageType: 'std_msgs/UInt8'
   });
+  drillGearTopic ??= new Topic({
+    ros,
+    name: '/science/drill/gear',
+    messageType: 'std_msgs/UInt8'
+  });
   drillTelemetryTopic ??= new Topic({
     ros,
     name: '/science/drill/telemetry',
@@ -70,6 +113,31 @@ const ensureDrillTopics = () => {
     name: '/science/drill/weight',
     messageType: 'std_msgs/Float32'
   });
+  drillUniversalTopic ??= new Topic({
+    ros,
+    name: '/science/drill/universal',
+    messageType: 'std_msgs/Float32'
+  });
+  drillChannel1Topic ??= new Topic({
+    ros,
+    name: '/science/drill/channel1',
+    messageType: 'std_msgs/Float32'
+  });
+  drillChannel2Topic ??= new Topic({
+    ros,
+    name: '/science/drill/channel2',
+    messageType: 'std_msgs/Float32'
+  });
+  drillChannel3Topic ??= new Topic({
+    ros,
+    name: '/science/drill/channel3',
+    messageType: 'std_msgs/Float32'
+  });
+  drillChannel4Topic ??= new Topic({
+    ros,
+    name: '/science/drill/channel4',
+    messageType: 'std_msgs/Float32'
+  });
 };
 
 window.addEventListener('ros-connect', () => {
@@ -80,11 +148,15 @@ window.addEventListener('ros-connect', () => {
 export default function Drill() {
   const bInputRef = useRef<Input>(null);
   const cInputRef = useRef<Input>(null);
+  const universalInputRefs = useRef<Partial<Record<UniversalChannel, Input | null>>>({});
   const bSkipBlurRef = useRef(false);
   const cSkipBlurRef = useRef(false);
+  const universalSkipBlurRefs = useRef<Partial<Record<UniversalChannel, boolean>>>({});
   const [bValue, setBValue] = useState(0);
   const [cValue, setCValue] = useState(0);
-  const [autonomyState, setAutonomyState] = useState(0);
+  const [universalValues, setUniversalValues] = useState<Record<UniversalChannel, number>>(initialUniversalValues);
+  const [autonomyState, setAutonomyState] = useState<AutonomyState>(0);
+  const [gear, setGear] = useState<DrillGear>(1);
   const [telemetry, setTelemetry] = useState<DrillTelemetry | null>(null);
   const [weight, setWeight] = useState<number | null>(null);
   const [lastTelemetryAt, setLastTelemetryAt] = useState<number | null>(null);
@@ -108,6 +180,9 @@ export default function Drill() {
       }
       if (detail.autonomy !== undefined) {
         setAutonomyState(detail.autonomy);
+      }
+      if (detail.gear !== undefined) {
+        setGear(detail.gear);
       }
       if (detail.weightRequest !== undefined) {
         setActiveScaleAction(detail.weightRequest);
@@ -165,7 +240,10 @@ export default function Drill() {
   const autonomyStates = [
     { label: 'Stop', value: 0, icon: faStop, tooltip: 'Set drill autonomy to emergency stop' },
     { label: 'Drill', value: 1, icon: faPlay, tooltip: 'Set drill autonomy to drilling' },
-    { label: 'Home', value: 2, icon: faArrowRotateRight, tooltip: 'Set drill autonomy to homing' }
+    { label: 'Home', value: 2, icon: faArrowRotateRight, tooltip: 'Set drill autonomy to homing' },
+    { label: 'Open Sarko', value: 3, icon: faDoorOpen, tooltip: 'Set drill autonomy to open sarko' },
+    { label: 'Close Sarko', value: 4, icon: faDoorClosed, tooltip: 'Set drill autonomy to close sarko' },
+    { label: 'Clean', value: 5, icon: faBroom, tooltip: 'Set drill autonomy to clean drill' }
   ] as const;
 
   const normalizeInteger = (value: unknown, min: number, max: number, fallback: number) => {
@@ -179,6 +257,45 @@ export default function Drill() {
   const publishBridge = (getTopic: () => Topic<{ data: number }> | undefined, value: number) => {
     ensureDrillTopics();
     getTopic()?.publish({ data: normalizeInteger(value, -100, 100, 0) });
+  };
+
+  const getUniversalConfig = (channel: UniversalChannel) => {
+    return universalChannels.find((config) => config.channel === channel)!;
+  };
+
+  const publishUniversalChannel = (channel: UniversalChannel, value: number) => {
+    ensureDrillTopics();
+    const topic =
+      channel === 0
+        ? drillUniversalTopic
+        : channel === 1
+          ? drillChannel1Topic
+          : channel === 2
+            ? drillChannel2Topic
+            : channel === 3
+              ? drillChannel3Topic
+              : drillChannel4Topic;
+
+    topic?.publish({ data: value });
+  };
+
+  const commitUniversalChannel = (channel: UniversalChannel, rawValue?: unknown, skipBlur = false) => {
+    const config = getUniversalConfig(channel);
+    const fallback = universalValues[channel];
+    const nextValue = normalizeInteger(
+      rawValue ?? universalInputRefs.current[channel]?.getValue(),
+      0,
+      config.max,
+      fallback
+    );
+
+    universalSkipBlurRefs.current[channel] = skipBlur;
+    setUniversalValues((values) => ({
+      ...values,
+      [channel]: nextValue
+    }));
+    universalInputRefs.current[channel]?.setValue(nextValue);
+    publishUniversalChannel(channel, nextValue);
   };
 
   const commitBridgeB = (rawValue?: unknown, skipBlur = false) => {
@@ -222,20 +339,36 @@ export default function Drill() {
   };
 
   const publishAutonomy = (rawValue: number) => {
-    const value = normalizeInteger(rawValue, 0, 2, 0);
+    const value = normalizeInteger(rawValue, 0, 5, 0) as AutonomyState;
     setAutonomyState(value);
     ensureDrillTopics();
     drillAutonomyTopic?.publish({ data: value });
   };
 
+  const publishGear = (rawValue: number) => {
+    const value = normalizeInteger(rawValue, 1, 2, 1) as DrillGear;
+    setGear(value);
+    ensureDrillTopics();
+    drillGearTopic?.publish({ data: value });
+  };
+
+  const flashScaleAction = (value: 0 | 1) => {
+    setActiveScaleAction(value);
+    window.setTimeout(() => {
+      setActiveScaleAction((current) => (current === value ? null : current));
+    }, 200);
+  };
+
   const requestWeight = () => {
     ensureDrillTopics();
     drillWeightReqTopic?.publish({ data: 1 });
+    flashScaleAction(1);
   };
 
   const tareWeight = () => {
     ensureDrillTopics();
     drillWeightReqTopic?.publish({ data: 0 });
+    flashScaleAction(0);
   };
 
   const formatNumber = (value: number | undefined, digits = 1) => {
@@ -262,6 +395,9 @@ export default function Drill() {
     if (value === 0) return 'Stop';
     if (value === 1) return 'Drilling';
     if (value === 2) return 'Homing';
+    if (value === 3) return 'Open Sarko';
+    if (value === 4) return 'Close Sarko';
+    if (value === 5) return 'Clean';
     return `Unknown ${value}`;
   };
 
@@ -409,6 +545,74 @@ export default function Drill() {
         </div>
 
         <div className={styles['bridge-section']}>
+          <div className={styles['section-header']}>Gear</div>
+          <div className={styles['button-row']}>
+            <Button
+              className={`${styles['large-button']} ${
+                gear === 1 ? styles['toggle-active'] : styles['toggle-inactive']
+              }`}
+              tooltip='Set drill gear 1'
+              onClick={() => publishGear(1)}
+            >
+              <FontAwesomeIcon icon={faGear} />
+              &nbsp;&nbsp;1
+            </Button>
+            <Button
+              className={`${styles['large-button']} ${
+                gear === 2 ? styles['toggle-active'] : styles['toggle-inactive']
+              }`}
+              tooltip='Set drill gear 2'
+              onClick={() => publishGear(2)}
+            >
+              <FontAwesomeIcon icon={faGear} />
+              &nbsp;&nbsp;2
+            </Button>
+          </div>
+        </div>
+
+        <div className={styles['bridge-section']}>
+          <div className={styles['section-header']}>Universal</div>
+          {universalChannels.map((config) => (
+            <div className={styles['universal-row']} key={config.channel}>
+              <Label color='var(--dark-active)' className={styles['universal-label']}>
+                {config.label}
+              </Label>
+              <Input
+                ref={(input) => {
+                  universalInputRefs.current[config.channel] = input;
+                }}
+                type='float'
+                className={styles['speed-input']}
+                placeholder={config.placeholder}
+                defaultValue={String(universalValues[config.channel])}
+                onChange={(text) => {
+                  const value = normalizeInteger(text, 0, config.max, universalValues[config.channel]);
+                  setUniversalValues((values) => ({
+                    ...values,
+                    [config.channel]: value
+                  }));
+                }}
+                onSubmit={(text) => commitUniversalChannel(config.channel, text, true)}
+                onBlur={() => {
+                  if (universalSkipBlurRefs.current[config.channel]) {
+                    universalSkipBlurRefs.current[config.channel] = false;
+                    return;
+                  }
+                  commitUniversalChannel(config.channel);
+                }}
+              />
+              <Button
+                className={styles['step-button']}
+                tooltip={`Send ${config.label} command`}
+                onClick={() => commitUniversalChannel(config.channel)}
+              >
+                <FontAwesomeIcon icon={faPaperPlane} />
+              </Button>
+            </div>
+          ))}
+        </div>
+
+        <div className={styles['bridge-section']}>
           <div className={styles['section-header']}>Scale</div>
           <div className={styles['button-row']}>
             <Button
@@ -434,7 +638,7 @@ export default function Drill() {
 
         <div className={styles['bridge-section']}>
           <div className={styles['section-header']}>Autonomy</div>
-          <div className={styles['button-row']}>
+          <div className={styles['autonomy-grid']}>
             {autonomyStates.map((state) => (
               <Button
                 key={state.value}

@@ -27,12 +27,26 @@
 
 .button-row,
 .input-row,
-.drill-row {
+.drill-row,
+.universal-row {
   display: flex;
   flex-direction: row;
   justify-content: stretch;
   align-items: stretch;
   margin-top: -5px;
+}
+
+.autonomy-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: -5px;
+}
+
+.autonomy-grid .large-button {
+  min-width: 0;
+  margin-left: 5px;
+  margin-right: 5px;
+  border-radius: 5px;
 }
 
 .large-button {
@@ -63,6 +77,10 @@
 
 .telemetry-label {
   flex: 0 0 120px;
+}
+
+.universal-label {
+  flex: 0 0 90px;
 }
 
 .disabled-input {

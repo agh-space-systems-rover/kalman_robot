@@ -6,6 +6,12 @@ from std_msgs.msg import Float32, Int8, UInt8
 
 MIN_BRIDGE_VALUE = -100
 MAX_BRIDGE_VALUE = 100
+UNIVERSAL_ID = 0
+DRILL_UNIVERSAL_ID = 0
+UNIVERSAL_CAROUSEL_CHANNEL = 0
+UNIVERSAL_CHANNEL_MIN = 0
+UNIVERSAL_CAROUSEL_MAX = 100
+UNIVERSAL_PROBE_MAX = 180
 
 
 class DrillDriver(Node):
@@ -23,7 +29,7 @@ class DrillDriver(Node):
         )
         self.weight_master_sub = self.create_subscription(
             MasterMessage,
-            f"master_com/master_to_ros/{hex(MasterMessage.DRILL_WEIGHT_VALUE)[1:]}",
+            f"master_com/master_to_ros/{hex(MasterMessage.TO_UNIVERSAL)[1:]}",
             self.weight_master_res_cb,
             10,
         )
@@ -42,27 +48,72 @@ class DrillDriver(Node):
         self.autonomy_sub = self.create_subscription(
             UInt8, "science/drill/autonomy", self.autonomy_cb, 10
         )
+        self.gear_sub = self.create_subscription(
+            UInt8, "science/drill/gear", self.gear_cb, 10
+        )
         self.weight_req_sub = self.create_subscription(
             UInt8, "science/drill/weight/request", self.weight_req_cb, 10
+        )
+        self.universal_sub = self.create_subscription(
+            Float32,
+            "science/drill/universal",
+            lambda msg: self.universal_channel_cb(msg, 0),
+            10,
+        )
+        self.channel1_sub = self.create_subscription(
+            Float32,
+            "science/drill/channel1",
+            lambda msg: self.universal_channel_cb(msg, 1),
+            10,
+        )
+        self.channel2_sub = self.create_subscription(
+            Float32,
+            "science/drill/channel2",
+            lambda msg: self.universal_channel_cb(msg, 2),
+            10,
+        )
+        self.channel3_sub = self.create_subscription(
+            Float32,
+            "science/drill/channel3",
+            lambda msg: self.universal_channel_cb(msg, 3),
+            10,
+        )
+        self.channel4_sub = self.create_subscription(
+            Float32,
+            "science/drill/channel4",
+            lambda msg: self.universal_channel_cb(msg, 4),
+            10,
         )
 
     def drill_b_cb(self, msg: Int8):
         value = max(MIN_BRIDGE_VALUE, min(int(msg.data), MAX_BRIDGE_VALUE))
-        self.publish_bridge_command(MasterMessage.DRILL_RACK, value)
+        self.publish_bridge_command(MasterMessage.DRILL_B_BRIDGE_SET, value)
 
     def drill_c_cb(self, msg: Int8):
         value = max(MIN_BRIDGE_VALUE, min(int(msg.data), MAX_BRIDGE_VALUE))
-        self.publish_bridge_command(MasterMessage.DRILL_DRILL, value)
+        self.publish_bridge_command(MasterMessage.DRILL_C_BRIDGE_SET, value)
 
     def autonomy_cb(self, msg: UInt8):
         # Autonomy values:
         #   0 = emergency stop
         #   1 = drilling
         #   2 = homing
-        value = max(0, min(int(msg.data), 2))
+        #   3 = open sarko
+        #   4 = close sarko
+        #   5 = clean drill
+        value = max(0, min(int(msg.data), 5))
         self.master_pub.publish(
             MasterMessage(
                 cmd=MasterMessage.DRILL_AUTONOMY,
+                data=[value],
+            )
+        )
+
+    def gear_cb(self, msg: UInt8):
+        value = max(1, min(int(msg.data), 2))
+        self.master_pub.publish(
+            MasterMessage(
+                cmd=MasterMessage.DRILL_SET_DRILL_GEAR,
                 data=[value],
             )
         )
@@ -74,8 +125,22 @@ class DrillDriver(Node):
         value = max(0, min(int(msg.data), 1))
         self.master_pub.publish(
             MasterMessage(
-                cmd=MasterMessage.DRILL_WEIGHT_REQ,
-                data=[value],
+                cmd=MasterMessage.TO_UNIVERSAL,
+                data=[UNIVERSAL_ID, value],
+            )
+        )
+
+    def universal_channel_cb(self, msg: Float32, channel: int):
+        max_value = (
+            UNIVERSAL_CAROUSEL_MAX
+            if channel == UNIVERSAL_CAROUSEL_CHANNEL
+            else UNIVERSAL_PROBE_MAX
+        )
+        value = max(UNIVERSAL_CHANNEL_MIN, min(round(float(msg.data)), max_value))
+        self.master_pub.publish(
+            MasterMessage(
+                cmd=MasterMessage.SERVO_SET,
+                data=[DRILL_UNIVERSAL_ID, channel, value],
             )
         )
 
@@ -116,12 +181,29 @@ class DrillDriver(Node):
             )
         )
 
+    def get_weight_payload(self, msg: MasterMessage):
+        payload = list(msg.data)
+
+        if len(payload) == 5:
+            if payload[0] != UNIVERSAL_ID:
+                return None
+            payload = payload[1:]
+        elif len(payload) == 6:
+            if payload[0] != UNIVERSAL_ID or payload[1] != MasterMessage.SCALE_RES:
+                return None
+            payload = payload[2:]
+
+        if len(payload) != 4:
+            return None
+
+        return payload
+
     def weight_master_res_cb(self, msg: MasterMessage):
-        if len(msg.data) != 4:
-            self.get_logger().warn("Received invalid drill weight length")
+        payload = self.get_weight_payload(msg)
+        if payload is None:
             return
 
-        weight = struct.unpack("<f", bytes(msg.data))[0]
+        weight = struct.unpack("<f", bytes(payload))[0]
         self.weight_pub.publish(Float32(data=float(weight)))
 
 
