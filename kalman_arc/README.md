@@ -17,3 +17,9 @@ rqt --standalone kalman_arc/RscpPublisher
 
 It is also available in the regular rqt plugin menu under
 `Plugins > Kalman > RSCP Publisher`.
+
+## For RSCP with raspi
+
+``bash
+rqt --standalone kalman_arc/RscpOverTCP
+```

@@ -82,9 +82,18 @@ ament_target_dependencies(rscp_node
   kalman_interfaces
 )
 
+add_executable(rscp_tcp_client src/rscp_tcp_client.cpp)
+
+ament_target_dependencies(rscp_tcp_client
+  rclcpp
+  std_msgs
+)
+
 add_library(rqt_rscp SHARED
   include/kalman_arc/rqt_rscp.hpp
+  include/kalman_arc/rqt_rscp_over_tcp.hpp
   src/rqt_rscp.cpp
+  src/rqt_rscp_over_tcp.cpp
 )
 
 set_target_properties(rqt_rscp PROPERTIES AUTOMOC ON)
@@ -97,6 +106,8 @@ target_include_directories(rqt_rscp
 
 target_link_libraries(rqt_rscp
   Qt5::Widgets
+  kalman_arc_cobs
+  rscp_proto_messages
 )
 
 ament_target_dependencies(rqt_rscp
@@ -174,6 +185,7 @@ install(TARGETS
   kalman_arc_cobs
   rscp_proto_messages
   rscp_node
+  rscp_tcp_client
   rqt_rscp
   darkest_rock_finder_node
   ARCHIVE DESTINATION lib
