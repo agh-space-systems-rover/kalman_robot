@@ -9,6 +9,7 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_python REQUIRED)
 ament_python_install_package(${PROJECT_NAME})
+ament_python_install_package(tools)
 
 # Read ROS distro
 if($ENV{ROS_DISTRO} STREQUAL "humble")
@@ -178,6 +179,7 @@ rclcpp_components_register_node(
 install(PROGRAMS
   scripts/travel_distance_meter
   scripts/tunnel_follower
+  scripts/panorama_360
   DESTINATION lib/${PROJECT_NAME}
 )
 
