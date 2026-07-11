@@ -9,4 +9,14 @@
       <statustip>Publish RSCP request frames to rscp/serial/rx.</statustip>
     </qtgui>
   </class>
+  <class name="kalman_arc/RscpOverTCP" type="kalman_arc::RqtRscpOverTcp" base_class_type="rqt_gui_cpp::Plugin">
+    <description>Build RSCP request protobuf messages and publish COBS-framed bytes for the TCP bridge.</description>
+    <qtgui>
+      <group>
+        <label>Kalman</label>
+      </group>
+      <label>RSCP Over TCP</label>
+      <statustip>Publish and receive COBS-framed RSCP protobuf bytes over rscp/serial topics.</statustip>
+    </qtgui>
+  </class>
 </library>
