@@ -11,7 +11,7 @@ def generate_launch_description():
                 "selective_launch": "only_rs_pub",
             },
             "description": {
-                "layout": "autonomy",
+                "layout": "autonomy_90deg_cams",
             },
             "clouds": {
                 "rgbd_ids": RGBD_IDS,

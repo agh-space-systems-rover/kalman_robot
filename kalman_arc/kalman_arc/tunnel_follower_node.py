@@ -44,7 +44,7 @@ class TunnelFollower(Node):
 		
 		# control params
 		self.target_v = 0.5
-		self.k_lat = 1.2
+		self.k_lat = 0.8
 		self.offset_dist = 1.5
 
 		self.create_timer(0.1, self.control_tick)
