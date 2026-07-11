@@ -8,29 +8,27 @@ type Props = {
   tooltip?: string;
   onClick?: () => void;
   disabled?: boolean;
+  active?: boolean;
   className?: string;
   style?: CSSProperties;
 };
 
-export default function Button({ children, tooltip, onClick, disabled, className, style }: Props) {
+export default function Button({ children, tooltip, onClick, disabled, active, className, style }: Props) {
+  const buttonClassName =
+    styles['button'] +
+    (className ? ` ${className}` : '') +
+    (active ? ` ${styles['active']}` : '') +
+    (disabled ? ` ${styles['disabled']}` : '');
+
   if (tooltip === undefined || disabled) {
     return (
-      <div
-        className={styles['button'] + (className ? ` ${className}` : '') + (disabled ? ` ${styles['disabled']}` : '')}
-        style={style}
-        onClick={disabled ? undefined : onClick}
-      >
+      <div className={buttonClassName} style={style} onClick={disabled ? undefined : onClick}>
         {children}
       </div>
     );
   } else {
     return (
-      <Tooltip
-        text={tooltip}
-        className={styles['button'] + (className ? ` ${className}` : '') + (disabled ? ` ${styles['disabled']}` : '')}
-        style={style}
-        onClick={disabled ? undefined : onClick}
-      >
+      <Tooltip text={tooltip} className={buttonClassName} style={style} onClick={disabled ? undefined : onClick}>
         {children}
       </Tooltip>
     );

@@ -1,140 +1,210 @@
 import struct
 import rclpy
 from rclpy.node import Node
-import numpy as np
-from struct import pack
-from kalman_interfaces.msg import Drill, MasterMessage
-from std_srvs.srv import Trigger
-from std_msgs.msg import Float32
-from dataclasses import dataclass
+from kalman_interfaces.msg import DrillTelemetry, MasterMessage
+from std_msgs.msg import Float32, Int8, UInt8
 
-DRILL_UNIVERSAL_ADDR = [0, 0]  # board, channel
-# ARM_SPEED = 50
-RACK_SPEED = 50
-DRILL_SPEED = 255
-MAX_ZEROFRAMES_SPAM = 5
-
-# SCALE_DEVICES = [
-#     # (board, channel), ...
-#     (1, 2), (1, 3)
-# ]
-# WEIGHT_SCALES = [1.0, 1.0]
-# WEIGHT_BIAS = 0.0
+MIN_BRIDGE_VALUE = -100
+MAX_BRIDGE_VALUE = 100
+UNIVERSAL_ID = 0
+DRILL_UNIVERSAL_ID = 0
+UNIVERSAL_CAROUSEL_CHANNEL = 0
+UNIVERSAL_CHANNEL_MIN = 0
+UNIVERSAL_CAROUSEL_MAX = 100
+UNIVERSAL_PROBE_MAX = 180
 
 
 class DrillDriver(Node):
     def __init__(self):
         super().__init__("drill_driver")
 
-        # mechanism controls
-        self.vel_sub = self.create_subscription(
-            Drill, "science/drill/cmd", self.drill_vel_cb, 1
-        )
         self.master_pub = self.create_publisher(
             MasterMessage, "master_com/ros_to_master", 10
         )
-        # self.zero_arm = 0
-        self.zero_rack = 0
-        self.zero_drill = 0
+        self.master_sub = self.create_subscription(
+            MasterMessage,
+            f"master_com/master_to_ros/{hex(MasterMessage.DRILL_TELEMETRY)[1:]}",
+            self.master_res_cb,
+            10,
+        )
+        self.weight_master_sub = self.create_subscription(
+            MasterMessage,
+            f"master_com/master_to_ros/{hex(MasterMessage.TO_UNIVERSAL)[1:]}",
+            self.weight_master_res_cb,
+            10,
+        )
 
-        # # autonomy controls
-        # self.auto_start_srv = self.create_service(Trigger, "science/drill/auto/start", self.start_autonomy_cb)
-        # self.auto_stop_srv = self.create_service(Trigger, "science/drill/auto/stop", self.stop_autonomy_cb)
+        self.telemetry_pub = self.create_publisher(
+            DrillTelemetry, "science/drill/telemetry", 10
+        )
+        self.weight_pub = self.create_publisher(Float32, "science/drill/weight", 10)
 
-        # # scale controls
-        # self.weight_req_srv = self.create_service(
-        #     Trigger, "science/drill/weight/req", self.scale_req_cb
-        # )
-        # self.weight_reading_sub = self.create_subscription(
-        #     MasterMessage,
-        #     f"master_com/master_to_ros/{hex(MasterMessage.SCALE_RES)[1:]}",
-        #     self.scale_res_cb,
-        #     10,
-        # )
-        # self.weight_pub = self.create_publisher(Float32, "science/drill/weight", 10)
-        # self.last_weight_readings = [0.0] * len(SCALE_DEVICES)
+        self.drill_b_sub = self.create_subscription(
+            Int8, "science/drill/b", self.drill_b_cb, 10
+        )
+        self.drill_c_sub = self.create_subscription(
+            Int8, "science/drill/c", self.drill_c_cb, 10
+        )
+        self.autonomy_sub = self.create_subscription(
+            UInt8, "science/drill/autonomy", self.autonomy_cb, 10
+        )
+        self.gear_sub = self.create_subscription(
+            UInt8, "science/drill/gear", self.gear_cb, 10
+        )
+        self.weight_req_sub = self.create_subscription(
+            UInt8, "science/drill/weight/request", self.weight_req_cb, 10
+        )
+        self.universal_sub = self.create_subscription(
+            Float32,
+            "science/drill/universal",
+            lambda msg: self.universal_channel_cb(msg, 0),
+            10,
+        )
+        self.channel1_sub = self.create_subscription(
+            Float32,
+            "science/drill/channel1",
+            lambda msg: self.universal_channel_cb(msg, 1),
+            10,
+        )
+        self.channel2_sub = self.create_subscription(
+            Float32,
+            "science/drill/channel2",
+            lambda msg: self.universal_channel_cb(msg, 2),
+            10,
+        )
+        self.channel3_sub = self.create_subscription(
+            Float32,
+            "science/drill/channel3",
+            lambda msg: self.universal_channel_cb(msg, 3),
+            10,
+        )
+        self.channel4_sub = self.create_subscription(
+            Float32,
+            "science/drill/channel4",
+            lambda msg: self.universal_channel_cb(msg, 4),
+            10,
+        )
 
-    def drill_vel_cb(self, msg: Drill):
-        # msg.arm = np.clip(msg.arm, -1, 1)
-        msg.rack = np.clip(msg.rack, -1, 1)
-        msg.drill = np.clip(msg.drill, 0, 1)
+    def drill_b_cb(self, msg: Int8):
+        value = max(MIN_BRIDGE_VALUE, min(int(msg.data), MAX_BRIDGE_VALUE))
+        self.publish_bridge_command(MasterMessage.DRILL_B_BRIDGE_SET, value)
 
-        # data_arm = [1 if msg.arm < 0 else 0, round(abs(msg.arm * ARM_SPEED))]
-        data_rack = [
-            *DRILL_UNIVERSAL_ADDR,
-            round(abs(msg.rack * RACK_SPEED)),
-            1 if msg.rack < 0 else 0,
-        ]
-        data_drill = [*DRILL_UNIVERSAL_ADDR, round(abs(msg.drill * DRILL_SPEED))]
+    def drill_c_cb(self, msg: Int8):
+        value = max(MIN_BRIDGE_VALUE, min(int(msg.data), MAX_BRIDGE_VALUE))
+        self.publish_bridge_command(MasterMessage.DRILL_C_BRIDGE_SET, value)
 
-        # self.zero_arm = self.zero_arm + 1 if self.is_zero_frame(data_arm) else 0
-        self.zero_rack = self.zero_rack + 1 if self.is_zero_frame(data_rack) else 0
-        self.zero_drill = self.zero_drill + 1 if self.is_zero_frame(data_drill) else 0
-
-        # if self.zero_arm <= MAX_ZEROFRAMES_SPAM:
-        #     self.master_pub.publish(
-        #         MasterMessage(cmd=MasterMessage.DRILL_ARM, data=data_arm)
-        #     )
-
-        if self.zero_rack <= MAX_ZEROFRAMES_SPAM:
-            self.master_pub.publish(
-                MasterMessage(cmd=MasterMessage.DRILL_RACK, data=data_rack)
+    def autonomy_cb(self, msg: UInt8):
+        # Autonomy values:
+        #   0 = emergency stop
+        #   1 = drilling
+        #   2 = homing
+        #   3 = open sarko
+        #   4 = close sarko
+        #   5 = clean drill
+        value = max(0, min(int(msg.data), 5))
+        self.master_pub.publish(
+            MasterMessage(
+                cmd=MasterMessage.DRILL_AUTONOMY,
+                data=[value],
             )
+        )
 
-        if self.zero_drill <= MAX_ZEROFRAMES_SPAM:
-            self.master_pub.publish(
-                MasterMessage(cmd=MasterMessage.DRILL_DRILL, data=data_drill)
+    def gear_cb(self, msg: UInt8):
+        value = max(1, min(int(msg.data), 2))
+        self.master_pub.publish(
+            MasterMessage(
+                cmd=MasterMessage.DRILL_SET_DRILL_GEAR,
+                data=[value],
             )
+        )
 
-    def is_zero_frame(self, data):
-        # Skip first two Universal address bytes.
-        # The third byte in all drill frames is speed.
-        # And here we want to check if the target speed is zero.
-        return True if data[2] == 0 else False
+    def weight_req_cb(self, msg: UInt8):
+        # Weight request values:
+        #   0 = tare
+        #   1 = request measurement
+        value = max(0, min(int(msg.data), 1))
+        self.master_pub.publish(
+            MasterMessage(
+                cmd=MasterMessage.TO_UNIVERSAL,
+                data=[UNIVERSAL_ID, value],
+            )
+        )
 
-    # def start_autonomy_cb(self, req: Trigger.Request, res: Trigger.Response):
-    #     msg = MasterMessage()
-    #     msg.cmd = MasterMessage.DRILL_AUTONOMY
-    #     msg.data = [1]
-    #     self.master_pub.publish(msg)
-    #     res.success = True
-    #     res.message = "Autonomy started"
-    #     return res
+    def universal_channel_cb(self, msg: Float32, channel: int):
+        max_value = (
+            UNIVERSAL_CAROUSEL_MAX
+            if channel == UNIVERSAL_CAROUSEL_CHANNEL
+            else UNIVERSAL_PROBE_MAX
+        )
+        value = max(UNIVERSAL_CHANNEL_MIN, min(round(float(msg.data)), max_value))
+        self.master_pub.publish(
+            MasterMessage(
+                cmd=MasterMessage.SERVO_SET,
+                data=[DRILL_UNIVERSAL_ID, channel, value],
+            )
+        )
 
-    # def stop_autonomy_cb(self, req: Trigger.Request, res: Trigger.Response):
-    #     msg = MasterMessage()
-    #     msg.cmd = MasterMessage.DRILL_AUTONOMY
-    #     msg.data = [0]
-    #     self.master_pub.publish(msg)
-    #     res.success = True
-    #     res.message = "Autonomy stopped"
-    #     return res
+    def publish_bridge_command(self, cmd: int, value: int):
+        direction = 1 if value < 0 else 0
+        velocity = abs(value)
+        self.master_pub.publish(
+            MasterMessage(
+                cmd=cmd,
+                data=[direction, velocity],
+            )
+        )
 
-    # def scale_req_cb(self, req: Trigger.Request, res: Trigger.Response):
-    #     for board_id, channel_id in SCALE_DEVICES:
-    #         # Create the request message
-    #         req_msg = MasterMessage()
-    #         req_msg.cmd = MasterMessage.SCALE_REQ
-    #         req_msg.data = pack("BB", board_id, channel_id)
+    def master_res_cb(self, msg: MasterMessage):
+        if len(msg.data) != 8:
+            self.get_logger().warn("Received invalid drill telemetry length")
+            return
 
-    #         # Publish the request to the master
-    #         self.master_pub.publish(req_msg)
+        payload = msg.data
 
-    #     res.success = True
-    #     res.message = "Requested weight reading"
-    #     return res
+        depth_raw = struct.unpack("<h", bytes(payload[0:2]))[0]
+        rack_current_raw = payload[2]
+        drill_current_raw = payload[3]
+        flags = payload[4]
+        autonomy_state = payload[5]
 
-    # def scale_res_cb(self, msg: MasterMessage):
-    #     if msg.cmd == MasterMessage.SCALE_RES:
-    #         board_id, channel_id, value = struct.unpack("<BBi", bytes(msg.data[:6]))
+        self.telemetry_pub.publish(
+            DrillTelemetry(
+                depth_mm=depth_raw / 10.0,
+                rack_current=rack_current_raw / 20.0,
+                drill_current=drill_current_raw / 20.0,
+                flags=flags,
+                upper_limit_pressed=bool(flags & 0x01),
+                lower_limit_pressed=bool(flags & 0x02),
+                autonomy_active=bool(flags & 0x04),
+                based=bool(flags & 0x08),
+                autonomy_state=autonomy_state,
+            )
+        )
 
-    #         scale_idx = SCALE_DEVICES.index((board_id, channel_id))
-    #         self.last_weight_readings[scale_idx] = value
+    def get_weight_payload(self, msg: MasterMessage):
+        payload = list(msg.data)
 
-    #         self.get_logger().info(f"{self.last_weight_readings}")
+        if len(payload) == 5:
+            if payload[0] != UNIVERSAL_ID:
+                return None
+            payload = payload[1:]
+        elif len(payload) == 6:
+            if payload[0] != UNIVERSAL_ID or payload[1] != MasterMessage.SCALE_RES:
+                return None
+            payload = payload[2:]
 
-    #         total_weight = sum(reading * scale for reading, scale in zip(self.last_weight_readings, WEIGHT_SCALES)) + WEIGHT_BIAS
-    #         self.weight_pub.publish(Float32(data=total_weight))
+        if len(payload) != 4:
+            return None
+
+        return payload
+
+    def weight_master_res_cb(self, msg: MasterMessage):
+        payload = self.get_weight_payload(msg)
+        if payload is None:
+            return
+
+        weight = struct.unpack("<f", bytes(payload))[0]
+        self.weight_pub.publish(Float32(data=float(weight)))
 
 
 def main():

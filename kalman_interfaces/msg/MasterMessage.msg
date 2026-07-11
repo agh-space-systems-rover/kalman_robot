@@ -7,9 +7,9 @@ uint8 MOTOR_GET_ESTOP = 0x45
 uint8 MOTOR_GET_WHEELS = 0x4F
 
 uint8 SERVO_SET = 0x50
-uint8 DRILL_DRILL = 0x51
+# uint8 DRILL_DRILL = 0x51
 uint8 SAND_STORAGE_CMD = 0x53
-uint8 DRILL_RACK = 0x53
+# uint8 DRILL_RACK = 0x53
 uint8 PH_RAIL = 0x53
 uint8 SCALE_REQ = 0x57
 uint8 PH_RES = 0x5C
@@ -39,11 +39,12 @@ uint8 ARM_SEND_SPACEMOUSE = 0xB4
 
 uint8 CAM_2DOF_SET = 0xBF
 
-# Old frames for ERC 2025 prototype
-# uint8 DRILL_ARM = 0xD0
-# uint8 DRILL_RACK = 0xD1
-# uint8 DRILL_DRILL = 0xD2
-# uint8 DRILL_AUTONOMY = 0xD5
+uint8 DRILL_ARM = 0xD0
+uint8 DRILL_B_BRIDGE_SET = 0xD1
+uint8 DRILL_C_BRIDGE_SET = 0xD2
+uint8 DRILL_SET_DRILL_GEAR = 0xD3
+uint8 DRILL_AUTONOMY = 0xD5
+uint8 DRILL_TELEMETRY = 0xD6
 
 # command number
 uint8 cmd
