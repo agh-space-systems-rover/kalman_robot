@@ -195,9 +195,9 @@ void RqtRscpOverTcp::initPlugin(qt_gui_cpp::PluginContext &context) {
 	);
 
 	serial_rx_pub_ =
-	    node_->create_publisher<UInt8MultiArray>("rscp/serial/tx", 10);
+	    node_->create_publisher<UInt8MultiArray>("rscp/serial/tx_to_raspi", 10);
 	serial_tx_sub_ = node_->create_subscription<UInt8MultiArray>(
-	    "rscp/serial/rx",
+	    "rscp/serial/rx_to_raspi",
 	    rclcpp::SensorDataQoS(),
 	    [this](const UInt8MultiArray::SharedPtr message) {
 		    handle_serial_tx(*message);
