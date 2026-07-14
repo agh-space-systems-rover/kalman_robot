@@ -54,6 +54,10 @@ class DarkestRockFinder : public rclcpp::Node {
 		declare_parameter("knn_blur_k",          default_knn_blur_k);
 		declare_parameter("publish_rate",        default_publish_rate);
 		declare_parameter("publish_debug_cloud", true);
+		declare_parameter("roi_x_min",           0.0);
+		declare_parameter("roi_x_max",           10000.0);
+		declare_parameter("roi_y_min",           180.0);
+		declare_parameter("roi_y_max",           10000.0);
 
 		int queue_size = get_parameter("queue_size").as_int();
 
@@ -91,10 +95,22 @@ class DarkestRockFinder : public rclcpp::Node {
 		std::string map_frame = get_parameter("map_frame").as_string();
 		float       leaf      = get_parameter("voxel_leaf").as_double();
 
+		double x_min = get_parameter("roi_x_min").as_double();
+		double x_max = get_parameter("roi_x_max").as_double();
+		double y_min = get_parameter("roi_y_min").as_double();
+		double y_max = get_parameter("roi_y_max").as_double();
+
 		CloudI::Ptr new_points(new CloudI);
 
 		for (auto &det : msg->detections) {
 			if (det.results.empty()) continue;
+
+			double det_x = det.bbox.center.position.x;
+			double det_y = det.bbox.center.position.y;
+
+			if (det_x < x_min || det_x > x_max || det_y < y_min || det_y > y_max) {
+				continue;
+			}
 
 			// parse luminosity from id - lower means darker
 			float luminosity = 255.0f;
