@@ -430,26 +430,28 @@ function PoseRequester({ editMode, onSelectPose }: { editMode: boolean; onSelect
       }}
     >
       <div className={styles['pose-name']}>{pose.name}</div>
-      {editMode && (
-        <button
-          type='button'
-          className={styles['pose-eye-button']}
-          title={hiddenPoseIds.includes(pose.id) ? 'Show pose' : 'Hide pose'}
-          onClick={(e) => {
-            e.stopPropagation();
-            toggleHiddenPose(pose.id);
-          }}
-        >
-          <FontAwesomeIcon icon={hiddenPoseIds.includes(pose.id) ? faEyeSlash : faEye} />
-        </button>
-      )}
-      <div
-        className={`${styles['pose-indicator']} ${
-          styles['pose-ready'] //TODO dynamic check for arm safety,
-          // NOTE operator said the poses were always ready for action (also they have safety rules)
-          // styles['pose-not-ready']
-        }`}
-      />
+      <div className={styles['pose-option-actions']}>
+        {editMode && (
+          <button
+            type='button'
+            className={styles['pose-eye-button']}
+            title={hiddenPoseIds.includes(pose.id) ? 'Show pose' : 'Hide pose'}
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleHiddenPose(pose.id);
+            }}
+          >
+            <FontAwesomeIcon icon={hiddenPoseIds.includes(pose.id) ? faEyeSlash : faEye} />
+          </button>
+        )}
+        <div
+          className={`${styles['pose-indicator']} ${
+            styles['pose-ready'] //TODO dynamic check for arm safety,
+            // NOTE operator said the poses were always ready for action (also they have safety rules)
+            // styles['pose-not-ready']
+          }`}
+        />
+      </div>
     </div>
   ));
 
@@ -637,20 +639,22 @@ function TrajectoryRequester() {
       }}
     >
       <div className={styles['pose-name']}>{trajectory.name}</div>
-      <div
-        className={`${styles['pose-indicator']} ${
-          isCloseEnough(
-            predefinedArmTrajectories.START_JOINTS[
-              predefinedArmTrajectories.PREDEFINED_TRAJECTORIES.trajectories[i].name
-            ],
-            namesAndValues.map((joint) => joint.value),
-            predefinedArmTrajectories.PREDEFINED_TRAJECTORIES.max_distance_rad,
-            [1, 2, 3, 4, 5, 6]
-          )
-            ? styles['pose-ready']
-            : styles['pose-not-ready']
-        }`}
-      />
+      <div className={styles['pose-option-actions']}>
+        <div
+          className={`${styles['pose-indicator']} ${
+            isCloseEnough(
+              predefinedArmTrajectories.START_JOINTS[
+                predefinedArmTrajectories.PREDEFINED_TRAJECTORIES.trajectories[i].name
+              ],
+              namesAndValues.map((joint) => joint.value),
+              predefinedArmTrajectories.PREDEFINED_TRAJECTORIES.max_distance_rad,
+              [1, 2, 3, 4, 5, 6]
+            )
+              ? styles['pose-ready']
+              : styles['pose-not-ready']
+          }`}
+        />
+      </div>
     </div>
   ));
 
@@ -908,7 +912,7 @@ export default function Arms() {
       <div className={styles['trajectory-and-pose']}>
         <PoseRequester editMode={isEditMode} onSelectPose={(pose) => setSelectedPose(pose)} />
         <div className={styles['extra-space']} />
-        <TrajectoryRequester />
+        {/*<TrajectoryRequester />*/}
       </div>
       {isEditMode && (
         <EditPanel

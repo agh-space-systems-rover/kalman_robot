@@ -204,7 +204,6 @@ input[type='range']::-moz-range-track {
 
 .pose-button {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   padding: 0px 0px;
   border-radius: 5px;
@@ -212,6 +211,9 @@ input[type='range']::-moz-range-track {
 }
 
 .pose-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   width: 100%;
   background-color: var(--interactive);
   margin-bottom: 5px;
@@ -278,6 +280,15 @@ input[type='range']::-moz-range-track {
 
 .pose-name {
   margin: 10px 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.pose-option-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-shrink: 0;
 }
 
 .pose-eye-button {
@@ -300,6 +311,7 @@ input[type='range']::-moz-range-track {
 .pose-indicator {
   display: flex;
   justify-content: center;
+  flex-shrink: 0;
   width: 15px;
   height: 15px;
   border-radius: 50%;
