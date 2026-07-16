@@ -20,6 +20,7 @@ import { armJointsLocks, currentAxisLockFocus, toggleArmJointLock } from '../com
 import predefinedPoses from '../common/predefined-arm-poses';
 import '../common/predefined-arm-trajectories';
 import predefinedArmTrajectories from '../common/predefined-arm-trajectories';
+import { modalRef } from '../common/refs';
 import { ros } from '../common/ros';
 import { JointState } from '../common/ros-interfaces';
 import {
@@ -212,27 +213,39 @@ function ArmStatus({ editMode }: { editMode: boolean }) {
   );
 
   const saveCurrentPose = () => {
-    const poseName = prompt('Give the name of new pose:', `Pose ${new Date().toLocaleTimeString()}`);
-    if (!poseName) return;
+    modalRef.current?.showPrompt({
+      title: 'Save pose',
+      icon: faSave,
+      message: 'Give the name of new pose:',
+      defaultValue: `Pose ${new Date().toLocaleTimeString()}`,
+      confirmText: 'Save',
+      onSubmit: (poseName) => {
+        if (!poseName) return;
 
-    const currentValues = namesAndValues.map((joint) => joint.value);
+        const currentValues = namesAndValues.map((joint) => joint.value);
 
-    const savedPosesRaw = localStorage.getItem('custom_arm_poses');
-    const savedPoses = savedPosesRaw ? JSON.parse(savedPosesRaw) : [];
+        const savedPosesRaw = localStorage.getItem('custom_arm_poses');
+        const savedPoses = savedPosesRaw ? JSON.parse(savedPosesRaw) : [];
 
-    const newPose: ArmPose = {
-      id: Date.now(),
-      name: poseName,
-      path: 'FIXME path',
-      joints: currentValues,
-      joints_set: [1, 2, 3, 4, 5, 6],
-      joints_checked: [1, 2, 3, 4, 5, 6]
-    };
+        const newPose: ArmPose = {
+          id: Date.now(),
+          name: poseName,
+          path: 'FIXME path',
+          joints: currentValues,
+          joints_set: [1, 2, 3, 4, 5, 6],
+          joints_checked: [1, 2, 3, 4, 5, 6]
+        };
 
-    localStorage.setItem('custom_arm_poses', JSON.stringify([...savedPoses, newPose]));
+        localStorage.setItem('custom_arm_poses', JSON.stringify([...savedPoses, newPose]));
 
-    window.dispatchEvent(new Event('local-poses-update'));
-    alert('Pose saved!');
+        window.dispatchEvent(new Event('local-poses-update'));
+        modalRef.current?.showAlert({
+          title: 'Pose saved',
+          icon: faSave,
+          message: `"${poseName}" was saved.`
+        });
+      }
+    });
   };
 
   return (
@@ -432,7 +445,7 @@ function PoseRequester({ editMode, onSelectPose }: { editMode: boolean; onSelect
       )}
       <div
         className={`${styles['pose-indicator']} ${
-          styles['pose-ready'] //TODO dynamic check for arm safety, 
+          styles['pose-ready'] //TODO dynamic check for arm safety,
           // NOTE operator said the poses were always ready for action (also they have safety rules)
           // styles['pose-not-ready']
         }`}
@@ -465,17 +478,17 @@ function PoseRequester({ editMode, onSelectPose }: { editMode: boolean; onSelect
     ))
   );
 
-  const closeEnough = true
-    // NOTE operator said the poses were always ready for action (also they have safety rules)
-          
-    // currentPose && namesAndValues.length > 0
-    //   ? isCloseEnough(
-    //       predefinedJointValues,
-    //       namesAndValues.map((joint) => joint.value),
-    //       predefinedPoses.max_distance_rad,
-    //       currentPose.joints_checked
-    //     )
-    //   : false;
+  const closeEnough = true;
+  // NOTE operator said the poses were always ready for action (also they have safety rules)
+
+  // currentPose && namesAndValues.length > 0
+  //   ? isCloseEnough(
+  //       predefinedJointValues,
+  //       namesAndValues.map((joint) => joint.value),
+  //       predefinedPoses.max_distance_rad,
+  //       currentPose.joints_checked
+  //     )
+  //   : false;
 
   const handleImportSinglePose = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -508,9 +521,17 @@ function PoseRequester({ editMode, onSelectPose }: { editMode: boolean; onSelect
         localStorage.setItem('custom_arm_poses', JSON.stringify(existingPoses));
 
         window.dispatchEvent(new Event('local-poses-update'));
-        alert(`Successfully imported ${importedArray.length} pose(s).`);
+        modalRef.current?.showAlert({
+          title: 'Import complete',
+          icon: faDownload,
+          message: `Successfully imported ${importedArray.length} pose(s).`
+        });
       } catch (err) {
-        alert('Error: Invalid JSON format.');
+        modalRef.current?.showAlert({
+          title: 'Import failed',
+          icon: faDownload,
+          message: 'Invalid JSON format.'
+        });
       }
     };
     reader.readAsText(file);
@@ -738,13 +759,20 @@ function EditPanel({
   };
 
   const handleDelete = () => {
-    if (window.confirm(`Are you sure you want to delete "${pose.name}"?`)) {
-      const saved = JSON.parse(localStorage.getItem('custom_arm_poses') || '[]');
-      const newList = saved.filter((p: ArmPose) => p.id !== pose.id);
-      localStorage.setItem('custom_arm_poses', JSON.stringify(newList));
-      window.dispatchEvent(new Event('local-poses-update'));
-      onChangePose(null);
-    }
+    modalRef.current?.showConfirm({
+      title: 'Delete pose',
+      icon: faTrash,
+      message: `Are you sure you want to delete "${pose.name}"?`,
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      onConfirm: () => {
+        const saved = JSON.parse(localStorage.getItem('custom_arm_poses') || '[]');
+        const newList = saved.filter((p: ArmPose) => p.id !== pose.id);
+        localStorage.setItem('custom_arm_poses', JSON.stringify(newList));
+        window.dispatchEvent(new Event('local-poses-update'));
+        onChangePose(null);
+      }
+    });
   };
   const updatePoseField = (field: keyof ArmPose, value: any) => {
     if (!pose || !pose.isCustom) return;
@@ -762,9 +790,17 @@ function EditPanel({
     }
   };
   const handleRename = () => {
-    const newName = prompt('Enter new name for the pose:', pose.name);
-    if (!newName) return;
-    updatePoseField('name', newName);
+    modalRef.current?.showPrompt({
+      title: 'Rename pose',
+      icon: faSave,
+      message: 'Enter new name for the pose:',
+      defaultValue: pose.name,
+      confirmText: 'Save',
+      onSubmit: (newName) => {
+        if (!newName) return;
+        updatePoseField('name', newName);
+      }
+    });
   };
 
   const toggleInArray = (field: 'joints_set' | 'joints_checked' | 'joints_reversed', jointIdx: number) => {
