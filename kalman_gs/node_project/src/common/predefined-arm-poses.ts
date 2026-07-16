@@ -74,6 +74,13 @@ const PREDEFINED_POSES = {
       'joints_set': [1, 2, 3, 4, 5, 6],
       'joints_checked': [],
       'safe_previous_poses': [0, 2, 5]
+    },{ 
+      'id': 9, 
+      'name': 'skirt_test', 
+      'path': 'predefined_poses/skirt_test.yaml', 
+      'joints_set': [1, 2, 3, 4, 5, 6], 
+      'joints_checked': [], 
+      'safe_previous_poses': [2, 3, 5] 
     }
   ]
 };
@@ -87,7 +94,9 @@ const POSES_JOINTS = {
   'Based': [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
   'Sand Storage': [-2.47, 0.08, 1.69, 0.6, 0.98, -0.88],
   'Rock Storage': [-3.14, -0.7, 2.2, 0.0, 1.0, 0.0],
-  'Spectro Approach': [0.0, 0.28, 2.4, 3.14, -1.7, 0.0]
+  'Spectro Approach': [0.0, 0.28, 2.4, 3.14, -1.7, 0.0],
+  'skirt_test': [1.09, -0.56, 2.03, 0.06, 1.6, -0.06]
 };
 
 export default { PREDEFINED_POSES, POSES_JOINTS };
+
