@@ -77,10 +77,10 @@ public:
 		socket_fd_      = connect_tcp(host, std::to_string(port));
 
 		serial_rx_pub_ = create_publisher<UInt8MultiArray>(
-		    "rscp/serial/rx", rclcpp::SensorDataQoS()
+		    "rscp/serial/rx_from_gs", rclcpp::SensorDataQoS()
 		);
 		serial_tx_sub_ = create_subscription<UInt8MultiArray>(
-		    "rscp/serial/tx",
+		    "rscp/serial/tx_from_gs",
 		    rclcpp::SensorDataQoS(),
 		    [this](const UInt8MultiArray::SharedPtr message) {
 			    write_all(socket_fd_, message->data);
