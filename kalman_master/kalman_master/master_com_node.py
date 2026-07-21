@@ -79,6 +79,7 @@ class MasterCom(Node):
                     "USB-RS422_Converter",
                     "Kalman_GS_Converter",
                     "FT230X_Basic_UART",
+                    "CP2102N_USB_to_UART_Bridge_Controller",
                 )
                 if self.port is None:
                     self.get_logger().error(
