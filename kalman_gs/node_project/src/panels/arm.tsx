@@ -222,7 +222,7 @@ function ArmStatus({ editMode }: { editMode: boolean }) {
       onSubmit: (poseName) => {
         if (!poseName) return;
 
-        const currentValues = namesAndValues.map((joint) => joint.value);
+        const currentValues = namesAndValues.map((joint) => +joint.value.toFixed(3));
 
         const savedPosesRaw = localStorage.getItem('custom_arm_poses');
         const savedPoses = savedPosesRaw ? JSON.parse(savedPosesRaw) : [];
