@@ -100,7 +100,7 @@ class RSCPSearchSpiral(State):
         stage = self.supervisor.rscp.get_current_stage()
         if stage == 1:
             self.clear_elevation_map()
-            self.SPIRAL_REVOLUTION_WIDTH = 3
+            self.SPIRAL_REVOLUTION_WIDTH = 4
             revolutions = 2
             self.revolutions = revolutions
             self.init_progress = 0.5 / revolutions

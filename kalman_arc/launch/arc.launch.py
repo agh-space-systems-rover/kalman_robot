@@ -34,7 +34,8 @@ def launch_setup(context):
             package="kalman_arc",
             executable="peak_finder",
             name="peak_finder_node",
-            parameters=[{"map_resolution": 0.3}],
+            parameters=[{"map_resolution": 0.3,
+                         "map_size": 25.0}],
             output="screen",
         ),
         Node(
