@@ -928,6 +928,7 @@ export default function Arms() {
 
   return (
     <div className={styles['arm-panel']}>
+      <div className={styles['arm-content']}>
       <ArmStatus editMode={isEditMode} />
       <div className={styles['trajectory-and-pose']}>
         <PoseRequester editMode={isEditMode} onSelectPose={(pose) => setSelectedPose(pose)} />
@@ -936,12 +937,13 @@ export default function Arms() {
       </div>
       {isEditMode && (
         <EditPanel
-          pose={selectedPose}
-          onChangePose={(newPose) => {
-            setSelectedPose(newPose);
-          }}
+        pose={selectedPose}
+        onChangePose={(newPose) => {
+          setSelectedPose(newPose);
+        }}
         />
       )}
+      </div>
     </div>
   );
 }
