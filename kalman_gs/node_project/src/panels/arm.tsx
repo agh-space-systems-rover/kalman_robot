@@ -589,140 +589,140 @@ function PoseRequester({ editMode, onSelectPose }: { editMode: boolean; onSelect
     </div>
   );
 }
+// OLD CODE: to be consider
+// function TrajectoryRequester() {
+//   const [rerenderCount, setRerenderCount] = useState(0);
+//   const keepAlive = useRef(false);
+//   const rerender = useCallback(() => {
+//     setRerenderCount((count) => count + 1);
+//   }, [setRerenderCount]);
 
-function TrajectoryRequester() {
-  const [rerenderCount, setRerenderCount] = useState(0);
-  const keepAlive = useRef(false);
-  const rerender = useCallback(() => {
-    setRerenderCount((count) => count + 1);
-  }, [setRerenderCount]);
+//   useEffect(() => {
+//     window.addEventListener('joint-state', rerender);
+//     window.addEventListener('trajectory-status', rerender);
+//     return () => {
+//       window.removeEventListener('joint-state', rerender);
+//       window.removeEventListener('trajectory-status', rerender);
+//     };
+//   }, [rerender]);
 
-  useEffect(() => {
-    window.addEventListener('joint-state', rerender);
-    window.addEventListener('trajectory-status', rerender);
-    return () => {
-      window.removeEventListener('joint-state', rerender);
-      window.removeEventListener('trajectory-status', rerender);
-    };
-  }, [rerender]);
+//   useEffect(() => {
+//     const intervalId = setInterval(() => {
+//       if (keepAlive.current) {
+//         keepAliveTrajectory();
+//       }
+//       if (prevLastStatusTraj !== lastStatusTrajectory && !KEEP_ALIVE_STATUSES.includes(lastStatusTrajectory)) {
+//         keepAlive.current = false;
+//       }
+//       prevLastStatusTraj = lastStatusTrajectory;
+//     }, 200);
 
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      if (keepAlive.current) {
-        keepAliveTrajectory();
-      }
-      if (prevLastStatusTraj !== lastStatusTrajectory && !KEEP_ALIVE_STATUSES.includes(lastStatusTrajectory)) {
-        keepAlive.current = false;
-      }
-      prevLastStatusTraj = lastStatusTrajectory;
-    }, 200);
+//     // Cleanup interval on component unmount
+//     return () => clearInterval(intervalId);
+//   }, []);
 
-    // Cleanup interval on component unmount
-    return () => clearInterval(intervalId);
-  }, []);
+//   const [currentTrajectoryId, setCurrentTrajectoryId] = useState(0);
 
-  const [currentTrajectoryId, setCurrentTrajectoryId] = useState(0);
+//   const namesAndValues = getNamesAndValues();
 
-  const namesAndValues = getNamesAndValues();
+//   const predefinedJointValues =
+//     predefinedArmTrajectories.START_JOINTS[
+//       predefinedArmTrajectories.PREDEFINED_TRAJECTORIES.trajectories[currentTrajectoryId].name
+//     ];
 
-  const predefinedJointValues =
-    predefinedArmTrajectories.START_JOINTS[
-      predefinedArmTrajectories.PREDEFINED_TRAJECTORIES.trajectories[currentTrajectoryId].name
-    ];
+//   const trajectoriesToSelect = predefinedArmTrajectories.PREDEFINED_TRAJECTORIES.trajectories.map((trajectory, i) => (
+//     <div
+//       key={trajectory.id}
+//       className={`${styles['pose-button']} ${styles['pose-option']} ${trajectory.id === currentTrajectoryId ? styles['pose-selected'] : ''}`}
+//       onClick={() => {
+//         setCurrentTrajectoryId(trajectory.id);
+//       }}
+//     >
+//       <div className={styles['pose-name']}>{trajectory.name}</div>
+//       <div className={styles['pose-option-actions']}>
+//         <div
+//           className={`${styles['pose-indicator']} ${
+//             isCloseEnough(
+//               predefinedArmTrajectories.START_JOINTS[
+//                 predefinedArmTrajectories.PREDEFINED_TRAJECTORIES.trajectories[i].name
+//               ],
+//               namesAndValues.map((joint) => joint.value),
+//               predefinedArmTrajectories.PREDEFINED_TRAJECTORIES.max_distance_rad,
+//               [1, 2, 3, 4, 5, 6]
+//             )
+//               ? styles['pose-ready']
+//               : styles['pose-not-ready']
+//           }`}
+//         />
+//       </div>
+//     </div>
+//   ));
 
-  const trajectoriesToSelect = predefinedArmTrajectories.PREDEFINED_TRAJECTORIES.trajectories.map((trajectory, i) => (
-    <div
-      key={trajectory.id}
-      className={`${styles['pose-button']} ${styles['pose-option']} ${trajectory.id === currentTrajectoryId ? styles['pose-selected'] : ''}`}
-      onClick={() => {
-        setCurrentTrajectoryId(trajectory.id);
-      }}
-    >
-      <div className={styles['pose-name']}>{trajectory.name}</div>
-      <div className={styles['pose-option-actions']}>
-        <div
-          className={`${styles['pose-indicator']} ${
-            isCloseEnough(
-              predefinedArmTrajectories.START_JOINTS[
-                predefinedArmTrajectories.PREDEFINED_TRAJECTORIES.trajectories[i].name
-              ],
-              namesAndValues.map((joint) => joint.value),
-              predefinedArmTrajectories.PREDEFINED_TRAJECTORIES.max_distance_rad,
-              [1, 2, 3, 4, 5, 6]
-            )
-              ? styles['pose-ready']
-              : styles['pose-not-ready']
-          }`}
-        />
-      </div>
-    </div>
-  ));
+//   let isJointClose: boolean[] = Array(6).fill(false);
 
-  let isJointClose: boolean[] = Array(6).fill(false);
+//   isJointClose = isJointClose.map((_, i) =>
+//     namesAndValues.length
+//       ? Math.abs(
+//           predefinedArmTrajectories.START_JOINTS[
+//             predefinedArmTrajectories.PREDEFINED_TRAJECTORIES.trajectories[currentTrajectoryId].name
+//           ][i] - namesAndValues[i].value
+//         ) <= predefinedArmTrajectories.PREDEFINED_TRAJECTORIES.max_distance_rad
+//       : false
+//   );
 
-  isJointClose = isJointClose.map((_, i) =>
-    namesAndValues.length
-      ? Math.abs(
-          predefinedArmTrajectories.START_JOINTS[
-            predefinedArmTrajectories.PREDEFINED_TRAJECTORIES.trajectories[currentTrajectoryId].name
-          ][i] - namesAndValues[i].value
-        ) <= predefinedArmTrajectories.PREDEFINED_TRAJECTORIES.max_distance_rad
-      : false
-  );
+//   const trajectoryJoints = poseJoints(
+//     Array.from({ length: 6 }, (_, i) => (
+//       <div className={`${styles['joint-value']} ${!isJointClose[i] ? styles['warn'] : ''}`} key={i}>
+//         {rad2deg(predefinedJointValues[i]).toFixed(0)}
+//       </div>
+//     ))
+//   );
 
-  const trajectoryJoints = poseJoints(
-    Array.from({ length: 6 }, (_, i) => (
-      <div className={`${styles['joint-value']} ${!isJointClose[i] ? styles['warn'] : ''}`} key={i}>
-        {rad2deg(predefinedJointValues[i]).toFixed(0)}
-      </div>
-    ))
-  );
-
-  const closeEnough = isCloseEnough(
-    predefinedArmTrajectories.START_JOINTS[
-      predefinedArmTrajectories.PREDEFINED_TRAJECTORIES.trajectories[currentTrajectoryId].name
-    ],
-    namesAndValues.map((joint) => joint.value),
-    predefinedArmTrajectories.PREDEFINED_TRAJECTORIES.max_distance_rad,
-    [1, 2, 3, 4, 5, 6]
-  );
-  return (
-    <div className={styles['pose-requester']}>
-      <h2 className={styles['pose-header']}>Trajectory Requester</h2>
-      <div className={styles['pose-panel']}>
-        {trajectoryJoints}
-        <div className={styles['pose-options']}>{trajectoriesToSelect}</div>
-      </div>
-      <div className={styles['pose-buttons']}>
-        <div
-          className={`${styles['pose-button']} ${styles['pose-send']} ${
-            closeEnough ? styles['send-ready'] : styles['send-not-ready']
-          }`}
-          onClick={async () => {
-            if (closeEnough) {
-              keepAlive.current = true;
-              keepAliveTrajectory();
-              // wait so that keep alive goes through before req
-              await new Promise((r) => setTimeout(r, 500));
-              sendTrajectoryRequest(currentTrajectoryId);
-            }
-          }}
-        >
-          {closeEnough ? 'Send Pose' : 'Cannot Send'}
-        </div>
-        <div
-          className={`${styles['pose-button']} ${styles['pose-abort']}`}
-          onClick={() => {
-            abortTrajectory();
-          }}
-        >
-          Abort
-        </div>
-      </div>
-      <div className={styles['pose-status']}>Status: {lastStatusTrajectory}</div>
-    </div>
-  );
-}
+//   const closeEnough = isCloseEnough(
+//     predefinedArmTrajectories.START_JOINTS[
+//       predefinedArmTrajectories.PREDEFINED_TRAJECTORIES.trajectories[currentTrajectoryId].name
+//     ],
+//     namesAndValues.map((joint) => joint.value),
+//     predefinedArmTrajectories.PREDEFINED_TRAJECTORIES.max_distance_rad,
+//     [1, 2, 3, 4, 5, 6]
+//   );
+//   return (
+//     <div className={styles['pose-requester']}>
+//       <h2 className={styles['pose-header']}>Trajectory Requester</h2>
+//       <div className={styles['pose-panel']}>
+//         {trajectoryJoints}
+//         <div className={styles['pose-options']}>{trajectoriesToSelect}</div>
+//       </div>
+//       <div className={styles['pose-buttons']}>
+//         <div
+//           className={`${styles['pose-button']} ${styles['pose-send']} ${
+//             closeEnough ? styles['send-ready'] : styles['send-not-ready']
+//           }`}
+//           onClick={async () => {
+//             if (closeEnough) {
+//               keepAlive.current = true;
+//               keepAliveTrajectory();
+//               // wait so that keep alive goes through before req
+//               await new Promise((r) => setTimeout(r, 500));
+//               sendTrajectoryRequest(currentTrajectoryId);
+//             }
+//           }}
+//         >
+//           {closeEnough ? 'Send Pose' : 'Cannot Send'}
+//         </div>
+//         <div
+//           className={`${styles['pose-button']} ${styles['pose-abort']}`}
+//           onClick={() => {
+//             abortTrajectory();
+//           }}
+//         >
+//           Abort
+//         </div>
+//       </div>
+//       <div className={styles['pose-status']}>Status: {lastStatusTrajectory}</div>
+//     </div>
+//   );
+// }
 
 function EditPanel({
   pose,
@@ -778,6 +778,23 @@ function EditPanel({
       }
     });
   };
+
+const handleUpdatePose = () => {
+    modalRef.current?.showConfirm({
+      title: 'Update Pose Position',
+      icon: faSave, 
+      message: `Are you sure?`,
+      confirmText: 'Update',
+      cancelText: 'Cancel',
+      onConfirm: () => {
+        if (!pose || !pose.isCustom) return;
+        const namesAndValues = getNamesAndValues();
+        const currentJointValues = namesAndValues.map((joint) => +joint.value.toFixed(3));
+        updatePoseField('joints', currentJointValues);
+      }
+    });
+  };
+
   const updatePoseField = (field: keyof ArmPose, value: any) => {
     if (!pose || !pose.isCustom) return;
 
@@ -881,6 +898,9 @@ function EditPanel({
       >
         <div onClick={handleRename} className={styles['edit-button']}>
           Rename
+        </div>
+        <div onClick={handleUpdatePose} className={styles['edit-button']}>
+          <FontAwesomeIcon icon={faSave} /> Update
         </div>
         <div onClick={handleDelete} className={styles['edit-button']}>
           <FontAwesomeIcon icon={faTrash} /> Delete
