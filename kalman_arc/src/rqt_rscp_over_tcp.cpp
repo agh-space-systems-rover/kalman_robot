@@ -189,13 +189,12 @@ void RqtRscpOverTcp::initPlugin(qt_gui_cpp::PluginContext &context) {
 	radius_->setSuffix(" m");
 	radius_row_ = add_form_row(form, "Radius", radius_);
 
-	auto *publish = new QPushButton("Publish to rscp/tcp/serial/tx_from_gs");
+	auto *publish = new QPushButton("Publish to rscp/tcp/tx_from_gs");
 	layout->addWidget(publish);
 	status_ = new QLabel("Ready");
 	layout->addWidget(status_);
 
-	response_ =
-	    new QLabel("No response received from rscp/tcp/serial/rx_from_gs");
+	response_ = new QLabel("No response received from rscp/tcp/rx_from_gs");
 	response_->setWordWrap(true);
 	response_->setTextInteractionFlags(Qt::TextSelectableByMouse);
 	layout->addWidget(response_);
@@ -248,10 +247,10 @@ void RqtRscpOverTcp::initPlugin(qt_gui_cpp::PluginContext &context) {
 	);
 
 	serial_rx_pub_ = node_->create_publisher<UInt8MultiArray>(
-	    "rscp/tcp/serial/tx_from_gs", 10
+	    "rscp/tcp/tx_from_gs", 10
 	);
 	serial_tx_sub_ = node_->create_subscription<UInt8MultiArray>(
-	    "rscp/tcp/serial/rx_from_gs",
+	    "rscp/tcp/rx_from_gs",
 	    rclcpp::SensorDataQoS(),
 	    [this](const UInt8MultiArray::SharedPtr message) {
 		    handle_serial_tx(*message);
@@ -393,7 +392,7 @@ void RqtRscpOverTcp::publish_request() {
 		status_->setText(
 		    QStringLiteral(
 		        "Published COBS-framed request to "
-		        "rscp/tcp/serial/tx_from_gs:\n%1"
+		        "rscp/tcp/tx_from_gs:\n%1"
 		    )
 		        .arg(QString::fromStdString(request.DebugString()))
 		);
@@ -442,7 +441,7 @@ void RqtRscpOverTcp::update_response_label() {
 	const auto elapsed_ms =
 	    QDateTime::currentMSecsSinceEpoch() - latest_response_time_ms_;
 	response_->setText(QStringLiteral(
-	                       "Latest response from rscp/tcp/serial/rx_from_gs "
+	                       "Latest response from rscp/tcp/rx_from_gs "
 	                       "(received %1):\n%2"
 	)
 	                       .arg(format_response_age(elapsed_ms))

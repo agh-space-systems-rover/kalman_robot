@@ -126,7 +126,7 @@ public:
 		port_ = declare_parameter<int>("port", 5555);
 
 		serial_rx_pub_ = create_publisher<UInt8MultiArray>(
-		    "rscp/tcp/serial/rx_from_gs", rclcpp::SensorDataQoS()
+		    "rscp/tcp/rx_from_gs", rclcpp::SensorDataQoS()
 		);
 		const auto state_qos = rclcpp::QoS(1).transient_local();
 		connected_pub_ =
@@ -134,7 +134,7 @@ public:
 		status_pub_ = create_publisher<String>("rscp/tcp/status", state_qos);
 
 		serial_tx_sub_ = create_subscription<UInt8MultiArray>(
-		    "rscp/tcp/serial/tx_from_gs",
+		    "rscp/tcp/tx_from_gs",
 		    rclcpp::SensorDataQoS(),
 		    [this](const UInt8MultiArray::SharedPtr message) {
 			    write_socket(message->data);
