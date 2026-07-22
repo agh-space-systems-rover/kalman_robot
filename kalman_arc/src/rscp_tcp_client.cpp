@@ -12,8 +12,25 @@
 #include <std_msgs/msg/u_int8_multi_array.hpp>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <netinet/tcp.h>
 
 namespace {
+
+void enable_keepalive(int fd) {
+    const int enabled  = 1;
+    const int idle_s   = 20;
+    const int interval = 5;
+    const int probes   = 3;
+
+    if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &enabled, sizeof(enabled)) < 0 ||
+        setsockopt(fd, IPPROTO_TCP, TCP_KEEPIDLE, &idle_s, sizeof(idle_s)) < 0 ||
+        setsockopt(fd, IPPROTO_TCP, TCP_KEEPINTVL, &interval, sizeof(interval)) < 0 ||
+        setsockopt(fd, IPPROTO_TCP, TCP_KEEPCNT, &probes, sizeof(probes)) < 0) {
+    	throw std::runtime_error(
+    	    "configure TCP keepalive: " + std::string(std::strerror(errno))
+    	);
+    }
+}
 
 int connect_tcp(const std::string &host, const std::string &port) {
 	addrinfo hints{};
@@ -35,6 +52,7 @@ int connect_tcp(const std::string &host, const std::string &port) {
 			continue;
 		}
 		if (connect(fd, address->ai_addr, address->ai_addrlen) == 0) {
+            enable_keepalive(fd);
 			fcntl(fd, F_SETFL, fcntl(fd, F_GETFL, 0) | O_NONBLOCK);
 			freeaddrinfo(addresses);
 			return fd;
