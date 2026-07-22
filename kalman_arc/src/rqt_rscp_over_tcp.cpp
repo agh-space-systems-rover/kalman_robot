@@ -5,14 +5,18 @@
 
 #include <QCheckBox>
 #include <QComboBox>
+#include <QDateTime>
 #include <QDoubleSpinBox>
 #include <QFormLayout>
+#include <QFrame>
+#include <QHBoxLayout>
 #include <QLabel>
 #include <QMetaObject>
 #include <QPushButton>
 #include <QSpinBox>
 #include <QString>
 #include <QStringList>
+#include <QTimer>
 #include <QVBoxLayout>
 #include <pluginlib/class_list_macros.hpp>
 
@@ -108,6 +112,24 @@ std::vector<uint8_t> serialize_frame(const rscp::RequestEnvelope &request) {
 	return framed;
 }
 
+QString format_response_age(qint64 elapsed_ms) {
+	const auto elapsed_s = elapsed_ms / 1000;
+	if (elapsed_s < 60) {
+		return QStringLiteral("%1 s ago").arg(elapsed_s);
+	}
+
+	const auto elapsed_min = elapsed_s / 60;
+	if (elapsed_min < 60) {
+		return QStringLiteral("%1 min %2 s ago")
+		    .arg(elapsed_min)
+		    .arg(elapsed_s % 60);
+	}
+
+	return QStringLiteral("%1 h %2 min ago")
+	    .arg(elapsed_min / 60)
+	    .arg(elapsed_min % 60);
+}
+
 } // namespace
 
 namespace kalman_arc {
@@ -167,16 +189,41 @@ void RqtRscpOverTcp::initPlugin(qt_gui_cpp::PluginContext &context) {
 	radius_->setSuffix(" m");
 	radius_row_ = add_form_row(form, "Radius", radius_);
 
-	auto *publish = new QPushButton("Publish to rscp/serial/rx");
+	auto *publish = new QPushButton("Publish to rscp/tcp/serial/tx_from_gs");
 	layout->addWidget(publish);
 	status_ = new QLabel("Ready");
 	layout->addWidget(status_);
 
-	response_ = new QLabel("No response received from rscp/serial/tx");
+	response_ =
+	    new QLabel("No response received from rscp/tcp/serial/rx_from_gs");
 	response_->setWordWrap(true);
 	response_->setTextInteractionFlags(Qt::TextSelectableByMouse);
 	layout->addWidget(response_);
+
+	response_age_timer_ = new QTimer(widget_);
+	connect(
+	    response_age_timer_,
+	    &QTimer::timeout,
+	    this,
+	    &RqtRscpOverTcp::update_response_label
+	);
+	response_age_timer_->start(1000);
+
 	layout->addStretch();
+
+	connection_bar_ = new QFrame;
+	connection_bar_->setFrameShape(QFrame::StyledPanel);
+	connection_bar_->setStyleSheet(
+	    "QFrame { background-color: #5c1f1f; color: white; padding: 6px; }"
+	);
+	auto *connection_layout = new QHBoxLayout(connection_bar_);
+	connection_label_       = new QLabel("TCP connection lost");
+	reconnect_button_       = new QPushButton("Reconnect");
+	connection_layout->addWidget(connection_label_);
+	connection_layout->addStretch();
+	connection_layout->addWidget(reconnect_button_);
+	connection_bar_->setVisible(false);
+	layout->addWidget(connection_bar_);
 
 	connect(
 	    request_type_,
@@ -193,16 +240,47 @@ void RqtRscpOverTcp::initPlugin(qt_gui_cpp::PluginContext &context) {
 	    this,
 	    &RqtRscpOverTcp::update_stage_name
 	);
+	connect(
+	    reconnect_button_,
+	    &QPushButton::clicked,
+	    this,
+	    &RqtRscpOverTcp::reconnect_tcp
+	);
 
-	serial_rx_pub_ =
-	    node_->create_publisher<UInt8MultiArray>("rscp/serial/tx_from_gs", 10);
+	serial_rx_pub_ = node_->create_publisher<UInt8MultiArray>(
+	    "rscp/tcp/serial/tx_from_gs", 10
+	);
 	serial_tx_sub_ = node_->create_subscription<UInt8MultiArray>(
-	    "rscp/serial/rx_from_gs",
+	    "rscp/tcp/serial/rx_from_gs",
 	    rclcpp::SensorDataQoS(),
 	    [this](const UInt8MultiArray::SharedPtr message) {
 		    handle_serial_tx(*message);
 	    }
 	);
+	const auto state_qos = rclcpp::QoS(1).transient_local();
+	connected_sub_       = node_->create_subscription<Bool>(
+	    "rscp/tcp/connected", state_qos, [this](const Bool::SharedPtr message) {
+		    QMetaObject::invokeMethod(
+		        connection_bar_,
+		        [this, connected = message->data]() {
+			        update_connection_bar(connected);
+		        },
+		        Qt::QueuedConnection
+		    );
+	    }
+	);
+	status_sub_ = node_->create_subscription<String>(
+	    "rscp/tcp/status", state_qos, [this](const String::SharedPtr message) {
+		    QMetaObject::invokeMethod(
+		        connection_bar_,
+		        [this, status = QString::fromStdString(message->data)]() {
+			        update_connection_status(status);
+		        },
+		        Qt::QueuedConnection
+		    );
+	    }
+	);
+	reconnect_client_ = node_->create_client<Trigger>("rscp/tcp/reconnect");
 
 	update_stage_name(stage_->value());
 	update_visible_fields();
@@ -212,6 +290,9 @@ void RqtRscpOverTcp::initPlugin(qt_gui_cpp::PluginContext &context) {
 void RqtRscpOverTcp::shutdownPlugin() {
 	serial_rx_pub_.reset();
 	serial_tx_sub_.reset();
+	connected_sub_.reset();
+	status_sub_.reset();
+	reconnect_client_.reset();
 }
 
 void RqtRscpOverTcp::saveSettings(
@@ -311,7 +392,8 @@ void RqtRscpOverTcp::publish_request() {
 		serial_rx_pub_->publish(message);
 		status_->setText(
 		    QStringLiteral(
-		        "Published COBS-framed request to rscp/serial/rx:\n%1"
+		        "Published COBS-framed request to "
+		        "rscp/tcp/serial/tx_from_gs:\n%1"
 		    )
 		        .arg(QString::fromStdString(request.DebugString()))
 		);
@@ -343,13 +425,84 @@ void RqtRscpOverTcp::handle_response_frame(const std::vector<uint8_t> &frame) {
 
 	QMetaObject::invokeMethod(
 	    response_,
-	    [label = response_, text]() {
-		    label->setText(
-		        QStringLiteral("Latest response from rscp/serial/tx:\n%1")
-		            .arg(text)
-		    );
+	    [this, text]() {
+		    latest_response_text_    = text;
+		    latest_response_time_ms_ = QDateTime::currentMSecsSinceEpoch();
+		    update_response_label();
 	    },
 	    Qt::QueuedConnection
+	);
+}
+
+void RqtRscpOverTcp::update_response_label() {
+	if (latest_response_time_ms_ < 0) {
+		return;
+	}
+
+	const auto elapsed_ms =
+	    QDateTime::currentMSecsSinceEpoch() - latest_response_time_ms_;
+	response_->setText(QStringLiteral(
+	                       "Latest response from rscp/tcp/serial/rx_from_gs "
+	                       "(received %1):\n%2"
+	)
+	                       .arg(format_response_age(elapsed_ms))
+	                       .arg(latest_response_text_));
+}
+
+void RqtRscpOverTcp::update_connection_bar(bool connected) {
+	connection_bar_->setVisible(!connected);
+	if (connected) {
+		reconnect_button_->setEnabled(true);
+		connection_label_->setText("TCP connected");
+	} else if (
+	    connection_label_->text().isEmpty() ||
+	    connection_label_->text() == "TCP connected"
+	) {
+		connection_label_->setText("TCP connection lost");
+	}
+}
+
+void RqtRscpOverTcp::update_connection_status(const QString &status) {
+	if (connection_bar_->isVisible()) {
+		connection_label_->setText(
+		    QStringLiteral("TCP connection lost: %1").arg(status)
+		);
+	}
+}
+
+void RqtRscpOverTcp::reconnect_tcp() {
+	if (!reconnect_client_->service_is_ready()) {
+		connection_bar_->setVisible(true);
+		connection_label_->setText("Reconnect service unavailable");
+		return;
+	}
+
+	reconnect_button_->setEnabled(false);
+	connection_bar_->setVisible(true);
+	connection_label_->setText("Reconnecting...");
+
+	auto request = std::make_shared<Trigger::Request>();
+	reconnect_client_->async_send_request(
+	    request, [this](rclcpp::Client<Trigger>::SharedFuture future) {
+		    const auto response = future.get();
+		    QMetaObject::invokeMethod(
+		        connection_bar_,
+		        [this, response]() {
+			        reconnect_button_->setEnabled(true);
+			        if (response->success) {
+				        connection_label_->setText("TCP connected");
+				        connection_bar_->setVisible(false);
+			        } else {
+				        connection_label_->setText(
+				            QStringLiteral("Reconnect failed: %1")
+				                .arg(QString::fromStdString(response->message))
+				        );
+				        connection_bar_->setVisible(true);
+			        }
+		        },
+		        Qt::QueuedConnection
+		    );
+	    }
 	);
 }
 
