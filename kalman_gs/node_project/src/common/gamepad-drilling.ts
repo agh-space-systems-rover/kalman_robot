@@ -6,16 +6,37 @@ const RATE = 10;
 const MAX_SPEED = 100;
 const BUTTON_THRESHOLD = 0.5;
 
-type AutonomyState = 0 | 1 | 2 | 3 | 4 | 5;
-type DrillGear = 1 | 2;
+enum DrillState {
+  Stop = 0,
+  DrillingSite1 = 1,
+  DrillingSite2 = 2,
+  Home = 3,
+  ClosingTubesSite1 = 4,
+  ClosingTubesSite2 = 5,
+  CleaningDrill = 6,
+  OpeningTubesSite1 = 7,
+  OpeningTubesSite2 = 8,
+  OpeningTubesBothSites = 9
+}
 
 type DrillGamepadUpdate = {
   bridgeB?: number;
   bridgeC?: number;
-  autonomy?: AutonomyState;
-  gear?: DrillGear;
-  weightRequest?: 0 | 1;
+  state?: DrillState;
 };
+
+const STATE_BUTTONS = [
+  { input: 'b-button', state: DrillState.Stop },
+  { input: 'y-button', state: DrillState.Home },
+  { input: 'a-button', state: DrillState.CleaningDrill },
+  { input: 'x-button', state: DrillState.OpeningTubesBothSites },
+  { input: 'left-shoulder', state: DrillState.DrillingSite1 },
+  { input: 'left-trigger', state: DrillState.ClosingTubesSite1 },
+  { input: 'left-stick', state: DrillState.OpeningTubesSite1 },
+  { input: 'right-shoulder', state: DrillState.DrillingSite2 },
+  { input: 'right-trigger', state: DrillState.ClosingTubesSite2 },
+  { input: 'right-stick', state: DrillState.OpeningTubesSite2 }
+] as const;
 
 const clampSpeed = (value: number) => Math.max(-MAX_SPEED, Math.min(MAX_SPEED, Math.round(value * MAX_SPEED)));
 const isPressed = (value: number) => value > BUTTON_THRESHOLD;
@@ -43,34 +64,15 @@ window.addEventListener('ros-connect', () => {
     name: '/science/drill/c',
     messageType: 'std_msgs/Int8'
   });
-  const drillAutonomyTopic = new Topic<{ data: number }>({
+  const drillStateTopic = new Topic<{ data: number }>({
     ros,
-    name: '/science/drill/autonomy',
-    messageType: 'std_msgs/UInt8'
-  });
-  const drillGearTopic = new Topic<{ data: number }>({
-    ros,
-    name: '/science/drill/gear',
-    messageType: 'std_msgs/UInt8'
-  });
-  const drillWeightReqTopic = new Topic<{ data: number }>({
-    ros,
-    name: '/science/drill/weight/request',
+    name: '/science/drill/state',
     messageType: 'std_msgs/UInt8'
   });
 
   let lastBridgeB = 0;
   let lastBridgeC = 0;
-  let lastStopButton = 0;
-  let lastDrillButton = 0;
-  let lastHomeButton = 0;
-  let lastOpenButton = 0;
-  let lastCloseButton = 0;
-  let lastCleanButton = 0;
-  let lastGear1Button = 0;
-  let lastGear2Button = 0;
-  let lastTareButton = 0;
-  let lastWeighButton = 0;
+  const lastStateButtonValues = new Map<(typeof STATE_BUTTONS)[number]['input'], number>();
 
   setInterval(() => {
     const bridgeB = readDpadBridge('dpad-up', 'dpad-down') ?? clampSpeed(readGamepads('left-y', 'drill'));
@@ -87,69 +89,21 @@ window.addEventListener('ros-connect', () => {
       lastBridgeC = bridgeC;
     }
 
-    const stopButton = readGamepads('b-button', 'drill');
-    const drillButton = readGamepads('a-button', 'drill');
-    const homeButton = readGamepads('y-button', 'drill');
-    const openButton = readGamepads('x-button', 'drill');
-    const closeButton = readGamepads('left-stick', 'drill');
-    const cleanButton = readGamepads('right-stick', 'drill');
-    const gear1Button = readGamepads('left-shoulder', 'drill');
-    const gear2Button = readGamepads('right-shoulder', 'drill');
-    const tareButton = readGamepads('left-trigger', 'drill');
-    const weighButton = readGamepads('right-trigger', 'drill');
+    const stateButtonValues = STATE_BUTTONS.map(({ input, state }) => ({
+      input,
+      state,
+      value: readGamepads(input, 'drill'),
+      lastValue: lastStateButtonValues.get(input) ?? 0
+    }));
+    const requestedState = stateButtonValues.find(({ value, lastValue }) => isPressed(value) && !isPressed(lastValue));
 
-    if (isPressed(stopButton) && !isPressed(lastStopButton)) {
-      drillAutonomyTopic.publish({ data: 0 });
-      dispatchDrillGamepadUpdate({ autonomy: 0 });
-    }
-    if (isPressed(drillButton) && !isPressed(lastDrillButton)) {
-      drillAutonomyTopic.publish({ data: 1 });
-      dispatchDrillGamepadUpdate({ autonomy: 1 });
-    }
-    if (isPressed(homeButton) && !isPressed(lastHomeButton)) {
-      drillAutonomyTopic.publish({ data: 2 });
-      dispatchDrillGamepadUpdate({ autonomy: 2 });
-    }
-    if (isPressed(openButton) && !isPressed(lastOpenButton)) {
-      drillAutonomyTopic.publish({ data: 3 });
-      dispatchDrillGamepadUpdate({ autonomy: 3 });
-    }
-    if (isPressed(closeButton) && !isPressed(lastCloseButton)) {
-      drillAutonomyTopic.publish({ data: 4 });
-      dispatchDrillGamepadUpdate({ autonomy: 4 });
-    }
-    if (isPressed(cleanButton) && !isPressed(lastCleanButton)) {
-      drillAutonomyTopic.publish({ data: 5 });
-      dispatchDrillGamepadUpdate({ autonomy: 5 });
+    if (requestedState !== undefined) {
+      drillStateTopic.publish({ data: requestedState.state });
+      dispatchDrillGamepadUpdate({ state: requestedState.state });
     }
 
-    if (isPressed(gear1Button) && !isPressed(lastGear1Button)) {
-      drillGearTopic.publish({ data: 1 });
-      dispatchDrillGamepadUpdate({ gear: 1 });
+    for (const { input, value } of stateButtonValues) {
+      lastStateButtonValues.set(input, value);
     }
-    if (isPressed(gear2Button) && !isPressed(lastGear2Button)) {
-      drillGearTopic.publish({ data: 2 });
-      dispatchDrillGamepadUpdate({ gear: 2 });
-    }
-
-    if (isPressed(tareButton) && !isPressed(lastTareButton)) {
-      drillWeightReqTopic.publish({ data: 0 });
-      dispatchDrillGamepadUpdate({ weightRequest: 0 });
-    }
-    if (isPressed(weighButton) && !isPressed(lastWeighButton)) {
-      drillWeightReqTopic.publish({ data: 1 });
-      dispatchDrillGamepadUpdate({ weightRequest: 1 });
-    }
-
-    lastStopButton = stopButton;
-    lastDrillButton = drillButton;
-    lastHomeButton = homeButton;
-    lastOpenButton = openButton;
-    lastCloseButton = closeButton;
-    lastCleanButton = cleanButton;
-    lastGear1Button = gear1Button;
-    lastGear2Button = gear2Button;
-    lastTareButton = tareButton;
-    lastWeighButton = weighButton;
   }, 1000 / RATE);
 });
