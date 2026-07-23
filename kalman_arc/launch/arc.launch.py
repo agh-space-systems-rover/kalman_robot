@@ -5,6 +5,10 @@ from launch.actions import (
     OpaqueFunction,
 )
 from launch.substitutions import LaunchConfiguration
+from launch.actions import IncludeLaunchDescription
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+from ament_index_python.packages import get_package_share_directory
+import os
 
 
 def launch_setup(context):
@@ -39,13 +43,26 @@ def launch_setup(context):
         ),
     ]
 
-    if get_bool("enable_rscp_hw_driver"):
+    if get_bool("enable_rscp_hw_driver") and 0:
         description += [
             Node(
                 package="kalman_arc",
                 executable="rscp_node",
             ),
         ]
+        arc_serial = IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(
+                [
+                    os.path.join(get_package_share_directory("kalman_arc"), "launch"),
+                    "/arc_serial.launch.py",
+                ]
+            )
+        )
+
+        description += [
+            arc_serial,
+        ]
+
 
     return description
 

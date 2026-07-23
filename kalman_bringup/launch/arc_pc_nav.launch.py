@@ -30,10 +30,10 @@ def generate_launch_description():
                 "dict": "ARUCO_ORIGINAL",
                 "size": "0.20",
             },
-             "yolo": {
-                "rgbd_ids": "d455_right",
-                "config": "arc2026",
-            },
+            #  "yolo": {
+            #     "rgbd_ids": "d455_right",
+            #     "config": "arc2026",
+            # },
             "wheels": {},
             "supervisor": {
                 "rscp_enabled": "true",

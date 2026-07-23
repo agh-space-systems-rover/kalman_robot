@@ -34,6 +34,7 @@ class RscpIdle(State):
                     f"[RSCP] NavigateToGPS in stage 4, transitioning to rscp_navigate_gps"
                 )
                 return "rscp_navigate_gps"
+                # return "rscp_wait_before_lavatube"  # HACK
             else:
                 self.supervisor.get_logger().warn(
                     f"[RSCP] NavigateToGPS received but unknown stage {stage}"
