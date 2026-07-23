@@ -38,6 +38,10 @@ class Rscp(Module):
 
     def __req_callback(self, msg: ArcRscpRequest) -> None:
         # Store the request for processing
+        if self.__pending_request is not None:
+            self.supervisor.get_logger().error(
+                f"Overwriting pending request type={msg.type}"
+            )
         self.__pending_request = msg
         self.supervisor.get_logger().info(
             f"[RSCP] Received request type={msg.type} "
@@ -93,7 +97,7 @@ class Rscp(Module):
                         "[RSCP] NavigateToGPS received "
                         f"(lat={req.latitude}, lon={req.longitude}), sent ACK"
                     )
-            
+
             elif req.type == ArcRscpRequest.SEARCH_AREA:
                 if not self.is_armed():
                     self.supervisor.get_logger().warn(
@@ -183,6 +187,7 @@ class Rscp(Module):
         msg.rover_state = get_rover_state()
 
         robot_pos = self.supervisor.tf.robot_pos("base_link")
+        # TODO: self.point_to_latlon does not exist
         msg.latitude, msg.longitude = self.point_to_latlon(robot_pos, "base_link")
         msg.altitude = 0.0  # Explicitly don't set altitude, docs are silent about it
 
@@ -203,10 +208,10 @@ class Rscp(Module):
 
     def get_navigation_goal(self) -> tuple[float, float] | None:
         return self.__navigation_goal
-    
+
     def get_search_goal(self) -> tuple[float, float] | None:
         return self.__search_goal
-    
+
     def clear_search_goal(self) -> None:
         self.__search_goal = None
         self.supervisor.get_logger().info("[RSCP] Search goal cleared")
