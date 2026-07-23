@@ -216,6 +216,18 @@ export type Drive = {
   rotation?: number;
 };
 
+export type DrillTelemetry = {
+  depth_mm?: number;
+  rack_current?: number;
+  drill_current?: number;
+  flags?: number;
+  upper_limit_pressed?: boolean;
+  lower_limit_pressed?: boolean;
+  autonomy_active?: boolean;
+  based?: boolean;
+  autonomy_state?: number;
+};
+
 export type ArmFkCommand = {
   gripper?: number;
   joint_1?: number;
@@ -233,28 +245,6 @@ export type ArmAxesLocks = {
   roll?: boolean;
   pitch?: boolean;
   yaw?: boolean;
-};
-
-export type WExLabHeaterCfg = {
-  thermostat_min?: number;
-  thermostat_max?: number;
-  power_main?: number;
-  power_lid?: number;
-};
-
-export type WExLabTemperature = {
-  temperature_id?: number;
-  temperature?: number;
-  temperature_error?: boolean;
-};
-
-export type WExLabLedAll = {
-  color?: ColorRGBA;
-};
-
-export type WExLabLedSingle = {
-  led_id?: number;
-  color?: ColorRGBA;
 };
 
 export type Camera2Dof = {

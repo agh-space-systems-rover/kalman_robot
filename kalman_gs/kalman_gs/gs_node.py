@@ -44,10 +44,9 @@ class GS(Node):
                 self.get_logger().error("Failed to install npm dependencies.")
                 raise KeyboardInterrupt
 
-        # Run npm run electron
-        # Start Electron app and web frontend in dev mode
-        self.get_logger().info("Running 'npm run electron':")
-        self.run_command("npm run electron")
+        # Start the web frontend in development mode.
+        self.get_logger().info("Running 'npm start':")
+        self.run_command("npm start")
 
     def run_command(self, command: str) -> int:
         # Run and log output line by line

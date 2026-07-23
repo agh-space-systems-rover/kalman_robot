@@ -5,6 +5,15 @@
             <color rgba="0.8 0.8 0.8 1" />
         </material>
 
+        <link name="skirt_module">
+            <visual>
+                <geometry>
+                    <mesh filename="package://kalman_description/stl/skirt.stl" />
+                </geometry>
+                <material name="arm_mat" />
+            </visual>
+        </link>
+
         <link name="arm_link">
             <visual>
                 <geometry>
@@ -12,13 +21,19 @@
                 </geometry>
                 <material name="arm_mat" />
             </visual>
+        </link>
             <!-- <collision>
                 <geometry>
                     <cylinder length="0.1" radius="0.1" />
                 </geometry>
                 <origin rpy="0 0 0" xyz="0 0 0" />
             </collision> -->
-        </link>
+        <joint name="skirt_joint" type="fixed">
+            <parent link="${base_link}" />
+            <child link="skirt_module" />
+            <origin xyz="0.35 -0.333 0.15"/>
+        </joint>
+`
         <joint name="arm_joint" type="fixed">
             <parent link="${base_link}" />
             <child link="arm_link" />

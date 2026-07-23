@@ -37,6 +37,7 @@
     "wait-on": "^7"
   },
   "scripts": {
+    "start": "react-scripts start",
     "web": "react-scripts start",
     "electron": "concurrently \"npm run web\" \"wait-on http://localhost:3000 && electron ./electron/main.js\"",
     "format": "prettier --write ."
