@@ -246,9 +246,8 @@ void RqtRscpOverTcp::initPlugin(qt_gui_cpp::PluginContext &context) {
 	    &RqtRscpOverTcp::reconnect_tcp
 	);
 
-	serial_rx_pub_ = node_->create_publisher<UInt8MultiArray>(
-	    "rscp/tcp/tx_from_gs", 10
-	);
+	serial_rx_pub_ =
+	    node_->create_publisher<UInt8MultiArray>("rscp/tcp/tx_from_gs", 10);
 	serial_tx_sub_ = node_->create_subscription<UInt8MultiArray>(
 	    "rscp/tcp/rx_from_gs",
 	    rclcpp::SensorDataQoS(),
@@ -258,16 +257,16 @@ void RqtRscpOverTcp::initPlugin(qt_gui_cpp::PluginContext &context) {
 	);
 	const auto state_qos = rclcpp::QoS(1).transient_local();
 	connected_sub_       = node_->create_subscription<Bool>(
-	    "rscp/tcp/connected", state_qos, [this](const Bool::SharedPtr message) {
-		    QMetaObject::invokeMethod(
-		        connection_bar_,
-		        [this, connected = message->data]() {
-			        update_connection_bar(connected);
-		        },
-		        Qt::QueuedConnection
-		    );
-	    }
-	);
+        "rscp/tcp/connected", state_qos, [this](const Bool::SharedPtr message) {
+            QMetaObject::invokeMethod(
+                connection_bar_,
+                [this, connected = message->data]() {
+                    update_connection_bar(connected);
+                },
+                Qt::QueuedConnection
+            );
+        }
+    );
 	status_sub_ = node_->create_subscription<String>(
 	    "rscp/tcp/status", state_qos, [this](const String::SharedPtr message) {
 		    QMetaObject::invokeMethod(
@@ -418,9 +417,9 @@ void RqtRscpOverTcp::handle_response_frame(const std::vector<uint8_t> &frame) {
 	const auto             decoded = cobs_decode(frame.data(), frame.size());
 	rscp::ResponseEnvelope response;
 	const QString          text =
-	    response.ParseFromArray(decoded.data(), decoded.size())
-	        ? format_response(response)
-	        : QStringLiteral("Failed to parse RSCP response protobuf");
+        response.ParseFromArray(decoded.data(), decoded.size())
+	                 ? format_response(response)
+	                 : QStringLiteral("Failed to parse RSCP response protobuf");
 
 	QMetaObject::invokeMethod(
 	    response_,
@@ -453,10 +452,8 @@ void RqtRscpOverTcp::update_connection_bar(bool connected) {
 	if (connected) {
 		reconnect_button_->setEnabled(true);
 		connection_label_->setText("TCP connected");
-	} else if (
-	    connection_label_->text().isEmpty() ||
-	    connection_label_->text() == "TCP connected"
-	) {
+	} else if (connection_label_->text().isEmpty() ||
+	           connection_label_->text() == "TCP connected") {
 		connection_label_->setText("TCP connection lost");
 	}
 }

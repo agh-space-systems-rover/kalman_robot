@@ -49,7 +49,6 @@ except:
 
 
 class PoseRequestSender(Node):
-
     def __init__(self):
         super().__init__("pose_request_sender")
         self._action_client = ActionClient(

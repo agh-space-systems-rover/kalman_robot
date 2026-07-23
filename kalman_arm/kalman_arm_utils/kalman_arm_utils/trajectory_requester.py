@@ -37,7 +37,6 @@ except:
 
 
 class TrajectoryClient(Node):
-
     def __init__(self):
         super().__init__("trajectory_sender")
         self._action_client = ActionClient(

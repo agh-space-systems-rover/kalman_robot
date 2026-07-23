@@ -5,20 +5,20 @@
 #include <string>
 #include <vector>
 
-#include <rclcpp_components/register_node_macro.hpp>
 #include <rclcpp/rclcpp.hpp>
+#include <rclcpp_components/register_node_macro.hpp>
 
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include <geometry_msgs/msg/transform_stamped.hpp>
 #include <sensor_msgs/msg/point_cloud2.hpp>
 #include <sensor_msgs/point_cloud2_iterator.hpp>
 
-#include <tf2_sensor_msgs/tf2_sensor_msgs.hpp>
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
+#include <tf2_sensor_msgs/tf2_sensor_msgs.hpp>
 
-#include <grid_map_ros/GridMapRosConverter.hpp>
 #include <grid_map_msgs/msg/grid_map.hpp>
+#include <grid_map_ros/GridMapRosConverter.hpp>
 #include <std_srvs/srv/trigger.hpp>
 
 namespace kalman_arc {
@@ -31,8 +31,9 @@ public:
 		robot_frame_ =
 		    this->declare_parameter<std::string>("robot_frame", "base_link");
 		search_radius_ = this->declare_parameter<double>("search_radius", 10.0);
-		double resolution = this->declare_parameter<double>("map_resolution", 0.3);
-		double map_size   = this->declare_parameter<double>("map_size", 20.0);
+		double resolution =
+		    this->declare_parameter<double>("map_resolution", 0.3);
+		double map_size = this->declare_parameter<double>("map_size", 20.0);
 
 		// Configure map
 		map_.setFrameId(map_frame_);
@@ -45,8 +46,7 @@ public:
 		    std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
 
 		camera_ids_ = this->declare_parameter<std::vector<std::string>>(
-		    "camera_ids",
-		    {"d455_front", "d455_left", "d455_right", "d455_back"}
+		    "camera_ids", {"d455_front", "d455_left", "d455_right", "d455_back"}
 		);
 		pc_subs_.reserve(camera_ids_.size());
 		for (const auto &camera_id : camera_ids_) {
@@ -128,33 +128,48 @@ private:
 			tf2::doTransform(*msg, cloud_map, sensor_to_map_tf);
 		} catch (const tf2::TransformException &ex) {
 			RCLCPP_WARN_THROTTLE(
-				this->get_logger(),
-				*this->get_clock(),
-				2000,
-				"TF error during cloud transform: %s",
-				ex.what()
+			    this->get_logger(),
+			    *this->get_clock(),
+			    2000,
+			    "TF error during cloud transform: %s",
+			    ex.what()
 			);
 			return;
 		} catch (const std::exception &ex) {
-			RCLCPP_WARN(this->get_logger(), "Exception during cloud transform: %s", ex.what());
+			RCLCPP_WARN(
+			    this->get_logger(),
+			    "Exception during cloud transform: %s",
+			    ex.what()
+			);
 			return;
 		}
 
 		if (cloud_map.data.empty() || cloud_map.point_step == 0u) {
-			RCLCPP_DEBUG(this->get_logger(), "Received empty or malformed pointcloud; skipping");
+			RCLCPP_DEBUG(
+			    this->get_logger(),
+			    "Received empty or malformed pointcloud; skipping"
+			);
 			return;
 		}
 
-		auto has_field = [&](const sensor_msgs::msg::PointCloud2 &pc, const std::string &name) {
+		auto has_field = [&](const sensor_msgs::msg::PointCloud2 &pc,
+		                     const std::string                   &name) {
 			for (const auto &f : pc.fields) {
-				if (f.name == name) return true;
+				if (f.name == name) {
+					return true;
+				}
 			}
 			return false;
 		};
 
-		if (!has_field(cloud_map, "x") || !has_field(cloud_map, "y") || !has_field(cloud_map, "z")) {
-			RCLCPP_WARN_THROTTLE(this->get_logger(), *this->get_clock(), 2000,
-			                     "PointCloud missing x/y/z fields; skipping");
+		if (!has_field(cloud_map, "x") || !has_field(cloud_map, "y") ||
+		    !has_field(cloud_map, "z")) {
+			RCLCPP_WARN_THROTTLE(
+			    this->get_logger(),
+			    *this->get_clock(),
+			    2000,
+			    "PointCloud missing x/y/z fields; skipping"
+			);
 			return;
 		}
 
@@ -163,7 +178,8 @@ private:
 		sensor_msgs::PointCloud2ConstIterator<float> iter_z(cloud_map, "z");
 
 		for (; iter_x != iter_x.end(); ++iter_x, ++iter_y, ++iter_z) {
-			if (std::isnan(*iter_x) || std::isnan(*iter_y) || std::isnan(*iter_z)) {
+			if (std::isnan(*iter_x) || std::isnan(*iter_y) ||
+			    std::isnan(*iter_z)) {
 				continue;
 			}
 			const grid_map::Position pos(*iter_x, *iter_y);
@@ -220,11 +236,11 @@ private:
 
 		if (peak_found) {
 			geometry_msgs::msg::PoseStamped peak_pose;
-			peak_pose.header.stamp    = this->now();
-			peak_pose.header.frame_id = map_frame_;
-			peak_pose.pose.position.x = peak_pos.x();
-			peak_pose.pose.position.y = peak_pos.y();
-			peak_pose.pose.position.z = max_elevation;
+			peak_pose.header.stamp       = this->now();
+			peak_pose.header.frame_id    = map_frame_;
+			peak_pose.pose.position.x    = peak_pos.x();
+			peak_pose.pose.position.y    = peak_pos.y();
+			peak_pose.pose.position.z    = max_elevation;
 			peak_pose.pose.orientation.w = 1.0;
 			peak_pos_pub_->publish(peak_pose);
 		} else {
@@ -254,14 +270,14 @@ private:
 	double            search_radius_;
 	grid_map::GridMap map_;
 
-	std::unique_ptr<tf2_ros::Buffer>                               tf_buffer_;
-	std::shared_ptr<tf2_ros::TransformListener>                    tf_listener_;
-	std::vector<std::string>                                       camera_ids_;
+	std::unique_ptr<tf2_ros::Buffer>            tf_buffer_;
+	std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
+	std::vector<std::string>                    camera_ids_;
 	std::vector<rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr>
-	                                                               pc_subs_;
-	rclcpp::Publisher<grid_map_msgs::msg::GridMap>::SharedPtr      map_pub_;
+	                                                              pc_subs_;
+	rclcpp::Publisher<grid_map_msgs::msg::GridMap>::SharedPtr     map_pub_;
 	rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr peak_pos_pub_;
-	rclcpp::TimerBase::SharedPtr                                   peak_timer_;
+	rclcpp::TimerBase::SharedPtr                                  peak_timer_;
 	rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr clear_elevation_map_srv_;
 };
 

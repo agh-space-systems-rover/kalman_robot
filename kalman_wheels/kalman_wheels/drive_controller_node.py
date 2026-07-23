@@ -10,7 +10,7 @@ def lerp(a, b, t):
 
 
 def cos_from_sin(sin):
-    return np.sqrt(1 - sin**2)
+    return np.sqrt(1 - sin ** 2)
 
 
 class State:

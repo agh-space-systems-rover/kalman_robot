@@ -63,7 +63,6 @@ def launch_setup(context):
             arc_serial,
         ]
 
-
     return description
 
 

@@ -38,7 +38,7 @@ private slots:
 	void publish_request();
 
 private:
-    using ArcRscpRequest = kalman_interfaces::msg::ArcRscpRequest;
+	using ArcRscpRequest = kalman_interfaces::msg::ArcRscpRequest;
 
 	QWidget        *widget_       = nullptr;
 	QComboBox      *request_type_ = nullptr;

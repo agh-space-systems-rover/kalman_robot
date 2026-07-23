@@ -17,8 +17,7 @@ class Arc(Module):
         self.antenna_drop_pub = None
         self.tunnel_follower_client = None
         self._distance_traveled = 0.0
-        self._laser_distance = float('inf')
-        
+        self._laser_distance = float("inf")
 
     def activate(self) -> None:
         self.distance_sub = self.supervisor.create_subscription(
@@ -34,10 +33,7 @@ class Arc(Module):
             PoseStamped, "/boulder_position", self._boulder_pos_callback, 10
         )
         self.laser_sub = self.supervisor.create_subscription(
-            Float32,
-            "/arc/laser_distance",
-            self._laser_callback,
-            10
+            Float32, "/arc/laser_distance", self._laser_callback, 10
         )
         self.tunnel_follower_client = self.supervisor.create_client(
             SetBool, "/arc/follow_tunnel"
@@ -51,7 +47,7 @@ class Arc(Module):
 
     def _boulder_pos_callback(self, msg: PoseStamped) -> None:
         self._boulder_position = msg
-    
+
     def _laser_callback(self, msg: Float32) -> None:
         self._laser_distance = msg.data
 

@@ -1,48 +1,48 @@
 .button {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: var(--interactive);
-    padding: 3px;
-    margin-top: 5px;
-    margin-bottom: 5px;
-    cursor: pointer;
-    transition: background-color 0.1s;
-    height: calc(1em + 4px);
-    min-width: calc(1em + 4px);
-    user-select: none;
-    position: relative;
-    overflow: hidden;
-    text-wrap: nowrap;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--interactive);
+  padding: 3px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  cursor: pointer;
+  transition: background-color 0.1s;
+  height: calc(1em + 4px);
+  min-width: calc(1em + 4px);
+  user-select: none;
+  position: relative;
+  overflow: hidden;
+  text-wrap: nowrap;
 }
 
 .button:first-child {
-    border-top-left-radius: 5px;
-    border-bottom-left-radius: 5px;
-    margin-left: 5px;
+  border-top-left-radius: 5px;
+  border-bottom-left-radius: 5px;
+  margin-left: 5px;
 }
 
 .button:last-child {
-    border-top-right-radius: 5px;
-    border-bottom-right-radius: 5px;
-    margin-right: 5px;
+  border-top-right-radius: 5px;
+  border-bottom-right-radius: 5px;
+  margin-right: 5px;
 }
 
 .button:hover:not(.disabled),
 .button.active {
-    background-color: var(--active);
+  background-color: var(--active);
 }
 
 .button:not(:last-child) {
-    border-right: 1px solid var(--background);
+  border-right: 1px solid var(--background);
 }
 
 .button:active:not(.disabled) {
-    background-color: var(--weak-foreground);
-    transition: background-color 0s;
+  background-color: var(--weak-foreground);
+  transition: background-color 0s;
 }
 
 .button.disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+  opacity: 0.5;
+  cursor: not-allowed;
 }
