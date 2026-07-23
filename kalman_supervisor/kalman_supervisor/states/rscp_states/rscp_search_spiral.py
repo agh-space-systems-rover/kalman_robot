@@ -203,3 +203,9 @@ class RSCPSearchSpiral(State):
             self.toggle_follower_slow_approach(True)
 
         self.supervisor.destroy_publisher(self.spiral_pub)
+
+        if self.supervisor.nav.has_goal():
+            self.supervisor.get_logger().info(
+                "[RSCP] Exiting rscp_search_spiral, canceling navigation"
+            )
+            self.supervisor.nav.cancel_goal()
