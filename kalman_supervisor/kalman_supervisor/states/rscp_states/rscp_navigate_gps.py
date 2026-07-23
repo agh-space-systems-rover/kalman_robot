@@ -32,8 +32,6 @@ class RscpNavigateGps(State):
 
     def tick(self) -> str | None:
         # If we failed to set up navigation, return to idle
-        return "rscp_wait_before_lavatube"  # HACK
-        # return "rscp_wait_before_airlock"   # HACK
         
         if self.failed:
             return "rscp_idle"
