@@ -13,7 +13,7 @@ class GS(Node):
         self.get_logger().info("Starting the ground station...")
 
         self.node_project_dir = (
-            get_package_share_directory("kalman_gs") + "/node_project"
+                get_package_share_directory("kalman_gs") + "/node_project"
         )
 
         # Run npm install if dependencies were not installed yet.
@@ -44,7 +44,7 @@ class GS(Node):
                 self.get_logger().error("Failed to install npm dependencies.")
                 raise KeyboardInterrupt
 
-        # Start the web frontend in development mode.
+        # Run npm start
         self.get_logger().info("Running 'npm start':")
         self.run_command("npm start")
 

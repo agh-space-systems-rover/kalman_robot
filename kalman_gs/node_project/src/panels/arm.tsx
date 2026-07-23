@@ -20,9 +20,19 @@ import { armJointsLocks, currentAxisLockFocus, toggleArmJointLock } from '../com
 import predefinedPoses from '../common/predefined-arm-poses';
 import '../common/predefined-arm-trajectories';
 import predefinedArmTrajectories from '../common/predefined-arm-trajectories';
+import { modalRef } from '../common/refs';
 import { ros } from '../common/ros';
 import { JointState } from '../common/ros-interfaces';
-import { faLock, faLockOpen } from '@fortawesome/free-solid-svg-icons';
+import {
+  faDownload,
+  faLock,
+  faLockOpen,
+  faSave,
+  faTrash,
+  faUpload,
+  faEye,
+  faEyeSlash
+} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Topic } from 'roslib';
@@ -32,6 +42,16 @@ let prevLastStatusPose = null;
 let prevLastStatusTraj = null;
 
 let lastJointState: JointState | null = null;
+
+interface ArmPose {
+  id: number;
+  name: string;
+  path: string;
+  joints: number[];
+  joints_set: number[];
+  joints_checked: number[];
+  joints_reversed?: number[];
+}
 
 window.addEventListener('ros-connect', () => {
   const jointTopic = new Topic({
@@ -93,7 +113,7 @@ function isCloseEnough(jointsA: number[], jointsB: number[], maxDistance: number
   return true;
 }
 
-function ArmStatus() {
+function ArmStatus({ editMode }: { editMode: boolean }) {
   const [rerenderCount, setRerenderCount] = useState(0);
   const [linearScale, setLinearScale] = useState<number | null>(lastServoLinearScale);
   const [rotationalScale, setRotationalScale] = useState<number | null>(lastServoRotationalScale);
@@ -192,9 +212,52 @@ function ArmStatus() {
     </div>
   );
 
+  const saveCurrentPose = () => {
+    modalRef.current?.showPrompt({
+      title: 'Save pose',
+      icon: faSave,
+      message: 'Give the name of new pose:',
+      defaultValue: `Pose ${new Date().toLocaleTimeString()}`,
+      confirmText: 'Save',
+      onSubmit: (poseName) => {
+        if (!poseName) return;
+
+        const currentValues = namesAndValues.map((joint) => +joint.value.toFixed(3));
+
+        const savedPosesRaw = localStorage.getItem('custom_arm_poses');
+        const savedPoses = savedPosesRaw ? JSON.parse(savedPosesRaw) : [];
+
+        const newPose: ArmPose = {
+          id: Date.now(),
+          name: poseName,
+          path: 'FIXME path',
+          joints: currentValues,
+          joints_set: [1, 2, 3, 4, 5, 6],
+          joints_checked: [1, 2, 3, 4, 5, 6]
+        };
+
+        localStorage.setItem('custom_arm_poses', JSON.stringify([...savedPoses, newPose]));
+
+        window.dispatchEvent(new Event('local-poses-update'));
+        modalRef.current?.showAlert({
+          title: 'Pose saved',
+          icon: faSave,
+          message: `"${poseName}" was saved.`
+        });
+      }
+    });
+  };
+
   return (
     <div className={styles['arm-status']}>
-      <h1 className={styles['status-header']}>Arm Status</h1>
+      <div className={styles['header-container']}>
+        <h1 className={styles['status-header']}>Arm Status</h1>
+        {editMode && (
+          <div className={`${styles['joint-lock']}`} style={{ border: 'none' }} onClick={saveCurrentPose}>
+            <FontAwesomeIcon icon={faSave} />
+          </div>
+        )}
+      </div>
       <div className={styles['status']}>
         <div className={styles['joint-column'] + ' ' + styles['align-left']}>{jointLocks}</div>
         <div className={styles['joint-column'] + ' ' + styles['align-left']}>{jointNames}</div>
@@ -271,12 +334,45 @@ function poseJoints(jointValues) {
   );
 }
 
-function PoseRequester() {
+function PoseRequester({ editMode, onSelectPose }: { editMode: boolean; onSelectPose: (pose: ArmPose) => void }) {
   const [rerenderCount, setRerenderCount] = useState(0);
   const keepAlive = useRef(false);
+
+  // const [keepAlive, setKeepAlive] = useState(false);
+  const [customPoses, setCustomPoses] = useState<ArmPose[]>([]);
+
+  // Poses hidden by the user in Edit Mode (persisted across reloads)
+  const [hiddenPoseIds, setHiddenPoseIds] = useState<ArmPose['id'][]>(() => {
+    const savedHiddenRaw = localStorage.getItem('hidden_arm_poses');
+    return savedHiddenRaw ? JSON.parse(savedHiddenRaw) : [];
+  });
+
+  const toggleHiddenPose = useCallback((poseId: ArmPose['id']) => {
+    setHiddenPoseIds((prev) => {
+      const updated = prev.includes(poseId) ? prev.filter((id) => id !== poseId) : [...prev, poseId];
+      localStorage.setItem('hidden_arm_poses', JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
+
   const rerender = useCallback(() => {
     setRerenderCount((count) => count + 1);
   }, [setRerenderCount]);
+
+  useEffect(() => {
+    const loadCustomPoses = () => {
+      const savedPosesRaw = localStorage.getItem('custom_arm_poses');
+      const savedPoses: ArmPose[] = savedPosesRaw ? JSON.parse(savedPosesRaw) : [];
+      setCustomPoses(savedPoses);
+    };
+
+    loadCustomPoses();
+    window.addEventListener('local-poses-update', loadCustomPoses);
+
+    return () => {
+      window.removeEventListener('local-poses-update', loadCustomPoses);
+    };
+  }, []);
 
   useEffect(() => {
     window.addEventListener('joint-state', rerender);
@@ -302,50 +398,60 @@ function PoseRequester() {
     return () => clearInterval(intervalId);
   }, []);
 
-  const isStartingFromSafePose = (safePreviousPoses: number[]) => {
-    for (let i = 0; i < safePreviousPoses.length; i++) {
-      if (
-        isCloseEnough(
-          predefinedPoses.POSES_JOINTS[predefinedPoses.PREDEFINED_POSES.poses[safePreviousPoses[i]].name],
-          namesAndValues.map((joint) => joint.value),
-          predefinedPoses.PREDEFINED_POSES.max_distance_rad,
-          predefinedPoses.PREDEFINED_POSES.poses[safePreviousPoses[i]].joints_checked
-        )
-      ) {
-        return true;
-      }
-    }
-    return false;
-  };
+  const allPoses: ArmPose[] = [
+    ...predefinedPoses.poses.map((p) => ({
+      ...p,
+      isCustom: false
+    })),
+    ...customPoses.map((p) => ({
+      ...p,
+      isCustom: true
+    }))
+  ];
+
+  // Outside Edit Mode, hidden poses are not shown at all.
+  // In Edit Mode, all poses are shown so they can be toggled back on.
+  const visiblePoses = editMode ? allPoses : allPoses.filter((pose) => !hiddenPoseIds.includes(pose.id));
 
   const [currentPoseId, setCurrentPoseId] = useState(0);
-
   const namesAndValues = getNamesAndValues();
 
-  const predefinedJointValues =
-    predefinedPoses.POSES_JOINTS[predefinedPoses.PREDEFINED_POSES.poses[currentPoseId].name];
+  const currentPose = allPoses.find((p) => p.id === currentPoseId) || allPoses[0];
 
-  const posesToSelect = predefinedPoses.PREDEFINED_POSES.poses.map((pose, i) => (
+  const predefinedJointValues = currentPose.joints ?? [0, 0, 0, 0, 0, 0];
+
+  const posesToSelect = visiblePoses.map((pose) => (
     <div
       key={pose.id}
       className={`${styles['pose-button']} ${styles['pose-option']} ${pose.id === currentPoseId ? styles['pose-selected'] : ''}`}
       onClick={() => {
         setCurrentPoseId(pose.id);
+        if (editMode && pose.joints) onSelectPose(pose);
       }}
     >
       <div className={styles['pose-name']}>{pose.name}</div>
-      <div
-        className={`${styles['pose-indicator']} ${
-          isCloseEnough(
-            predefinedPoses.POSES_JOINTS[predefinedPoses.PREDEFINED_POSES.poses[i].name],
-            namesAndValues.map((joint) => joint.value),
-            predefinedPoses.PREDEFINED_POSES.max_distance_rad,
-            predefinedPoses.PREDEFINED_POSES.poses[i].joints_checked
-          ) || isStartingFromSafePose(pose.safe_previous_poses)
-            ? styles['pose-ready']
-            : styles['pose-not-ready']
-        }`}
-      />
+      <div className={styles['pose-option-actions']}>
+        {editMode && (
+          <button
+            type='button'
+            className={styles['pose-eye-button']}
+            title={hiddenPoseIds.includes(pose.id) ? 'Show pose' : 'Hide pose'}
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleHiddenPose(pose.id);
+            }}
+          >
+            <FontAwesomeIcon icon={hiddenPoseIds.includes(pose.id) ? faEyeSlash : faEye} />
+          </button>
+        )}
+        <div
+          className={`${styles['pose-indicator']} ${
+            styles['pose-ready'] //TODO dynamic check for arm safety,
+            // NOTE operator said the poses were always ready for action (also they have safety rules)
+            // styles['pose-not-ready']
+          }`}
+        />
+      </div>
     </div>
   ));
 
@@ -353,22 +459,15 @@ function PoseRequester() {
   let isJointClose: boolean[] = Array(6).fill(false);
   let isJointChecked: boolean[] = Array(6).fill(false);
 
-  predefinedPoses.PREDEFINED_POSES.poses[currentPoseId].joints_set.forEach((value) => {
-    isJointSet[value - 1] = true;
-  });
+  if (currentPose) {
+    currentPose.joints_set.forEach((value) => {
+      isJointSet[value - 1] = true;
+    });
 
-  isJointClose = isJointClose.map((_, i) =>
-    namesAndValues.length
-      ? Math.abs(
-          predefinedPoses.POSES_JOINTS[predefinedPoses.PREDEFINED_POSES.poses[currentPoseId].name][i] -
-            namesAndValues[i].value
-        ) <= predefinedPoses.PREDEFINED_POSES.max_distance_rad
-      : false
-  );
-
-  predefinedPoses.PREDEFINED_POSES.poses[currentPoseId].joints_checked.forEach((value) => {
-    isJointChecked[value - 1] = true;
-  });
+    currentPose.joints_checked.forEach((value) => {
+      isJointChecked[value - 1] = true;
+    });
+  }
 
   const PoseJoints = poseJoints(
     Array.from({ length: 6 }, (_, i) => (
@@ -381,16 +480,81 @@ function PoseRequester() {
     ))
   );
 
-  const closeEnough =
-    isCloseEnough(
-      predefinedPoses.POSES_JOINTS[predefinedPoses.PREDEFINED_POSES.poses[currentPoseId].name],
-      namesAndValues.map((joint) => joint.value),
-      predefinedPoses.PREDEFINED_POSES.max_distance_rad,
-      predefinedPoses.PREDEFINED_POSES.poses[currentPoseId].joints_checked
-    ) || isStartingFromSafePose(predefinedPoses.PREDEFINED_POSES.poses[currentPoseId].safe_previous_poses);
+  const closeEnough = true;
+  // NOTE operator said the poses were always ready for action (also they have safety rules)
+
+  // currentPose && namesAndValues.length > 0
+  //   ? isCloseEnough(
+  //       predefinedJointValues,
+  //       namesAndValues.map((joint) => joint.value),
+  //       predefinedPoses.max_distance_rad,
+  //       currentPose.joints_checked
+  //     )
+  //   : false;
+
+  const handleImportSinglePose = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const importedData = JSON.parse(event.target?.result as string);
+
+        const importedArray = Array.isArray(importedData) ? importedData : [importedData];
+
+        const savedPosesRaw = localStorage.getItem('custom_arm_poses');
+        let existingPoses: ArmPose[] = savedPosesRaw ? JSON.parse(savedPosesRaw) : [];
+
+        importedArray.forEach((newPose) => {
+          const poseToAdd: ArmPose = { ...newPose, isCustom: true };
+
+          while (existingPoses.some((p) => p.id === poseToAdd.id)) {
+            poseToAdd.id = Date.now();
+          }
+
+          if (existingPoses.some((p) => p.name === poseToAdd.name)) {
+            poseToAdd.name = `${poseToAdd.name} (Imported)`;
+          }
+
+          existingPoses.push(poseToAdd);
+        });
+
+        localStorage.setItem('custom_arm_poses', JSON.stringify(existingPoses));
+
+        window.dispatchEvent(new Event('local-poses-update'));
+        modalRef.current?.showAlert({
+          title: 'Import complete',
+          icon: faDownload,
+          message: `Successfully imported ${importedArray.length} pose(s).`
+        });
+      } catch (err) {
+        modalRef.current?.showAlert({
+          title: 'Import failed',
+          icon: faDownload,
+          message: 'Invalid JSON format.'
+        });
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
   return (
     <div className={styles['pose-requester']}>
-      <h2 className={styles['pose-header']}>Pose Requester</h2>
+      <div className={styles['header-container']}>
+        <h2 className={styles['pose-header']}>Pose Requester</h2>
+
+        {editMode && (
+          <label className={styles['import-label']}>
+            <input type='file' accept='.json' style={{ display: 'none' }} onChange={handleImportSinglePose} />
+            <div className={styles['joint-lock']} title='Import Pose JSON'>
+              <FontAwesomeIcon icon={faDownload} />
+            </div>
+          </label>
+        )}
+      </div>
+
       <div className={styles['pose-panel']}>
         {PoseJoints}
         <div className={styles['pose-options']}>{posesToSelect}</div>
@@ -425,146 +589,360 @@ function PoseRequester() {
     </div>
   );
 }
+// OLD CODE: to be consider
+// function TrajectoryRequester() {
+//   const [rerenderCount, setRerenderCount] = useState(0);
+//   const keepAlive = useRef(false);
+//   const rerender = useCallback(() => {
+//     setRerenderCount((count) => count + 1);
+//   }, [setRerenderCount]);
 
-function TrajectoryRequester() {
-  const [rerenderCount, setRerenderCount] = useState(0);
-  const keepAlive = useRef(false);
-  const rerender = useCallback(() => {
-    setRerenderCount((count) => count + 1);
-  }, [setRerenderCount]);
+//   useEffect(() => {
+//     window.addEventListener('joint-state', rerender);
+//     window.addEventListener('trajectory-status', rerender);
+//     return () => {
+//       window.removeEventListener('joint-state', rerender);
+//       window.removeEventListener('trajectory-status', rerender);
+//     };
+//   }, [rerender]);
 
-  useEffect(() => {
-    window.addEventListener('joint-state', rerender);
-    window.addEventListener('trajectory-status', rerender);
-    return () => {
-      window.removeEventListener('joint-state', rerender);
-      window.removeEventListener('trajectory-status', rerender);
+//   useEffect(() => {
+//     const intervalId = setInterval(() => {
+//       if (keepAlive.current) {
+//         keepAliveTrajectory();
+//       }
+//       if (prevLastStatusTraj !== lastStatusTrajectory && !KEEP_ALIVE_STATUSES.includes(lastStatusTrajectory)) {
+//         keepAlive.current = false;
+//       }
+//       prevLastStatusTraj = lastStatusTrajectory;
+//     }, 200);
+
+//     // Cleanup interval on component unmount
+//     return () => clearInterval(intervalId);
+//   }, []);
+
+//   const [currentTrajectoryId, setCurrentTrajectoryId] = useState(0);
+
+//   const namesAndValues = getNamesAndValues();
+
+//   const predefinedJointValues =
+//     predefinedArmTrajectories.START_JOINTS[
+//       predefinedArmTrajectories.PREDEFINED_TRAJECTORIES.trajectories[currentTrajectoryId].name
+//     ];
+
+//   const trajectoriesToSelect = predefinedArmTrajectories.PREDEFINED_TRAJECTORIES.trajectories.map((trajectory, i) => (
+//     <div
+//       key={trajectory.id}
+//       className={`${styles['pose-button']} ${styles['pose-option']} ${trajectory.id === currentTrajectoryId ? styles['pose-selected'] : ''}`}
+//       onClick={() => {
+//         setCurrentTrajectoryId(trajectory.id);
+//       }}
+//     >
+//       <div className={styles['pose-name']}>{trajectory.name}</div>
+//       <div className={styles['pose-option-actions']}>
+//         <div
+//           className={`${styles['pose-indicator']} ${
+//             isCloseEnough(
+//               predefinedArmTrajectories.START_JOINTS[
+//                 predefinedArmTrajectories.PREDEFINED_TRAJECTORIES.trajectories[i].name
+//               ],
+//               namesAndValues.map((joint) => joint.value),
+//               predefinedArmTrajectories.PREDEFINED_TRAJECTORIES.max_distance_rad,
+//               [1, 2, 3, 4, 5, 6]
+//             )
+//               ? styles['pose-ready']
+//               : styles['pose-not-ready']
+//           }`}
+//         />
+//       </div>
+//     </div>
+//   ));
+
+//   let isJointClose: boolean[] = Array(6).fill(false);
+
+//   isJointClose = isJointClose.map((_, i) =>
+//     namesAndValues.length
+//       ? Math.abs(
+//           predefinedArmTrajectories.START_JOINTS[
+//             predefinedArmTrajectories.PREDEFINED_TRAJECTORIES.trajectories[currentTrajectoryId].name
+//           ][i] - namesAndValues[i].value
+//         ) <= predefinedArmTrajectories.PREDEFINED_TRAJECTORIES.max_distance_rad
+//       : false
+//   );
+
+//   const trajectoryJoints = poseJoints(
+//     Array.from({ length: 6 }, (_, i) => (
+//       <div className={`${styles['joint-value']} ${!isJointClose[i] ? styles['warn'] : ''}`} key={i}>
+//         {rad2deg(predefinedJointValues[i]).toFixed(0)}
+//       </div>
+//     ))
+//   );
+
+//   const closeEnough = isCloseEnough(
+//     predefinedArmTrajectories.START_JOINTS[
+//       predefinedArmTrajectories.PREDEFINED_TRAJECTORIES.trajectories[currentTrajectoryId].name
+//     ],
+//     namesAndValues.map((joint) => joint.value),
+//     predefinedArmTrajectories.PREDEFINED_TRAJECTORIES.max_distance_rad,
+//     [1, 2, 3, 4, 5, 6]
+//   );
+//   return (
+//     <div className={styles['pose-requester']}>
+//       <h2 className={styles['pose-header']}>Trajectory Requester</h2>
+//       <div className={styles['pose-panel']}>
+//         {trajectoryJoints}
+//         <div className={styles['pose-options']}>{trajectoriesToSelect}</div>
+//       </div>
+//       <div className={styles['pose-buttons']}>
+//         <div
+//           className={`${styles['pose-button']} ${styles['pose-send']} ${
+//             closeEnough ? styles['send-ready'] : styles['send-not-ready']
+//           }`}
+//           onClick={async () => {
+//             if (closeEnough) {
+//               keepAlive.current = true;
+//               keepAliveTrajectory();
+//               // wait so that keep alive goes through before req
+//               await new Promise((r) => setTimeout(r, 500));
+//               sendTrajectoryRequest(currentTrajectoryId);
+//             }
+//           }}
+//         >
+//           {closeEnough ? 'Send Pose' : 'Cannot Send'}
+//         </div>
+//         <div
+//           className={`${styles['pose-button']} ${styles['pose-abort']}`}
+//           onClick={() => {
+//             abortTrajectory();
+//           }}
+//         >
+//           Abort
+//         </div>
+//       </div>
+//       <div className={styles['pose-status']}>Status: {lastStatusTrajectory}</div>
+//     </div>
+//   );
+// }
+
+function EditPanel({
+  pose,
+  onChangePose
+}: {
+  pose: (ArmPose & { isCustom?: boolean }) | null;
+  onChangePose: (pose: ArmPose | null) => void;
+}) {
+  if (!pose || !pose.joints) {
+    return (
+      <div className={styles['edit-panel']}>
+        <h2 className={styles['edit-header']}>Edit Panel</h2>
+        <div className={styles['edit-content']}>
+          {pose ? 'Predefined pose selected, cannot edit joints' : 'Select a pose to edit'}
+        </div>
+      </div>
+    );
+  }
+  const isReadOnly = !pose.isCustom;
+
+  const exportToFile = () => {
+    if (!pose) return;
+
+    const { isCustom, ...poseData } = pose;
+
+    const dataStr = JSON.stringify(poseData, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `arm_pose_${pose.name.replace(/\s+/g, '_')}.json`;
+    document.body.appendChild(link);
+    link.click();
+
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleDelete = () => {
+    modalRef.current?.showConfirm({
+      title: 'Delete pose',
+      icon: faTrash,
+      message: `Are you sure you want to delete "${pose.name}"?`,
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      onConfirm: () => {
+        const saved = JSON.parse(localStorage.getItem('custom_arm_poses') || '[]');
+        const newList = saved.filter((p: ArmPose) => p.id !== pose.id);
+        localStorage.setItem('custom_arm_poses', JSON.stringify(newList));
+        window.dispatchEvent(new Event('local-poses-update'));
+        onChangePose(null);
+      }
+    });
+  };
+
+const handleUpdatePose = () => {
+    modalRef.current?.showConfirm({
+      title: 'Update Pose Position',
+      icon: faSave, 
+      message: `Are you sure?`,
+      confirmText: 'Update',
+      cancelText: 'Cancel',
+      onConfirm: () => {
+        if (!pose || !pose.isCustom) return;
+        const namesAndValues = getNamesAndValues();
+        const currentJointValues = namesAndValues.map((joint) => +joint.value.toFixed(3));
+        updatePoseField('joints', currentJointValues);
+      }
+    });
+  };
+
+  const updatePoseField = (field: keyof ArmPose, value: any) => {
+    if (!pose || !pose.isCustom) return;
+
+    const saved = JSON.parse(localStorage.getItem('custom_arm_poses') || '[]');
+    const poseIndex = saved.findIndex((p: ArmPose) => p.id === pose.id);
+
+    if (poseIndex !== -1) {
+      const updatedPose = { ...saved[poseIndex], [field]: value };
+      saved[poseIndex] = updatedPose;
+
+      localStorage.setItem('custom_arm_poses', JSON.stringify(saved));
+      window.dispatchEvent(new Event('local-poses-update'));
+      onChangePose({ ...pose, [field]: value });
+    }
+  };
+  const handleRename = () => {
+    modalRef.current?.showPrompt({
+      title: 'Rename pose',
+      icon: faSave,
+      message: 'Enter new name for the pose:',
+      defaultValue: pose.name,
+      confirmText: 'Save',
+      onSubmit: (newName) => {
+        if (!newName) return;
+        updatePoseField('name', newName);
+      }
+    });
+  };
+
+  const toggleInArray = (field: 'joints_set' | 'joints_checked' | 'joints_reversed', jointIdx: number) => {
+    const currentArray = pose[field] || [];
+    const jointNum = jointIdx + 1;
+    const newArray = currentArray.includes(jointNum)
+      ? currentArray.filter((n) => n !== jointNum)
+      : [...currentArray, jointNum].sort((a, b) => a - b);
+
+    updatePoseField(field, newArray);
+  };
+  function JointGrid() {
+    interface Jointsprops {
+      data: any;
+      name: string;
+    }
+    const JointCheckbox = ({ data, name }: Jointsprops) => {
+      return (
+        <>
+          {Array.from({ length: 6 }, (_, i) => (
+            <input
+              key={i}
+              type='checkbox'
+              disabled={isReadOnly}
+              checked={data.includes(i + 1)}
+              onChange={() => toggleInArray(name as any, i)}
+            />
+          ))}
+        </>
+      );
     };
-  }, [rerender]);
+    return (
+      <div>
+        <div className={styles['grid-row']}>
+          <div className={styles['row-label']}>Joint</div>
+          {Array.from({ length: 6 }, (_, i) => (
+            <div key={i} className={styles['column-header']}>
+              #{i + 1}
+            </div>
+          ))}
+        </div>
+        <div className={styles['grid-row']}>
+          <div className={styles['row-label']}>Set</div>
+          <JointCheckbox data={pose.joints_set} name='joints_set' />
+        </div>
 
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      if (keepAlive.current) {
-        keepAliveTrajectory();
-      }
-      if (prevLastStatusTraj !== lastStatusTrajectory && !KEEP_ALIVE_STATUSES.includes(lastStatusTrajectory)) {
-        keepAlive.current = false;
-      }
-      prevLastStatusTraj = lastStatusTrajectory;
-    }, 200);
+        <div className={styles['grid-row']}>
+          <div className={styles['row-label']}>Checked</div>
+          <JointCheckbox data={pose.joints_checked} name='joints_checked' />
+        </div>
 
-    // Cleanup interval on component unmount
-    return () => clearInterval(intervalId);
-  }, []);
-
-  const [currentTrajectoryId, setCurrentTrajectoryId] = useState(0);
-
-  const namesAndValues = getNamesAndValues();
-
-  const predefinedJointValues =
-    predefinedArmTrajectories.START_JOINTS[
-      predefinedArmTrajectories.PREDEFINED_TRAJECTORIES.trajectories[currentTrajectoryId].name
-    ];
-
-  const trajectoriesToSelect = predefinedArmTrajectories.PREDEFINED_TRAJECTORIES.trajectories.map((trajectory, i) => (
-    <div
-      key={trajectory.id}
-      className={`${styles['pose-button']} ${styles['pose-option']} ${trajectory.id === currentTrajectoryId ? styles['pose-selected'] : ''}`}
-      onClick={() => {
-        setCurrentTrajectoryId(trajectory.id);
-      }}
-    >
-      <div className={styles['pose-name']}>{trajectory.name}</div>
-      <div
-        className={`${styles['pose-indicator']} ${
-          isCloseEnough(
-            predefinedArmTrajectories.START_JOINTS[
-              predefinedArmTrajectories.PREDEFINED_TRAJECTORIES.trajectories[i].name
-            ],
-            namesAndValues.map((joint) => joint.value),
-            predefinedArmTrajectories.PREDEFINED_TRAJECTORIES.max_distance_rad,
-            [1, 2, 3, 4, 5, 6]
-          )
-            ? styles['pose-ready']
-            : styles['pose-not-ready']
-        }`}
-      />
-    </div>
-  ));
-
-  let isJointClose: boolean[] = Array(6).fill(false);
-
-  isJointClose = isJointClose.map((_, i) =>
-    namesAndValues.length
-      ? Math.abs(
-          predefinedArmTrajectories.START_JOINTS[
-            predefinedArmTrajectories.PREDEFINED_TRAJECTORIES.trajectories[currentTrajectoryId].name
-          ][i] - namesAndValues[i].value
-        ) <= predefinedArmTrajectories.PREDEFINED_TRAJECTORIES.max_distance_rad
-      : false
-  );
-
-  const trajectoryJoints = poseJoints(
-    Array.from({ length: 6 }, (_, i) => (
-      <div className={`${styles['joint-value']} ${!isJointClose[i] ? styles['warn'] : ''}`} key={i}>
-        {rad2deg(predefinedJointValues[i]).toFixed(0)}
+        <div className={styles['grid-row']}>
+          <div className={styles['row-label']}>Reversed</div>
+          <JointCheckbox data={pose.joints_reversed || []} name='joints_reversed' />
+        </div>
       </div>
-    ))
-  );
+    );
+  }
 
-  const closeEnough = isCloseEnough(
-    predefinedArmTrajectories.START_JOINTS[
-      predefinedArmTrajectories.PREDEFINED_TRAJECTORIES.trajectories[currentTrajectoryId].name
-    ],
-    namesAndValues.map((joint) => joint.value),
-    predefinedArmTrajectories.PREDEFINED_TRAJECTORIES.max_distance_rad,
-    [1, 2, 3, 4, 5, 6]
-  );
   return (
-    <div className={styles['pose-requester']}>
-      <h2 className={styles['pose-header']}>Trajectory Requester</h2>
-      <div className={styles['pose-panel']}>
-        {trajectoryJoints}
-        <div className={styles['pose-options']}>{trajectoriesToSelect}</div>
+    <div className={styles['edit-panel']}>
+      <h2 className={styles['pose-header']}>{isReadOnly ? 'View Pose' : 'Edit Pose'}</h2>
+      <div onClick={exportToFile} className={styles['edit-button']}>
+        <FontAwesomeIcon icon={faUpload} /> Export Pose
       </div>
-      <div className={styles['pose-buttons']}>
-        <div
-          className={`${styles['pose-button']} ${styles['pose-send']} ${
-            closeEnough ? styles['send-ready'] : styles['send-not-ready']
-          }`}
-          onClick={async () => {
-            if (closeEnough) {
-              keepAlive.current = true;
-              keepAliveTrajectory();
-              // wait so that keep alive goes through before req
-              await new Promise((r) => setTimeout(r, 500));
-              sendTrajectoryRequest(currentTrajectoryId);
-            }
-          }}
-        >
-          {closeEnough ? 'Send Pose' : 'Cannot Send'}
+      <JointGrid />
+      <p className={styles['warn']} style={{ visibility: isReadOnly ? 'visible' : 'hidden' }}>
+        ?? Predefined poses cannot be modified.
+      </p>
+
+      <div
+        className={styles['edit-actions']}
+        style={{ opacity: isReadOnly ? 0.3 : 1, pointerEvents: isReadOnly ? 'none' : 'auto' }}
+      >
+        <div onClick={handleRename} className={styles['edit-button']}>
+          Rename
         </div>
-        <div
-          className={`${styles['pose-button']} ${styles['pose-abort']}`}
-          onClick={() => {
-            abortTrajectory();
-          }}
-        >
-          Abort
+        <div onClick={handleUpdatePose} className={styles['edit-button']}>
+          <FontAwesomeIcon icon={faSave} /> Update
+        </div>
+        <div onClick={handleDelete} className={styles['edit-button']}>
+          <FontAwesomeIcon icon={faTrash} /> Delete
         </div>
       </div>
-      <div className={styles['pose-status']}>Status: {lastStatusTrajectory}</div>
     </div>
   );
 }
+
 export default function Arms() {
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [selectedPose, setSelectedPose] = useState<ArmPose | null>(null);
+
+  const rerender = useCallback(() => {
+    setIsEditMode((prev) => prev);
+  }, []);
+
+  useEffect(() => {
+    const handler = (e: any) => setIsEditMode(e.detail.enabled);
+    window.addEventListener('arm-edit-mode', handler);
+    return () => {
+      window.removeEventListener('arm-edit-mode', handler);
+    };
+  }, []);
+
   return (
     <div className={styles['arm-panel']}>
-      <ArmStatus />
+      <div className={styles['arm-content']}>
+      <ArmStatus editMode={isEditMode} />
       <div className={styles['trajectory-and-pose']}>
-        <PoseRequester />
+        <PoseRequester editMode={isEditMode} onSelectPose={(pose) => setSelectedPose(pose)} />
         <div className={styles['extra-space']} />
-        <TrajectoryRequester />
+        {/*<TrajectoryRequester />*/}
+      </div>
+      {isEditMode && (
+        <EditPanel
+        pose={selectedPose}
+        onChangePose={(newPose) => {
+          setSelectedPose(newPose);
+        }}
+        />
+      )}
       </div>
     </div>
   );
