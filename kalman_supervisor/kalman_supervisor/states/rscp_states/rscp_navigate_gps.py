@@ -9,7 +9,7 @@ class RscpNavigateGps(State):
     def enter(self) -> None:
         # Set UEUOS to autonomous (yellow)
         self.supervisor.ueuos.set_rscp_state(Ueuos.RscpState.AUTONOMOUS)
-
+        
         # Get the navigation goal from the RSCP module
         goal = self.supervisor.rscp.get_navigation_goal()
         self.supervisor.rscp.clear_navigation_goal()
@@ -32,6 +32,9 @@ class RscpNavigateGps(State):
 
     def tick(self) -> str | None:
         # If we failed to set up navigation, return to idle
+        return "rscp_wait_before_lavatube"  # HACK
+        # return "rscp_wait_before_airlock"   # HACK
+        
         if self.failed:
             return "rscp_idle"
 

@@ -123,6 +123,11 @@ def main() -> int:
                         selector.unregister(client)
                         client.close()
                     client, _address = server.accept()
+                    client.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+                    client.setsockopt(socket.IPPROTO_TCP, socket.SO_KEEPALIVE, 20)
+                    client.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 5)
+                    client.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, 3)
+
                     client.setblocking(False)
                     selector.register(client, selectors.EVENT_READ)
                     tcp_frame.clear()

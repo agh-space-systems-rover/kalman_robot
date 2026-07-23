@@ -43,7 +43,7 @@ def launch_setup(context):
         ),
     ]
 
-    if get_bool("enable_rscp_hw_driver"):
+    if get_bool("enable_rscp_hw_driver") and 0:
         description += [
             Node(
                 package="kalman_arc",

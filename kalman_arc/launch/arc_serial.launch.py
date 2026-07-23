@@ -21,7 +21,7 @@ def launch_setup(context):
         executable='serial_bridge',
         name='serial_bridge_node',
         namespace=TextSubstitution(text=''),
-        parameters=[{'device_name': '/dev/ttyUSB0',
+        parameters=[{'device_name': '/dev/serial/by-id/usb-1a86_USB2.0-Ser_-if00-port0',
                         'baud_rate': 115200,
                     'flow_control': 'none',
                     'parity': 'none',

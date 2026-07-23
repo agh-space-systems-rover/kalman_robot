@@ -88,6 +88,7 @@ add_executable(rscp_tcp_client src/rscp_tcp_client.cpp)
 ament_target_dependencies(rscp_tcp_client
   rclcpp
   std_msgs
+  std_srvs
 )
 
 add_library(rqt_rscp SHARED
@@ -117,6 +118,8 @@ ament_target_dependencies(rqt_rscp
   rclcpp
   rqt_gui_cpp
   kalman_interfaces
+  std_msgs
+  std_srvs
 )
 find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
