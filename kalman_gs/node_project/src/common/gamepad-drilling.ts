@@ -27,15 +27,15 @@ type DrillGamepadUpdate = {
 
 const STATE_BUTTONS = [
   { input: 'b-button', state: DrillState.Stop },
-  { input: 'y-button', state: DrillState.Home },
+  { input: 'x-button', state: DrillState.Home },
+  { input: 'y-button', state: DrillState.OpeningTubesBothSites },
   { input: 'a-button', state: DrillState.CleaningDrill },
-  { input: 'x-button', state: DrillState.OpeningTubesBothSites },
-  { input: 'left-shoulder', state: DrillState.DrillingSite1 },
-  { input: 'left-trigger', state: DrillState.ClosingTubesSite1 },
-  { input: 'left-stick', state: DrillState.OpeningTubesSite1 },
-  { input: 'right-shoulder', state: DrillState.DrillingSite2 },
-  { input: 'right-trigger', state: DrillState.ClosingTubesSite2 },
-  { input: 'right-stick', state: DrillState.OpeningTubesSite2 }
+  { input: 'left-stick', state: DrillState.DrillingSite1 },
+  { input: 'left-trigger', state: DrillState.OpeningTubesSite1 },
+  { input: 'left-shoulder', state: DrillState.ClosingTubesSite1 },
+  { input: 'right-stick', state: DrillState.DrillingSite2 },
+  { input: 'right-trigger', state: DrillState.OpeningTubesSite2 },
+  { input: 'right-shoulder', state: DrillState.ClosingTubesSite2 }
 ] as const;
 
 const clampSpeed = (value: number) => Math.max(-MAX_SPEED, Math.min(MAX_SPEED, Math.round(value * MAX_SPEED)));

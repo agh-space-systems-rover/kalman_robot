@@ -87,7 +87,7 @@ export default function Drill() {
   const cSkipBlurRef = useRef(false);
   const [bValue, setBValue] = useState(0);
   const [cValue, setCValue] = useState(0);
-  const [selectedState, setSelectedState] = useState<DrillState>(DrillState.Stop);
+  const [selectedState, setSelectedState] = useState<DrillState | null>(null);
   const [telemetry, setTelemetry] = useState<DrillTelemetry | null>(null);
   const [lastTelemetryAt, setLastTelemetryAt] = useState<number | null>(null);
   const [secondsSinceTelemetry, setSecondsSinceTelemetry] = useState<number | null>(null);
@@ -281,9 +281,8 @@ export default function Drill() {
   const renderStateButton = (state: (typeof site1States | typeof site2States | typeof generalStates)[number]) => (
     <Button
       key={state.value}
-      className={`${styles['large-button']} ${
-        selectedState === state.value ? styles['toggle-active'] : styles['toggle-inactive']
-      }`}
+      className={styles['large-button']}
+      active={selectedState === state.value}
       tooltip={state.tooltip}
       onClick={() => publishState(state.value)}
     >
@@ -376,21 +375,21 @@ export default function Drill() {
           <div className={styles['button-row']}>
             <Button
               className={styles['large-button']}
-              active={cValue > 0}
-              tooltip='Rotate drill right'
-              onClick={() => setBridgeCDirection(true)}
-            >
-              <FontAwesomeIcon icon={faArrowRight} />
-              &nbsp;&nbsp;Right
-            </Button>
-            <Button
-              className={styles['large-button']}
               active={cValue < 0}
               tooltip='Rotate drill left'
               onClick={() => setBridgeCDirection(false)}
             >
               <FontAwesomeIcon icon={faArrowLeft} />
               &nbsp;&nbsp;Left
+            </Button>
+            <Button
+              className={styles['large-button']}
+              active={cValue > 0}
+              tooltip='Rotate drill right'
+              onClick={() => setBridgeCDirection(true)}
+            >
+              <FontAwesomeIcon icon={faArrowRight} />
+              &nbsp;&nbsp;Right
             </Button>
           </div>
           <div className={styles['input-row']}>

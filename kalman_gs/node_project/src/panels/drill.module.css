@@ -133,23 +133,6 @@
   background-color: var(--red-foreground) !important;
 }
 
-.toggle-active {
-  background-color: var(--interactive) !important;
-  font-weight: 600;
-}
-
-.toggle-active:hover {
-  background-color: var(--active) !important;
-}
-
-.toggle-inactive {
-  background-color: var(--dark-active) !important;
-}
-
-.toggle-inactive:hover {
-  background-color: var(--dark-active) !important;
-}
-
 .received-text {
   color: var(--foreground);
   font-size: 0.8rem;
