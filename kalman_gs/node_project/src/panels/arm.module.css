@@ -182,24 +182,33 @@ input[type='range']::-moz-range-track {
   min-height: 30px;
   min-width: 30px;
 }
-
+.arm-content {
+  display: flex;
+  flex-direction: row;
+  gap: 30px;
+  height: 500px;
+  align-items: stretch;
+}
 .pose-requester {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  justify-content: center;
+  justify-content: flex-start;
   margin-left: 30px;
+  flex: 1;
+  height: 100%;
 }
 
 .pose-options {
   display: flex;
   width: fit-content;
-  max-height: 180px;
   flex-direction: column;
   justify-content: flex-start;
-  align-items: center;
+  align-items: stretch;
   margin-left: 40px;
-  overflow-y: scroll;
+  overflow-y: auto;
+  padding-right: 10px;
+  height: 100%;
 }
 
 .pose-button {
@@ -218,6 +227,7 @@ input[type='range']::-moz-range-track {
   background-color: var(--interactive);
   margin-bottom: 5px;
   transition: background-color 0.3s;
+  flex-shrink: 0;
 }
 
 .pose-option:hover {
@@ -230,6 +240,7 @@ input[type='range']::-moz-range-track {
   flex-direction: row;
   justify-content: space-evenly;
   align-items: center;
+  margin-top: auto;
 }
 
 .pose-send {
@@ -259,6 +270,7 @@ input[type='range']::-moz-range-track {
   display: flex;
   justify-content: center;
   margin-top: 15px;
+  margin-bottom: 10px;
 }
 
 .send-not-ready:hover {
@@ -339,9 +351,17 @@ input[type='range']::-moz-range-track {
   color: var(--dark-background);
 }
 
+.pose-panel .status {
+  align-self: flex-start;
+  margin-top: 10px;
+}
+
 .pose-panel {
   display: flex;
   flex-direction: row;
+  flex: 1;
+  min-height: 0;
+  margin-bottom: 10px;
 }
 
 .warn {
@@ -359,8 +379,8 @@ input[type='range']::-moz-range-track {
 .trajectory-and-pose {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  flex: 1;
+  align-items: stretch;
 }
 
 .extra-space {
