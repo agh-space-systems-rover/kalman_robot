@@ -18,7 +18,7 @@ class Arc(Module):
         self.tunnel_follower_client = None
         self._distance_traveled = 0.0
         self._laser_distance = float('inf')
-        
+
 
     def activate(self) -> None:
         self.distance_sub = self.supervisor.create_subscription(
@@ -51,7 +51,7 @@ class Arc(Module):
 
     def _boulder_pos_callback(self, msg: PoseStamped) -> None:
         self._boulder_position = msg
-    
+
     def _laser_callback(self, msg: Float32) -> None:
         self._laser_distance = msg.data
 
@@ -85,7 +85,7 @@ class Arc(Module):
 
         if frame != self._boulder_position.header.frame_id:
             pos = self.supervisor.tf.transform_numpy(
-                pos, frame, self._peak_position.header.frame_id
+                pos, frame, self._boulder_position.header.frame_id
             )
 
         return pos
