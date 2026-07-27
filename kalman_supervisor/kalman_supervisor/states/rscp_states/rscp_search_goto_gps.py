@@ -53,7 +53,11 @@ class RSCPSearchGoToGPS(State):
                 self.supervisor.get_logger().warn(
                 f"[RSCP] Stage is not 1, current is {stage} while in SearchGoToGps "
             )
-                
+
+            # Stage 1 searches for the peak by driving a circle; stage 2
+            # keeps the spiral search.
+            if stage == 1:
+                return "rscp_search_circle"
             return "rscp_search_spiral"
 
         # Still navigating

@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <chrono>
 #include <cmath>
 #include <limits>
@@ -18,6 +19,8 @@
 #include <tf2_sensor_msgs/tf2_sensor_msgs.hpp>
 
 #include <grid_map_core/iterators/CircleIterator.hpp>
+#include <grid_map_core/iterators/GridMapIterator.hpp>
+#include <grid_map_core/iterators/SpiralIterator.hpp>
 #include <grid_map_msgs/msg/grid_map.hpp>
 #include <grid_map_ros/GridMapRosConverter.hpp>
 #include <std_srvs/srv/trigger.hpp>
@@ -35,14 +38,26 @@ public:
 		double resolution = this->declare_parameter<double>("map_resolution", 0.3);
 		double map_size = this->declare_parameter<double>("map_size", 20.0);
 
-		peak_support_radius_     = this->declare_parameter<double>("peak_support_radius", 1.2);
-		peak_min_support_        = this->declare_parameter<int>("peak_min_support", 12);
-		wall_ratio_threshold_    = this->declare_parameter<double>("wall_ratio_threshold", 3.0);
-		support_height_fraction_ = this->declare_parameter<double>("support_height_fraction", 0.75);
+		peak_support_radius_  = this->declare_parameter<double>("peak_support_radius", 1.2);
+		peak_min_support_     = this->declare_parameter<int>("peak_min_support", 12);
+		wall_ratio_threshold_ = this->declare_parameter<double>("wall_ratio_threshold", 3.0);
+		// A neighbor cell counts as "support" for a candidate peak if it is
+		// at most this many meters below the candidate.
+		support_height_drop_  = this->declare_parameter<double>("support_height_drop", 0.6);
+
+		// Accepted Z band for incoming cloud points, relative to robot height.
+		z_min_offset_         = this->declare_parameter<double>("z_min_offset", -3.0);
+		z_max_offset_         = this->declare_parameter<double>("z_max_offset", 5.0);
+		// Median filter window radius used to suppress spikes before search.
+		median_filter_radius_ = this->declare_parameter<double>("median_filter_radius", 0.45);
+		// Candidates whose surroundings descend steeper than this are rejected.
+		slope_check_radius_   = this->declare_parameter<double>("slope_check_radius", 1.0);
+		max_slope_deg_        = this->declare_parameter<double>("max_slope_deg", 45.0);
 
 		map_.setFrameId(map_frame_);
 		map_.setGeometry(grid_map::Length(map_size, map_size), resolution);
 		map_.setBasicLayers({"elevation"});
+		map_.add("elevation_filtered");
 		map_.clearAll();
 
 		tf_buffer_   = std::make_unique<tf2_ros::Buffer>(this->get_clock());
@@ -109,12 +124,19 @@ private:
 
 		if (cloud_map.data.empty() || cloud_map.point_step == 0u) return;
 
+		// Reject implausible heights relative to the robot so stray returns
+		// (dust, reflections, distant structures) never enter the map.
+		const double robot_z = robot_to_map_tf.transform.translation.z;
+		const float  z_lo    = static_cast<float>(robot_z + z_min_offset_);
+		const float  z_hi    = static_cast<float>(robot_z + z_max_offset_);
+
 		sensor_msgs::PointCloud2ConstIterator<float> iter_x(cloud_map, "x");
 		sensor_msgs::PointCloud2ConstIterator<float> iter_y(cloud_map, "y");
 		sensor_msgs::PointCloud2ConstIterator<float> iter_z(cloud_map, "z");
 
 		for (; iter_x != iter_x.end(); ++iter_x, ++iter_y, ++iter_z) {
 			if (std::isnan(*iter_x) || std::isnan(*iter_y) || std::isnan(*iter_z)) continue;
+			if (*iter_z < z_lo || *iter_z > z_hi) continue;
 			const grid_map::Position pos(*iter_x, *iter_y);
 			if (!map_.isInside(pos)) continue;
 			float &cell = map_.atPosition("elevation", pos);
@@ -125,8 +147,38 @@ private:
 		map_pub_->publish(std::move(grid_map::GridMapRosConverter::toMessage(map_)));
 	}
 
+	// Median-filter the elevation layer into "elevation_filtered" to remove
+	// single-cell spikes and sensor noise before peak search. Unknown (NaN)
+	// cells stay unknown so the filter never invents terrain.
+	void build_filtered_layer() {
+		map_["elevation_filtered"].setConstant(NAN);
+
+		std::vector<float> window;
+		for (grid_map::GridMapIterator it(map_); !it.isPastEnd(); ++it) {
+			if (std::isnan(map_.at("elevation", *it))) continue;
+
+			grid_map::Position center;
+			map_.getPosition(*it, center);
+
+			window.clear();
+			for (grid_map::CircleIterator cit(map_, center, median_filter_radius_);
+			     !cit.isPastEnd(); ++cit) {
+				const float v = map_.at("elevation", *cit);
+				if (!std::isnan(v)) window.push_back(v);
+			}
+			if (window.empty()) continue;
+
+			auto mid = window.begin() + window.size() / 2;
+			std::nth_element(window.begin(), mid, window.end());
+			map_.at("elevation_filtered", *it) = *mid;
+		}
+	}
+
+	// A real hill top is surrounded by terrain close to its own height. A
+	// leftover spike or a mapped person has few such cells (or they form a
+	// thin wall), so it gets rejected here.
 	bool is_valid_peak(const grid_map::Position &center, float candidate_z) const {
-		const float min_support_z = support_height_fraction_ * candidate_z;
+		const float min_support_z = candidate_z - static_cast<float>(support_height_drop_);
 
 		int   count = 0;
 		float x_min =  std::numeric_limits<float>::max();
@@ -135,7 +187,7 @@ private:
 		float y_max = -std::numeric_limits<float>::max();
 
 		for (grid_map::CircleIterator it(map_, center, peak_support_radius_); !it.isPastEnd(); ++it) {
-			const float z = map_.at("elevation", *it);
+			const float z = map_.at("elevation_filtered", *it);
 			if (std::isnan(z) || z < min_support_z) continue;
 
 			grid_map::Position p;
@@ -156,20 +208,46 @@ private:
 		return ratio <= static_cast<float>(wall_ratio_threshold_);
 	}
 
+	// Reject candidates whose surroundings drop off too steeply. Hills have
+	// gentle slopes; people or poles produce near-vertical walls (~70-90 deg)
+	// even if they survive the median filter.
+	bool passes_slope_check(const grid_map::Position &center, float candidate_z) const {
+		const double max_slope_rad = max_slope_deg_ * M_PI / 180.0;
+		const double resolution    = map_.getResolution();
+
+		for (grid_map::CircleIterator it(map_, center, slope_check_radius_);
+		     !it.isPastEnd(); ++it) {
+			const float z = map_.at("elevation_filtered", *it);
+			if (std::isnan(z)) continue;
+
+			grid_map::Position p;
+			map_.getPosition(*it, p);
+			const double dist = (p - center).norm();
+			if (dist < 0.5 * resolution) continue; // skip the candidate cell
+
+			const double slope = std::atan2(candidate_z - z, dist);
+			if (slope > max_slope_rad) return false;
+		}
+		return true;
+	}
+
 	void find_peak() {
 		if (!search_center_set_) return;
+
+		build_filtered_layer();
 
 		double             max_elevation = -std::numeric_limits<double>::infinity();
 		grid_map::Position peak_pos;
 		bool               peak_found = false;
 
 		for (grid_map::SpiralIterator it(map_, search_center_, search_radius_); !it.isPastEnd(); ++it) {
-			const float z = map_.at("elevation", *it);
+			const float z = map_.at("elevation_filtered", *it);
 			if (std::isnan(z) || z <= max_elevation) continue;
 
 			grid_map::Position candidate;
 			map_.getPosition(*it, candidate);
 			if (!is_valid_peak(candidate, z)) continue;
+			if (!passes_slope_check(candidate, z)) continue;
 
 			max_elevation = z;
 			peak_pos      = candidate;
@@ -219,7 +297,12 @@ private:
 	double            peak_support_radius_;
 	int               peak_min_support_;
 	double            wall_ratio_threshold_;
-	double            support_height_fraction_;
+	double            support_height_drop_;
+	double            z_min_offset_;
+	double            z_max_offset_;
+	double            median_filter_radius_;
+	double            slope_check_radius_;
+	double            max_slope_deg_;
 	grid_map::GridMap map_;
 
 	grid_map::Position search_center_{0.0, 0.0};
