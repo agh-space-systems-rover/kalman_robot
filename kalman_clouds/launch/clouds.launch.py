@@ -48,6 +48,16 @@ def launch_setup(context):
 
     actions = []
 
+    # depth image filter
+    parameters = []
+    remappings = [
+        ("image_raw", "depth/image_raw"),
+        ("image_filtered", "depth/image_raw/filtered"),
+    ]
+    actions += launch_point_cloud_utils_nodes(
+        "depth_image_filter", parameters, remappings, component_container, rgbd_ids
+    )
+
     # cloud generation
     parameters = [
         # str(get_package_share_path("kalman_clouds") / "config" / "rgbd_cloud.yaml"),
