@@ -10,6 +10,30 @@ Quick standalone launch:
 ros2 launch kalman_gs gs.launch.py
 ```
 
+The launch file starts the `udp_driver` receiver on every IPv4 interface
+(`0.0.0.0`). A small republisher converts its JSON packets to
+`sensor_msgs/msg/NavSatFix` messages on `/gps/fix`. The default UDP port is
+`62137`; it can be changed at launch time:
+
+```bash
+ros2 launch kalman_gs gs.launch.py udp_gps_port:=5005
+```
+
+The expected datagram format is:
+
+```json
+{
+  "utc": "180626.30",
+  "lat": 40.21848766666667,
+  "lon": 32.85064083333333,
+  "fix_quality": 1,
+  "num_sats": 10,
+  "hdop": 1.07,
+  "alt_m": 1234.8,
+  "ts": 1784198436.6853988
+}
+```
+
 > [!NOTE]
 > On first launch, the app might take a few minutes to start up, as NodeJS dependencies have to be installed.
 > Wait until your web browser opens up with the ground station.

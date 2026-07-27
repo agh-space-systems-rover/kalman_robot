@@ -1,7 +1,19 @@
 from launch import LaunchDescription
-from launch_ros.actions import Node
-from launch.actions import ExecuteProcess
+from launch.actions import (
+    DeclareLaunchArgument,
+    EmitEvent,
+    ExecuteProcess,
+    RegisterEventHandler,
+)
+from launch.event_handlers import OnProcessStart
+from launch.events import matches_action
+from launch.substitutions import LaunchConfiguration
+from launch_ros.actions import LifecycleNode, Node
+from launch_ros.event_handlers import OnStateTransition
+from launch_ros.events.lifecycle import ChangeState
+from launch_ros.parameter_descriptions import ParameterValue
 from ament_index_python.packages import get_package_share_path
+from lifecycle_msgs.msg import Transition
 import os
 import shutil
 import yaml
@@ -34,8 +46,59 @@ def generate_launch_description():
     with open(mapproxy_yaml_path, "w") as f:
         yaml.dump(mapproxy_yaml, f)
 
+    udp_receiver = LifecycleNode(
+        package="udp_driver",
+        executable="udp_receiver_node_exe",
+        name="gps_udp_receiver",
+        namespace="",
+        parameters=[
+            {
+                "ip": "0.0.0.0",
+                "port": ParameterValue(
+                    LaunchConfiguration("udp_gps_port"), value_type=int
+                ),
+            }
+        ],
+        remappings=[("udp_read", "/gps/udp_packets")],
+    )
+
+    configure_udp_receiver = RegisterEventHandler(
+        OnProcessStart(
+            target_action=udp_receiver,
+            on_start=[
+                EmitEvent(
+                    event=ChangeState(
+                        lifecycle_node_matcher=matches_action(udp_receiver),
+                        transition_id=Transition.TRANSITION_CONFIGURE,
+                    )
+                )
+            ],
+        )
+    )
+
+    activate_udp_receiver = RegisterEventHandler(
+        OnStateTransition(
+            target_lifecycle_node=udp_receiver,
+            start_state="configuring",
+            goal_state="inactive",
+            entities=[
+                EmitEvent(
+                    event=ChangeState(
+                        lifecycle_node_matcher=matches_action(udp_receiver),
+                        transition_id=Transition.TRANSITION_ACTIVATE,
+                    )
+                )
+            ],
+        )
+    )
+
     return LaunchDescription(
         [
+            DeclareLaunchArgument(
+                "udp_gps_port",
+                default_value="62137",
+                description="UDP port used by the GPS JSON sender.",
+            ),
             ExecuteProcess(
                 cmd=[
                     mapproxy_util,
@@ -56,6 +119,14 @@ def generate_launch_description():
                 ],
                 ros_arguments=["--ros-args", "--log-level", "fatal"],
                 # Bleeding edge rosbridge_server emits a lot of errors when actions are used. It works nevertheless.
+            ),
+            udp_receiver,
+            configure_udp_receiver,
+            activate_udp_receiver,
+            Node(
+                package="kalman_gs",
+                executable="udp_gps_republisher",
+                name="udp_gps_republisher",
             ),
             Node(
                 package="kalman_gs",

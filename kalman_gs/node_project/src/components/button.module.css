@@ -2,7 +2,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: var(--interactive);
+    background-color: var(--button-background, var(--interactive));
     padding: 3px;
     margin-top: 5px;
     margin-bottom: 5px;
@@ -30,7 +30,7 @@
 
 .button:hover:not(.disabled),
 .button.active {
-    background-color: var(--active);
+    background-color: var(--button-active-background, var(--active));
 }
 
 .button:not(:last-child) {
@@ -38,7 +38,7 @@
 }
 
 .button:active:not(.disabled) {
-    background-color: var(--weak-foreground);
+    background-color: var(--button-pressed-background, var(--weak-foreground));
     transition: background-color 0s;
 }
 

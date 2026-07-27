@@ -17,6 +17,17 @@ const gpsCoords: GpsCoords = {
   latitude: undefined,
   longitude: undefined
 };
+
+export function hasGpsCoords(): boolean {
+  return gpsCoords.latitude !== undefined && gpsCoords.longitude !== undefined;
+}
+
+export function clearGpsCoords() {
+  gpsCoords.latitude = undefined;
+  gpsCoords.longitude = undefined;
+  window.dispatchEvent(new CustomEvent('gps-update'));
+}
+
 window.addEventListener('ros-connect', () => {
   // Subscribe raw sensor data to work without any odometry systems.
   const gps = new Topic({

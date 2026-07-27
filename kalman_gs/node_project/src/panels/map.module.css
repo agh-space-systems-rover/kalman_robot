@@ -79,15 +79,24 @@
   text-align: center !important;
   height: 34px !important;
 }
-.gps-display-control {
+.coordinates-display-controls {
   position: absolute;
   bottom: 5px;
   right: 5px;
   z-index: 1000;
 
   display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 5px;
+}
+
+.gps-display-control {
+  display: flex;
   align-items: center;
   gap: 8px;
+  box-sizing: border-box;
+  width: 205px;
 
   user-select: none;
   background-color: color-mix(in srgb, var(--dark-background) 80%, transparent);
@@ -104,9 +113,32 @@
 
   white-space: pre;
 }
+
+.rover-coordinates-control {
+  background-color: color-mix(in srgb, var(--blue-background) 25%, var(--dark-background));
+}
+
+.solar-coordinates-control {
+  background-color: color-mix(in srgb, var(--yellow-background) 25%, var(--dark-background));
+}
+
+.rover-copy-button {
+  --button-background: var(--blue-background);
+  --button-active-background: color-mix(in srgb, var(--blue-background), var(--blue-foreground) 50%);
+  --button-pressed-background: var(--blue-foreground);
+}
+
+.solar-copy-button {
+  --button-background: var(--yellow-background);
+  --button-active-background: color-mix(in srgb, var(--yellow-background), var(--yellow-foreground) 50%);
+  --button-pressed-background: var(--yellow-foreground);
+}
+
 .gps-coords-text {
+  flex: 1;
   font-size: 0.85em;
   opacity: 0.8;
+  text-align: center;
 }
 :global([data-theme='light']) .gps-display-control :last-child {
   filter: brightness(1.4);
