@@ -25,7 +25,34 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
   user-select: none;
+}
+
+.controls {
+  position: absolute;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  width: 100%;
+  max-width: 300px;
+  min-width: 250px;
+}
+
+.control-button {
+  flex: 1;
+}
+
+.stop-button {
+  background-color: var(--red-background) !important;
+}
+
+.stop-button:hover {
+  background-color: color-mix(in srgb, var(--red-background), var(--red-foreground) 50%) !important;
+}
+
+.stop-button:active {
+  background-color: var(--red-foreground) !important;
 }
 
 .rover {

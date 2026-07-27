@@ -6,14 +6,18 @@ import kalmanLeftWheel from '!!url-loader!../media/kalman-wheel.svg';
 import { alertsRef } from '../common/refs';
 import { ros } from '../common/ros';
 import { WheelStates, WheelTemperatures } from '../common/ros-interfaces';
-import { faGear, faRotate } from '@fortawesome/free-solid-svg-icons';
+import { faGear, faPersonDigging, faRotate, faStop } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Topic } from 'roslib';
 
+import Button from '../components/button';
+
 const KELVIN_OFFSET = 273.15;
 
 const SHOW_TEMPERATURES_TIMEOUT = 20000;
+
+const MAX_WHEEL_VELOCITY = 0.3; // TODO: analyze and change here
 
 // Temperature thresholds:
 const MOTOR_TEMPERATURE_WARNING_THRESHOLD = KELVIN_OFFSET + 70; // 70 °C
@@ -24,14 +28,15 @@ const SWIVEL_TEMPERATURE_DANGER_THRESHOLD = KELVIN_OFFSET + 90; // 90 °C
 let lastWheelStates: WheelStates | null = null;
 let lastWheelStatesReturn: WheelStates | null = null;
 let lastWheelTemperatures: WheelTemperatures | null = null;
+let wheelStatesTopic: Topic<WheelStates> | null = null;
 window.addEventListener('ros-connect', () => {
-  const stateTopic = new Topic({
+  wheelStatesTopic = new Topic({
     ros: ros,
     name: '/wheel_states',
     messageType: 'kalman_interfaces/WheelStates'
   });
 
-  stateTopic.subscribe((msg: WheelStates) => {
+  wheelStatesTopic.subscribe((msg: WheelStates) => {
     lastWheelStates = msg;
     window.dispatchEvent(new CustomEvent('wheel-states'));
   });
@@ -58,6 +63,15 @@ window.addEventListener('ros-connect', () => {
     window.dispatchEvent(new CustomEvent('wheel-temps'));
   });
 });
+
+function publishWheelVelocities(frontVelocity: number, backVelocity: number) {
+  wheelStatesTopic?.publish({
+    front_left: { velocity: frontVelocity, angle: 0 },
+    front_right: { velocity: frontVelocity, angle: 0 },
+    back_left: { velocity: backVelocity, angle: 0 },
+    back_right: { velocity: backVelocity, angle: 0 }
+  });
+}
 
 type ArrowProps = {
   velocity: number;
@@ -287,6 +301,22 @@ function Rover({ showTarget = false }: RoverProps) {
 export default function Wheels() {
   return (
     <div className={styles['wheels']}>
+      <div className={styles['controls']}>
+        <Button
+          className={styles['control-button']}
+          onClick={() => publishWheelVelocities(-MAX_WHEEL_VELOCITY, MAX_WHEEL_VELOCITY)}
+        >
+          <FontAwesomeIcon icon={faPersonDigging} />
+          &nbsp;&nbsp;Bury
+        </Button>
+        <Button
+          className={styles['control-button'] + ' ' + styles['stop-button']}
+          onClick={() => publishWheelVelocities(0, 0)}
+        >
+          <FontAwesomeIcon icon={faStop} />
+          &nbsp;&nbsp;Stop
+        </Button>
+      </div>
       <Rover />
       <Rover showTarget={true} />
     </div>
