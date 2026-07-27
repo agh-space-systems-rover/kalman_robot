@@ -1,12 +1,11 @@
 from ament_index_python import get_package_share_path
+from kalman_utils.launch import launch_node_or_load_component, load_standalone_config
 from launch import LaunchDescription
 from launch.actions import (
     DeclareLaunchArgument,
     OpaqueFunction,
 )
 from launch.substitutions import LaunchConfiguration
-
-from kalman_utils.launch import launch_node_or_load_component, load_standalone_config
 
 
 def launch_point_cloud_utils_nodes(
@@ -49,7 +48,15 @@ def launch_setup(context):
     actions = []
 
     # depth image filter
-    parameters = []
+    parameters = [
+        (
+            {
+                "depth_transport": "compressedDepth",
+            }
+            if not component_container
+            else {}
+        ),
+    ]
     remappings = [
         ("image_raw", "depth/image_raw"),
         ("image_filtered", "depth/image_raw/filtered"),
@@ -65,7 +72,7 @@ def launch_setup(context):
         (
             {
                 "color_transport": "compressed",
-                "depth_transport": "compressedDepth",
+                "depth_transport": "raw",
             }
             if not component_container
             else {}
@@ -73,7 +80,7 @@ def launch_setup(context):
     ]
     remappings = [
         ("color/image_raw", "color/image_raw"),
-        ("depth/image_raw", "depth/image_raw"),
+        ("depth/image_raw", "depth/image_raw/filtered"),
         ("cloud", "point_cloud/raw"),
     ]
     actions += launch_point_cloud_utils_nodes(
