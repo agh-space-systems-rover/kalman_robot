@@ -28,7 +28,6 @@ const DEFAULT_LAT = 51.477928;
 const DEFAULT_LONG = -0.001545;
 const DEFAULT_ZOOM = 18;
 const PROPS_UPDATE_INTERVAL = 100;
-const GPS_MOVEMENT_THRESHOLD_METERS = 1;
 
 type SolarConjunctionPoint = {
   latitude: number;
@@ -93,14 +92,6 @@ function headingFromRoverRot(baseToMap: Quaternion): number {
   return heading;
 }
 
-function headingFromGpsPositions(previous: [number, number], current: [number, number]): number {
-  const lat1 = (previous[0] * Math.PI) / 180;
-  const lat2 = (current[0] * Math.PI) / 180;
-  const deltaLong = ((current[1] - previous[1]) * Math.PI) / 180;
-  const y = Math.sin(deltaLong) * Math.cos(lat2);
-  const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(deltaLong);
-  return (Math.atan2(y, x) * 180) / Math.PI;
-}
 /**
  * displaying gps coordinates
  */
@@ -202,7 +193,6 @@ export default class Map extends Component<Props, State> {
   private kalmanMarkerRef = createRef<Leaflet.Marker>();
   private polylineRef = createRef<Leaflet.Polyline>();
   private propsUpdateTimer: NodeJS.Timeout | null = null;
-  private previousGpsPosition: [number, number] | null = null;
 
   private updateProps = () => {
     if (this.mapRef.current) {
@@ -225,32 +215,11 @@ export default class Map extends Component<Props, State> {
   private onImuUpdated = () => {
     // Here we use our custom injected method to set the rotation angle of the marker.
     // Cast to any because the type definitions are not up to date.
-    (this.kalmanMarkerRef.current as any)?.setRotationAngle(headingFromRoverRot(imuRotation));
+    (this.kalmanMarkerRef.current as any)?.setRotationAngle(headingFromRoverRot(imuRotation)); // 149.5001
   };
 
   private onGpsUpdated = () => {
-    if (!hasGpsCoords()) {
-      this.previousGpsPosition = null;
-      this.forceUpdate();
-      return;
-    }
-
-    const currentPosition: [number, number] = [gpsCoords.latitude, gpsCoords.longitude];
-
-    // Use the angle estimation only in case, when Solar Conjunction Point is set
-    // In this case, there's no IMU data
-    if (this.state.solarConjunctionPoint &&
-      this.previousGpsPosition &&
-      Leaflet.latLng(this.previousGpsPosition).distanceTo(Leaflet.latLng(currentPosition)) < GPS_MOVEMENT_THRESHOLD_METERS
-    ) {
-      (this.kalmanMarkerRef.current as any)?.setRotationAngle(
-        headingFromGpsPositions(this.previousGpsPosition, currentPosition)
-      );
-    }
-
-    this.previousGpsPosition = currentPosition;
-    this.kalmanMarkerRef.current?.setLatLng(currentPosition);
-    this.forceUpdate();
+    this.kalmanMarkerRef.current?.setLatLng([gpsCoords.latitude, gpsCoords.longitude]);
   };
 
   private onWaypointsUpdated = () => {
@@ -262,10 +231,6 @@ export default class Map extends Component<Props, State> {
   };
 
   componentDidMount() {
-    if (hasGpsCoords()) {
-      this.previousGpsPosition = [gpsCoords.latitude, gpsCoords.longitude];
-    }
-
     if (window) {
       window.addEventListener('resize', this.onResized);
       window.addEventListener('any-panel-resize', this.onResized);
