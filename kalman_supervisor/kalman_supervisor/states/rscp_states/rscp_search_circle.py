@@ -11,19 +11,20 @@ from std_srvs.srv import Trigger
 
 # Radius of the search circle. Matches the outermost radius of the stage 1
 # spiral (revolution width 2 * 3 revolutions = 6 m).
-CIRCLE_RADIUS = 3.0
+CIRCLE_RADIUS = 6.0
 MIN_DISTANCE_TO_GOAL = 1.0
 PROGRESS_INCREMENT = 0.001
-
+CIRCLE_DIR = 'LEFT'
 
 class RSCPSearchCircle(State):
     def __init__(self):
         super().__init__("rscp_search_circle")
+        self.dir_mult = 1 if CIRCLE_DIR == 'LEFT' else -1
 
     def circle(self, progress: float) -> np.ndarray:
         # progress 0..1 maps to one full revolution; the path starts and ends
         # at the robot's entry point.
-        t = self.start_angle + 2 * np.pi * progress
+        t = self.start_angle + self.dir_mult + 2 * np.pi * progress
         return self.center + CIRCLE_RADIUS * np.array([np.cos(t), np.sin(t)])
 
     def circle_as_msg(self) -> Path:
