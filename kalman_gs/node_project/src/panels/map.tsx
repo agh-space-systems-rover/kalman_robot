@@ -8,9 +8,8 @@ import '../common/leaflet-rotated-marker-plugin';
 import { mapMarker, setMapMarkerLatLon } from '../common/map-marker';
 import { Quaternion, Vector3, quatConj, quatTimesVec } from '../common/mini-math-lib';
 import { ros } from '../common/ros';
-import { GeoPoint, GeoPath, WheelStates } from '../common/ros-interfaces';
+import { GeoPoint, GeoPath } from '../common/ros-interfaces';
 import { waypoints } from '../common/waypoints';
-import erc2024Overlay from '../media/erc2024-overlay.png';
 import erc2025Overlay from '../media/erc2025-overlay.png';
 import { faCloudSun, faCopy, faGlobe, faRobot } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -29,6 +28,7 @@ const DEFAULT_LAT = 51.477928;
 const DEFAULT_LONG = -0.001545;
 const DEFAULT_ZOOM = 18;
 const PROPS_UPDATE_INTERVAL = 100;
+const GPS_MOVEMENT_THRESHOLD_METERS = 1;
 
 type SolarConjunctionPoint = {
   latitude: number;
@@ -236,15 +236,18 @@ export default class Map extends Component<Props, State> {
     }
 
     const currentPosition: [number, number] = [gpsCoords.latitude, gpsCoords.longitude];
-    if (
-      this.state.solarConjunctionPoint &&
+
+    // Use the angle estimation only in case, when Solar Conjunction Point is set
+    // In this case, there's no IMU data
+    if (this.state.solarConjunctionPoint &&
       this.previousGpsPosition &&
-      (this.previousGpsPosition[0] !== currentPosition[0] || this.previousGpsPosition[1] !== currentPosition[1])
+      Leaflet.latLng(this.previousGpsPosition).distanceTo(Leaflet.latLng(currentPosition)) < GPS_MOVEMENT_THRESHOLD_METERS
     ) {
       (this.kalmanMarkerRef.current as any)?.setRotationAngle(
         headingFromGpsPositions(this.previousGpsPosition, currentPosition)
       );
     }
+
     this.previousGpsPosition = currentPosition;
     this.kalmanMarkerRef.current?.setLatLng(currentPosition);
     this.forceUpdate();
