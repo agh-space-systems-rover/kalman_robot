@@ -14,6 +14,11 @@
   <exec_depend>rosbridge_server</exec_depend>
   <exec_depend>nodejs</exec_depend>
   <exec_depend>kalman_interfaces</exec_depend>
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>udp_driver</exec_depend>
+  <exec_depend>udp_msgs</exec_depend>
+  <exec_depend>lifecycle_msgs</exec_depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

@@ -21,3 +21,9 @@
 .marker-label {
   background-color: var(--blue-background) !important;
 }
+
+.solar-button {
+  --button-background: var(--yellow-background);
+  --button-active-background: color-mix(in srgb, var(--yellow-background), var(--yellow-foreground) 50%);
+  --button-pressed-background: var(--yellow-foreground);
+}

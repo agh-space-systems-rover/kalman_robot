@@ -1,6 +1,6 @@
 import styles from './map.header.module.css';
 
-import { gpsCoords } from '../common/gps';
+import { clearGpsCoords, gpsCoords, hasGpsCoords } from '../common/gps';
 import { mapMarker, setMapMarkerLatLon } from '../common/map-marker';
 import { alertsRef, modalRef } from '../common/refs';
 import { ros } from '../common/ros';
@@ -8,6 +8,7 @@ import { NavSatFix, SpoofGpsRequest } from '../common/ros-interfaces';
 import Map from './map';
 import {
   faArrowsSpin,
+  faCloudSun,
   faCopy,
   faJetFighterUp,
   faLocationDot,
@@ -15,6 +16,7 @@ import {
   faRobot,
   faSearch,
   faThumbTack,
+  faTrash,
   faUpDownLeftRight
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -88,8 +90,8 @@ export default function MapHeader({ panelRef }: Props) {
   const inputRef = useRef<Input>();
 
   const rerender = useCallback(() => {
-    setRerenderCount(rerenderCount + 1);
-  }, [rerenderCount]);
+    setRerenderCount((count) => count + 1);
+  }, []);
 
   const goToGeocode = useCallback(async () => {
     const query = inputRef.current?.getValue();
@@ -117,12 +119,45 @@ export default function MapHeader({ panelRef }: Props) {
     };
   }, [rerender]);
 
+  const editSolarConjunctionPoint = () => {
+    const point = panelRef.current?.getSolarConjunctionPoint();
+    const setPoint = (latitude: number, longitude: number) => {
+      panelRef.current?.setSolarConjunctionPoint(latitude, longitude);
+      rerender();
+    };
+
+    modalRef.current?.showCoordinates({
+      title: 'Solar Conjunction Point',
+      icon: faCloudSun,
+      message: 'Set the latitude and longitude of the Solar Conjunction Point.',
+      latitude: point?.latitude,
+      longitude: point?.longitude,
+      onSave: point ? undefined : setPoint,
+      onUpdate: point ? setPoint : undefined,
+      onDelete: point
+        ? () => {
+            panelRef.current?.removeSolarConjunctionPoint();
+            rerender();
+          }
+        : undefined
+    });
+  };
+
   return (
     <div className={styles['map-header']}>
       <div className={styles['section'] + ' ' + styles['search-section']}>
         <Input ref={inputRef} placeholder='Search for a location...' onSubmit={goToGeocode} onChange={rerender} />
         <Button onClick={goToGeocode} disabled={!(inputRef.current?.isEmpty() === false)}>
           <FontAwesomeIcon icon={faSearch} />
+        </Button>
+      </div>
+      <div className={styles['section']}>
+        <Button
+          className={styles['solar-button']}
+          tooltip='[ARC] Solar Conjunction Point'
+          onClick={editSolarConjunctionPoint}
+        >
+          <FontAwesomeIcon icon={faCloudSun} />
         </Button>
       </div>
       <div className={styles['section']}>
@@ -134,7 +169,7 @@ export default function MapHeader({ panelRef }: Props) {
           onClick={() => {
             panelRef.current?.goToLocation(gpsCoords.latitude, gpsCoords.longitude, true);
           }}
-          disabled={!gpsCoords.latitude || !gpsCoords.longitude}
+          disabled={!hasGpsCoords()}
         >
           <FontAwesomeIcon icon={faPaperPlane} />
         </Button>
@@ -185,9 +220,12 @@ export default function MapHeader({ panelRef }: Props) {
           onClick={() => {
             navigator.clipboard.writeText(`${gpsCoords.latitude.toFixed(8)}, ${gpsCoords.longitude.toFixed(8)}`);
           }}
-          disabled={!gpsCoords.latitude || !gpsCoords.longitude}
+          disabled={!hasGpsCoords()}
         >
           <FontAwesomeIcon icon={faCopy} />
+        </Button>
+        <Button tooltip='Clear rover position.' onClick={clearGpsCoords} disabled={!hasGpsCoords()}>
+          <FontAwesomeIcon icon={faTrash} />
         </Button>
       </div>
       <div className={styles['section']}>
