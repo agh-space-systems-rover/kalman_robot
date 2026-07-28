@@ -29,6 +29,7 @@ import Label from '../components/label';
 let drillBTopic: Topic<{ data: number }> | undefined;
 let drillCTopic: Topic<{ data: number }> | undefined;
 let drillStateTopic: Topic<{ data: number }> | undefined;
+let drillShifterTopic: Topic<{ data: number[] }> | undefined;
 let drillTelemetryTopic: Topic<DrillTelemetry> | undefined;
 
 enum DrillState {
@@ -68,6 +69,11 @@ const ensureDrillTopics = () => {
     name: '/science/drill/state',
     messageType: 'std_msgs/UInt8'
   });
+  drillShifterTopic ??= new Topic({
+    ros,
+    name: '/science/drill/shifter',
+    messageType: 'std_msgs/UInt8MultiArray'
+  });
   drillTelemetryTopic ??= new Topic({
     ros,
     name: '/science/drill/telemetry',
@@ -88,6 +94,7 @@ export default function Drill() {
   const [bValue, setBValue] = useState(0);
   const [cValue, setCValue] = useState(0);
   const [selectedState, setSelectedState] = useState<DrillState | null>(null);
+  const [shifterStates, setShifterStates] = useState<[0 | 1 | null, 0 | 1 | null]>([null, null]);
   const [telemetry, setTelemetry] = useState<DrillTelemetry | null>(null);
   const [lastTelemetryAt, setLastTelemetryAt] = useState<number | null>(null);
   const [secondsSinceTelemetry, setSecondsSinceTelemetry] = useState<number | null>(null);
@@ -242,6 +249,16 @@ export default function Drill() {
     setSelectedState(value);
     ensureDrillTopics();
     drillStateTopic?.publish({ data: value });
+  };
+
+  const publishShifter = (site: 0 | 1, state: 0 | 1) => {
+    setShifterStates((current) => {
+      const next = [...current] as [0 | 1 | null, 0 | 1 | null];
+      next[site] = state;
+      return next;
+    });
+    ensureDrillTopics();
+    drillShifterTopic?.publish({ data: [site, state] });
   };
 
   const formatNumber = (value: number | undefined, digits = 1) => {
@@ -443,11 +460,51 @@ export default function Drill() {
         <div className={styles['bridge-section']}>
           <div className={styles['section-header']}>Site 1</div>
           <div className={styles['button-row']}>{site1States.map(renderStateButton)}</div>
+          <div className={styles['button-row']}>
+            <Button
+              className={styles['large-button']}
+              active={shifterStates[0] === 0}
+              tooltip='Open shifter at site 1'
+              onClick={() => publishShifter(0, 0)}
+            >
+              <FontAwesomeIcon icon={faDoorOpen} />
+              &nbsp;&nbsp;Open shifter
+            </Button>
+            <Button
+              className={styles['large-button']}
+              active={shifterStates[0] === 1}
+              tooltip='Close shifter at site 1'
+              onClick={() => publishShifter(0, 1)}
+            >
+              <FontAwesomeIcon icon={faDoorClosed} />
+              &nbsp;&nbsp;Close shifter
+            </Button>
+          </div>
         </div>
 
         <div className={styles['bridge-section']}>
           <div className={styles['section-header']}>Site 2</div>
           <div className={styles['button-row']}>{site2States.map(renderStateButton)}</div>
+          <div className={styles['button-row']}>
+            <Button
+              className={styles['large-button']}
+              active={shifterStates[1] === 0}
+              tooltip='Open shifter at site 2'
+              onClick={() => publishShifter(1, 0)}
+            >
+              <FontAwesomeIcon icon={faDoorOpen} />
+              &nbsp;&nbsp;Open shifter
+            </Button>
+            <Button
+              className={styles['large-button']}
+              active={shifterStates[1] === 1}
+              tooltip='Close shifter at site 2'
+              onClick={() => publishShifter(1, 1)}
+            >
+              <FontAwesomeIcon icon={faDoorClosed} />
+              &nbsp;&nbsp;Close shifter
+            </Button>
+          </div>
         </div>
 
         <div className={styles['bridge-section']}>

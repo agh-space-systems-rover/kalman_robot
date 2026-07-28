@@ -2,7 +2,7 @@ import struct
 import rclpy
 from rclpy.node import Node
 from kalman_interfaces.msg import DrillTelemetry, MasterMessage
-from std_msgs.msg import Int8, UInt8
+from std_msgs.msg import Int8, UInt8, UInt8MultiArray
 
 MIN_BRIDGE_VALUE = -100
 MAX_BRIDGE_VALUE = 100
@@ -40,14 +40,17 @@ class DrillDriver(Node):
         self.state_sub = self.create_subscription(
             UInt8, "science/drill/state", self.state_cb, 10
         )
+        self.shifter_sub = self.create_subscription(
+            UInt8MultiArray, "science/drill/shifter", self.shifter_cb, 10
+        )
 
     def drill_b_cb(self, msg: Int8):
         value = max(MIN_BRIDGE_VALUE, min(int(msg.data), MAX_BRIDGE_VALUE))
-        self.publish_bridge_command(MasterMessage.DRILL_B_BRIDGE_SET, value)
+        self.publish_bridge_command(MasterMessage.DRILL_RACK, value)
 
     def drill_c_cb(self, msg: Int8):
         value = max(MIN_BRIDGE_VALUE, min(int(msg.data), MAX_BRIDGE_VALUE))
-        self.publish_bridge_command(MasterMessage.DRILL_C_BRIDGE_SET, value)
+        self.publish_bridge_command(MasterMessage.DRILL_DRILL, value)
 
     def state_cb(self, msg: UInt8):
         # Drill state values:
@@ -71,6 +74,15 @@ class DrillDriver(Node):
                 cmd=MasterMessage.DRILL_AUTONOMY,
                 data=[value],
             )
+        )
+
+    def shifter_cb(self, msg: UInt8MultiArray):
+        if len(msg.data) != 2 or any(value not in (0, 1) for value in msg.data):
+            self.get_logger().warn(f"Received invalid shifter command: {msg.data}")
+            return
+
+        self.master_pub.publish(
+            MasterMessage(cmd=MasterMessage.DRILL_SHIFTER, data=list(msg.data))
         )
 
     def publish_bridge_command(self, cmd: int, value: int):
