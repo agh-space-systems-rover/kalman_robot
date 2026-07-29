@@ -98,16 +98,16 @@ class RSCPSearchSpiral(State):
             Trigger, "/boulder_position_clear"
         )
         stage = self.supervisor.rscp.get_current_stage()
-        if stage == 1:
-            self.clear_elevation_map()
-            self.SPIRAL_REVOLUTION_WIDTH = 2
-            revolutions = 3
-            self.revolutions = revolutions
-            self.init_progress = 0.5 / revolutions
-        elif stage == 2:
+        # if stage == 1:
+        #     self.clear_elevation_map()
+        #     self.SPIRAL_REVOLUTION_WIDTH = 2
+        #     revolutions = 3
+        #     self.revolutions = revolutions
+        #     self.init_progress = 0.5 / revolutions
+        if stage == 2:
             req = Trigger.Request()
             self.clear_boulder_client.call_async(req)
-            self.SPIRAL_REVOLUTION_WIDTH = 1
+            self.SPIRAL_REVOLUTION_WIDTH = 2
             revolutions = 2
             self.revolutions = revolutions
             self.init_progress = 0.5 / revolutions
