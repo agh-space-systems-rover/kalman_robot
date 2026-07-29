@@ -4,6 +4,7 @@ import { Topic } from 'roslib';
 
 const RATE = 10;
 const MAX_SPEED = 100;
+const DEFAULT_AUTONOMY_SPEED = 50;
 const BUTTON_THRESHOLD = 0.5;
 
 enum DrillState {
@@ -64,10 +65,10 @@ window.addEventListener('ros-connect', () => {
     name: '/science/drill/c',
     messageType: 'std_msgs/Int8'
   });
-  const drillStateTopic = new Topic<{ data: number }>({
+  const drillStateTopic = new Topic<{ data: number[] }>({
     ros,
     name: '/science/drill/state',
-    messageType: 'std_msgs/UInt8'
+    messageType: 'std_msgs/UInt8MultiArray'
   });
 
   let lastBridgeB = 0;
@@ -98,7 +99,11 @@ window.addEventListener('ros-connect', () => {
     const requestedState = stateButtonValues.find(({ value, lastValue }) => isPressed(value) && !isPressed(lastValue));
 
     if (requestedState !== undefined) {
-      drillStateTopic.publish({ data: requestedState.state });
+      const data = [requestedState.state];
+      if (requestedState.state === DrillState.DrillingSite1 || requestedState.state === DrillState.DrillingSite2) {
+        data.push(DEFAULT_AUTONOMY_SPEED);
+      }
+      drillStateTopic.publish({ data });
       dispatchDrillGamepadUpdate({ state: requestedState.state });
     }
 

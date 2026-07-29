@@ -9,6 +9,7 @@ ament_python_install_package(${PROJECT_NAME})
 install(PROGRAMS
   scripts/gs
   scripts/pkg_config_reader
+  scripts/tcp_imu_republisher
   scripts/udp_gps_republisher
   DESTINATION lib/${PROJECT_NAME}
 )

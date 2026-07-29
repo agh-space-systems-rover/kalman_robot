@@ -120,6 +120,7 @@ def generate_launch_description():
                 ros_arguments=["--ros-args", "--log-level", "fatal"],
                 # Bleeding edge rosbridge_server emits a lot of errors when actions are used. It works nevertheless.
             ),
+            # TODO: delete ARC science task fields after competition
             udp_receiver,
             configure_udp_receiver,
             activate_udp_receiver,
@@ -127,6 +128,11 @@ def generate_launch_description():
                 package="kalman_gs",
                 executable="udp_gps_republisher",
                 name="udp_gps_republisher",
+            ),
+            Node(
+                package="kalman_gs",
+                executable="tcp_imu_republisher",
+                name="tcp_imu_republisher",
             ),
             Node(
                 package="kalman_gs",

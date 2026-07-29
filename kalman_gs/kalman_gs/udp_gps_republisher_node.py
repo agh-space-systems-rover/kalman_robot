@@ -2,7 +2,6 @@ import json
 import math
 
 import rclpy
-from rclpy.executors import ExternalShutdownException
 from rclpy.node import Node
 from sensor_msgs.msg import NavSatFix, NavSatStatus
 from udp_msgs.msg import UdpPacket
@@ -74,9 +73,10 @@ class UdpGpsRepublisher(Node):
 def main(args=None) -> None:
     rclpy.init(args=args)
     node = UdpGpsRepublisher()
+
     try:
         rclpy.spin(node)
-    except (KeyboardInterrupt, ExternalShutdownException):
+    except KeyboardInterrupt:
         pass
     finally:
         node.destroy_node()

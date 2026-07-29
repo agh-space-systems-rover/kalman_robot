@@ -64,6 +64,11 @@
 .speed-input {
   flex: 1;
   min-width: 0;
+  transition: background-color 0.1s;
+}
+
+.submitted-speed-input {
+  background-color: var(--button-background, var(--dark-active));
 }
 
 .speed-input input {

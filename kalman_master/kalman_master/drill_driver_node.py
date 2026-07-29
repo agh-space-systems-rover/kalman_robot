@@ -2,12 +2,15 @@ import struct
 import rclpy
 from rclpy.node import Node
 from kalman_interfaces.msg import DrillTelemetry, MasterMessage
-from std_msgs.msg import Int8, UInt8, UInt8MultiArray
+from std_msgs.msg import Int8, UInt8MultiArray
 
 MIN_BRIDGE_VALUE = -100
 MAX_BRIDGE_VALUE = 100
 MIN_STATE_VALUE = 0
 MAX_STATE_VALUE = 9
+DRILLING_SITE_STATES = (1, 2)
+MIN_AUTONOMY_SPEED = 0
+MAX_AUTONOMY_SPEED = 100
 DEPTH_SCALE = 10.0
 CURRENT_MA_PER_LSB = 20.0
 MA_PER_A = 1000.0
@@ -38,7 +41,7 @@ class DrillDriver(Node):
             Int8, "science/drill/c", self.drill_c_cb, 10
         )
         self.state_sub = self.create_subscription(
-            UInt8, "science/drill/state", self.state_cb, 10
+            UInt8MultiArray, "science/drill/state", self.state_cb, 10
         )
         self.shifter_sub = self.create_subscription(
             UInt8MultiArray, "science/drill/shifter", self.shifter_cb, 10
@@ -52,7 +55,7 @@ class DrillDriver(Node):
         value = max(MIN_BRIDGE_VALUE, min(int(msg.data), MAX_BRIDGE_VALUE))
         self.publish_bridge_command(MasterMessage.DRILL_DRILL, value)
 
-    def state_cb(self, msg: UInt8):
+    def state_cb(self, msg: UInt8MultiArray):
         # Drill state values:
         #   0 = stop
         #   1 = drill site 1
@@ -64,15 +67,36 @@ class DrillDriver(Node):
         #   7 = open tubes at site 1
         #   8 = open tubes at site 2
         #   9 = open tubes at both sites
-        value = int(msg.data)
-        if not MIN_STATE_VALUE <= value <= MAX_STATE_VALUE:
-            self.get_logger().warn(f"Received invalid drill state: {value}")
+        data = list(msg.data)
+        if not data:
+            self.get_logger().warn("Received empty drill state command")
             return
+
+        state = int(data[0])
+        if not MIN_STATE_VALUE <= state <= MAX_STATE_VALUE:
+            self.get_logger().warn(f"Received invalid drill state: {state}")
+            return
+
+        expected_length = 2 if state in DRILLING_SITE_STATES else 1
+        if len(data) != expected_length:
+            self.get_logger().warn(
+                f"Received invalid drill state command length for state {state}: "
+                f"{len(data)}"
+            )
+            return
+
+        if state in DRILLING_SITE_STATES:
+            speed = int(data[1])
+            if not MIN_AUTONOMY_SPEED <= speed <= MAX_AUTONOMY_SPEED:
+                self.get_logger().warn(
+                    f"Received invalid drill autonomy speed: {speed}"
+                )
+                return
 
         self.master_pub.publish(
             MasterMessage(
                 cmd=MasterMessage.DRILL_AUTONOMY,
-                data=[value],
+                data=data,
             )
         )
 
