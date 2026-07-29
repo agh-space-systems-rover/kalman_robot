@@ -11,20 +11,23 @@ from std_srvs.srv import Trigger
 
 # Radius of the search circle. Matches the outermost radius of the stage 1
 # spiral (revolution width 2 * 3 revolutions = 6 m).
-CIRCLE_RADIUS = 6.0
+CIRCLE_RADIUS = 3.5
 MIN_DISTANCE_TO_GOAL = 1.0
 PROGRESS_INCREMENT = 0.001
-CIRCLE_DIR = 'LEFT'
+# "LEFT" turns the robot left (counter-clockwise circle),
+# "RIGHT" turns it right (clockwise circle).
+CIRCLE_DIR = "RIGHT"
+
 
 class RSCPSearchCircle(State):
     def __init__(self):
         super().__init__("rscp_search_circle")
-        self.dir_mult = 1 if CIRCLE_DIR == 'LEFT' else -1
+        self.dir_mult = 1 if CIRCLE_DIR == "LEFT" else -1
 
     def circle(self, progress: float) -> np.ndarray:
         # progress 0..1 maps to one full revolution; the path starts and ends
-        # at the robot's entry point.
-        t = self.start_angle + self.dir_mult + 2 * np.pi * progress
+        # at the robot's entry point. dir_mult flips the sweep direction.
+        t = self.start_angle + self.dir_mult * 2 * np.pi * progress
         return self.center + CIRCLE_RADIUS * np.array([np.cos(t), np.sin(t)])
 
     def circle_as_msg(self) -> Path:
@@ -87,16 +90,23 @@ class RSCPSearchCircle(State):
         # Stage 1 logic: start peak mapping from scratch.
         self.clear_elevation_map()
 
-        # Init the circle. The center is placed to the left of the robot so
-        # the circle passes through the entry point and the robot drives it
-        # counter-clockwise, finishing where it started.
+        # Init the circle. The center is placed to the side the robot turns
+        # towards (left for counter-clockwise, right for clockwise) so the
+        # circle passes through the entry point, the robot starts driving
+        # forward along it, and finishes where it started.
         entry_robot_pos = self.supervisor.tf.robot_pos()[:2]
         entry_robot_rot = self.supervisor.tf.robot_rot_2d()
+        side_angle = entry_robot_rot + self.dir_mult * np.pi / 2
         self.center = entry_robot_pos + CIRCLE_RADIUS * np.array(
-            [np.cos(entry_robot_rot + np.pi / 2), np.sin(entry_robot_rot + np.pi / 2)]
+            [np.cos(side_angle), np.sin(side_angle)]
         )
         # Angle from the center to the entry point.
-        self.start_angle = entry_robot_rot - np.pi / 2
+        self.start_angle = entry_robot_rot - self.dir_mult * np.pi / 2
+
+        self.supervisor.get_logger().info(
+            f"[RSCP] Circle direction: {CIRCLE_DIR} "
+            f"({'counter-clockwise' if self.dir_mult == 1 else 'clockwise'})"
+        )
 
         # Start slightly ahead so the first goal is not the robot's own position.
         self.init_progress = MIN_DISTANCE_TO_GOAL / (2 * np.pi * CIRCLE_RADIUS)

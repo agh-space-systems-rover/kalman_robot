@@ -35,7 +35,7 @@ def launch_setup(context):
             executable="peak_finder",
             name="peak_finder_node",
             parameters=[{"map_resolution": 0.3,
-                         "map_size": 25.0,
+                         "map_size": 20.0,
                          "support_height_fraction": 0.75,
                          "peak_support_radius": 2.0}],
             output="screen",
