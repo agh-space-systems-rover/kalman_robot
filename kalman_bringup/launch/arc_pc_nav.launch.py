@@ -20,7 +20,7 @@ def generate_launch_description():
             },
             "slam": {
                 "rgbd_ids": RGBD_IDS,
-                "gps_datum": "41.10512613 29.02332318",  # 424F+384 Sarıyer, İstanbul, Türkiye CHANGE TO POLAND ON TEST!
+                "gps_datum": "39.9333635 32.8597419",  # Kızılay, Çankaya, Ankara, Türkiye
             },
             "nav2": {
                 "rgbd_ids": RGBD_IDS,
@@ -30,10 +30,10 @@ def generate_launch_description():
                 "dict": "ARUCO_ORIGINAL",
                 "size": "0.20",
             },
-            #  "yolo": {
-            #     "rgbd_ids": "d455_right",
-            #     "config": "arc2026",
-            # },
+             "yolo": {
+                "rgbd_ids": "d455_right",
+                "config": "arc2026",
+            },
             "wheels": {},
             "supervisor": {
                 "rscp_enabled": "true",
