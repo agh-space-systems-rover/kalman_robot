@@ -74,8 +74,14 @@ type Props = {
   };
 };
 
+type GpsPosition = {
+  latitude: number;
+  longitude: number;
+};
+
 type State = {
-  solarConjunctionPoint: SolarConjunctionPoint | null;
+  solarConjunctionPoint: GpsPosition | null;
+  gpsPosition: GpsPosition | null;
 };
 
 function headingFromRoverRot(baseToMap: Quaternion): number {
@@ -185,7 +191,13 @@ function GpsCoordinatesDisplay({ solarConjunctionPoint }: State) {
 }
 export default class Map extends Component<Props, State> {
   state: State = {
-    solarConjunctionPoint: savedSolarConjunctionPoint
+    solarConjunctionPoint: savedSolarConjunctionPoint,
+    gpsPosition: hasGpsCoords()
+      ? {
+          latitude: gpsCoords.latitude,
+          longitude: gpsCoords.longitude
+        }
+      : null
   };
 
   private mapRef = createRef<Leaflet.Map>();
@@ -219,7 +231,14 @@ export default class Map extends Component<Props, State> {
   };
 
   private onGpsUpdated = () => {
-    this.kalmanMarkerRef.current?.setLatLng([gpsCoords.latitude, gpsCoords.longitude]);
+    this.setState({
+      gpsPosition: hasGpsCoords()
+        ? {
+            latitude: gpsCoords.latitude,
+            longitude: gpsCoords.longitude
+          }
+        : null
+    });
   };
 
   private onWaypointsUpdated = () => {
@@ -294,12 +313,12 @@ export default class Map extends Component<Props, State> {
 
   render() {
     const { props } = this.props;
-    const { solarConjunctionPoint } = this.state;
+    const { solarConjunctionPoint, gpsPosition } = this.state;
     if (props.viewLat === undefined) {
-      props.viewLat = gpsCoords.latitude || DEFAULT_LAT;
+      props.viewLat = gpsCoords.latitude ?? DEFAULT_LAT;
     }
     if (props.viewLong === undefined) {
-      props.viewLong = gpsCoords.longitude || DEFAULT_LONG;
+      props.viewLong = gpsCoords.longitude ?? DEFAULT_LONG;
     }
     if (props.viewZoom === undefined) {
       props.viewZoom = DEFAULT_ZOOM;
@@ -349,10 +368,10 @@ export default class Map extends Component<Props, State> {
               [50.066363153534, 19.9137014499564]
             ]}
           />
-          {hasGpsCoords() && (
+          {gpsPosition && (
             <Marker
               ref={this.kalmanMarkerRef}
-              position={[gpsCoords.latitude, gpsCoords.longitude]}
+              position={[gpsPosition.latitude, gpsPosition.longitude]}
               interactive={false}
               icon={Leaflet.icon({
                 className: styles['kalman-marker'],
@@ -431,7 +450,7 @@ export default class Map extends Component<Props, State> {
             opacity={0.8}
           />
         </MapContainer>
-        <GpsCoordinatesDisplay solarConjunctionPoint={solarConjunctionPoint} />
+        <GpsCoordinatesDisplay gpsPosition={gpsPosition} solarConjunctionPoint={solarConjunctionPoint} />
       </div>
     );
   }
