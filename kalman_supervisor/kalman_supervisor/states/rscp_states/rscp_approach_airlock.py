@@ -7,7 +7,7 @@ from kalman_supervisor.modules import *
 
 WORKING_FRAME = "map"
 GATE_MARKER_ID = 297
-APPROACH_DISTANCE = 1.0
+APPROACH_DISTANCE = 1.5 
 # PASS_DURATION = 6.0
 PASS_DURATION = 7.5
 PASS_SPEED = 0.3

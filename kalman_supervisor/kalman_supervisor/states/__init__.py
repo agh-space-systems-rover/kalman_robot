@@ -30,6 +30,7 @@ from kalman_supervisor.states.rscp_states.rscp_shackleton import RSCPShackleton
 from kalman_supervisor.states.rscp_states.rscp_navigate_peak import RSCPNavigatePeak
 from kalman_supervisor.states.rscp_states.rscp_drop_antenna import RSCPDropAntenna
 from kalman_supervisor.states.rscp_states.rscp_search_spiral import RSCPSearchSpiral
+from kalman_supervisor.states.rscp_states.rscp_search_circle import RSCPSearchCircle
 from kalman_supervisor.states.rscp_states.rscp_explore_lavatube import (
     RscpWaitBeforeLavatube,
     RscpLavatubeSearchGate,
