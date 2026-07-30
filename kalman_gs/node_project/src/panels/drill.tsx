@@ -34,17 +34,17 @@ let drillShifterTopic: Topic<{ data: number[] }> | undefined;
 let drillTelemetryTopic: Topic<DrillTelemetry> | undefined;
 
 enum DrillState {
-  Stop = 0,
-  DrillingSite1 = 1,
-  DrillingSite2 = 2,
-  Home = 3,
-  ClosingTubesSite1 = 4,
-  ClosingTubesSite2 = 5,
-  CleaningDrill = 6,
-  OpeningTubesSite1 = 7,
-  OpeningTubesSite2 = 8,
-  OpeningTubesBothSites = 9,
-  Retract = 10
+  STOP = 0,
+  DRILLING_SITE_1 = 1,
+  DRILLING_SITE_2 = 2,
+  HOME = 3,
+  CLOSING_TUBES_SITE_1 = 4,
+  CLOSING_TUBES_SITE_2 = 5,
+  CLEANING_DRILL = 6,
+  OPENING_TUBES_SITE_1 = 7,
+  OPENING_TUBES_SITE_2 = 8,
+  OPENING_TUBES_BOTH_SITES = 9,
+  RETRACT = 10
 }
 
 type DrillGamepadUpdate = {
@@ -162,38 +162,58 @@ export default function Drill() {
   const site1States = [
     {
       label: 'Drill',
-      value: DrillState.DrillingSite1,
+      value: DrillState.DRILLING_SITE_1,
       icon: faScrewdriverWrench,
       tooltip: 'Start drilling at site 1'
     },
-    { label: 'Close', value: DrillState.ClosingTubesSite1, icon: faDoorClosed, tooltip: 'Close tubes at site 1' },
-    { label: 'Open', value: DrillState.OpeningTubesSite1, icon: faDoorOpen, tooltip: 'Open tubes at site 1' }
+    {
+      label: 'Close',
+      value: DrillState.CLOSING_TUBES_SITE_1,
+      icon: faDoorClosed,
+      tooltip: 'Close tubes at site 1'
+    },
+    {
+      label: 'Open',
+      value: DrillState.OPENING_TUBES_SITE_1,
+      icon: faDoorOpen,
+      tooltip: 'Open tubes at site 1'
+    }
   ] as const;
 
   const site2States = [
     {
       label: 'Drill',
-      value: DrillState.DrillingSite2,
+      value: DrillState.DRILLING_SITE_2,
       icon: faScrewdriverWrench,
       tooltip: 'Start drilling at site 2'
     },
-    { label: 'Close', value: DrillState.ClosingTubesSite2, icon: faDoorClosed, tooltip: 'Close tubes at site 2' },
-    { label: 'Open', value: DrillState.OpeningTubesSite2, icon: faDoorOpen, tooltip: 'Open tubes at site 2' }
+    {
+      label: 'Close',
+      value: DrillState.CLOSING_TUBES_SITE_2,
+      icon: faDoorClosed,
+      tooltip: 'Close tubes at site 2'
+    },
+    {
+      label: 'Open',
+      value: DrillState.OPENING_TUBES_SITE_2,
+      icon: faDoorOpen,
+      tooltip: 'Open tubes at site 2'
+    }
   ] as const;
 
   const generalStates = [
-    { label: 'Stop', value: DrillState.Stop, icon: faStop, tooltip: 'Stop the drill' },
-    { label: 'Home', value: DrillState.Home, icon: faHouse, tooltip: 'Home the drill' },
-    { label: 'Clean', value: DrillState.CleaningDrill, icon: faBroom, tooltip: 'Clean the drill' },
+    { label: 'Stop', value: DrillState.STOP, icon: faStop, tooltip: 'Stop the drill' },
+    { label: 'Home', value: DrillState.HOME, icon: faHouse, tooltip: 'Home the drill' },
+    { label: 'Clean', value: DrillState.CLEANING_DRILL, icon: faBroom, tooltip: 'Clean the drill' },
     {
       label: 'Open Both',
-      value: DrillState.OpeningTubesBothSites,
+      value: DrillState.OPENING_TUBES_BOTH_SITES,
       icon: faBoxOpen,
       tooltip: 'Open tubes at both sites'
     },
     {
       label: 'Retract',
-      value: DrillState.Retract,
+      value: DrillState.RETRACT,
       icon: faTriangleExclamation,
       tooltip: 'Retract the drill'
     }
@@ -291,17 +311,18 @@ export default function Drill() {
 
   const formatDrillState = (value: number | undefined) => {
     if (value === undefined) return '---';
-    if (value === DrillState.Stop) return 'Stop';
-    if (value === DrillState.DrillingSite1) return 'Drilling — Site 1';
-    if (value === DrillState.DrillingSite2) return 'Drilling — Site 2';
-    if (value === DrillState.Home) return 'Home';
-    if (value === DrillState.ClosingTubesSite1) return 'Closing tubes — Site 1';
-    if (value === DrillState.ClosingTubesSite2) return 'Closing tubes — Site 2';
-    if (value === DrillState.CleaningDrill) return 'Cleaning drill';
-    if (value === DrillState.OpeningTubesSite1) return 'Opening tubes — Site 1';
-    if (value === DrillState.OpeningTubesSite2) return 'Opening tubes — Site 2';
-    if (value === DrillState.OpeningTubesBothSites) return 'Opening tubes — Both sites';
-    if (value === DrillState.Retract) return 'Retract';
+    if (value === DrillState.STOP) return 'Stop';
+    if (value === DrillState.DRILLING_SITE_1) return 'Drilling — Site 1';
+    if (value === DrillState.DRILLING_SITE_2) return 'Drilling — Site 2';
+    if (value === DrillState.HOME) return 'Home';
+    if (value === DrillState.CLOSING_TUBES_SITE_1) return 'Closing tubes — Site 1';
+    if (value === DrillState.CLOSING_TUBES_SITE_2) return 'Closing tubes — Site 2';
+    if (value === DrillState.CLEANING_DRILL) return 'Cleaning drill';
+    if (value === DrillState.OPENING_TUBES_SITE_1) return 'Opening tubes — Site 1';
+    if (value === DrillState.OPENING_TUBES_SITE_2) return 'Opening tubes — Site 2';
+    if (value === DrillState.OPENING_TUBES_BOTH_SITES) return 'Opening tubes — Both sites';
+    if (value === DrillState.RETRACT) return 'Retract';
+    if (value === 15) return 'Autonomy Disabled';
     return `Unknown ${value}`;
   };
 
