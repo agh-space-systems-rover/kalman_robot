@@ -4,7 +4,7 @@ import { Topic } from 'roslib';
 
 const RATE = 10;
 const MAX_SPEED = 100;
-const DEFAULT_AUTONOMY_RACK_SPEED = 10;
+const DEFAULT_AUTONOMY_RACK_SPEED = 5;
 const DEFAULT_AUTONOMY_DRILL_SPEED = 70;
 const BUTTON_THRESHOLD = 0.5;
 
