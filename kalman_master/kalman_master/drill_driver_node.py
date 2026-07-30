@@ -9,6 +9,7 @@ MAX_BRIDGE_VALUE = 100
 MIN_STATE_VALUE = 0
 MAX_STATE_VALUE = 10
 DRILLING_SITE_STATES = (1, 2)
+STATE_COMMAND_LENGTH = 3
 MIN_AUTONOMY_SPEED = 0
 MAX_AUTONOMY_SPEED = 100
 DEPTH_SCALE = 10.0
@@ -95,6 +96,8 @@ class DrillDriver(Node):
                         f"Received invalid {name} autonomy speed: {speed}"
                     )
                     return
+
+        data.extend([0] * (STATE_COMMAND_LENGTH - len(data)))
 
         self.master_pub.publish(
             MasterMessage(
