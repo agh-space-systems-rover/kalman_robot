@@ -7,7 +7,7 @@ from std_msgs.msg import Int8, UInt8MultiArray
 MIN_BRIDGE_VALUE = -100
 MAX_BRIDGE_VALUE = 100
 MIN_STATE_VALUE = 0
-MAX_STATE_VALUE = 9
+MAX_STATE_VALUE = 10
 DRILLING_SITE_STATES = (1, 2)
 MIN_AUTONOMY_SPEED = 0
 MAX_AUTONOMY_SPEED = 100
@@ -67,6 +67,7 @@ class DrillDriver(Node):
         #   7 = open tubes at site 1
         #   8 = open tubes at site 2
         #   9 = open tubes at both sites
+        #   10 = retract
         data = list(msg.data)
         if not data:
             self.get_logger().warn("Received empty drill state command")
@@ -77,7 +78,7 @@ class DrillDriver(Node):
             self.get_logger().warn(f"Received invalid drill state: {state}")
             return
 
-        expected_length = 2 if state in DRILLING_SITE_STATES else 1
+        expected_length = 3 if state in DRILLING_SITE_STATES else 1
         if len(data) != expected_length:
             self.get_logger().warn(
                 f"Received invalid drill state command length for state {state}: "
@@ -86,12 +87,14 @@ class DrillDriver(Node):
             return
 
         if state in DRILLING_SITE_STATES:
-            speed = int(data[1])
-            if not MIN_AUTONOMY_SPEED <= speed <= MAX_AUTONOMY_SPEED:
-                self.get_logger().warn(
-                    f"Received invalid drill autonomy speed: {speed}"
-                )
-                return
+            rack_speed = int(data[1])
+            drill_speed = int(data[2])
+            for name, speed in (("rack", rack_speed), ("drill", drill_speed)):
+                if not MIN_AUTONOMY_SPEED <= speed <= MAX_AUTONOMY_SPEED:
+                    self.get_logger().warn(
+                        f"Received invalid {name} autonomy speed: {speed}"
+                    )
+                    return
 
         self.master_pub.publish(
             MasterMessage(

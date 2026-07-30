@@ -53,6 +53,12 @@
   border-radius: 5px;
 }
 
+.autonomy-grid .large-button:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+  margin-left: calc(25% + 5px);
+  margin-right: calc(25% + 5px);
+}
+
 .large-button {
   flex: 1;
 }
@@ -82,6 +88,14 @@
   font-weight: 600;
   user-select: none;
   margin: 4px 0 5px 0;
+}
+
+.subsection-header {
+  text-align: center;
+  color: var(--foreground);
+  font-size: 0.8rem;
+  font-weight: 600;
+  user-select: none;
 }
 
 .telemetry-label {

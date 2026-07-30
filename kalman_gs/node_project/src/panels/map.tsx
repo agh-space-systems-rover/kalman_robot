@@ -1,10 +1,14 @@
 import styles from './map.module.css';
 
+
+
 import kalmanMarker from '!!url-loader!../media/kalman-marker.svg';
 import waypointMarker from '!!url-loader!../media/waypoint-marker.svg';
 import { gpsCoords, hasGpsCoords } from '../common/gps';
+import { imuRotation } from '../common/imu';
 import '../common/leaflet-rotated-marker-plugin';
 import { mapMarker, setMapMarkerLatLon } from '../common/map-marker';
+import { Quaternion, Vector3, quatConj, quatTimesVec } from '../common/mini-math-lib';
 import { ros } from '../common/ros';
 import { GeoPoint, GeoPath } from '../common/ros-interfaces';
 import { waypoints } from '../common/waypoints';
@@ -19,7 +23,10 @@ import { Component, createRef, useState, useEffect, useCallback } from 'react';
 import { ImageOverlay, MapContainer, Marker, ScaleControl, TileLayer, Tooltip, Polyline } from 'react-leaflet';
 import { Topic } from 'roslib';
 
+
+
 import Button from '../components/button';
+
 
 const GO_TO_LOCATION_ZOOM = 19;
 const DEFAULT_LAT = 51.477928;
@@ -97,6 +104,20 @@ type State = {
   solarConjunctionPoint: GpsPosition | null;
   gpsPosition: GpsPosition | null;
 };
+
+function headingFromRoverRot(baseToMap: Quaternion): number {
+  const northMap: Vector3 = {
+    x: 0,
+    y: 1,
+    z: 0
+  }; // north in map frame
+  const northBase = quatTimesVec(quatConj(baseToMap), northMap);
+  const angleFromHeadingToNorth = Math.atan2(northBase.y, northBase.x);
+  // angle to north vector will increase when turning right
+  // heading shall behave the same way
+  const heading = (angleFromHeadingToNorth * 180) / Math.PI;
+  return heading;
+}
 
 /**
  * displaying gps coordinates
@@ -224,14 +245,16 @@ export default class Map extends Component<Props, State> {
     this.mapMarkerRef.current?.setLatLng([mapMarker.latitude, mapMarker.longitude]);
   };
 
-  private onImuNorthUpdated = () => {
-    if (imuNorthAngle === null) {
-      return;
-    }
-
+  private onImuUpdated = () => {
     // Here we use our custom injected method to set the rotation angle of the marker.
     // Cast to any because the type definitions are not up to date.
-    (this.kalmanMarkerRef.current as any)?.setRotationAngle(imuNorthAngle);
+    (this.kalmanMarkerRef.current as any)?.setRotationAngle(headingFromRoverRot(imuRotation));
+  };
+
+  private onImuNorthUpdated = () => {
+    // Here we use our custom injected method to set the rotation angle of the marker.
+    // Cast to any because the type definitions are not up to date.
+    (this.kalmanMarkerRef.current as any)?.setRotationAngle(imuNorthAngle ?? 0);
   };
 
   private onGpsUpdated = () => {
@@ -258,6 +281,7 @@ export default class Map extends Component<Props, State> {
       window.addEventListener('resize', this.onResized);
       window.addEventListener('any-panel-resize', this.onResized);
       window.addEventListener('map-marker-move', this.onMapMarkerMoved);
+      window.addEventListener('imu-update', this.onImuUpdated);
       window.addEventListener('imu-north-update', this.onImuNorthUpdated);
       window.addEventListener('gps-update', this.onGpsUpdated);
       window.addEventListener('waypoints-update', this.onWaypointsUpdated);
@@ -276,6 +300,7 @@ export default class Map extends Component<Props, State> {
 
     if (window) {
       window.removeEventListener('gps-update', this.onGpsUpdated);
+      window.removeEventListener('imu-update', this.onImuUpdated);
       window.removeEventListener('imu-north-update', this.onImuNorthUpdated);
       window.removeEventListener('map-marker-move', this.onMapMarkerMoved);
       window.removeEventListener('resize', this.onResized);

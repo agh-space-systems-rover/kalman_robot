@@ -4,7 +4,8 @@ import { Topic } from 'roslib';
 
 const RATE = 10;
 const MAX_SPEED = 100;
-const DEFAULT_AUTONOMY_SPEED = 50;
+const DEFAULT_AUTONOMY_RACK_SPEED = 10;
+const DEFAULT_AUTONOMY_DRILL_SPEED = 70;
 const BUTTON_THRESHOLD = 0.5;
 
 enum DrillState {
@@ -101,7 +102,7 @@ window.addEventListener('ros-connect', () => {
     if (requestedState !== undefined) {
       const data = [requestedState.state];
       if (requestedState.state === DrillState.DrillingSite1 || requestedState.state === DrillState.DrillingSite2) {
-        data.push(DEFAULT_AUTONOMY_SPEED);
+        data.push(DEFAULT_AUTONOMY_RACK_SPEED, DEFAULT_AUTONOMY_DRILL_SPEED);
       }
       drillStateTopic.publish({ data });
       dispatchDrillGamepadUpdate({ state: requestedState.state });
