@@ -8,10 +8,6 @@ MIN_BRIDGE_VALUE = -100
 MAX_BRIDGE_VALUE = 100
 MIN_STATE_VALUE = 0
 MAX_STATE_VALUE = 10
-DRILLING_SITE_STATES = (1, 2)
-STATE_COMMAND_LENGTH = 3
-MIN_AUTONOMY_SPEED = 0
-MAX_AUTONOMY_SPEED = 100
 DEPTH_SCALE = 10.0
 CURRENT_MA_PER_LSB = 20.0
 MA_PER_A = 1000.0
@@ -70,8 +66,10 @@ class DrillDriver(Node):
         #   9 = open tubes at both sites
         #   10 = retract
         data = list(msg.data)
-        if not data:
-            self.get_logger().warn("Received empty drill state command")
+        if len(data) != 1:
+            self.get_logger().warn(
+                f"Received invalid drill state command length: {len(data)}"
+            )
             return
 
         state = int(data[0])
@@ -79,30 +77,10 @@ class DrillDriver(Node):
             self.get_logger().warn(f"Received invalid drill state: {state}")
             return
 
-        expected_length = 3 if state in DRILLING_SITE_STATES else 1
-        if len(data) != expected_length:
-            self.get_logger().warn(
-                f"Received invalid drill state command length for state {state}: "
-                f"{len(data)}"
-            )
-            return
-
-        if state in DRILLING_SITE_STATES:
-            rack_speed = int(data[1])
-            drill_speed = int(data[2])
-            for name, speed in (("rack", rack_speed), ("drill", drill_speed)):
-                if not MIN_AUTONOMY_SPEED <= speed <= MAX_AUTONOMY_SPEED:
-                    self.get_logger().warn(
-                        f"Received invalid {name} autonomy speed: {speed}"
-                    )
-                    return
-
-        data.extend([0] * (STATE_COMMAND_LENGTH - len(data)))
-
         self.master_pub.publish(
             MasterMessage(
                 cmd=MasterMessage.DRILL_AUTONOMY,
-                data=data,
+                data=[state],
             )
         )
 

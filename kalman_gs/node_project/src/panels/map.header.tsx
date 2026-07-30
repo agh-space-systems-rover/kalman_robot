@@ -8,10 +8,10 @@ import { NavSatFix, SpoofGpsRequest } from '../common/ros-interfaces';
 import Map from './map';
 import {
   faArrowsSpin,
-  faCloudSun,
   faCopy,
   faJetFighterUp,
   faLocationDot,
+  faMicroscope,
   faPaperPlane,
   faRobot,
   faSearch,
@@ -119,27 +119,49 @@ export default function MapHeader({ panelRef }: Props) {
     };
   }, [rerender]);
 
-  const editSolarConjunctionPoint = () => {
-    const point = panelRef.current?.getSolarConjunctionPoint();
-    const setPoint = (latitude: number, longitude: number) => {
-      panelRef.current?.setSolarConjunctionPoint(latitude, longitude);
-      rerender();
-    };
+  const editArcScienceTask = () => {
+    const solarConjunctionPoint = panelRef.current?.getSolarConjunctionPoint();
+    const secondSite = panelRef.current?.getSecondSite();
 
     modalRef.current?.showCoordinates({
-      title: 'Solar Conjunction Point',
-      icon: faCloudSun,
-      message: 'Set the latitude and longitude of the Solar Conjunction Point.',
-      latitude: point?.latitude,
-      longitude: point?.longitude,
-      onSave: point ? undefined : setPoint,
-      onUpdate: point ? setPoint : undefined,
-      onDelete: point
-        ? () => {
-            panelRef.current?.removeSolarConjunctionPoint();
-            rerender();
-          }
-        : undefined
+      title: 'ARC Science Task',
+      icon: faMicroscope,
+      message: 'Set the coordinates of the ARC Science Task points.',
+      points: [
+        {
+          label: 'Solar Conjunction Point',
+          latitude: solarConjunctionPoint?.latitude,
+          longitude: solarConjunctionPoint?.longitude,
+          onDelete: solarConjunctionPoint
+            ? () => {
+                panelRef.current?.removeSolarConjunctionPoint();
+                rerender();
+              }
+            : undefined
+        },
+        {
+          label: 'Second Site',
+          latitude: secondSite?.latitude,
+          longitude: secondSite?.longitude,
+          onDelete: secondSite
+            ? () => {
+                panelRef.current?.removeSecondSite();
+                rerender();
+              }
+            : undefined
+        }
+      ],
+      onSave: ([nextSolarConjunctionPoint, nextSecondSite]) => {
+        panelRef.current?.setArcScienceTaskPoints(nextSolarConjunctionPoint, nextSecondSite);
+        rerender();
+      },
+      onDelete:
+        solarConjunctionPoint || secondSite
+          ? () => {
+              panelRef.current?.removeArcScienceTask();
+              rerender();
+            }
+          : undefined
     });
   };
 
@@ -152,12 +174,8 @@ export default function MapHeader({ panelRef }: Props) {
         </Button>
       </div>
       <div className={styles['section']}>
-        <Button
-          className={styles['solar-button']}
-          tooltip='[ARC] Solar Conjunction Point'
-          onClick={editSolarConjunctionPoint}
-        >
-          <FontAwesomeIcon icon={faCloudSun} />
+        <Button className={styles['arc-science-button']} tooltip='ARC Science Task' onClick={editArcScienceTask}>
+          <FontAwesomeIcon icon={faMicroscope} />
         </Button>
       </div>
       <div className={styles['section']}>

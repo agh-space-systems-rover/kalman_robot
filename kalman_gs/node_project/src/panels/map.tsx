@@ -1,7 +1,5 @@
 import styles from './map.module.css';
 
-
-
 import kalmanMarker from '!!url-loader!../media/kalman-marker.svg';
 import waypointMarker from '!!url-loader!../media/waypoint-marker.svg';
 import { gpsCoords, hasGpsCoords } from '../common/gps';
@@ -13,7 +11,7 @@ import { ros } from '../common/ros';
 import { GeoPoint, GeoPath } from '../common/ros-interfaces';
 import { waypoints } from '../common/waypoints';
 import erc2025Overlay from '../media/erc2025-overlay.png';
-import { faCloudSun, faCopy, faGlobe, faRobot } from '@fortawesome/free-solid-svg-icons';
+import { faCloudSun, faCopy, faGlobe, faMicroscope, faRobot } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import Leaflet from 'leaflet';
 import icon from 'leaflet/dist/images/marker-icon.png';
@@ -23,10 +21,7 @@ import { Component, createRef, useState, useEffect, useCallback } from 'react';
 import { ImageOverlay, MapContainer, Marker, ScaleControl, TileLayer, Tooltip, Polyline } from 'react-leaflet';
 import { Topic } from 'roslib';
 
-
-
 import Button from '../components/button';
-
 
 const GO_TO_LOCATION_ZOOM = 19;
 const DEFAULT_LAT = 51.477928;
@@ -34,22 +29,42 @@ const DEFAULT_LONG = -0.001545;
 const DEFAULT_ZOOM = 18;
 const PROPS_UPDATE_INTERVAL = 100;
 
-type SolarConjunctionPoint = {
+type GpsPosition = {
   latitude: number;
   longitude: number;
 };
 
 const SOLAR_CONJUNCTION_POINT_STORAGE_KEY = 'solar-conjunction-point';
+const SECOND_SITE_STORAGE_KEY = 'arc-science-task-second-site';
 
-let savedSolarConjunctionPoint: SolarConjunctionPoint | null = null;
-const savedSolarConjunctionPointJson = localStorage.getItem(SOLAR_CONJUNCTION_POINT_STORAGE_KEY);
-if (savedSolarConjunctionPointJson) {
-  try {
-    savedSolarConjunctionPoint = JSON.parse(savedSolarConjunctionPointJson);
-  } catch {
-    localStorage.removeItem(SOLAR_CONJUNCTION_POINT_STORAGE_KEY);
+function loadStoredPoint(storageKey: string): GpsPosition | null {
+  const value = localStorage.getItem(storageKey);
+  if (!value) {
+    return null;
   }
+
+  try {
+    const point = JSON.parse(value);
+    if (
+      Number.isFinite(point?.latitude) &&
+      Number.isFinite(point?.longitude) &&
+      point.latitude >= -90 &&
+      point.latitude <= 90 &&
+      point.longitude >= -180 &&
+      point.longitude <= 180
+    ) {
+      return point;
+    }
+  } catch {
+    // Invalid stored values are removed below.
+  }
+
+  localStorage.removeItem(storageKey);
+  return null;
 }
+
+const savedSolarConjunctionPoint = loadStoredPoint(SOLAR_CONJUNCTION_POINT_STORAGE_KEY);
+const savedSecondSite = loadStoredPoint(SECOND_SITE_STORAGE_KEY);
 
 Leaflet.Marker.prototype.options.icon = Leaflet.icon({
   iconUrl: icon,
@@ -71,20 +86,20 @@ window.addEventListener('ros-connect', () => {
     window.dispatchEvent(new CustomEvent('map-geo-points-update'));
   });
 
-  const imuNorthTopic = new Topic({
-    ros: ros,
-    name: '/imu/north',
-    messageType: 'std_msgs/Float64'
-  });
-
-  imuNorthTopic.subscribe((msg: { data: number }) => {
-    if (!Number.isFinite(msg.data)) {
-      return;
-    }
-
-    imuNorthAngle = msg.data;
-    window.dispatchEvent(new CustomEvent('imu-north-update'));
-  });
+  // const imuNorthTopic = new Topic({
+  //   ros: ros,
+  //   name: '/imu/north',
+  //   messageType: 'std_msgs/Float64'
+  // });
+  //
+  // imuNorthTopic.subscribe((msg: { data: number }) => {
+  //   if (!Number.isFinite(msg.data)) {
+  //     return;
+  //   }
+  //
+  //   imuNorthAngle = msg.data;
+  //   window.dispatchEvent(new CustomEvent('imu-north-update'));
+  // });
 });
 
 type Props = {
@@ -95,13 +110,9 @@ type Props = {
   };
 };
 
-type GpsPosition = {
-  latitude: number;
-  longitude: number;
-};
-
 type State = {
   solarConjunctionPoint: GpsPosition | null;
+  secondSite: GpsPosition | null;
   gpsPosition: GpsPosition | null;
 };
 
@@ -122,7 +133,7 @@ function headingFromRoverRot(baseToMap: Quaternion): number {
 /**
  * displaying gps coordinates
  */
-function GpsCoordinatesDisplay({ solarConjunctionPoint }: State) {
+function GpsCoordinatesDisplay({ solarConjunctionPoint, secondSite }: State) {
   const [markerCoords, setMarkerCoords] = useState({
     lat: mapMarker.latitude,
     long: mapMarker.longitude
@@ -193,6 +204,23 @@ function GpsCoordinatesDisplay({ solarConjunctionPoint }: State) {
           </Button>
         </div>
       )}
+      {secondSite && (
+        <div className={`${styles['gps-display-control']} ${styles['second-site-coordinates-control']}`}>
+          <FontAwesomeIcon icon={faMicroscope} />
+          <div className={styles['gps-coords-text']}>
+            {`${secondSite.latitude.toFixed(6)}, ${secondSite.longitude.toFixed(6)}`}
+          </div>
+          <Button
+            className={styles['second-site-copy-button']}
+            tooltip='Copy Second Site coordinates to clipboard.'
+            onClick={() => {
+              navigator.clipboard.writeText(`${secondSite.latitude.toFixed(8)}, ${secondSite.longitude.toFixed(8)}`);
+            }}
+          >
+            <FontAwesomeIcon icon={faCopy} />
+          </Button>
+        </div>
+      )}
       <div className={styles['gps-display-control']}>
         <FontAwesomeIcon icon={faGlobe} />
         <div className={styles['gps-coords-text']}>
@@ -213,6 +241,7 @@ function GpsCoordinatesDisplay({ solarConjunctionPoint }: State) {
 export default class Map extends Component<Props, State> {
   state: State = {
     solarConjunctionPoint: savedSolarConjunctionPoint,
+    secondSite: savedSecondSite,
     gpsPosition: hasGpsCoords()
       ? {
           latitude: gpsCoords.latitude,
@@ -329,6 +358,26 @@ export default class Map extends Component<Props, State> {
     return this.state.solarConjunctionPoint;
   };
 
+  getSecondSite = () => {
+    return this.state.secondSite;
+  };
+
+  setArcScienceTaskPoints = (solarConjunctionPoint: GpsPosition | null, secondSite: GpsPosition | null) => {
+    if (solarConjunctionPoint) {
+      localStorage.setItem(SOLAR_CONJUNCTION_POINT_STORAGE_KEY, JSON.stringify(solarConjunctionPoint));
+    } else {
+      localStorage.removeItem(SOLAR_CONJUNCTION_POINT_STORAGE_KEY);
+    }
+
+    if (secondSite) {
+      localStorage.setItem(SECOND_SITE_STORAGE_KEY, JSON.stringify(secondSite));
+    } else {
+      localStorage.removeItem(SECOND_SITE_STORAGE_KEY);
+    }
+
+    this.setState({ solarConjunctionPoint, secondSite });
+  };
+
   setSolarConjunctionPoint = (latitude: number, longitude: number) => {
     const solarConjunctionPoint = { latitude, longitude };
     localStorage.setItem(SOLAR_CONJUNCTION_POINT_STORAGE_KEY, JSON.stringify(solarConjunctionPoint));
@@ -340,9 +389,20 @@ export default class Map extends Component<Props, State> {
     this.setState({ solarConjunctionPoint: null });
   };
 
+  removeSecondSite = () => {
+    localStorage.removeItem(SECOND_SITE_STORAGE_KEY);
+    this.setState({ secondSite: null });
+  };
+
+  removeArcScienceTask = () => {
+    localStorage.removeItem(SOLAR_CONJUNCTION_POINT_STORAGE_KEY);
+    localStorage.removeItem(SECOND_SITE_STORAGE_KEY);
+    this.setState({ solarConjunctionPoint: null, secondSite: null });
+  };
+
   render() {
     const { props } = this.props;
-    const { solarConjunctionPoint, gpsPosition } = this.state;
+    const { solarConjunctionPoint, secondSite, gpsPosition } = this.state;
     if (props.viewLat === undefined) {
       props.viewLat = gpsCoords.latitude ?? DEFAULT_LAT;
     }
@@ -432,6 +492,28 @@ export default class Map extends Component<Props, State> {
               </Tooltip>
             </Marker>
           )}
+          {secondSite && (
+            <Marker
+              position={[secondSite.latitude, secondSite.longitude]}
+              interactive={false}
+              icon={Leaflet.icon({
+                className: `${styles['waypoint-marker']} red`,
+                iconUrl: waypointMarker,
+                iconAnchor: [10.2, 45],
+                iconSize: [45, 45]
+              })}
+            >
+              <Tooltip
+                direction='right'
+                offset={[0, 0]}
+                opacity={1}
+                permanent
+                className={styles['waypoint-marker-tooltip']}
+              >
+                Second Site
+              </Tooltip>
+            </Marker>
+          )}
           {waypoints.map((marker, i) => (
             <Marker
               key={i}
@@ -479,7 +561,11 @@ export default class Map extends Component<Props, State> {
             opacity={0.8}
           />
         </MapContainer>
-        <GpsCoordinatesDisplay gpsPosition={gpsPosition} solarConjunctionPoint={solarConjunctionPoint} />
+        <GpsCoordinatesDisplay
+          gpsPosition={gpsPosition}
+          solarConjunctionPoint={solarConjunctionPoint}
+          secondSite={secondSite}
+        />
       </div>
     );
   }

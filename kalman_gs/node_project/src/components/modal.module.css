@@ -62,6 +62,37 @@
   align-items: center;
 }
 
+.coordinate-points {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 10px 0;
+}
+
+.coordinate-point {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.coordinate-point-label {
+  color: var(--strong-foreground);
+  font-weight: 600;
+}
+
+.coordinate-point-inputs {
+  display: flex;
+  align-items: center;
+}
+
+.coordinate-point-inputs > :not(.coordinate-point-delete) {
+  flex: 1;
+}
+
+.coordinate-point-delete {
+  flex: 0 0 auto;
+}
+
 .action-btn {
   flex: 1;
 }

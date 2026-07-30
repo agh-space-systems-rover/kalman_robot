@@ -122,6 +122,10 @@
   background-color: color-mix(in srgb, var(--yellow-background) 25%, var(--dark-background));
 }
 
+.second-site-coordinates-control {
+  background-color: color-mix(in srgb, var(--red-background) 25%, var(--dark-background));
+}
+
 .rover-copy-button {
   --button-background: var(--blue-background);
   --button-active-background: color-mix(in srgb, var(--blue-background), var(--blue-foreground) 50%);
@@ -132,6 +136,12 @@
   --button-background: var(--yellow-background);
   --button-active-background: color-mix(in srgb, var(--yellow-background), var(--yellow-foreground) 50%);
   --button-pressed-background: var(--yellow-foreground);
+}
+
+.second-site-copy-button {
+  --button-background: var(--red-background);
+  --button-active-background: color-mix(in srgb, var(--red-background), var(--red-foreground) 50%);
+  --button-pressed-background: var(--red-foreground);
 }
 
 .gps-coords-text {

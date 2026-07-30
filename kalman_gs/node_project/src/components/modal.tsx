@@ -3,9 +3,9 @@ import styles from './modal.module.css';
 import Button from './button';
 import Input from './input';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
-import { faCheck, faCircleInfo, faFloppyDisk, faPen, faTrash, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faCheck, faCircleInfo, faFloppyDisk, faTrash, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Component, createRef } from 'react';
+import { Component, RefObject, createRef } from 'react';
 
 type AlertOptions = {
   title: string;
@@ -34,14 +34,24 @@ type ConfirmOptions = {
   onConfirm: () => void;
 };
 
+type CoordinatePointOptions = {
+  label: string;
+  latitude?: number;
+  longitude?: number;
+  onDelete?: () => void;
+};
+
+type CoordinatePointValue = {
+  latitude: number;
+  longitude: number;
+};
+
 type CoordinatesOptions = {
   title: string;
   icon?: IconDefinition | null;
   message?: string;
-  latitude?: number;
-  longitude?: number;
-  onSave?: (latitude: number, longitude: number) => void;
-  onUpdate?: (latitude: number, longitude: number) => void;
+  points: CoordinatePointOptions[];
+  onSave: (points: (CoordinatePointValue | null)[]) => void;
   onDelete?: () => void;
 };
 
@@ -77,8 +87,10 @@ export default class Modal extends Component<{}, State> {
 
   state: State = Modal.defaultState;
   private inputRef = createRef<Input>();
-  private latitudeInputRef = createRef<Input>();
-  private longitudeInputRef = createRef<Input>();
+  private coordinateInputRefs: {
+    latitude: RefObject<Input>;
+    longitude: RefObject<Input>;
+  }[] = [];
 
   escHandler = (e: KeyboardEvent) => {
     if (e.key === 'Escape') this.hide();
@@ -142,6 +154,10 @@ export default class Modal extends Component<{}, State> {
   }
 
   showCoordinates(opts: CoordinatesOptions) {
+    this.coordinateInputRefs = opts.points.map(() => ({
+      latitude: createRef<Input>(),
+      longitude: createRef<Input>()
+    }));
     this.setState(
       {
         shown: true,
@@ -155,23 +171,35 @@ export default class Modal extends Component<{}, State> {
     );
   }
 
-  submitCoordinates(callback?: (latitude: number, longitude: number) => void) {
-    const latitude = this.latitudeInputRef.current?.getValue();
-    const longitude = this.longitudeInputRef.current?.getValue();
+  submitCoordinates() {
+    const points: (CoordinatePointValue | null)[] = [];
 
-    if (
-      !Number.isFinite(latitude) ||
-      !Number.isFinite(longitude) ||
-      latitude < -90 ||
-      latitude > 90 ||
-      longitude < -180 ||
-      longitude > 180
-    ) {
-      return;
+    for (const refs of this.coordinateInputRefs) {
+      const latitude = refs.latitude.current?.getValue();
+      const longitude = refs.longitude.current?.getValue();
+
+      if (latitude === undefined && longitude === undefined) {
+        points.push(null);
+        continue;
+      }
+
+      if (
+        !Number.isFinite(latitude) ||
+        !Number.isFinite(longitude) ||
+        latitude < -90 ||
+        latitude > 90 ||
+        longitude < -180 ||
+        longitude > 180
+      ) {
+        return;
+      }
+
+      points.push({ latitude, longitude });
     }
 
+    const onSave = this.state.coordinates?.onSave;
     this.hide();
-    callback?.(latitude, longitude);
+    onSave?.(points);
   }
 
   hide() {
@@ -215,22 +243,38 @@ export default class Modal extends Component<{}, State> {
             )}
 
             {mode === 'coordinates' && (
-              <div className={styles['actions']}>
-                <Input
-                  key={`latitude-${coordinates?.latitude ?? ''}`}
-                  ref={this.latitudeInputRef}
-                  type='float'
-                  placeholder='Latitude'
-                  defaultValue={coordinates?.latitude?.toString() ?? ''}
-                  autoFocus
-                />
-                <Input
-                  key={`longitude-${coordinates?.longitude ?? ''}`}
-                  ref={this.longitudeInputRef}
-                  type='float'
-                  placeholder='Longitude'
-                  defaultValue={coordinates?.longitude?.toString() ?? ''}
-                />
+              <div className={styles['coordinate-points']}>
+                {coordinates?.points.map((point, index) => (
+                  <div className={styles['coordinate-point']} key={point.label}>
+                    <div className={styles['coordinate-point-label']}>{point.label}</div>
+                    <div className={styles['coordinate-point-inputs']}>
+                      <Input
+                        ref={this.coordinateInputRefs[index]?.latitude}
+                        type='float'
+                        placeholder='Latitude'
+                        defaultValue={point.latitude?.toString() ?? ''}
+                        autoFocus={index === 0}
+                      />
+                      <Input
+                        ref={this.coordinateInputRefs[index]?.longitude}
+                        type='float'
+                        placeholder='Longitude'
+                        defaultValue={point.longitude?.toString() ?? ''}
+                      />
+                      <Button
+                        className={styles['coordinate-point-delete']}
+                        tooltip={`Delete ${point.label}.`}
+                        onClick={() => {
+                          this.coordinateInputRefs[index]?.latitude.current?.setValue('');
+                          this.coordinateInputRefs[index]?.longitude.current?.setValue('');
+                          point.onDelete?.();
+                        }}
+                      >
+                        <FontAwesomeIcon icon={faXmark} />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
 
@@ -250,16 +294,8 @@ export default class Modal extends Component<{}, State> {
                 </Button>
                 <Button
                   className={styles['action-btn']}
-                  disabled={!coordinates?.onUpdate}
-                  onClick={() => this.submitCoordinates(coordinates?.onUpdate)}
-                >
-                  <FontAwesomeIcon icon={faPen} />
-                  &nbsp;&nbsp;<span>Update</span>
-                </Button>
-                <Button
-                  className={styles['action-btn']}
-                  disabled={!coordinates?.onSave}
-                  onClick={() => this.submitCoordinates(coordinates?.onSave)}
+                  disabled={!coordinates}
+                  onClick={() => this.submitCoordinates()}
                 >
                   <FontAwesomeIcon icon={faFloppyDisk} />
                   &nbsp;&nbsp;<span>Save</span>

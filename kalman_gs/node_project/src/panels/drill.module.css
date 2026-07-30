@@ -40,20 +40,20 @@
   margin-top: -5px;
 }
 
-.autonomy-grid {
+.state-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   margin-top: -5px;
 }
 
-.autonomy-grid .large-button {
+.state-grid .large-button {
   min-width: 0;
   margin-left: 5px;
   margin-right: 5px;
   border-radius: 5px;
 }
 
-.autonomy-grid .large-button:last-child:nth-child(odd) {
+.state-grid .large-button:last-child:nth-child(odd) {
   grid-column: 1 / -1;
   margin-left: calc(25% + 5px);
   margin-right: calc(25% + 5px);
@@ -73,10 +73,6 @@
   transition: background-color 0.1s;
 }
 
-.submitted-speed-input {
-  background-color: var(--button-background, var(--dark-active));
-}
-
 .speed-input input {
   text-align: center;
 }
@@ -88,14 +84,6 @@
   font-weight: 600;
   user-select: none;
   margin: 4px 0 5px 0;
-}
-
-.subsection-header {
-  text-align: center;
-  color: var(--foreground);
-  font-size: 0.8rem;
-  font-weight: 600;
-  user-select: none;
 }
 
 .telemetry-label {

@@ -16,7 +16,8 @@ import {
   faPaperPlane,
   faPlus,
   faScrewdriverWrench,
-  faStop
+  faStop,
+  faTriangleExclamation
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useEffect, useRef, useState } from 'react';
@@ -31,11 +32,6 @@ let drillCTopic: Topic<{ data: number }> | undefined;
 let drillStateTopic: Topic<{ data: number[] }> | undefined;
 let drillShifterTopic: Topic<{ data: number[] }> | undefined;
 let drillTelemetryTopic: Topic<DrillTelemetry> | undefined;
-
-const MIN_AUTONOMY_SPEED = 0;
-const MAX_AUTONOMY_SPEED = 100;
-const DEFAULT_AUTONOMY_RACK_SPEED = 5;
-const DEFAULT_AUTONOMY_DRILL_SPEED = 70;
 
 enum DrillState {
   Stop = 0,
@@ -95,16 +91,11 @@ window.addEventListener('ros-connect', () => {
 export default function Drill() {
   const bInputRef = useRef<Input>(null);
   const cInputRef = useRef<Input>(null);
-  const autonomyRackSpeedInputRef = useRef<Input>(null);
-  const autonomyDrillSpeedInputRef = useRef<Input>(null);
   const bSkipBlurRef = useRef(false);
   const cSkipBlurRef = useRef(false);
   const [bValue, setBValue] = useState(0);
   const [cValue, setCValue] = useState(0);
-  const [autonomyRackSpeed, setAutonomyRackSpeed] = useState(DEFAULT_AUTONOMY_RACK_SPEED);
-  const [autonomyDrillSpeed, setAutonomyDrillSpeed] = useState(DEFAULT_AUTONOMY_DRILL_SPEED);
   const [selectedState, setSelectedState] = useState<DrillState | null>(null);
-  const [autonomyDetailsSubmitted, setAutonomyDetailsSubmitted] = useState(false);
   const [shifterStates, setShifterStates] = useState<[0 | 1 | null, 0 | 1 | null]>([null, null]);
   const [telemetry, setTelemetry] = useState<DrillTelemetry | null>(null);
   const [lastTelemetryAt, setLastTelemetryAt] = useState<number | null>(null);
@@ -127,7 +118,6 @@ export default function Drill() {
       }
       if (detail.state !== undefined) {
         setSelectedState(detail.state);
-        setAutonomyDetailsSubmitted(false);
       }
     };
     ensureDrillTopics();
@@ -201,7 +191,12 @@ export default function Drill() {
       icon: faBoxOpen,
       tooltip: 'Open tubes at both sites'
     },
-    { label: 'Retract', value: DrillState.Retract, icon: faArrowUp, tooltip: 'Retract the drill' }
+    {
+      label: 'Retract',
+      value: DrillState.Retract,
+      icon: faTriangleExclamation,
+      tooltip: 'Retract the drill'
+    }
   ] as const;
 
   const normalizeInteger = (value: unknown, min: number, max: number, fallback: number) => {
@@ -257,43 +252,12 @@ export default function Drill() {
     publishBridge(() => drillCTopic, 0);
   };
 
-  const commitAutonomySpeed = (target: 'rack' | 'drill', rawValue?: unknown) => {
-    const inputRef = target === 'rack' ? autonomyRackSpeedInputRef : autonomyDrillSpeedInputRef;
-    const currentValue = target === 'rack' ? autonomyRackSpeed : autonomyDrillSpeed;
-    const value = normalizeInteger(
-      rawValue ?? inputRef.current?.getValue(),
-      MIN_AUTONOMY_SPEED,
-      MAX_AUTONOMY_SPEED,
-      currentValue
-    );
-
-    if (value !== currentValue) {
-      setAutonomyDetailsSubmitted(false);
-    }
-
-    if (target === 'rack') {
-      setAutonomyRackSpeed(value);
-    } else {
-      setAutonomyDrillSpeed(value);
-    }
-    inputRef.current?.setValue(value);
-    return value;
-  };
-
   const publishState = (rawState: number) => {
     const state = normalizeInteger(rawState, 0, 10, 0) as DrillState;
-    const data = [state];
-
-    if (state === DrillState.DrillingSite1 || state === DrillState.DrillingSite2) {
-      data.push(commitAutonomySpeed('rack'), commitAutonomySpeed('drill'));
-      setAutonomyDetailsSubmitted(true);
-    } else {
-      setAutonomyDetailsSubmitted(false);
-    }
 
     setSelectedState(state);
     ensureDrillTopics();
-    drillStateTopic?.publish({ data });
+    drillStateTopic?.publish({ data: [state] });
   };
 
   const publishShifter = (site: 0 | 1, state: 0 | 1) => {
@@ -504,76 +468,6 @@ export default function Drill() {
         </div>
 
         <div className={styles['bridge-section']}>
-          <div className={styles['section-header']}>State details</div>
-          <div className={styles['subsection-header']}>Rack</div>
-          <div className={styles['input-row']}>
-            <Button
-              className={styles['step-button']}
-              tooltip='Decrease value by 1'
-              onClick={() => commitAutonomySpeed('rack', autonomyRackSpeed - 1)}
-            >
-              <FontAwesomeIcon icon={faMinus} />
-            </Button>
-            <Input
-              ref={autonomyRackSpeedInputRef}
-              type='float'
-              className={
-                styles['speed-input'] + (autonomyDetailsSubmitted ? ` ${styles['submitted-speed-input']}` : '')
-              }
-              placeholder='Rack speed (0–100)'
-              defaultValue={String(DEFAULT_AUTONOMY_RACK_SPEED)}
-              onChange={(text) => {
-                setAutonomyDetailsSubmitted(false);
-                setAutonomyRackSpeed(normalizeInteger(text, MIN_AUTONOMY_SPEED, MAX_AUTONOMY_SPEED, autonomyRackSpeed));
-              }}
-              onSubmit={(text) => commitAutonomySpeed('rack', text)}
-              onBlur={() => commitAutonomySpeed('rack')}
-            />
-            <Button
-              className={styles['step-button']}
-              tooltip='Increase value by 1'
-              onClick={() => commitAutonomySpeed('rack', autonomyRackSpeed + 1)}
-            >
-              <FontAwesomeIcon icon={faPlus} />
-            </Button>
-          </div>
-          <div className={styles['subsection-header']}>Drill</div>
-          <div className={styles['input-row']}>
-            <Button
-              className={styles['step-button']}
-              tooltip='Decrease value by 1'
-              onClick={() => commitAutonomySpeed('drill', autonomyDrillSpeed - 1)}
-            >
-              <FontAwesomeIcon icon={faMinus} />
-            </Button>
-            <Input
-              ref={autonomyDrillSpeedInputRef}
-              type='float'
-              className={
-                styles['speed-input'] + (autonomyDetailsSubmitted ? ` ${styles['submitted-speed-input']}` : '')
-              }
-              placeholder='Drill speed (0–100)'
-              defaultValue={String(DEFAULT_AUTONOMY_DRILL_SPEED)}
-              onChange={(text) => {
-                setAutonomyDetailsSubmitted(false);
-                setAutonomyDrillSpeed(
-                  normalizeInteger(text, MIN_AUTONOMY_SPEED, MAX_AUTONOMY_SPEED, autonomyDrillSpeed)
-                );
-              }}
-              onSubmit={(text) => commitAutonomySpeed('drill', text)}
-              onBlur={() => commitAutonomySpeed('drill')}
-            />
-            <Button
-              className={styles['step-button']}
-              tooltip='Increase value by 1'
-              onClick={() => commitAutonomySpeed('drill', autonomyDrillSpeed + 1)}
-            >
-              <FontAwesomeIcon icon={faPlus} />
-            </Button>
-          </div>
-        </div>
-
-        <div className={styles['bridge-section']}>
           <div className={styles['section-header']}>Site 1</div>
           <div className={styles['button-row']}>{site1States.map(renderStateButton)}</div>
           <div className={styles['button-row']}>
@@ -625,7 +519,7 @@ export default function Drill() {
 
         <div className={styles['bridge-section']}>
           <div className={styles['section-header']}>General</div>
-          <div className={styles['autonomy-grid']}>{generalStates.map(renderStateButton)}</div>
+          <div className={styles['state-grid']}>{generalStates.map(renderStateButton)}</div>
         </div>
       </div>
 
