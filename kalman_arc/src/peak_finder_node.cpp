@@ -47,12 +47,15 @@ public:
 
 		// Accepted Z band for incoming cloud points, relative to robot height.
 		z_min_offset_         = this->declare_parameter<double>("z_min_offset", -3.0);
-		z_max_offset_         = this->declare_parameter<double>("z_max_offset", 5.0);
+		z_max_offset_         = this->declare_parameter<double>("z_max_offset", 3.0);
 		// Median filter window radius used to suppress spikes before search.
 		median_filter_radius_ = this->declare_parameter<double>("median_filter_radius", 0.45);
 		// Candidates whose surroundings descend steeper than this are rejected.
-		slope_check_radius_   = this->declare_parameter<double>("slope_check_radius", 1.0);
+		slope_check_radius_   = this->declare_parameter<double>("slope_check_radius", 2.5);
 		max_slope_deg_        = this->declare_parameter<double>("max_slope_deg", 45.0);
+		// Goals taller than this many meters above the robot's height at
+		// search start are rejected.
+		max_goal_z_           = this->declare_parameter<double>("max_goal_z", 2.0);
 
 		map_.setFrameId(map_frame_);
 		map_.setGeometry(grid_map::Length(map_size, map_size), resolution);
@@ -174,9 +177,10 @@ private:
 		}
 	}
 
-	// A real hill top is surrounded by terrain close to its own height. A
-	// leftover spike or a mapped person has few such cells (or they form a
-	// thin wall), so it gets rejected here.
+	// A real hill top is surrounded by terrain close to its own height and
+	// has nothing higher nearby. A leftover spike or a mapped person has few
+	// such cells (or they form a thin wall), and a flank of a taller hill
+	// has higher ground next to it - both get rejected here.
 	bool is_valid_peak(const grid_map::Position &center, float candidate_z) const {
 		const float min_support_z = candidate_z - static_cast<float>(support_height_drop_);
 
@@ -188,7 +192,15 @@ private:
 
 		for (grid_map::CircleIterator it(map_, center, peak_support_radius_); !it.isPastEnd(); ++it) {
 			const float z = map_.at("elevation_filtered", *it);
-			if (std::isnan(z) || z < min_support_z) continue;
+			if (std::isnan(z)) continue;
+
+			// A true summit has no higher terrain around it. If a nearby
+			// cell is higher, this candidate lies on the flank of a bigger
+			// feature (e.g. an over-limit mountain), so the whole feature
+			// gets skipped instead of being "found" partway up its slope.
+			if (z > candidate_z + 1e-3f) return false;
+
+			if (z < min_support_z) continue;
 
 			grid_map::Position p;
 			map_.getPosition(*it, p);
@@ -244,6 +256,10 @@ private:
 			const float z = map_.at("elevation_filtered", *it);
 			if (std::isnan(z) || z <= max_elevation) continue;
 
+			// Reject goals that are too tall (e.g. a bigger neighboring
+			// hill); keep searching for a lower one in range.
+			if (z - search_center_ref_z_ > max_goal_z_) continue;
+
 			grid_map::Position candidate;
 			map_.getPosition(*it, candidate);
 			if (!is_valid_peak(candidate, z)) continue;
@@ -273,9 +289,10 @@ private:
 		try {
 			auto tf = tf_buffer_->lookupTransform(map_frame_, robot_frame_, tf2::TimePointZero);
 			search_center_     = grid_map::Position(tf.transform.translation.x, tf.transform.translation.y);
+			search_center_ref_z_ = tf.transform.translation.z;
 			search_center_set_ = true;
-			RCLCPP_INFO(this->get_logger(), "Search center fixed at X: %.2f  Y: %.2f",
-			            search_center_.x(), search_center_.y());
+			RCLCPP_INFO(this->get_logger(), "Search center fixed at X: %.2f  Y: %.2f  Z: %.2f",
+			            search_center_.x(), search_center_.y(), search_center_ref_z_);
 		} catch (const tf2::TransformException &ex) {
 			response->success = false;
 			response->message = std::string("Failed to get robot pose: ") + ex.what();
@@ -303,9 +320,11 @@ private:
 	double            median_filter_radius_;
 	double            slope_check_radius_;
 	double            max_slope_deg_;
+	double            max_goal_z_;
 	grid_map::GridMap map_;
 
 	grid_map::Position search_center_{0.0, 0.0};
+	double             search_center_ref_z_{0.0};
 	bool               search_center_set_{false};
 
 	std::unique_ptr<tf2_ros::Buffer>            tf_buffer_;
