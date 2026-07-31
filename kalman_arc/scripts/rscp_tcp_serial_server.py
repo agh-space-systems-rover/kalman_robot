@@ -62,9 +62,7 @@ def write_all(fd: int, data: bytes):
             continue
 
 
-def read_frames(
-    from_fd: int, to_fd: int | None, frame: bytearray, eof_closes: bool
-):
+def read_frames(from_fd: int, to_fd: int | None, frame: bytearray, eof_closes: bool):
     while True:
         try:
             data = os.read(from_fd, 512)

@@ -93,7 +93,7 @@ class Rscp(Module):
                         "[RSCP] NavigateToGPS received "
                         f"(lat={req.latitude}, lon={req.longitude}), sent ACK"
                     )
-            
+
             elif req.type == ArcRscpRequest.SEARCH_AREA:
                 if not self.is_armed():
                     self.supervisor.get_logger().warn(
@@ -203,10 +203,10 @@ class Rscp(Module):
 
     def get_navigation_goal(self) -> tuple[float, float] | None:
         return self.__navigation_goal
-    
+
     def get_search_goal(self) -> tuple[float, float] | None:
         return self.__search_goal
-    
+
     def clear_search_goal(self) -> None:
         self.__search_goal = None
         self.supervisor.get_logger().info("[RSCP] Search goal cleared")

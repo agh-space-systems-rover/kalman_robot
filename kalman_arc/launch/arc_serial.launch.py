@@ -17,18 +17,24 @@ from lifecycle_msgs.msg import Transition
 def launch_setup(context):
     description = []
     serial_driver_onde = LifecycleNode(
-        package='serial_driver',
-        executable='serial_bridge',
-        name='serial_bridge_node',
-        namespace=TextSubstitution(text=''),
-        parameters=[{'device_name': '/dev/serial/by-id/usb-1a86_USB2.0-Ser_-if00-port0',
-                        'baud_rate': 115200,
-                    'flow_control': 'none',
-                    'parity': 'none',
-                    'stop_bits': "1"}],
-        remappings=[("serial_read", "rscp/serial/rx"),
-                    ("serial_write", "rscp/serial/tx")],
-        output='screen',
+        package="serial_driver",
+        executable="serial_bridge",
+        name="serial_bridge_node",
+        namespace=TextSubstitution(text=""),
+        parameters=[
+            {
+                "device_name": "/dev/serial/by-id/usb-1a86_USB2.0-Ser_-if00-port0",
+                "baud_rate": 115200,
+                "flow_control": "none",
+                "parity": "none",
+                "stop_bits": "1",
+            }
+        ],
+        remappings=[
+            ("serial_read", "rscp/serial/rx"),
+            ("serial_write", "rscp/serial/tx"),
+        ],
+        output="screen",
     )
     configure_event_handler = RegisterEventHandler(
         event_handler=OnProcessStart(
@@ -47,8 +53,8 @@ def launch_setup(context):
     activate_event_handler = RegisterEventHandler(
         event_handler=OnStateTransition(
             target_lifecycle_node=serial_driver_onde,
-            start_state='configuring',
-            goal_state='inactive',
+            start_state="configuring",
+            goal_state="inactive",
             entities=[
                 EmitEvent(
                     event=ChangeState(
@@ -78,7 +84,6 @@ def launch_setup(context):
         activate_event_handler,
         shutdown_event_handler,
     ]
-
 
     return description
 

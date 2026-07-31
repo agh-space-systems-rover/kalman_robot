@@ -8,7 +8,6 @@ from moveit_msgs.action import MoveGroup
 
 
 class FakeMoveServer(Node):
-
     def __init__(self, file_name: str = None):
         super().__init__("fake_move_server")
         self._action_server = ActionServer(

@@ -182,23 +182,23 @@ void RqtRscp::publish_request() {
 	switch (request_type_->currentIndex()) {
 	case 0:
 		message.type = ArcRscpRequest::ARM_DISARM;
-		message.arm = arm_->isChecked();
+		message.arm  = arm_->isChecked();
 		break;
 	case 1:
-		message.type = ArcRscpRequest::SET_STAGE;
+		message.type  = ArcRscpRequest::SET_STAGE;
 		message.stage = stage_->value();
 		break;
 	case 2: {
-		message.type = ArcRscpRequest::NAV_TO_GPS;
-		message.latitude = latitude_->value();
+		message.type      = ArcRscpRequest::NAV_TO_GPS;
+		message.latitude  = latitude_->value();
 		message.longitude = longitude_->value();
 		break;
 	}
 	case 3: {
-		message.type = ArcRscpRequest::SEARCH_AREA;
-		message.latitude = latitude_->value();
+		message.type      = ArcRscpRequest::SEARCH_AREA;
+		message.latitude  = latitude_->value();
 		message.longitude = longitude_->value();
-		message.radius = static_cast<float>(radius_->value());
+		message.radius    = static_cast<float>(radius_->value());
 		break;
 	}
 	case 4:
@@ -213,9 +213,8 @@ void RqtRscp::publish_request() {
 
 	const auto message_string = kalman_interfaces::msg::to_yaml(message);
 
-	status_->setText(
-	    QStringLiteral("Published:\n%1").arg(QString::fromStdString(message_string))
-	);
+	status_->setText(QStringLiteral("Published:\n%1")
+	                     .arg(QString::fromStdString(message_string)));
 }
 
 } // namespace kalman_arc

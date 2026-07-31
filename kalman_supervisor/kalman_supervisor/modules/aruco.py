@@ -197,7 +197,9 @@ class ArUco(Module):
     def clear_detections(self) -> None:
         self.__detections.clear()
 
-    def marker_pos(self, id: int, frame: str = "", timeout: float = 1000000.0) -> np.ndarray | None:
+    def marker_pos(
+        self, id: int, frame: str = "", timeout: float = 1000000.0
+    ) -> np.ndarray | None:
         if not id in self.__detections:
             return None
 
@@ -211,9 +213,7 @@ class ArUco(Module):
             return None
 
         # sort by timestamp descending to get the most recent detections
-        recent_detections = sorted(
-            valid_detections, key=lambda x: x[2], reverse=True
-        )
+        recent_detections = sorted(valid_detections, key=lambda x: x[2], reverse=True)
 
         pos, pos_frame, timestamp = recent_detections[0]
         if frame != pos_frame:

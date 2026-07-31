@@ -28,7 +28,7 @@ class RSCPShackleton(State):
             )
             self.failed = True
             return
-        
+
         init_lat, init_lon = last_goal
 
         if boulder_pos is None:

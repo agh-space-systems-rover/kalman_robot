@@ -235,9 +235,9 @@ class RosLinkServices:
 
             # Save the response in a dictionary.
             with self.incoming_service_responses_condition:
-                self.incoming_service_responses[res_id - 2] = (
-                    res  # response ID is request ID + 2
-                )
+                self.incoming_service_responses[
+                    res_id - 2
+                ] = res  # response ID is request ID + 2
                 self.incoming_service_responses_condition.notify_all()
         try:
             self.received_service_sequence_ids_condition.release()

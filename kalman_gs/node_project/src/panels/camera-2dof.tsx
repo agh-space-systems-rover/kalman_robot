@@ -83,7 +83,6 @@ export default function Camera2DofPanel() {
 
   return (
     <div className={styles['camera-2dof']}>
-
       <div className={styles['joystick-wrapper']}>
         <div
           className={styles['joystick-area']}
@@ -112,22 +111,22 @@ export default function Camera2DofPanel() {
       <div className={styles['divider']} />
 
       <div className={styles['controls-row']}>
-        <Checkbox checked={autoSend} onChange={setAutoSend} label="Auto-send" />
-        <Button tooltip="Center joystick (90° / 90°)" onClick={() => setPos({ x: 0.5, y: 0.5 })}>
+        <Checkbox checked={autoSend} onChange={setAutoSend} label='Auto-send' />
+        <Button tooltip='Center joystick (90° / 90°)' onClick={() => setPos({ x: 0.5, y: 0.5 })}>
           <FontAwesomeIcon icon={faCrosshairs} />
         </Button>
       </div>
 
       {autoSend ? (
         <div className={styles['rate-row']}>
-          <Label color={yellowBg} tooltip="Publish rate (Hz)">
+          <Label color={yellowBg} tooltip='Publish rate (Hz)'>
             <FontAwesomeIcon icon={faGaugeHigh} />
             <span className={styles['rate-label-text']}>HZ</span>
           </Label>
           <div className={styles['slider-container']}>
             <input
               className={styles['slider']}
-              type="range"
+              type='range'
               min={1}
               max={60}
               step={1}
@@ -144,13 +143,12 @@ export default function Camera2DofPanel() {
       ) : (
         <Button
           className={styles['send-button']}
-          tooltip="Publish camera position to ROS"
+          tooltip='Publish camera position to ROS'
           onClick={() => publish(pos.x, pos.y)}
         >
           Send
         </Button>
       )}
-
     </div>
   );
 }
