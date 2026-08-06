@@ -1,11 +1,21 @@
 from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument
+from launch.conditions import UnlessCondition
+from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import ComposableNodeContainer, Node
 from launch_ros.descriptions import ComposableNode
 from ament_index_python import get_package_share_path
 
 
 def generate_launch_description():
-    # Launch as much as possible in components
+    use_sim = LaunchConfiguration("use_sim")
+
+    argument_use_sim = DeclareLaunchArgument(
+        "use_sim",
+        default_value="false",
+        description="Whether to run in simulation mode without hardware interfaces",
+    )
+
     container = ComposableNodeContainer(
         name="master_node_container",
         namespace="/",
@@ -34,6 +44,7 @@ def generate_launch_description():
         package="kalman_master",
         executable="master_com",
         parameters=[{"baud_rate": 2000000, "port": "/dev/ttyAMA2"}],
+        condition=UnlessCondition(use_sim),
     )
 
     arm_state_publisher_node = Node(
@@ -54,10 +65,12 @@ def generate_launch_description():
                 "rover_endpoint": "arm",
             },
         ],
+        condition=UnlessCondition(use_sim),
     )
 
     return LaunchDescription(
         [
+            argument_use_sim,
             master_uart_node,
             ros_link_node,
             arm_state_publisher_node,

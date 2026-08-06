@@ -1,12 +1,18 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
-
+  <xacro:arg name="use_sim" default="false" />
   <xacro:macro name="arm_ros2_control" params="name">
 
     <ros2_control name="${name}" type="system">
 
       <hardware>
-        <plugin>kalman_arm_controller/ArmSystem</plugin>
+        <xacro:if value="${'$(arg use_sim)' == 'true'}">
+          <plugin>kalman_arm_controller/ArmSimSystem</plugin>
+        </xacro:if>
+        
+        <xacro:unless value="${'$(arg use_sim)' == 'true'}">
+          <plugin>kalman_arm_controller/ArmSystem</plugin>
+        </xacro:unless>
       </hardware>
 
       <joint name="arm_joint_1">
