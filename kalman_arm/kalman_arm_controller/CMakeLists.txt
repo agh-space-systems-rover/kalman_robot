@@ -124,6 +124,7 @@ add_library(
   kalman_arm_controller
   SHARED
   hardware/arm_hardware.cpp
+  hardware/arm_sim_hardware.cpp
   hardware/can_src/arm_config.cpp
   hardware/can_src/can_driver.cpp
   hardware/can_src/can_handlers.cpp
