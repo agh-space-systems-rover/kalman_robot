@@ -21,7 +21,6 @@ CAN_driver::DriverVars_t CAN_driver::arm_driver = {};
  *
  * @return int 0 on success, 1 on failure
  */
-extern "C" {
 int CAN_driver::init(DriverVars_t *driver_vars, const char *can_interface) {
 	printf("In CAN_driver::init\r\n");
 
@@ -72,7 +71,7 @@ int CAN_driver::init(DriverVars_t *driver_vars, const char *can_interface) {
 	printf("Finished CAN init! \r\n");
 	return 0;
 }
-}
+
 int CAN_driver::startArmRead() {
 	arm_driver.reader = std::thread(CAN_driver::armRead);
 	return 0;
@@ -216,7 +215,6 @@ int CAN_driver::write_joint_posvel(uint8_t joint_id) {
 	return 1;
 }
 
-extern "C" {
 int CAN_driver::write_gripper_position(
     DriverVars_t *driver_vars, uint16_t position
 ) {
@@ -235,7 +233,6 @@ int CAN_driver::write_fastclick(DriverVars_t *driver_vars, uint8_t position) {
 	return write_data(
 	    driver_vars, can_id, (uint8_t *)&data, LEN_CMD_SET_FASTCLICK
 	);
-}
 }
 
 int CAN_driver::write_data(

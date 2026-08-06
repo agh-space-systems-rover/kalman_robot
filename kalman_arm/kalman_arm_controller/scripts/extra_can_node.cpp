@@ -14,9 +14,7 @@
 #include <rclcpp/timer.hpp>
 #include <rclcpp/utilities.hpp>
 #include <string>
-extern "C" {
 #include "kalman_arm_controller/can_libs/can_driver.hpp"
-}
 #include <stdint.h>
 
 namespace kalman_arm {

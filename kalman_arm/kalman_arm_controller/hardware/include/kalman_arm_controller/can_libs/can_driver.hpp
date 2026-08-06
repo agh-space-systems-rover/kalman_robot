@@ -19,8 +19,7 @@
 #include <sys/socket.h>
 
 namespace CAN_driver {
-extern "C" {
-typedef struct DriverVars_t {
+struct DriverVars_t {
 	int                 sock = 0;
 	struct sockaddr_can addr = {};
 	struct ifreq        ifr  = {};
@@ -33,15 +32,12 @@ typedef struct DriverVars_t {
 		this->reader.join();
 		::close(this->sock);
 	}
-} DriverVars_t;
-}
+};
 extern DriverVars_t arm_driver;
 
-extern "C" {
 int init(DriverVars_t *, const char *can_interface);
 int write_gripper_position(DriverVars_t *driver_vars, uint16_t position);
 int write_fastclick(DriverVars_t *driver_vars, uint8_t position);
-}
 int startArmRead();
 int armRead();
 

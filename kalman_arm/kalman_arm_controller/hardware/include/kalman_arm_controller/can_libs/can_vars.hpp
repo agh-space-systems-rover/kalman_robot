@@ -22,9 +22,8 @@ extern jointStatus_t joints[6];
  */
 extern armConfig_t arm_config;
 
-extern "C" {
 extern uint16_t gripper_position;
-};
+
 
 extern bool received_joint_status[6];
 
