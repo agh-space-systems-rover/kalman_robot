@@ -79,7 +79,7 @@ def launch_setup(context):
     )
 
     if 1:
-        actions += node_or_component(
+        actions += launch_node_or_load_component(
             component_container=component_container,
             package="kalman_arm2",
             executable="bt_panel",
