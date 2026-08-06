@@ -74,7 +74,7 @@ def generate_launch_description():
 
     return LaunchDescription(
         [
-            gps_node,
-            imu_container,
+            # gps_node,
+            # imu_container,
         ]
     )

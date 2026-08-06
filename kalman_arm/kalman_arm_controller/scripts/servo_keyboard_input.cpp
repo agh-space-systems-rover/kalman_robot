@@ -41,7 +41,7 @@
 #include <chrono>
 #include <control_msgs/msg/joint_jog.hpp>
 #include <geometry_msgs/msg/twist_stamped.hpp>
-#include <moveit_msgs/srv/servo_command_type.hpp>
+
 #include <rclcpp/rclcpp.hpp>
 #include <signal.h>
 #include <stdio.h>
@@ -62,11 +62,8 @@ constexpr int8_t KEYCODE_3         = 0x33;
 constexpr int8_t KEYCODE_4         = 0x34;
 constexpr int8_t KEYCODE_5         = 0x35;
 constexpr int8_t KEYCODE_6         = 0x36;
-constexpr int8_t KEYCODE_7         = 0x37;
 constexpr int8_t KEYCODE_Q         = 0x71;
 constexpr int8_t KEYCODE_R         = 0x72;
-constexpr int8_t KEYCODE_J         = 0x6A;
-constexpr int8_t KEYCODE_T         = 0x74;
 constexpr int8_t KEYCODE_W         = 0x77;
 constexpr int8_t KEYCODE_E         = 0x65;
 } // namespace
@@ -116,16 +113,11 @@ public:
 	KeyboardServo();
 	int keyLoop();
 
-private:
-	void spin();
-
 	rclcpp::Node::SharedPtr nh_;
 
 	rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr twist_pub_;
 	rclcpp::Publisher<control_msgs::msg::JointJog>::SharedPtr      joint_pub_;
-	rclcpp::Client<moveit_msgs::srv::ServoCommandType>::SharedPtr switch_input_;
 
-	std::shared_ptr<moveit_msgs::srv::ServoCommandType::Request> request_;
 	double                                                       joint_vel_cmd_;
 	std::string command_frame_id_;
 };
@@ -141,10 +133,6 @@ KeyboardServo::KeyboardServo()
 	    JOINT_TOPIC, ROS_QUEUE_SIZE
 	);
 
-	// Client for switching input types
-	switch_input_ = nh_->create_client<moveit_msgs::srv::ServoCommandType>(
-	    "servo_node/switch_command_type"
-	);
 }
 
 KeyboardReader input;
@@ -169,31 +157,22 @@ int main(int argc, char **argv) {
 	return rc;
 }
 
-void KeyboardServo::spin() {
-	while (rclcpp::ok()) {
-		rclcpp::spin_some(nh_);
-	}
-}
+
 
 int KeyboardServo::keyLoop() {
 	char c;
 	bool publish_twist = false;
 	bool publish_joint = false;
 
-	std::thread{[this]() {
-		return spin();
-	}}.detach();
+
 
 	puts("Reading from keyboard");
 	puts("---------------------------");
 	puts("All commands are in the planning frame");
 	puts("Use arrow keys and the '.' and ';' keys to Cartesian jog");
 	puts(
-	    "Use 1|2|3|4|5|6|7 keys to joint jog. 'r' to reverse the direction of "
-	    "jogging."
+	    "Use 1|2|3|4|5|6 keys to joint jog. 'r' reverses jogging direction."
 	);
-	puts("Use 'j' to select joint jog. ");
-	puts("Use 't' to select twist ");
 	puts(
 	    "Use 'w' and 'e' to switch between sending command in planning frame "
 	    "or end effector "
@@ -216,7 +195,6 @@ int KeyboardServo::keyLoop() {
 		auto twist_msg = std::make_unique<geometry_msgs::msg::TwistStamped>();
 		auto joint_msg = std::make_unique<control_msgs::msg::JointJog>();
 
-		joint_msg->joint_names.resize(7);
 		joint_msg->joint_names = {
 		    "arm_joint_1",
 		    "arm_joint_2",
@@ -226,7 +204,7 @@ int KeyboardServo::keyLoop() {
 		    "arm_joint_6"
 		};
 
-		joint_msg->velocities.resize(7);
+		joint_msg->velocities.resize(6);
 		std::fill(
 		    joint_msg->velocities.begin(), joint_msg->velocities.end(), 0.0
 		);
@@ -292,53 +270,12 @@ int KeyboardServo::keyLoop() {
 			joint_msg->velocities[5] = joint_vel_cmd_;
 			publish_joint            = true;
 			break;
-		case KEYCODE_7:
-			RCLCPP_DEBUG(nh_->get_logger(), "7");
-			joint_msg->velocities[6] = joint_vel_cmd_;
-			publish_joint            = true;
-			break;
+
 		case KEYCODE_R:
 			RCLCPP_DEBUG(nh_->get_logger(), "r");
 			joint_vel_cmd_ *= -1;
 			break;
-		case KEYCODE_J:
-			RCLCPP_DEBUG(nh_->get_logger(), "j");
-			request_ =
-			    std::make_shared<moveit_msgs::srv::ServoCommandType::Request>();
-			request_->command_type =
-			    moveit_msgs::srv::ServoCommandType::Request::JOINT_JOG;
-			if (switch_input_->wait_for_service(std::chrono::seconds(1))) {
-				auto result = switch_input_->async_send_request(request_);
-				if (result.get()->success) {
-					RCLCPP_INFO_STREAM(
-					    nh_->get_logger(), "Switched to input type: JointJog"
-					);
-				} else {
-					RCLCPP_WARN_STREAM(
-					    nh_->get_logger(), "Could not switch input to: JointJog"
-					);
-				}
-			}
-			break;
-		case KEYCODE_T:
-			RCLCPP_DEBUG(nh_->get_logger(), "t");
-			request_ =
-			    std::make_shared<moveit_msgs::srv::ServoCommandType::Request>();
-			request_->command_type =
-			    moveit_msgs::srv::ServoCommandType::Request::TWIST;
-			if (switch_input_->wait_for_service(std::chrono::seconds(1))) {
-				auto result = switch_input_->async_send_request(request_);
-				if (result.get()->success) {
-					RCLCPP_INFO_STREAM(
-					    nh_->get_logger(), "Switched to input type: Twist"
-					);
-				} else {
-					RCLCPP_WARN_STREAM(
-					    nh_->get_logger(), "Could not switch input to: Twist"
-					);
-				}
-			}
-			break;
+
 		case KEYCODE_W:
 			RCLCPP_DEBUG(nh_->get_logger(), "w");
 			RCLCPP_INFO_STREAM(
