@@ -35,7 +35,6 @@ struct DriverVars_t {
 		::close(this->sock);
 	}
 };
-extern DriverVars_t arm_driver;
 } // namespace CAN_driver
 
 class CanDriver {

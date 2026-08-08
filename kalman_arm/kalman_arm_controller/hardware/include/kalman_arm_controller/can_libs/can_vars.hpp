@@ -12,7 +12,7 @@ namespace CAN_vars {
  * This includes status, setpoint in CAN and readable units. Joint numbered from
  * 0 to 5.
  */
-extern jointStatus_t joints[6];
+extern ArmState joints;
 
 /**
  * @brief armConfig_t representing the configuration of the arm.
@@ -24,8 +24,6 @@ extern const armConfig_t arm_config;
 
 extern uint16_t gripper_position;
 
-
-extern bool received_joint_status[6];
 
 void update_joint_status();
 void update_joint_setpoint();

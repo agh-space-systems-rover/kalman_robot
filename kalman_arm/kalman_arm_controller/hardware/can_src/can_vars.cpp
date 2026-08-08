@@ -3,13 +3,11 @@
 #include <cstdint>
 
 namespace CAN_vars {
-jointStatus_t joints[6] = {};
+ArmState joints = {};
 
 constexpr armConfig_t arm_config = arm_config::load_default_config();
 
 uint16_t gripper_position = 0;
-
-bool received_joint_status[6] = {false, false, false, false, false, false};
 } // namespace CAN_vars
 
 /**
@@ -58,13 +56,13 @@ void CAN_vars::update_single_joint_status(uint8_t joint_id) {
 void CAN_vars::calculate_status(uint8_t joint_id) {
 	const jointConfig_t *config = &CAN_vars::arm_config.joint[joint_id + 1];
 	const jointMotorFastStatus_t *jointStatus =
-	    &CAN_vars::joints[joint_id].fastStatus;
+	    &CAN_vars::joints.jointFeedback[joint_id].fastStatus;
 	float gearRatio = config->gearRatio;
 	float direction = config->invertDirection ? -1.0f : 1.0f;
 
-	joints[joint_id].moveStatus.velocity_deg_s =
+	joints.jointFeedback[joint_id].moveStatus.velocity_deg_s =
 	    (360.0f / (10 * 60)) * gearRatio * jointStatus->velocity * direction;
-	joints[joint_id].moveStatus.position_deg =
+	joints.jointFeedback[joint_id].moveStatus.position_deg =
 	    0.01f * gearRatio * static_cast<float>(jointStatus->position) * direction;
 }
 
@@ -92,8 +90,8 @@ void CAN_vars::calculate_status_diff(uint8_t joint_id, uint8_t diff_id) {
 	difConfig[0] = &CAN_vars::arm_config.joint[difNbr[0]];
 	difConfig[1] = &CAN_vars::arm_config.joint[difNbr[1]];
 
-	difStatus[0] = &CAN_vars::joints[difNbr[0] - 1].fastStatus;
-	difStatus[1] = &CAN_vars::joints[difNbr[1] - 1].fastStatus;
+	difStatus[0] = &CAN_vars::joints.jointFeedback[difNbr[0] - 1].fastStatus;
+	difStatus[1] = &CAN_vars::joints.jointFeedback[difNbr[1] - 1].fastStatus;
 
 	for (uint8_t i = 0; i < 2; i++) {
 		gearRatio[i] = difConfig[i]->gearRatio;
@@ -102,14 +100,14 @@ void CAN_vars::calculate_status_diff(uint8_t joint_id, uint8_t diff_id) {
 		position[i] = 0.01f * gearRatio[i] * static_cast<float>(difStatus[i]->position);
 	}
 
-	joints[difNbr[0] - 1].moveStatus.velocity_deg_s =
+	joints.jointFeedback[difNbr[0] - 1].moveStatus.velocity_deg_s =
 	    (velocity[0] - velocity[1]) / 2;
-	joints[difNbr[0] - 1].moveStatus.position_deg =
+	joints.jointFeedback[difNbr[0] - 1].moveStatus.position_deg =
 	    -(position[0] - position[1]) / 2;
 
-	joints[difNbr[1] - 1].moveStatus.velocity_deg_s =
+	joints.jointFeedback[difNbr[1] - 1].moveStatus.velocity_deg_s =
 	    (velocity[0] + velocity[1]) / 2;
-	joints[difNbr[1] - 1].moveStatus.position_deg =
+	joints.jointFeedback[difNbr[1] - 1].moveStatus.position_deg =
 	    (position[0] + position[1]) / 2;
 }
 
@@ -127,7 +125,7 @@ void CAN_vars::update_single_joint_setpoint(uint8_t joint_id) {
 	direction = arm_config.joint[joint_id + 1].invertDirection ? -1.0f : 1.0f;
 	gearRatio = arm_config.joint[joint_id + 1].gearRatio;
 
-	temp = (100.0f / gearRatio) * joints[joint_id].moveSetpoint.position_deg *
+	temp = (100.0f / gearRatio) * joints.jointCmd[joint_id].moveSetpoint.position_deg *
 	       direction;
 	if (temp >= INT32_MAX) {
 		data.position_0deg01 = INT32_MAX;
@@ -141,12 +139,12 @@ void CAN_vars::update_single_joint_setpoint(uint8_t joint_id) {
 	//     printf("GOT setpoint in degs: %f\t setting setpoint to: %ld\t\r\n",
 	//     joints[joint_id].moveSetpoint.position_deg, data.position_0deg01);
 
-	CAN_vars::joints[joint_id].setpoint = data;
+	CAN_vars::joints.jointCmd[joint_id].setpoint = data;
 
 	jointCmdVelocity_t velData;
 
 	temp = (((10.0f * 60) / 360.0f) / gearRatio) *
-	       joints[joint_id].moveSetpoint.velocity_deg_s * direction;
+	       joints.jointCmd[joint_id].moveSetpoint.velocity_deg_s * direction;
 	if (temp >= INT16_MAX) {
 		velData.velocity_0RPM_1 = INT16_MAX;
 	} else if (temp <= INT16_MIN) {
@@ -155,7 +153,7 @@ void CAN_vars::update_single_joint_setpoint(uint8_t joint_id) {
 		velData.velocity_0RPM_1 = static_cast<int16_t>(temp);
 	}
 
-	CAN_vars::joints[joint_id].velSetpoint = velData;
+	CAN_vars::joints.jointCmd[joint_id].velSetpoint = velData;
 }
 
 /**
@@ -182,25 +180,25 @@ void CAN_vars::calculate_single_diff_setpoint(
 	float dif1Velocity, dif2Velocity;
 	float dif1Position, dif2Position;
 
-	dif1Position = joints[joint_id].moveSetpointDiff.position_deg;
-	dif2Position = joints[diff_id].moveSetpointDiff.position_deg;
+	dif1Position = joints.jointCmd[joint_id].moveSetpointDiff.position_deg;
+	dif2Position = joints.jointCmd[diff_id].moveSetpointDiff.position_deg;
 
-	dif1Velocity = joints[joint_id].moveSetpointDiff.velocity_deg_s;
-	dif2Velocity = joints[diff_id].moveSetpointDiff.velocity_deg_s;
+	dif1Velocity = joints.jointCmd[joint_id].moveSetpointDiff.velocity_deg_s;
+	dif2Velocity = joints.jointCmd[diff_id].moveSetpointDiff.velocity_deg_s;
 
-	joints[joint_id].moveSetpoint.torque_Nm =
-	    joints[joint_id].moveSetpointDiff.torque_Nm;
-	joints[diff_id].moveSetpoint.torque_Nm =
-	    joints[diff_id].moveSetpointDiff.torque_Nm;
+	joints.jointCmd[joint_id].moveSetpoint.torque_Nm =
+	    joints.jointCmd[joint_id].moveSetpointDiff.torque_Nm;
+	joints.jointCmd[diff_id].moveSetpoint.torque_Nm =
+	    joints.jointCmd[diff_id].moveSetpointDiff.torque_Nm;
 
-	joints[joint_id].moveSetpoint.acceleration_deg_ss =
-	    joints[joint_id].moveSetpointDiff.acceleration_deg_ss;
-	joints[diff_id].moveSetpoint.acceleration_deg_ss =
-	    joints[diff_id].moveSetpointDiff.acceleration_deg_ss;
+	joints.jointCmd[joint_id].moveSetpoint.acceleration_deg_ss =
+	    joints.jointCmd[joint_id].moveSetpointDiff.acceleration_deg_ss;
+	joints.jointCmd[diff_id].moveSetpoint.acceleration_deg_ss =
+	    joints.jointCmd[diff_id].moveSetpointDiff.acceleration_deg_ss;
 
-	joints[joint_id].moveSetpoint.velocity_deg_s = -dif1Velocity + dif2Velocity;
-	joints[diff_id].moveSetpoint.velocity_deg_s  = dif1Velocity + dif2Velocity;
+	joints.jointCmd[joint_id].moveSetpoint.velocity_deg_s = -dif1Velocity + dif2Velocity;
+	joints.jointCmd[diff_id].moveSetpoint.velocity_deg_s  = dif1Velocity + dif2Velocity;
 
-	joints[joint_id].moveSetpoint.position_deg = -dif1Position + dif2Position;
-	joints[diff_id].moveSetpoint.position_deg  = dif1Position + dif2Position;
+	joints.jointCmd[joint_id].moveSetpoint.position_deg = -dif1Position + dif2Position;
+	joints.jointCmd[diff_id].moveSetpoint.position_deg  = dif1Position + dif2Position;
 }

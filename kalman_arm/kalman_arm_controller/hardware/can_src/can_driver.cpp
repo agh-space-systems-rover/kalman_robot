@@ -13,9 +13,6 @@
 #define BUFFER_SIZE 1024
 #define TIMEOUT_MS  1 // 5 seconds
 
-// TODO: remove the line below
-CAN_driver::DriverVars_t CAN_driver::arm_driver = {};
-
 int CanDriver::init(const char *can_interface) {
 	printf("In init\r\n");
 
@@ -178,7 +175,7 @@ int CanDriver::write_joint_setpoint(uint8_t joint_id) {
 
 	uint16_t can_id = (joint_id << 7) + CMD_SETPOINT;
 	if (1 <= joint_id && joint_id <= 6) {
-		return write_data(can_id, CAN_vars::joints[joint_id - 1].setpoint);
+		return write_data(can_id, CAN_vars::joints.jointCmd[joint_id - 1].setpoint);
 	}
 	return 1;
 }
@@ -188,7 +185,7 @@ int CanDriver::write_joint_posvel(uint8_t joint_id) {
 
 	uint16_t can_id = (joint_id << 7) + CMD_VELOCITY;
 	if (1 <= joint_id && joint_id <= 6) {
-		return write_data(can_id, CAN_vars::joints[joint_id - 1].velSetpoint);
+		return write_data(can_id, CAN_vars::joints.jointCmd[joint_id - 1].velSetpoint);
 	}
 	return 1;
 }
