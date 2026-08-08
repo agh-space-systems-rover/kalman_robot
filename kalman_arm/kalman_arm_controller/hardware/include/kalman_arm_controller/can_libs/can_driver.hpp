@@ -27,9 +27,7 @@ struct DriverVars_t {
 	int                 sock = 0;
 	struct sockaddr_can addr = {};
 	struct ifreq        ifr  = {};
-	std::mutex          m_read;
-	std::mutex          m_write;
-	std::thread         reader;  // GUARDED_BY(m_read)
+	std::thread         reader;
 	bool                should_run = true;
 	~DriverVars_t() {
 		this->should_run = false;
@@ -82,14 +80,14 @@ public:
 
 	int write_fastclick(uint8_t position);
 
-	int write_data(uint16_t can_id, uint8_t *data, uint8_t len);
+	int write_data(uint16_t can_id, uint8_t *data, uint8_t len) const;
 
 	template <typename T> int write_data(uint16_t can_id, const T &data) {
 		static_assert(
-		    std::is_trivial<T>::value, "Input must be a trivial datatype"
+		    std::is_trivial_v<T>, "Input must be a trivial datatype"
 		);
 		static_assert(
-		    std::is_standard_layout<T>::value, "Input must be standard layout"
+		    std::is_standard_layout_v<T>, "Input must be standard layout"
 		);
 		struct canfd_frame frame;
 		frame.can_id = can_id;

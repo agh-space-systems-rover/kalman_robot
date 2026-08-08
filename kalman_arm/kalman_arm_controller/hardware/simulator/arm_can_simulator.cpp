@@ -332,7 +332,7 @@ private:
 
   void publish_status() {
     for (std::size_t index = 0; index < kJointCount; ++index) {
-      jointMotorFastStatus_t status{joints_[index].velocity, joints_[index].position};
+      jointMotorFastStatus_t status{.velocity=joints_[index].velocity, .position=joints_[index].position};
       canfd_frame frame{};
       frame.can_id = static_cast<canid_t>(((index + 1) << 7) | CMD_JOINT_FAST_STATUS);
       frame.len = LEN_JOINT_FAST_STATUS;
