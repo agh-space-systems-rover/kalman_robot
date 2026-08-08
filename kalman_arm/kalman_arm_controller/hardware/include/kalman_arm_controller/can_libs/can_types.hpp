@@ -126,7 +126,7 @@ struct jointConfig_t {
 
 	float gearRatio;
 
-	uint8_t  invertDirection;
+	bool  invertDirection;
 	uint8_t  requirePositioning;
 	uint8_t  positioningOrder;
 	float    positioningVelocity;

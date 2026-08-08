@@ -31,6 +31,7 @@ int handle_joint_status(uint32_t identifier, uint8_t *data, uint8_t len) {
 	const jointMotorStatus_t *status = (jointMotorStatus_t *)data;
 
 	// Update the joint status
+	std::lock_guard<std::mutex> lock(CAN_vars::joints.m_read);
 	CAN_vars::joints.jointFeedback[joint_id].status = *status;
 	return 0;
 }
@@ -50,6 +51,7 @@ int handle_joint_fast_status(uint32_t identifier, uint8_t *data, uint8_t len) {
 
 	const jointMotorFastStatus_t *status = (jointMotorFastStatus_t *)data;
 
+	std::lock_guard<std::mutex> lock(CAN_vars::joints.m_read);
 	CAN_vars::joints.jointFeedback[joint_id].fastStatus     = *status;
 	CAN_vars::joints.jointFeedback[joint_id].received = true;
 	return 0;

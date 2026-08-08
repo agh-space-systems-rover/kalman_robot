@@ -6,7 +6,9 @@
 #include "rclcpp/rclcpp.hpp"
 #include <cerrno>
 #include <cstdint>
+#include <cstdio>
 #include <cstring>
+#include <linux/can.h>
 #include <mutex>
 #include <poll.h>
 
@@ -17,7 +19,8 @@ int CanDriver::init(const char *can_interface) {
 	// arm_config::load_default_config();
 
 	// Get socket connection
-	if ((driver_vars.sock = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0) {
+	driver_vars.sock = socket(PF_CAN, SOCK_RAW, CAN_RAW);
+	if (driver_vars.sock < 0) {
 		perror("Socket");
 		return 1;
 	}
@@ -54,7 +57,7 @@ int CanDriver::init(const char *can_interface) {
 	tv.tv_sec  = 0;
 	tv.tv_usec = 1;
 	setsockopt(
-	    driver_vars.sock, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof tv
+	    driver_vars.sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof tv
 	);
 
 	printf("Finished CAN init! \r\n");
@@ -67,33 +70,27 @@ int CanDriver::startArmRead() {
 }
 
 int CanDriver::armRead() {
-	char buffer[BUFFER_SIZE];
+	canfd_frame frame;
 	while (driver_vars.should_run) {
 		ssize_t num_bytes =
-		    recv(driver_vars.sock, buffer, BUFFER_SIZE, MSG_DONTWAIT);
+		    recv(driver_vars.sock, &frame, sizeof(frame), MSG_DONTWAIT);
 
 		if (num_bytes < 0) {
 			if (errno == EAGAIN || errno == EWOULDBLOCK) {
 				// there was nothing to read (recv MSG_DONTWAIT flag docs)
 				std::this_thread::sleep_for(std::chrono::milliseconds{1});
 				continue;
-			} else {
-				RCLCPP_FATAL(
-				    rclcpp::get_logger("my_logger"),
-				    "armRead: recv failed due to: %s\r\n",
-				    std::strerror(errno)
-				);
-				exit(EXIT_FAILURE);
 			}
+			RCLCPP_FATAL(
+			    rclcpp::get_logger("my_logger"),
+			    "armRead: recv failed due to: %s\r\n",
+			    std::strerror(errno)
+			);
+			exit(EXIT_FAILURE);
 		}
 
-		buffer[num_bytes] = '\0'; // Null-terminate the received data
-		struct canfd_frame frame;
-
-		frame = *((struct canfd_frame *)buffer);
-
 		// We don't need to lock the recv invocation
-		std::lock_guard<std::mutex> lock(driver_vars.m_read); // Yay for RAII
+		// Locking happens when shared data is modified, no need to lock here
 		handle_frame(frame, &CAN_handlers::HANDLES);
 
 		CAN_vars::update_joint_status();
@@ -109,7 +106,7 @@ int CanDriver::handle_frame(
 	uint8_t joint_id = frame.can_id >> 7;
 	uint8_t command  = frame.can_id - (joint_id << 7);
 	try {
-		if (handles->find(command) != handles->end()) {
+		if (handles->contains(command)) {
 			(*handles).at(command).func(frame.can_id, frame.data, frame.len);
 		}
 	} catch (const std::exception &e) {
@@ -124,8 +121,6 @@ int CanDriver::handle_frame(
 }
 
 int CanDriver::arm_write(ControlType controlType) {
-	std::lock_guard<std::mutex> lock(driver_vars.m_write);
-
 	CAN_vars::update_joint_setpoint();
 	write_control_type(controlType);
 	std::this_thread::sleep_for(std::chrono::microseconds(1000));
@@ -172,6 +167,7 @@ int CanDriver::write_joint_setpoint(uint8_t joint_id) {
 
 	uint16_t can_id = (joint_id << 7) + CMD_SETPOINT;
 	if (1 <= joint_id && joint_id <= 6) {
+	    std::lock_guard<std::mutex> lock(CAN_vars::joints.m_write);
 		return write_data(can_id, CAN_vars::joints.jointCmd[joint_id - 1].setpoint);
 	}
 	return 1;
@@ -182,6 +178,7 @@ int CanDriver::write_joint_posvel(uint8_t joint_id) {
 
 	uint16_t can_id = (joint_id << 7) + CMD_VELOCITY;
 	if (1 <= joint_id && joint_id <= 6) {
+        std::lock_guard<std::mutex> lock(CAN_vars::joints.m_write);
 		return write_data(can_id, CAN_vars::joints.jointCmd[joint_id - 1].velSetpoint);
 	}
 	return 1;
@@ -201,7 +198,7 @@ int CanDriver::write_fastclick(uint8_t position) {
 	return write_data(can_id, data);
 }
 
-int CanDriver::write_data(uint16_t can_id, uint8_t *data, uint8_t len) {
+int CanDriver::write_data(uint16_t can_id, uint8_t *data, uint8_t len) const {
 	struct canfd_frame frame;
 	frame.can_id = can_id;
 	frame.len    = len;
@@ -217,5 +214,9 @@ int CanDriver::write_data(uint16_t can_id, uint8_t *data, uint8_t len) {
 int CanDriver::close() {
 	driver_vars.should_run = false;
 	driver_vars.reader.join();
-	return (::close(driver_vars.sock) < 0);
+	if (::close(driver_vars.sock) < 0) {
+    	perror("Close");
+        return 1;
+	}
+	return 0;
 }

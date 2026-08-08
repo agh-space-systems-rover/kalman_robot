@@ -5,12 +5,12 @@
 #include "kalman_arm_controller/can_libs/new_can_driver.hpp"
 #include <future>
 #include <hardware_interface/types/hardware_interface_return_values.hpp>
-#include <math.h>
+#include <cmath>
 #include <rclcpp/logging.hpp>
 #include <string>
 
 const double      MAX_POS_DIFF       = 0.1;
-const std::string CAN_INTERFACE      = "can0";
+const char*       CAN_INTERFACE      = "can0";
 const std::string CONTROL_TYPE_TOPIC = "/change_control_type";
 
 namespace kalman_arm_controller {
@@ -33,7 +33,7 @@ ArmSystem::on_init(const hardware_interface::HardwareInfo &info) {
 		}
 	}
 
-	can_driver.init(CAN_INTERFACE.c_str());
+	can_driver.init(CAN_INTERFACE);
 	can_driver.startArmRead();
 
 	node_ = rclcpp::Node::make_shared("arm_hardware_node");
@@ -47,6 +47,8 @@ ArmSystem::on_init(const hardware_interface::HardwareInfo &info) {
 		    case 1:
 			    current_control_type = ControlType::posvel;
 			    break;
+			default:
+			    RCLCPP_ERROR(node_->get_logger(), "Invalid control type: %d", msg->data);
 		    }
 	    }
 	);
@@ -167,7 +169,7 @@ return_type ArmSystem::write_joint_commands() {
 			    (current_control_type == ControlType::position &&
 			     !pos_too_far && already_read_)) {
 				std::lock_guard<std::mutex> lock(CAN_vars::joints.m_write);
-				for (int i = 0; i < 4; i++) {
+				for (size_t i = 0; i < 4; i++) {
 					CAN_vars::joints.jointCmd[i].moveSetpoint.position_deg =
 					    joint_position_command_[i] * 180.0f / M_PI;
 					CAN_vars::joints.jointCmd[i].moveSetpoint.velocity_deg_s =

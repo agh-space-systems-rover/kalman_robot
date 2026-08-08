@@ -37,9 +37,9 @@ void CAN_vars::update_joint_setpoint() {
  * @param joint_id - from 0 to 5
  */
 void CAN_vars::update_single_joint_status(uint8_t joint_id) {
-	const jointConfig_t *config = &CAN_vars::arm_config.joint[joint_id + 1];
-	if (config->differential) {
-		calculate_status_diff(joint_id, config->differential);
+	const jointConfig_t &config = CAN_vars::arm_config.joint[joint_id + 1];
+	if (config.differential) {
+		calculate_status_diff(joint_id, config.differential);
 	} else {
 		calculate_status(joint_id);
 	}
@@ -52,16 +52,18 @@ void CAN_vars::update_single_joint_status(uint8_t joint_id) {
  * @param joint_id - from 0 to 5
  */
 void CAN_vars::calculate_status(uint8_t joint_id) {
-	const jointConfig_t *config = &CAN_vars::arm_config.joint[joint_id + 1];
-	const jointMotorFastStatus_t *jointStatus =
-	    &CAN_vars::joints.jointFeedback[joint_id].fastStatus;
-	float gearRatio = config->gearRatio;
-	float direction = config->invertDirection ? -1.0f : 1.0f;
+	const jointConfig_t &config = CAN_vars::arm_config.joint[joint_id + 1];
+	const jointMotorFastStatus_t &jointStatus =
+	    CAN_vars::joints.jointFeedback[joint_id].fastStatus;
+
+	std::lock_guard<std::mutex> lock(CAN_vars::joints.m_read);
+	float gearRatio = config.gearRatio;
+	float direction = config.invertDirection ? -1.0f : 1.0f;
 
 	joints.jointFeedback[joint_id].moveStatus.velocity_deg_s =
-	    (360.0f / (10 * 60)) * gearRatio * jointStatus->velocity * direction;
+	    (360.0f / (10 * 60)) * gearRatio * jointStatus.velocity * direction;
 	joints.jointFeedback[joint_id].moveStatus.position_deg =
-	    0.01f * gearRatio * static_cast<float>(jointStatus->position) * direction;
+	    0.01f * gearRatio * static_cast<float>(jointStatus.position) * direction;
 }
 
 /**
@@ -88,6 +90,7 @@ void CAN_vars::calculate_status_diff(uint8_t joint_id, uint8_t diff_id) {
 	difConfig[0] = &CAN_vars::arm_config.joint[difNbr[0]];
 	difConfig[1] = &CAN_vars::arm_config.joint[difNbr[1]];
 
+	std::lock_guard<std::mutex> lock(CAN_vars::joints.m_read);
 	difStatus[0] = &CAN_vars::joints.jointFeedback[difNbr[0] - 1].fastStatus;
 	difStatus[1] = &CAN_vars::joints.jointFeedback[difNbr[1] - 1].fastStatus;
 
@@ -117,13 +120,12 @@ void CAN_vars::calculate_status_diff(uint8_t joint_id, uint8_t diff_id) {
  */
 void CAN_vars::update_single_joint_setpoint(uint8_t joint_id) {
 	jointCmdSetpoint_t data;
-	float              direction;
-	float              gearRatio, temp;
 
-	direction = arm_config.joint[joint_id + 1].invertDirection ? -1.0f : 1.0f;
-	gearRatio = arm_config.joint[joint_id + 1].gearRatio;
+	float direction = arm_config.joint[joint_id + 1].invertDirection ? -1.0f : 1.0f;
+	float gearRatio = arm_config.joint[joint_id + 1].gearRatio;
 
-	temp = (100.0f / gearRatio) * joints.jointCmd[joint_id].moveSetpoint.position_deg *
+	std::lock_guard<std::mutex> lock(CAN_vars::joints.m_write);
+	float temp = (100.0f / gearRatio) * joints.jointCmd[joint_id].moveSetpoint.position_deg *
 	       direction;
 	if (temp >= INT32_MAX) {
 		data.position_0deg01 = INT32_MAX;
@@ -178,6 +180,7 @@ void CAN_vars::calculate_single_diff_setpoint(
 	float dif1Velocity, dif2Velocity;
 	float dif1Position, dif2Position;
 
+	std::lock_guard<std::mutex> lock(CAN_vars::joints.m_write);
 	dif1Position = joints.jointCmd[joint_id].moveSetpointDiff.position_deg;
 	dif2Position = joints.jointCmd[diff_id].moveSetpointDiff.position_deg;
 
