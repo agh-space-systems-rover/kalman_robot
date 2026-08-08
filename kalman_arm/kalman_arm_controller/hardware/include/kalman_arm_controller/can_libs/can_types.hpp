@@ -49,7 +49,7 @@ struct jointMoveSetpoint_t {
  * @param status jointMotorStatus_t Received joint motor status
  * @param setpoint jointCmdSetpoint_t Joint setpoint to send
  */
-struct __attribute__((__packed__)) jointStatus_t {
+struct jointStatus_t {
 	/**
 	 * @brief Structure representing the status of a joint motor received from
 	 * CAN.
