@@ -3,7 +3,9 @@ project(kalman_arm_controller)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   # add_compile_options(-Wall -Wextra -Wpedantic -Werror -Wold-style-cast -Wconversion -Wsign-conversion -Wshadow -Wcast-qual)
+  # add_compile_options(-Wall -Wextra -Wpedantic -Wold-style-cast -Wconversion -Wsign-conversion -Wshadow -Wcast-qual -fsanitize=thread)
   add_compile_options(-Wall -Wextra -Wpedantic -Wold-style-cast -Wconversion -Wsign-conversion -Wshadow -Wcast-qual)
+  # add_link_options(-fsanitize=thread)
 endif()
 
 
@@ -118,6 +120,7 @@ add_library(
   hardware/can_src/can_driver.cpp
   hardware/can_src/can_handlers.cpp
   hardware/can_src/can_vars.cpp
+  hardware/can_src/new_can_driver.cpp
 )
 
 target_compile_features(kalman_arm_controller PUBLIC cxx_std_20)

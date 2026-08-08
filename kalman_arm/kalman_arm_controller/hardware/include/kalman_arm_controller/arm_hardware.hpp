@@ -1,6 +1,7 @@
 #ifndef KALMAN_ARM_CONTROLLER__ARM_HARDWARE_HPP_
 #define KALMAN_ARM_CONTROLLER__ARM_HARDWARE_HPP_
 
+#include "kalman_arm_controller/can_libs/new_can_driver.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/u_int16.hpp"
 #include "std_msgs/msg/u_int8.hpp"
@@ -68,6 +69,7 @@ protected:
 
 	return_type read_joint_states();
 	return_type write_joint_commands();
+	CanDriver can_driver;
 };
 
 } // namespace kalman_arm_controller

@@ -1,3 +1,4 @@
+#include "kalman_arm_controller/can_libs/new_can_driver.hpp"
 #include "std_msgs/msg/int8.hpp"
 #include "std_msgs/msg/u_int16.hpp"
 #include "std_msgs/msg/u_int8.hpp"
@@ -74,15 +75,17 @@ public:
 
 		gripper_position_ = start_pose_;
 
-		CAN_driver::init(&extra_driver_, can_interface_.c_str());
+		// CAN_driver::init(&extra_driver_, can_interface_.c_str());
+		can_driver.init(can_interface_.c_str());
 
 		gripper_sub_ = this->create_subscription<std_msgs::msg::Int8>(
 		    "gripper/command_incremental",
 		    rclcpp::SystemDefaultsQoS(),
 		    [this](const std_msgs::msg::Int8::SharedPtr msg) {
-			    CAN_driver::write_gripper_position(
-			        &extra_driver_, calculate_gripper_position(msg->data)
-			    );
+			    // CAN_driver::write_gripper_position(
+			    //     &extra_driver_, calculate_gripper_position(msg->data)
+			    // );
+				can_driver.write_gripper_position(calculate_gripper_position(msg->data));
 		    }
 		);
 
@@ -91,9 +94,10 @@ public:
 		        "gripper/command_absolute",
 		        rclcpp::SystemDefaultsQoS(),
 		        [this](const std_msgs::msg::UInt16::SharedPtr msg) {
-			        CAN_driver::write_gripper_position(
-			            &extra_driver_, set_gripper_position(msg->data)
-			        );
+			        // CAN_driver::write_gripper_position(
+			        //     &extra_driver_, set_gripper_position(msg->data)
+			        // );
+					can_driver.write_gripper_position(set_gripper_position(msg->data));
 		        }
 		    );
 
@@ -105,6 +109,7 @@ public:
 	}
 
 	~ExtraCanNode() override = default;
+	CanDriver can_driver;
 };
 
 } // namespace kalman_arm
