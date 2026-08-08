@@ -89,6 +89,7 @@ struct [[gnu::packed]] jointMotorStatus_t {
 };
 #define CMD_JOINT_STATUS 0x030
 #define LEN_JOINT_STATUS 16
+static_assert(LEN_JOINT_STATUS == sizeof(jointMotorStatus_t), "Joint status size must match defined length");
 
 /**
  * @brief Structure representing the fast status (only vel and pos).
@@ -102,12 +103,14 @@ struct [[gnu::packed]] jointMotorFastStatus_t {
 };
 #define CMD_JOINT_FAST_STATUS 0x036
 #define LEN_JOINT_FAST_STATUS 6
+static_assert(LEN_JOINT_FAST_STATUS == sizeof(jointMotorFastStatus_t), "Joint fast status size must match defined length");
 
 struct [[gnu::packed]] cmdGetGripper_t {
 	uint16_t gripperPosition;
 };
 #define CMD_GET_GRIPPER     0x040
 #define LEN_CMD_GET_GRIPPER 2
+static_assert(LEN_JOINT_STATUS == sizeof(jointMotorStatus_t), "Joint status size must match defined length");
 
 /*********SENDING MESSAGES************/
 
@@ -125,6 +128,7 @@ struct [[gnu::packed]] jointCmdSetpoint_t {
 };
 #define CMD_SETPOINT     0x026
 #define LEN_CMD_SETPOINT 4
+static_assert(LEN_CMD_SETPOINT == sizeof(jointCmdSetpoint_t), "Joint setpoint size must match defined length");
 
 /**
  * @brief Structure representing the velocity to be sent to a joint motor
@@ -140,6 +144,7 @@ struct [[gnu::packed]] jointCmdVelocity_t {
 };
 #define CMD_VELOCITY     0x025
 #define LEN_CMD_VELOCITY 2
+static_assert(LEN_CMD_VELOCITY == sizeof(jointCmdVelocity_t), "Joint velocity size must match defined length");
 
 /**
  * @brief Structure representing the control mode to be sent to a joint motor
@@ -155,17 +160,20 @@ struct [[gnu::packed]] jointCmdControlType_t {
 };
 #define CMD_CONTROL_TYPE     0x035
 #define LEN_CMD_CONTROL_TYPE 1
+static_assert(LEN_CMD_CONTROL_TYPE == sizeof(jointCmdControlType_t), "Control type size must match defined length");
 
 struct [[gnu::packed]] cmdSetGripper_t {
 	uint16_t gripperPosition;
 };
 #define CMD_SET_GRIPPER     0xE1
 #define LEN_CMD_SET_GRIPPER 2
+static_assert(LEN_CMD_SET_GRIPPER == sizeof(cmdSetGripper_t), "Fastclick size must match defined length");
 
 struct [[gnu::packed]] cmdSetFastclick_t {
 	uint8_t position;
 };
 #define CMD_SET_FASTCLICK     0xE3
 #define LEN_CMD_SET_FASTCLICK 1
+static_assert(LEN_CMD_SET_FASTCLICK == sizeof(cmdSetFastclick_t), "Fastclick size must match defined length");
 
 #endif // KALMAN_ARM_CONTROLLER__HARDWARE__CAN_MESSAGES_HPP

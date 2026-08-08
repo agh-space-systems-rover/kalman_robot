@@ -14,7 +14,8 @@ if(NOT TARGET tl::expected)
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  add_compile_options(-Wall -Wextra -Wpedantic)
+  # add_compile_options(-Wall -Wextra -Wpedantic -Werror -Wold-style-cast -Wconversion -Wsign-conversion -Wshadow -Wcast-qual)
+  add_compile_options(-Wall -Wextra -Wpedantic -Wold-style-cast -Wconversion -Wsign-conversion -Wshadow -Wcast-qual)
 endif()
 
 
@@ -90,7 +91,7 @@ ament_target_dependencies(${SERVO_PUBLISHER} ${THIS_PACKAGE_INCLUDE_DEPENDS})
 rclcpp_components_register_nodes(${SERVO_PUBLISHER} "arm_master::MasterToServo")
 
 set(EXTRA_CAN extra_can)
-add_library(${EXTRA_CAN} SHARED 
+add_library(${EXTRA_CAN} SHARED
     scripts/extra_can_node.cpp
     hardware/can_src/can_driver.cpp
     hardware/can_src/arm_config.cpp
