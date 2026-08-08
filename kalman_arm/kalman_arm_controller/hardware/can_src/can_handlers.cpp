@@ -59,7 +59,7 @@ int handle_gripper_status(uint32_t identifier, uint8_t *data, uint8_t len) {
 	UNUSED(identifier);
 	UNUSED(len);
 
-	CAN_vars::gripper_position = *((uint16_t *)data);
+	CAN_vars::joints.gripper_position = *((uint16_t *)data);
 	return 0;
 }
 

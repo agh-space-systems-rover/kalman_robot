@@ -5,7 +5,7 @@
 
 namespace arm_config {
 constexpr armConfig_t load_default_config() {
-	armConfig_t arm_config;
+	armConfig_t arm_config{};
 	arm_config.jointNumber                 = 6;
 	arm_config.jointCommandRefreshTime_ms  = 50;
 	arm_config.jointCommunicationTimeout   = 500;

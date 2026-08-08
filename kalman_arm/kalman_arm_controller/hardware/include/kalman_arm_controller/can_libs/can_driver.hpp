@@ -21,6 +21,8 @@
 #include <sys/socket.h>
 
 namespace CAN_driver {
+
+// TODO: integrate into CanDriver
 struct DriverVars_t {
 	int                 sock = 0;
 	struct sockaddr_can addr = {};

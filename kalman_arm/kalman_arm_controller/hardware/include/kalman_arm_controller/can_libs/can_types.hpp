@@ -101,6 +101,8 @@ struct ArmState {
     // TODO: rename the following two variables:
     std::mutex m_read;  // guards jointFeedback
     std::mutex m_write;  // guards jointCmd
+
+    uint16_t gripper_position = 0;
 };
 
 /**

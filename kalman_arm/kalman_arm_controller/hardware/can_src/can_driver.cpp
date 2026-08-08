@@ -10,9 +10,6 @@
 #include <mutex>
 #include <poll.h>
 
-#define BUFFER_SIZE 1024
-#define TIMEOUT_MS  1 // 5 seconds
-
 int CanDriver::init(const char *can_interface) {
 	printf("In init\r\n");
 
