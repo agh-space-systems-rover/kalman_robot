@@ -128,15 +128,15 @@ return_type ArmSystem::write(const rclcpp::Time &, const rclcpp::Duration &) {
 }
 
 return_type ArmSystem::read_joint_states() {
-	std::lock_guard<std::mutex> lock(CAN_driver::arm_driver.m_read);
+	std::lock_guard<std::mutex> lock(CAN_vars::joints.m_read);
 	already_read_ = true;
 	for (size_t i = 0; i < 6; i++) {
 		joint_position_[i] =
-		    CAN_vars::joints[i].moveStatus.position_deg * M_PI / 180.0f;
+		    CAN_vars::joints.jointFeedback[i].moveStatus.position_deg * M_PI / 180.0f;
 		joint_velocities_[i] =
-		    CAN_vars::joints[i].moveStatus.velocity_deg_s * M_PI / 180.0f;
+		    CAN_vars::joints.jointFeedback[i].moveStatus.velocity_deg_s * M_PI / 180.0f;
 
-		if (!CAN_vars::received_joint_status[i]) {
+		if (!CAN_vars::joints.jointFeedback[i].received) {
 			already_read_ = false;
 		}
 	}
@@ -169,33 +169,33 @@ return_type ArmSystem::write_joint_commands() {
 			    (current_control_type == ControlType::position &&
 			     !pos_too_far && already_read_)) {
 				std::lock_guard<std::mutex> lock(
-				    CAN_driver::arm_driver.m_write
+					CAN_vars::joints.m_write
 				);
 				for (int i = 0; i < 4; i++) {
-					CAN_vars::joints[i].moveSetpoint.position_deg =
+					CAN_vars::joints.jointCmd[i].moveSetpoint.position_deg =
 					    joint_position_command_[i] * 180.0f / M_PI;
-					CAN_vars::joints[i].moveSetpoint.velocity_deg_s =
+					CAN_vars::joints.jointCmd[i].moveSetpoint.velocity_deg_s =
 					    joint_velocities_command_[i] * 180.0f / M_PI;
-					CAN_vars::joints[i].moveSetpoint.torque_Nm = 0x02fa;
-					CAN_vars::joints[i].moveSetpoint.acceleration_deg_ss =
+					CAN_vars::joints.jointCmd[i].moveSetpoint.torque_Nm = 0x02fa;
+					CAN_vars::joints.jointCmd[i].moveSetpoint.acceleration_deg_ss =
 					    0xffff;
 				}
 				for (int i = 4; i < 6; i++) {
-					CAN_vars::joints[i].moveSetpointDiff.position_deg =
+					CAN_vars::joints.jointCmd[i].moveSetpointDiff.position_deg =
 					    joint_position_command_[i] * 180.0f / M_PI;
-					CAN_vars::joints[i].moveSetpointDiff.velocity_deg_s =
+					CAN_vars::joints.jointCmd[i].moveSetpointDiff.velocity_deg_s =
 					    joint_velocities_command_[i] * 180.0f / M_PI;
-					CAN_vars::joints[i].moveSetpointDiff.torque_Nm = 0x02fa;
-					CAN_vars::joints[i].moveSetpointDiff.acceleration_deg_ss =
+					CAN_vars::joints.jointCmd[i].moveSetpointDiff.torque_Nm = 0x02fa;
+					CAN_vars::joints.jointCmd[i].moveSetpointDiff.acceleration_deg_ss =
 					    0xffff;
 				}
 
 				// Flip joint 1 (base)
-				float temp_pos = CAN_vars::joints[0].moveSetpoint.position_deg;
+				float temp_pos = CAN_vars::joints.jointCmd[0].moveSetpoint.position_deg;
 				float temp_vel =
-				    CAN_vars::joints[0].moveSetpoint.velocity_deg_s;
-				CAN_vars::joints[0].moveSetpoint.position_deg   = -temp_pos;
-				CAN_vars::joints[0].moveSetpoint.velocity_deg_s = -temp_vel;
+				    CAN_vars::joints.jointCmd[0].moveSetpoint.velocity_deg_s;
+				CAN_vars::joints.jointCmd[0].moveSetpoint.position_deg   = -temp_pos;
+				CAN_vars::joints.jointCmd[0].moveSetpoint.velocity_deg_s = -temp_vel;
 
 				// Run write in a separate thread
 				writer = std::async(std::launch::async, [&] {

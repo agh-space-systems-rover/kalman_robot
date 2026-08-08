@@ -8,7 +8,9 @@
 #define KALMAN_ARM_CONTROLLER__HARDWARE__CAN_TYPES_HPP_
 
 #include "can_messages.hpp"
+#include <array>
 #include <cstdint>
+#include <mutex>
 
 /**
  * @brief Structure representing a CAN message handler.
@@ -42,15 +44,12 @@ struct jointMoveSetpoint_t {
 };
 
 /**
- * @brief Structure representing the status of a joint motor and its setpoint.
- *
- * This structure combines the joint motor status and the joint setpoint.
+ * @brief Structure representing the status of a joint motor.
  *
  * @param status jointMotorStatus_t Received joint motor status
- * @param setpoint jointCmdSetpoint_t Joint setpoint to send
  */
-struct jointStatus_t {
-	/**
+struct JointFeedback {
+    /**
 	 * @brief Structure representing the status of a joint motor received from
 	 * CAN.
 	 */
@@ -63,19 +62,24 @@ struct jointStatus_t {
 	jointMotorFastStatus_t fastStatus;
 
 	/**
+	 * @brief Structure representing the received status of a joint motor
+	 * already calculated to normal, humanreadable and supported by moveit
+	 * format.
+	 */
+	jointMoveStatus_t moveStatus;
+
+	bool received{};
+
+};
+
+struct JointCommand {
+    /**
 	 * @brief Structure representing the setpoint of a joint motor to send via
 	 * CAN.
 	 */
 	jointCmdSetpoint_t setpoint;
 
 	jointCmdVelocity_t velSetpoint;
-
-	/**
-	 * @brief Structure representing the received status of a joint motor
-	 * already calculated to normal, humanreadable and supported by moveit
-	 * format.
-	 */
-	jointMoveStatus_t moveStatus;
 
 	/**
 	 * @brief Structure representing the setpoint of a joint motor already
@@ -88,6 +92,15 @@ struct jointStatus_t {
 	 * (later converted to `moveSetpoint`).
 	 */
 	jointMoveSetpoint_t moveSetpointDiff;
+};
+
+struct ArmState {
+    std::array<JointFeedback, 6> jointFeedback;
+    std::array<JointCommand, 6> jointCmd;
+
+    // TODO: rename the following two variables:
+    std::mutex m_read;  // guards jointFeedback
+    std::mutex m_write;  // guards jointCmd
 };
 
 /**
