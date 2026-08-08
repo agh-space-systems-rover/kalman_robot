@@ -207,9 +207,7 @@ return_type ArmSystem::write_joint_commands() {
 	return return_type::OK;
 }
 
-ArmSystem::~ArmSystem() {
-	can_driver.close();
-}
+
 
 } // namespace kalman_arm_controller
 
