@@ -2,6 +2,7 @@
 #include "hardware_interface/system_interface.hpp"
 #include "kalman_arm_controller/can_libs/can_driver.hpp"
 #include "kalman_arm_controller/can_libs/can_vars.hpp"
+#include "kalman_arm_controller/can_libs/new_can_driver.hpp"
 #include <future>
 #include <hardware_interface/types/hardware_interface_return_values.hpp>
 #include <math.h>
@@ -32,8 +33,10 @@ ArmSystem::on_init(const hardware_interface::HardwareInfo &info) {
 		}
 	}
 
-	CAN_driver::init(&CAN_driver::arm_driver, CAN_INTERFACE.c_str());
-	CAN_driver::startArmRead();
+	// CAN_driver::init(&CAN_driver::arm_driver, CAN_INTERFACE.c_str());
+	// CAN_driver::startArmRead();
+	can_driver.init(CAN_INTERFACE.c_str());
+	can_driver.startArmRead();
 
 	node_ = rclcpp::Node::make_shared("arm_hardware_node");
 
@@ -61,7 +64,7 @@ std::vector<hardware_interface::StateInterface>
 ArmSystem::export_state_interfaces() {
 	std::vector<hardware_interface::StateInterface> state_interfaces;
 
-	int ind = 0;
+	size_t ind = 0;
 	for (const auto &joint_name : joint_interfaces["position"]) {
 		state_interfaces.emplace_back(
 		    joint_name, "position", &joint_position_[ind++]
@@ -82,7 +85,7 @@ std::vector<hardware_interface::CommandInterface>
 ArmSystem::export_command_interfaces() {
 	std::vector<hardware_interface::CommandInterface> command_interfaces;
 
-	int ind = 0;
+	size_t ind = 0;
 	for (const auto &joint_name : joint_interfaces["position"]) {
 		command_interfaces.emplace_back(
 		    joint_name, "position", &joint_position_command_[ind++]
@@ -127,7 +130,7 @@ return_type ArmSystem::write(const rclcpp::Time &, const rclcpp::Duration &) {
 return_type ArmSystem::read_joint_states() {
 	std::lock_guard<std::mutex> lock(CAN_driver::arm_driver.m_read);
 	already_read_ = true;
-	for (int i = 0; i < 6; i++) {
+	for (size_t i = 0; i < 6; i++) {
 		joint_position_[i] =
 		    CAN_vars::joints[i].moveStatus.position_deg * M_PI / 180.0f;
 		joint_velocities_[i] =
@@ -154,8 +157,8 @@ return_type ArmSystem::write_joint_commands() {
 	} else {
 		{
 			bool pos_too_far = false;
-			for (int i = 0; i < 6; i++) {
-				if (abs(joint_position_command_[i] - joint_position_[i]) >
+			for (size_t i = 0; i < 6; i++) {
+				if (std::abs(joint_position_command_[i] - joint_position_[i]) >
 				    MAX_POS_DIFF) {
 					pos_too_far = true;
 					break;
@@ -196,7 +199,8 @@ return_type ArmSystem::write_joint_commands() {
 
 				// Run write in a separate thread
 				writer = std::async(std::launch::async, [&] {
-					CAN_driver::arm_write(current_control_type);
+					// CAN_driver::arm_write(current_control_type);
+					can_driver.arm_write(current_control_type);
 				});
 			}
 		}
@@ -206,7 +210,8 @@ return_type ArmSystem::write_joint_commands() {
 }
 
 ArmSystem::~ArmSystem() {
-	CAN_driver::close(&CAN_driver::arm_driver);
+	// CAN_driver::close(&CAN_driver::arm_driver);
+	can_driver.close();
 }
 
 } // namespace kalman_arm_controller
