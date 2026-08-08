@@ -22,9 +22,6 @@ extern ArmState joints;
  */
 extern const armConfig_t arm_config;
 
-extern uint16_t gripper_position;
-
-
 void update_joint_status();
 void update_joint_setpoint();
 

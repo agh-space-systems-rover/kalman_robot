@@ -6,8 +6,6 @@ namespace CAN_vars {
 ArmState joints = {};
 
 constexpr armConfig_t arm_config = arm_config::load_default_config();
-
-uint16_t gripper_position = 0;
 } // namespace CAN_vars
 
 /**

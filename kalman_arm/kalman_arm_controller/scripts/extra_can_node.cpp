@@ -21,8 +21,6 @@
 namespace kalman_arm {
 class ExtraCanNode : public rclcpp::Node {
 private:
-	CAN_driver::DriverVars_t extra_driver_ = {};
-
 	uint16_t gripper_position_;
 
 	uint16_t    max_gripper_;

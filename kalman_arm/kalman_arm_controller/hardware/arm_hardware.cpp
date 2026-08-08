@@ -33,8 +33,6 @@ ArmSystem::on_init(const hardware_interface::HardwareInfo &info) {
 		}
 	}
 
-	// CAN_driver::init(&CAN_driver::arm_driver, CAN_INTERFACE.c_str());
-	// CAN_driver::startArmRead();
 	can_driver.init(CAN_INTERFACE.c_str());
 	can_driver.startArmRead();
 
@@ -168,9 +166,7 @@ return_type ArmSystem::write_joint_commands() {
 			if (current_control_type == ControlType::posvel ||
 			    (current_control_type == ControlType::position &&
 			     !pos_too_far && already_read_)) {
-				std::lock_guard<std::mutex> lock(
-					CAN_vars::joints.m_write
-				);
+				std::lock_guard<std::mutex> lock(CAN_vars::joints.m_write);
 				for (int i = 0; i < 4; i++) {
 					CAN_vars::joints.jointCmd[i].moveSetpoint.position_deg =
 					    joint_position_command_[i] * 180.0f / M_PI;
@@ -210,7 +206,6 @@ return_type ArmSystem::write_joint_commands() {
 }
 
 ArmSystem::~ArmSystem() {
-	// CAN_driver::close(&CAN_driver::arm_driver);
 	can_driver.close();
 }
 
