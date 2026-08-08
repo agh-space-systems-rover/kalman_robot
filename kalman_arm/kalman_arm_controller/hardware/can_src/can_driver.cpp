@@ -19,8 +19,8 @@ int CanDriver::init(const char *can_interface) {
 	// arm_config::load_default_config();
 
 	// Get socket connection
-	driver_vars.sock = socket(PF_CAN, SOCK_RAW, CAN_RAW);
-	if (driver_vars.sock < 0) {
+	sock = socket(PF_CAN, SOCK_RAW, CAN_RAW);
+	if (sock < 0) {
 		perror("Socket");
 		return 1;
 	}
@@ -28,7 +28,7 @@ int CanDriver::init(const char *can_interface) {
 	// Enable FD frames
 	int enable_fd_frames = 1;
 	setsockopt(
-	    driver_vars.sock,
+	    sock,
 	    SOL_CAN_RAW,
 	    CAN_RAW_FD_FRAMES,
 	    &enable_fd_frames,
@@ -36,17 +36,17 @@ int CanDriver::init(const char *can_interface) {
 	);
 
 	// Set up the can interface
-	strcpy(driver_vars.ifr.ifr_name, can_interface);
-	ioctl(driver_vars.sock, SIOCGIFINDEX, &driver_vars.ifr);
+	strcpy(ifr.ifr_name, can_interface);
+	ioctl(sock, SIOCGIFINDEX, &ifr);
 
-	driver_vars.addr.can_family  = AF_CAN;
-	driver_vars.addr.can_ifindex = driver_vars.ifr.ifr_ifindex;
+	addr.can_family  = AF_CAN;
+	addr.can_ifindex = ifr.ifr_ifindex;
 
 	// Bind the socket
 	if (bind(
-	        driver_vars.sock,
-	        (struct sockaddr *)&driver_vars.addr,
-	        sizeof(driver_vars.addr)
+	        sock,
+	        reinterpret_cast<struct sockaddr *>(&addr),
+	        sizeof(addr)
 	    ) < 0) {
 		perror("Bind");
 		return 1;
@@ -57,7 +57,7 @@ int CanDriver::init(const char *can_interface) {
 	tv.tv_sec  = 0;
 	tv.tv_usec = 1;
 	setsockopt(
-	    driver_vars.sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof tv
+	    sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof tv
 	);
 
 	printf("Finished CAN init! \r\n");
@@ -65,15 +65,16 @@ int CanDriver::init(const char *can_interface) {
 }
 
 int CanDriver::startArmRead() {
-	driver_vars.reader = std::thread(&CanDriver::armRead, this);
+	should_run.store(true);
+	reader = std::thread(&CanDriver::armRead, this);
 	return 0;
 }
 
 int CanDriver::armRead() {
 	canfd_frame frame;
-	while (driver_vars.should_run) {
+	while (should_run) {
 		ssize_t num_bytes =
-		    recv(driver_vars.sock, &frame, sizeof(frame), MSG_DONTWAIT);
+		    recv(sock, &frame, sizeof(frame), MSG_DONTWAIT);
 
 		if (num_bytes < 0) {
 			if (errno == EAGAIN || errno == EWOULDBLOCK) {
@@ -204,7 +205,7 @@ int CanDriver::write_data(uint16_t can_id, uint8_t *data, uint8_t len) const {
 	frame.len    = len;
 	frame.flags  = 0;
 	memcpy(frame.data, data, len);
-	if (::write(driver_vars.sock, &frame, sizeof(frame)) < 0) {
+	if (::write(sock, &frame, sizeof(frame)) < 0) {
 		perror("Write");
 		return 1;
 	}
@@ -212,11 +213,25 @@ int CanDriver::write_data(uint16_t can_id, uint8_t *data, uint8_t len) const {
 }
 
 int CanDriver::close() {
-	driver_vars.should_run = false;
-	driver_vars.reader.join();
-	if (::close(driver_vars.sock) < 0) {
-    	perror("Close");
-        return 1;
+	should_run.store(false);
+
+	if (reader.joinable()) {
+		reader.join();
+	}
+
+	if (sock < 0) {
+		return 0;
+	}
+
+	const int socket = sock;
+	sock             = -1;
+	if (::close(socket) < 0) {
+		perror("Close");
+		return 1;
 	}
 	return 0;
+}
+
+CanDriver::~CanDriver() {
+	close();
 }

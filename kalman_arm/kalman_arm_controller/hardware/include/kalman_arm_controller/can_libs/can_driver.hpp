@@ -3,6 +3,7 @@
 
 #include "can_types.hpp"
 
+#include <atomic>
 #include <limits>
 #include <mutex>
 #include <stdlib.h>
@@ -22,26 +23,10 @@
 
 namespace CAN_driver {
 
-// TODO: integrate into CanDriver
-struct DriverVars_t {
-	int                 sock = 0;
-	struct sockaddr_can addr = {};
-	struct ifreq        ifr  = {};
-	std::thread         reader;
-	bool                should_run = true;
-	~DriverVars_t() {
-		this->should_run = false;
-		this->reader.join();
-		::close(this->sock);
-	}
-};
 } // namespace CAN_driver
 
 class CanDriver {
 public:
-	using DriverVars_t                = CAN_driver::DriverVars_t;
-	static constexpr auto BUFFER_SIZE = 1024;
-
 	/**
 	 * @brief Initialize the CAN driver.
 	 *
@@ -98,7 +83,7 @@ public:
 		frame.len   = sizeof(T);
 		frame.flags = 0;
 		memcpy(frame.data, &data, frame.len);
-		if (::write(driver_vars.sock, &frame, sizeof(frame)) < 0) {
+		if (::write(sock, &frame, sizeof(frame)) < 0) {
 			perror("Write");
 			return 1;
 		}
@@ -107,8 +92,14 @@ public:
 
 	int close();
 
+	~CanDriver();
+
 private:
-	DriverVars_t driver_vars{};
+	int                 sock = -1;
+	struct sockaddr_can addr = {};
+	struct ifreq        ifr  = {};
+	std::thread         reader;
+	std::atomic_bool    should_run{false};
 };
 
 #endif // KALMAN_ARM_CONTROLLER__HARDWARE__CAN_DRIVER_HPP

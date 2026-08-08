@@ -43,7 +43,7 @@ public:
 	    const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/
 	) override;
 
-	~ArmSystem() override;
+	~ArmSystem() override = default;
 
 protected:
 	/// The size of this vector is (standard_interfaces_.size() x nr_joints)
