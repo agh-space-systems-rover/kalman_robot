@@ -5,6 +5,7 @@
 #include "kalman_arm_controller/can_libs/can_vars.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include <cerrno>
+#include <cstdint>
 #include <cstring>
 #include <mutex>
 #include <poll.h>
@@ -150,7 +151,7 @@ int CAN_driver::arm_write(ControlType controlType) {
 	std::this_thread::sleep_for(std::chrono::microseconds(1000));
 
 	// Write data from global joints
-	for (int i = 0; i < 6; i++) {
+	for (uint8_t i = 0; i < 6; i++) {
 		switch (controlType) {
 		case ControlType::position:
 			write_joint_setpoint(i);
@@ -176,12 +177,13 @@ int CAN_driver::write_control_type(ControlType controlType) {
 	case ControlType::posvel:
 		data.controlMode = controlMode_t::CONTROL_MODE_LEGACY;
 		break;
+
+	default:
+		return 0;
 	}
 
 	uint16_t can_id = CMD_CONTROL_TYPE;
-	return write_data(
-	    &arm_driver, can_id, (uint8_t *)&data, LEN_CMD_CONTROL_TYPE
-	);
+	return write_data(&arm_driver, can_id, data);
 }
 
 int CAN_driver::write_joint_setpoint(uint8_t joint_id) {
@@ -191,10 +193,7 @@ int CAN_driver::write_joint_setpoint(uint8_t joint_id) {
 	uint16_t can_id = (joint_id << 7) + CMD_SETPOINT;
 	if (1 <= joint_id && joint_id <= 6) {
 		return write_data(
-		    &arm_driver,
-		    can_id,
-		    (uint8_t *)&CAN_vars::joints[joint_id - 1].setpoint,
-		    sizeof(jointCmdSetpoint_t)
+		    &arm_driver, can_id, CAN_vars::joints[joint_id - 1].setpoint
 		);
 	}
 	return 1;
@@ -206,10 +205,7 @@ int CAN_driver::write_joint_posvel(uint8_t joint_id) {
 	uint16_t can_id = (joint_id << 7) + CMD_VELOCITY;
 	if (1 <= joint_id && joint_id <= 6) {
 		return write_data(
-		    &arm_driver,
-		    can_id,
-		    (uint8_t *)&CAN_vars::joints[joint_id - 1].velSetpoint,
-		    sizeof(jointCmdVelocity_t)
+		    &arm_driver, can_id, CAN_vars::joints[joint_id - 1].velSetpoint
 		);
 	}
 	return 1;
@@ -221,18 +217,14 @@ int CAN_driver::write_gripper_position(
 	cmdSetGripper_t data;
 	data.gripperPosition = position;
 	uint16_t can_id      = CMD_SET_GRIPPER;
-	return write_data(
-	    driver_vars, can_id, (uint8_t *)&data, LEN_CMD_SET_GRIPPER
-	);
+	return write_data(driver_vars, can_id, data);
 }
 
 int CAN_driver::write_fastclick(DriverVars_t *driver_vars, uint8_t position) {
 	cmdSetFastclick_t data;
 	data.position   = position;
 	uint16_t can_id = CMD_SET_FASTCLICK;
-	return write_data(
-	    driver_vars, can_id, (uint8_t *)&data, LEN_CMD_SET_FASTCLICK
-	);
+	return write_data(driver_vars, can_id, data);
 }
 
 int CAN_driver::write_data(

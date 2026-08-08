@@ -1,10 +1,11 @@
 #include "kalman_arm_controller/can_libs/can_vars.hpp"
+#include "kalman_arm_controller/can_libs/arm_config.hpp"
 #include <cstdint>
 
 namespace CAN_vars {
 jointStatus_t joints[6] = {};
 
-armConfig_t arm_config = {};
+constexpr armConfig_t arm_config = arm_config::load_default_config();
 
 uint16_t gripper_position = 0;
 
@@ -64,7 +65,7 @@ void CAN_vars::calculate_status(uint8_t joint_id) {
 	joints[joint_id].moveStatus.velocity_deg_s =
 	    (360.0f / (10 * 60)) * gearRatio * jointStatus->velocity * direction;
 	joints[joint_id].moveStatus.position_deg =
-	    0.01f * gearRatio * (float)jointStatus->position * direction;
+	    0.01f * gearRatio * static_cast<float>(jointStatus->position) * direction;
 }
 
 /**
@@ -75,7 +76,7 @@ void CAN_vars::calculate_status(uint8_t joint_id) {
  */
 void CAN_vars::calculate_status_diff(uint8_t joint_id, uint8_t diff_id) {
 	uint8_t                 difNbr[2];
-	jointConfig_t          *difConfig[2];
+	const jointConfig_t    *difConfig[2];
 	jointMotorFastStatus_t *difStatus[2];
 
 	float gearRatio[2], velocity[2], position[2];
@@ -98,7 +99,7 @@ void CAN_vars::calculate_status_diff(uint8_t joint_id, uint8_t diff_id) {
 		gearRatio[i] = difConfig[i]->gearRatio;
 		velocity[i] =
 		    (360.0f / (10 * 60)) * gearRatio[i] * difStatus[i]->velocity;
-		position[i] = 0.01f * gearRatio[i] * difStatus[i]->position;
+		position[i] = 0.01f * gearRatio[i] * static_cast<float>(difStatus[i]->position);
 	}
 
 	joints[difNbr[0] - 1].moveStatus.velocity_deg_s =
@@ -133,7 +134,7 @@ void CAN_vars::update_single_joint_setpoint(uint8_t joint_id) {
 	} else if (temp <= INT32_MIN) {
 		data.position_0deg01 = INT32_MIN;
 	} else {
-		data.position_0deg01 = (int32_t)temp;
+		data.position_0deg01 = static_cast<int32_t>(temp);
 	}
 
 	// if(joint_id==0)
@@ -151,7 +152,7 @@ void CAN_vars::update_single_joint_setpoint(uint8_t joint_id) {
 	} else if (temp <= INT16_MIN) {
 		velData.velocity_0RPM_1 = INT16_MIN;
 	} else {
-		velData.velocity_0RPM_1 = (int32_t)temp;
+		velData.velocity_0RPM_1 = static_cast<int16_t>(temp);
 	}
 
 	CAN_vars::joints[joint_id].velSetpoint = velData;

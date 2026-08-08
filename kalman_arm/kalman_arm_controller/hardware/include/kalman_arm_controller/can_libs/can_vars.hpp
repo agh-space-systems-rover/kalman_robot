@@ -20,7 +20,7 @@ extern jointStatus_t joints[6];
  *
  * NOTE! Joint numbering starts from 1, so joint[0] is not used.
  */
-extern armConfig_t arm_config;
+extern const armConfig_t arm_config;
 
 extern uint16_t gripper_position;
 

@@ -100,7 +100,7 @@ ArmSystem::export_command_interfaces() {
 }
 
 return_type
-ArmSystem::read(const rclcpp::Time & /*time*/, const rclcpp::Duration &period) {
+ArmSystem::read(const rclcpp::Time & /*time*/, const rclcpp::Duration & /* period */) {
 	return read_joint_states();
 	// if (current_control_type == ControlType::posvel)
 	// {
