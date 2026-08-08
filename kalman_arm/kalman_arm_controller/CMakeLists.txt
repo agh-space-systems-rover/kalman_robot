@@ -79,7 +79,7 @@ add_library(${EXTRA_CAN} SHARED
     scripts/extra_can_node.cpp
     hardware/can_src/can_driver.cpp
     hardware/can_src/arm_config.cpp
-    hardware/can_src/can_driver.cpp
+    hardware/can_src/new_can_driver.cpp
     hardware/can_src/can_handlers.cpp
     hardware/can_src/can_vars.cpp
 )
