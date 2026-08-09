@@ -13,39 +13,41 @@ from kalman_interfaces.msg import ArmPoseSelect, ArmGoalStatus, ArmState
 from collections import namedtuple
 from std_msgs.msg import UInt8
 
+# Threshold distance - how much each joint can be away from predefined position
 MAX_DISTANCE_RAD = 0.35  # about 20
+# Time [in seconds] after which goal is aborted if no keep_alive message is received
+STOP_TRAJECTORY_TIMEOUT = 1.5
 
-Pose = namedtuple(
-    "Pose",
-    [
-        "name",
-        "path",
-        "joints_set",
-        "joints_checked",
-        "joints_reversed",
-        "safe_previous_poses",
-    ],
-)
+# Pose = namedtuple(
+#     "Pose",
+#     [   
+#         "positions",
+#         "joints_set",
+#         "joints_reversed",
+#         "joints_checked",
+#     ],
+# )
 
 arm_config = get_package_share_directory("kalman_arm")
 
-PREDEFINED_POSES: dict[int, Pose] = {}
-try:
-    with open(f"{arm_config}/config/predefined_poses.yaml", "r") as f:
-        predefined_poses = yaml.safe_load(f)
-        MAX_DISTANCE_RAD = predefined_poses["max_distance_rad"]
-        STOP_TRAJECTORY_TIMEOUT = predefined_poses["stop_trajectory_timeout"]
-        for pose in predefined_poses["poses"]:
-            PREDEFINED_POSES[int(pose["id"])] = Pose(
-                pose["name"],
-                f"{arm_config}/{pose['path']}",
-                pose["joints_set"],
-                pose["joints_checked"],
-                pose["joints_reversed"],
-                pose["safe_previous_poses"],
-            )
-except:
-    print("Error loading predefined poses configuration")
+# weird ones
+# cartesian_speed_limited_link
+# max_cartesian_speed
+# PREDEFINED_POSES: dict[int, Pose] = {}
+# try:
+#     with open(f"{arm_config}/config/predefined_poses.yaml", "r") as f:
+#         predefined_poses = yaml.safe_load(f)
+#         for pose in predefined_poses["poses"]:
+#             PREDEFINED_POSES[int(pose["id"])] = Pose(
+#                 pose["name"],
+#                 f"{arm_config}/{pose['path']}",
+#                 pose["joints_set"],
+#                 pose["joints_checked"],
+#                 pose["joints_reversed"],
+#                 pose["safe_previous_poses"],
+#             )
+# except:
+#     print("Error loading predefined poses configuration")
 
 
 class PoseRequestSender(Node):
@@ -55,6 +57,9 @@ class PoseRequestSender(Node):
         self._action_client = ActionClient(
             self, MoveGroup, "/arm_controllers/move_action"
         )
+
+        self.default_request: MoveGroup.Goal = None
+        self.load_default_request(f"{arm_config}/predefined_poses/base_file.yaml")
 
         self.joints: dict[str, float] = {}
         self._send_goal_future = None
@@ -90,6 +95,18 @@ class PoseRequestSender(Node):
         self._abort_sub = self.create_subscription(
             Empty, "/pose_request/abort", self.abort, 10
         )
+    def load_default_request(self, filename: str):
+        try:
+            default_config = None
+            with open(filename, "r") as f:
+                default_config = yaml.safe_load(f)
+            request = MoveGroup.Goal()
+            set_message_fields(request, default_config)
+            self.default_request = request
+
+        except FileNotFoundError:
+            self.get_logger().error(f"Error loading default pose from {filename}")
+            self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.EXCEPTION))
 
     def update_state(self, msg: ArmState):
         self.joints = {
@@ -110,12 +127,6 @@ class PoseRequestSender(Node):
         self.timer_callback()
 
     def send_goal(self, msg: ArmPoseSelect):
-        if msg.pose_id not in PREDEFINED_POSES:
-            self.get_logger().error("Invalid pose ID")
-            self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.INVALID_ID))
-            return
-
-        pose = PREDEFINED_POSES[msg.pose_id]
         while len(self.joints.keys()) == 0:
             rclpy.spin_once(self)
 
@@ -124,112 +135,63 @@ class PoseRequestSender(Node):
             self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.PREEMPTING))
             self.timer_callback()
             self._cancel_future.add_done_callback(
-                lambda x: self.publish_pose_goal(pose)
+                lambda x: self.publish_pose_goal(msg)
             )
         else:
-            self.publish_pose_goal(pose)
+            self.publish_pose_goal(msg)
 
-    def publish_pose_goal(self, pose: Pose):
-        request = self.get_request_from_file(pose.path)
-        self.reset_not_set_joints(request, pose.joints_set)
-        self.reverse_joints(request, pose.joints_reversed)
+    def publish_pose_goal(self, msg: ArmPoseSelect):
+        request = self.default_request
+        request.request.goal_constraints = [self.build_goal_constraints(msg)]
 
-        if self.check_joints_too_far(
-            request, pose.joints_checked
-        ) or self.check_is_from_safe_previous_poses(pose):
-            self.get_logger().info("Sending pose goal...")
-            self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.GOAL_SENDING))
-            self.send_request(request)
-        else:
-            self.get_logger().warn("Too far away for pose...")
-            self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.TOO_FAR))
+        #TODO here should be collision detection and checking if the goal is reachable, if not then publish ArmGoalStatus with status=ArmGoalStatus.GOAL_UNREACHABLE but for what we now in given space probably all poses should be accesibly
+        self.get_logger().info("Sending pose goal...")
+        self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.GOAL_SENDING))
+        self.send_request(request)
 
-    def get_request_from_file(self, filename: str) -> MoveGroup.Goal:
-        try:
-            predefined_pose = None
-            with open(filename, "r") as f:
-                predefined_pose = yaml.safe_load(f)
-
-            request = MoveGroup.Goal()
-
-            if 'request' in predefined_pose:
-                predefined_pose['request'].pop('cartesian_speed_limited_link', None)
-                predefined_pose['request'].pop('max_cartesian_speed', None)
-            else:
-                predefined_pose.pop('cartesian_speed_limited_link', None)
-                predefined_pose.pop('max_cartesian_speed', None)
-
-            set_message_fields(request, predefined_pose)
-
-            return request
-
-        except FileNotFoundError:
-            self.get_logger().error(f"Error loading predefined pose from {filename}")
-            self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.EXCEPTION))
-
-            return None
-
-    def reset_not_set_joints(self, request: MoveGroup.Goal, joints_to_set: list[str]):
-        goal_constraint: Constraints = request.request.goal_constraints[0]
-        joint_constraints: list[JointConstraint] = sorted(
-            goal_constraint.joint_constraints, key=lambda x: x.joint_name
-        )
-
+    def build_goal_constraints(self, msg: ArmPoseSelect) -> Constraints:
+        goal_constraints: Constraints = Constraints(name="pose")
+        joints_names = sorted(self.joints.keys(), key=lambda x: x)
+        joint_constraints: list[JointConstraint] = [JointConstraint(joint_name=name) for name in joints_names]
         for i in range(6):
-            if joint_constraints[i].joint_name not in joints_to_set:
-                joint_constraints[i].position = self.joints[
-                    joint_constraints[i].joint_name
-                ]
+            joint_constraints[i].position = msg.positions[i] if i in msg.joints_set else self.joints[joint_constraints[i].joint_name]
+            joint_constraints[i].tolerance_above = 0.01
+            joint_constraints[i].tolerance_below = 0.01
+            if i in msg.joints_reversed:
+                joint_constraints[i].position = -self.joints[joint_constraints[i].joint_name] #TODO change into bool (only joint 5 is suposed to be reversed)
+        goal_constraints.joint_constraints = joint_constraints
+        return goal_constraints
+    
+    # def check_joints_too_far(
+    #     self, request: MoveGroup.Goal, joints_to_check: list[str]
+    # ) -> bool:
+    #     goal_constraint: Constraints = request.request.goal_constraints[0]
+    #     joint_constraints: list[JointConstraint] = sorted(
+    #         goal_constraint.joint_constraints, key=lambda x: x.joint_name
+    #     )
 
-        goal_constraint.joint_constraints = joint_constraints
-        request.request.goal_constraints = [goal_constraint]
+    #     close_enough = True
+    #     for i in range(6):
+    #         if (joint_constraints[i].joint_name in joints_to_check) and (
+    #             abs(
+    #                 self.joints[joint_constraints[i].joint_name]
+    #                 - joint_constraints[i].position
+    #             )
+    #             > MAX_DISTANCE_RAD
+    #         ):
+    #             close_enough = False
 
-    def reverse_joints(self, request: MoveGroup.Goal, joints_to_reverse: list[str]):
-        goal_constraint: Constraints = request.request.goal_constraints[0]
-        joint_constraints: list[JointConstraint] = sorted(
-            goal_constraint.joint_constraints, key=lambda x: x.joint_name
-        )
+    #     return close_enough
 
-        for i in range(6):
-            if joint_constraints[i].joint_name in joints_to_reverse:
-                joint_constraints[i].position = -self.joints[
-                    joint_constraints[i].joint_name
-                ]
-
-        goal_constraint.joint_constraints = joint_constraints
-        request.request.goal_constraints = [goal_constraint]
-
-    def check_joints_too_far(
-        self, request: MoveGroup.Goal, joints_to_check: list[str]
-    ) -> bool:
-        goal_constraint: Constraints = request.request.goal_constraints[0]
-        joint_constraints: list[JointConstraint] = sorted(
-            goal_constraint.joint_constraints, key=lambda x: x.joint_name
-        )
-
-        close_enough = True
-        for i in range(6):
-            if (joint_constraints[i].joint_name in joints_to_check) and (
-                abs(
-                    self.joints[joint_constraints[i].joint_name]
-                    - joint_constraints[i].position
-                )
-                > MAX_DISTANCE_RAD
-            ):
-                close_enough = False
-
-        return close_enough
-
-    def check_is_from_safe_previous_poses(self, pose: Pose) -> bool:
-        for safe_pose in pose.safe_previous_poses:
-            if safe_pose in PREDEFINED_POSES:
-                safe_pose = PREDEFINED_POSES[safe_pose]
-                if self.check_joints_too_far(
-                    self.get_request_from_file(safe_pose.path), safe_pose.joints_checked
-                ):
-                    return True
-        return False
-
+    # def check_is_from_safe_previous_poses(self, pose: Pose) -> bool:
+    #     for safe_pose in pose.safe_previous_poses:
+    #         if safe_pose in PREDEFINED_POSES:
+    #             safe_pose = PREDEFINED_POSES[safe_pose]
+    #             if self.check_joints_too_far(
+    #                 self.get_request_from_file(safe_pose.path), safe_pose.joints_checked
+    #             ):
+    #                 return True
+    #     return False
     def send_request(self, request, check=True):
 
         self._action_client.wait_for_server()

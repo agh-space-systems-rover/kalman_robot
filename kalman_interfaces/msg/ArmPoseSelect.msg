@@ -1,12 +1,5 @@
-uint8 COMPACT_HERMAN = 0
-uint8 RESET_4_AND_6 = 1
-uint8 BASE_FRONT = 2
-uint8 BASE_LEFT = 3
-uint8 BASE_RIGHT = 4
-uint8 BASED = 5
-uint8 SPECTRO_APPROACH = 6
-uint8 SAMPLE_STORAGE = 7
-uint8 ROCK_STORAGE = 8
-
-# pose number
-uint8 pose_id
+# maybe 7 because of 6 joints and 1 gripper #TODO
+float64[6] positions 
+uint8[<=6] joints_set # determine if the joints are set or not
+uint8[<=6] joints_reversed #  5 and 6 joint should move in reverse way #TODO change into bool
+uint8[<=6] joints_checked # TODO old code used to check if the joints are far enough
