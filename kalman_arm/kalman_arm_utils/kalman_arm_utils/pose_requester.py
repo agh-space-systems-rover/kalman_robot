@@ -10,7 +10,6 @@ from moveit_msgs.action import MoveGroup
 from moveit_msgs.msg import Constraints, JointConstraint, MoveItErrorCodes
 from example_interfaces.msg import Empty
 from kalman_interfaces.msg import ArmPoseSelect, ArmGoalStatus, ArmState
-from collections import namedtuple
 from std_msgs.msg import UInt8
 
 # Threshold distance - how much each joint can be away from predefined position
@@ -18,37 +17,7 @@ MAX_DISTANCE_RAD = 0.35  # about 20
 # Time [in seconds] after which goal is aborted if no keep_alive message is received
 STOP_TRAJECTORY_TIMEOUT = 1.5
 
-# Pose = namedtuple(
-#     "Pose",
-#     [   
-#         "positions",
-#         "joints_set",
-#         "joints_reversed",
-#         "joints_checked",
-#     ],
-# )
-
 arm_config = get_package_share_directory("kalman_arm")
-
-# weird ones
-# cartesian_speed_limited_link
-# max_cartesian_speed
-# PREDEFINED_POSES: dict[int, Pose] = {}
-# try:
-#     with open(f"{arm_config}/config/predefined_poses.yaml", "r") as f:
-#         predefined_poses = yaml.safe_load(f)
-#         for pose in predefined_poses["poses"]:
-#             PREDEFINED_POSES[int(pose["id"])] = Pose(
-#                 pose["name"],
-#                 f"{arm_config}/{pose['path']}",
-#                 pose["joints_set"],
-#                 pose["joints_checked"],
-#                 pose["joints_reversed"],
-#                 pose["safe_previous_poses"],
-#             )
-# except:
-#     print("Error loading predefined poses configuration")
-
 
 class PoseRequestSender(Node):
 
@@ -59,7 +28,7 @@ class PoseRequestSender(Node):
         )
 
         self.default_request: MoveGroup.Goal = None
-        self.load_default_request(f"{arm_config}/predefined_poses/base_file.yaml")
+        self.load_default_request(f"{arm_config}/config/pose_config.yaml")
 
         self.joints: dict[str, float] = {}
         self._send_goal_future = None
