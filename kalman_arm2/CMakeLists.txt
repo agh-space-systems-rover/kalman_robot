@@ -91,12 +91,13 @@ src/actions/say_something.cpp include/actions/say_something.hpp
 src/actions/build_uv.cpp include/actions/build_uv.hpp
 src/actions/show_board.cpp include/actions/show_board.hpp
 src/actions/acquire_panel_pose.cpp include/actions/acquire_panel_pose.hpp
+src/actions/find_panel.cpp include/actions/find_panel.hpp
 src/actions/compute_panel_target.cpp include/actions/compute_panel_target.hpp
 src/conditions/is_panel_pose_available.cpp include/conditions/is_panel_pose_available.hpp
 src/conditions/is_panel_pose_fresh.cpp include/conditions/is_panel_pose_fresh.hpp
 src/conditions/is_panel_pose_good.cpp include/conditions/is_panel_pose_good.hpp
 )
-ament_target_dependencies(bt_panel_node rclcpp rclcpp_components kalman_interfaces geometry_msgs std_msgs tf2_ros tf2_geometry_msgs aruco_opencv_msgs behaviortree_cpp_v3 std_srvs tf2_eigen visualization_msgs yaml-cpp)
+ament_target_dependencies(bt_panel_node rclcpp rclcpp_components kalman_interfaces geometry_msgs sensor_msgs std_msgs tf2_ros tf2_geometry_msgs aruco_opencv_msgs behaviortree_cpp_v3 std_srvs tf2_eigen visualization_msgs yaml-cpp)
 rclcpp_components_register_node(
   bt_panel_node
   PLUGIN "kalman_arm2::BTPanel"
