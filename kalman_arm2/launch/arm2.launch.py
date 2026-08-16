@@ -262,7 +262,7 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument(
                 "ik_joint_centering_gain",
-                default_value="0.35",
+                default_value="1.5",
                 description="Nullspace gain that pulls joints toward preferred positions.",
             ),
             DeclareLaunchArgument(

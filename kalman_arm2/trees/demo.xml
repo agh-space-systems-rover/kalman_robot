@@ -11,6 +11,12 @@
           <IsPanelPoseFresh max_age_ms="300" />
         </Sequence>
         <AcquirePanelPose timeout_ms="3000" max_age_ms="300" />
+        <Sequence>
+          <SetMissionFeedback text="Moving to recover panel view" />
+          <FindPanel target_pose="{panel_find_pose}" />
+          <IKNavigateToPose pose="{panel_find_pose}" timeout_ms="12000" />
+          <AcquirePanelPose timeout_ms="3000" max_age_ms="300" />
+        </Sequence>
       </Fallback>
 
       <IsPanelPoseGood
@@ -29,7 +35,15 @@
       <Say message="Coarse goal reached" />
 
       <SetMissionFeedback text="Refreshing panel pose near target" />
-      <AcquirePanelPose timeout_ms="2000" max_age_ms="2000" />
+      <Fallback name="RefreshPanelPoseNearTarget">
+        <AcquirePanelPose timeout_ms="2000" max_age_ms="2000" />
+        <Sequence>
+          <SetMissionFeedback text="Moving to recover panel view" />
+          <FindPanel target_pose="{panel_find_pose}" />
+          <IKNavigateToPose pose="{panel_find_pose}" timeout_ms="12000" />
+          <AcquirePanelPose timeout_ms="2000" max_age_ms="2000" />
+        </Sequence>
+      </Fallback>
 
       <Say message="Fine goal reached" />
 

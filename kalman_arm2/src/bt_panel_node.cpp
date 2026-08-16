@@ -5,6 +5,7 @@
 #include "actions/come_closer.hpp"
 #include "actions/compute_panel_target.hpp"
 #include "actions/do_something.hpp"
+#include "actions/find_panel.hpp"
 #include "actions/get_next_goal.hpp"
 #include "actions/ik_navigate_to_pose.hpp"
 #include "actions/pose_ik_navigate_to_pose.hpp"
@@ -133,6 +134,9 @@ public:
 			);
 			factory_->registerBuilder<GetNextGoal>(
 			    "GetNextGoal", Builder<GetNextGoal>()
+			);
+			factory_->registerBuilder<FindPanel>(
+			    "FindPanel", Builder<FindPanel>()
 			);
 			factory_->registerBuilder<IKNavigateToPoseIterative>(
 			    "IKNavigateToPoseIterative",
