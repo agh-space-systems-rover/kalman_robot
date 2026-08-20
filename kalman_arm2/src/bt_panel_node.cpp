@@ -80,7 +80,7 @@ public:
 		declare_parameter<int>("visual_refinement_max_corrections", 10);
 		declare_parameter<double>("visual_refinement_max_measurement_age_s", 0.3);
 		declare_parameter<double>("visual_refinement_settle_time_s", 0.4);
-		declare_parameter<double>("visual_refinement_max_translation_step", 0.03);
+		declare_parameter<double>("visual_refinement_max_translation_step", 0.10);
 		declare_parameter<double>("visual_refinement_max_rotation_step_deg", 5.0);
 		declare_parameter<double>("visual_refinement_position_tolerance", 0.01);
 		declare_parameter<double>("visual_refinement_orientation_tolerance_deg", 3.0);

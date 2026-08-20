@@ -188,18 +188,21 @@ BT::NodeStatus VisualRefineToPanel::onStart() {
 }
 
 std::optional<geometry_msgs::msg::PoseStamped>
-VisualRefineToPanel::fresh_visual_pose() const {
+VisualRefineToPanel::visual_pose_snapshot() const {
     std::lock_guard<std::mutex> lock(visual_pose_mutex_);
-    if (!latest_visual_pose_) {
-        return std::nullopt;
-    }
-    const rclcpp::Time stamp(latest_visual_pose_->header.stamp);
-    const double age = (parent_->now() - stamp).seconds();
-    if (age < 0.0 || age > max_measurement_age_s_ ||
-        stamp <= last_used_measurement_stamp_) {
-        return std::nullopt;
-    }
     return latest_visual_pose_;
+}
+
+const char *VisualRefineToPanel::state_name() const {
+    switch (state_) {
+    case State::WAITING_FOR_MEASUREMENT:
+        return "waiting_for_measurement";
+    case State::MOVING:
+        return "moving_to_correction";
+    case State::SETTLING:
+        return "settling";
+    }
+    return "unknown";
 }
 
 std::optional<tf2::Transform> VisualRefineToPanel::current_base_to_ee() const {
@@ -224,16 +227,59 @@ std::optional<tf2::Transform> VisualRefineToPanel::current_base_to_ee() const {
 }
 
 BT::NodeStatus VisualRefineToPanel::begin_correction() {
-    const auto visual_pose = fresh_visual_pose();
+    const auto visual_pose = visual_pose_snapshot();
     if (!visual_pose) {
+        RCLCPP_ERROR_THROTTLE(
+            parent_->get_logger(),
+            *parent_->get_clock(),
+            2000,
+            "Visual refinement has received no EE pose on 'visual_ee_pose'. Marker %d and at least one panel marker must be detected in the same camera frame.",
+            99
+        );
         return BT::NodeStatus::RUNNING;
     }
-    if (visual_pose->header.frame_id != panel_frame_) {
+
+    const rclcpp::Time measurement_stamp(visual_pose->header.stamp);
+    const double measurement_age_s =
+        (parent_->now() - measurement_stamp).seconds();
+    if (measurement_age_s < 0.0) {
+        RCLCPP_ERROR_THROTTLE(
+            parent_->get_logger(),
+            *parent_->get_clock(),
+            2000,
+            "Visual EE pose timestamp is %.3f s in the future; check ROS clocks",
+            -measurement_age_s
+        );
+        return BT::NodeStatus::RUNNING;
+    }
+    if (measurement_age_s > max_measurement_age_s_) {
+        RCLCPP_ERROR_THROTTLE(
+            parent_->get_logger(),
+            *parent_->get_clock(),
+            2000,
+            "Visual EE pose is stale (age %.3f s, limit %.3f s). Marker 99 or all panel markers are likely no longer detected.",
+            measurement_age_s,
+            max_measurement_age_s_
+        );
+        return BT::NodeStatus::RUNNING;
+    }
+    if (measurement_stamp <= last_used_measurement_stamp_) {
         RCLCPP_WARN_THROTTLE(
             parent_->get_logger(),
             *parent_->get_clock(),
+            2000,
+            "Waiting for a new visual EE pose captured after the previous correction; latest stamp is %.3f s before the required cutoff",
+            (last_used_measurement_stamp_ - measurement_stamp).seconds()
+        );
+        return BT::NodeStatus::RUNNING;
+    }
+
+    if (visual_pose->header.frame_id != panel_frame_) {
+        RCLCPP_ERROR_THROTTLE(
+            parent_->get_logger(),
+            *parent_->get_clock(),
             1000,
-            "Visual EE pose uses frame '%s', expected '%s'",
+            "Visual EE pose uses frame '%s', expected '%s'", 
             visual_pose->header.frame_id.c_str(),
             panel_frame_.c_str()
         );
@@ -263,9 +309,9 @@ BT::NodeStatus VisualRefineToPanel::begin_correction() {
     }
 
     if (correction_count_ >= max_corrections_) {
-        RCLCPP_WARN(
+        RCLCPP_ERROR(
             parent_->get_logger(),
-            "Visual refinement exceeded %d corrections: position=%.4f m, rotation=%.2f deg",
+            "Visual refinement failed after reaching limit of %d corrections: remaining position error=%.4f m, rotation error=%.2f deg",
             max_corrections_,
             position_error,
             orientation_error * 180.0 / M_PI
@@ -324,7 +370,28 @@ bool VisualRefineToPanel::nominal_target_reached() const {
 
 BT::NodeStatus VisualRefineToPanel::onRunning() {
     if (parent_->now() >= deadline_) {
-        RCLCPP_WARN(parent_->get_logger(), "%s timed out", name().c_str());
+        const auto visual_pose = visual_pose_snapshot();
+        if (!visual_pose) {
+            RCLCPP_ERROR(
+                parent_->get_logger(),
+                "%s timed out in state '%s' after %d corrections: no visual EE pose was ever received. Verify marker 99 and at least one panel marker are visible.",
+                name().c_str(),
+                state_name(),
+                correction_count_
+            );
+        } else {
+            const double age_s =
+                (parent_->now() - rclcpp::Time(visual_pose->header.stamp)).seconds();
+            RCLCPP_ERROR(
+                parent_->get_logger(),
+                "%s timed out in state '%s' after %d corrections; latest visual EE pose age is %.3f s (limit %.3f s)",
+                name().c_str(),
+                state_name(),
+                correction_count_,
+                age_s,
+                max_measurement_age_s_
+            );
+        }
         hold_current_pose();
         return BT::NodeStatus::FAILURE;
     }
