@@ -1,4 +1,5 @@
 import yaml
+from ament_index_python.packages import get_package_share_path
 from kalman_utils.launch import launch_node_or_load_component, remap_action
 from launch import LaunchDescription
 from launch.actions import (
@@ -15,6 +16,15 @@ from launch_ros.substitutions import FindPackageShare
 
 def launch_setup(context):
     component_container = LaunchConfiguration("component_container").perform(context)
+    servo_config_path = (
+        get_package_share_path("kalman_arm") / "config" / "servo_config.yaml"
+    )
+    with servo_config_path.open() as servo_config_file:
+        servo_config = yaml.safe_load(servo_config_file)
+    joint_limit_params = {
+        "joint_limit_margins": servo_config["joint_limit_margins"]
+    }
+
     twist_ik_params = {
         "base_damping": float(LaunchConfiguration("ik_base_damping").perform(context)),
         "max_damping": float(LaunchConfiguration("ik_max_damping").perform(context)),
@@ -113,6 +123,7 @@ def launch_setup(context):
             ("target_vel", "target_vel"),
             *remap_action("goto_pose", "goto_pose"),
         ],
+        parameters=[joint_limit_params],
     )
 
     panel_layout_file = PathJoinSubstitution(
@@ -231,7 +242,7 @@ def launch_setup(context):
                 name="rosbridge_client_" + topic.replace("/", "_").strip("_"),
                 parameters=[
                     {
-                        "ws_address": "192.168.2.77:9473",
+                        "ws_address": "192.168.1.77:9473",
                         "topic": topic,
                         "type": msg_type,
                         "mode": mode,
@@ -259,6 +270,7 @@ def launch_setup(context):
                 ("old/gripper/command_incremental", "/gripper/command_incremental"),
                 ("old/joy_compressed", "/joy_compressed"),
             ],
+            parameters=[joint_limit_params],
         )
     ]
 
