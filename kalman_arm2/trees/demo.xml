@@ -1,8 +1,8 @@
 <root main_tree_to_execute="MainTree">
   <BehaviorTree ID="MainTree">
     <Sequence name="PanelMissionSequence">
-      <SetMissionFeedback text="Moving to observation pose" />
-      <ArmNavigateToPose j0="0.0" j1="-1.2" j2="2.9" j3="0" j4="0.2" j5="0.0" jaw="0.0" />
+      <!-- <SetMissionFeedback text="Moving to observation pose" />
+      <ArmNavigateToPose j0="0.0" j1="-1.2" j2="2.9" j3="0" j4="0.2" j5="0.0" jaw="0.0" /> -->
 
       <SetMissionFeedback text="Acquiring initial panel pose" />
       <Fallback name="EnsureInitialPanelPose">
@@ -12,6 +12,7 @@
         </Sequence>
         <AcquirePanelPose timeout_ms="3000" max_age_ms="300" />
         <Sequence>
+           <!-- Keeping this block, as it may be useful to move the arm in a position where it won't occlude the panel -->
           <SetMissionFeedback text="Moving to recover panel view" />
           <FindPanel target_pose="{panel_find_pose}" />
           <IKNavigateToPose pose="{panel_find_pose}" timeout_ms="12000" />
@@ -26,7 +27,7 @@
 
       <ComputePanelTarget
         panel_relative_pose="{requested_panel_pose}"
-        target_standoff="0.4"
+        target_standoff="0.3"
         orientation_mode="normal_to_panel"
         target_pose="{coarse_pose}" />
 

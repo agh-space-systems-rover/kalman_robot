@@ -33,8 +33,9 @@ class VisualRefineToPanel : public BT::StatefulActionNode {
     );
     void publish_commanded_pose() const;
     void hold_current_pose();
-    std::optional<geometry_msgs::msg::PoseStamped> fresh_visual_pose() const;
+    std::optional<geometry_msgs::msg::PoseStamped> visual_pose_snapshot() const;
     std::optional<tf2::Transform> current_base_to_ee() const;
+    const char *state_name() const;
     BT::NodeStatus begin_correction();
     bool nominal_target_reached() const;
 

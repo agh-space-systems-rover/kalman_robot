@@ -3,8 +3,10 @@ from kalman_utils.launch import launch_node_or_load_component, remap_action
 from launch import LaunchDescription
 from launch.actions import (
     DeclareLaunchArgument,
+    IncludeLaunchDescription,
     OpaqueFunction,
 )
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
@@ -174,6 +176,22 @@ def launch_setup(context):
         ],
         parameters=[{"layout_yaml": ParameterValue(panel_layout_file, value_type=str)}],
     )
+
+    actions += [
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(
+                PathJoinSubstitution(
+                    [FindPackageShare("kalman_aruco"), "launch", "aruco.launch.py"]
+                )
+            ),
+            launch_arguments={
+                "component_container": component_container,
+                "rgbd_ids": "d455_arm_wheel",
+                "dict": "5X5_100",
+                "size": "0.055",
+            }.items(),
+        )
+    ]
 
     actions += launch_node_or_load_component(
         component_container=component_container,
