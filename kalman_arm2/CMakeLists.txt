@@ -51,7 +51,7 @@ rclcpp_components_register_node(
 )
 
 add_library(goto_joint_pose_node SHARED src/goto_joint_pose_node.cpp)
-ament_target_dependencies(goto_joint_pose_node rclcpp rclcpp_components kalman_interfaces geometry_msgs std_msgs tf2_ros tf2_geometry_msgs)
+ament_target_dependencies(goto_joint_pose_node rclcpp rclcpp_components kalman_interfaces geometry_msgs std_msgs urdf tf2_ros tf2_geometry_msgs)
 rclcpp_components_register_node(
   goto_joint_pose_node
   PLUGIN "kalman_arm2::GotoJointPose"
