@@ -12,6 +12,7 @@
 #include "actions/set_mission_feedback.hpp"
 #include "actions/say_something.hpp"
 #include "actions/show_board.hpp"
+#include "actions/visual_refine_to_panel.hpp"
 #include "conditions/has_next_goal.hpp"
 #include "conditions/is_panel_pose_available.hpp"
 #include "conditions/is_panel_pose_fresh.hpp"
@@ -75,6 +76,19 @@ public:
 
 		declare_parameter<double>("tick_rate_hz", 20.0);
 		declare_parameter<bool>("auto_start", true);
+		declare_parameter<int>("visual_refinement_dof", 3);
+		declare_parameter<int>("visual_refinement_max_corrections", 10);
+		declare_parameter<double>("visual_refinement_max_measurement_age_s", 0.3);
+		declare_parameter<double>("visual_refinement_settle_time_s", 0.4);
+		declare_parameter<double>("visual_refinement_max_translation_step", 0.03);
+		declare_parameter<double>("visual_refinement_max_rotation_step_deg", 5.0);
+		declare_parameter<double>("visual_refinement_position_tolerance", 0.01);
+		declare_parameter<double>("visual_refinement_orientation_tolerance_deg", 3.0);
+		declare_parameter<double>("visual_refinement_nominal_position_tolerance", 0.01);
+		declare_parameter<double>("visual_refinement_nominal_orientation_tolerance_deg", 5.0);
+		declare_parameter<std::string>("visual_refinement_base_frame", "base_link");
+		declare_parameter<std::string>("visual_refinement_ee_frame", "arm_link_end");
+		declare_parameter<std::string>("visual_refinement_panel_frame", "aruco_board");
 
 		mission_helper_ = std::make_shared<MissionHelper>(
 		    // FIXME: assumption that the panel layout was read successfully
@@ -163,6 +177,9 @@ public:
 			factory_->registerBuilder<BuildUV>("BuildUV", Builder<BuildUV>());
 			factory_->registerBuilder<ShowBoard>(
 			    "ShowBoard", Builder<ShowBoard>()
+			);
+			factory_->registerBuilder<VisualRefineToPanel>(
+			    "VisualRefineToPanel", Builder<VisualRefineToPanel>()
 			);
 
 			// Build tree

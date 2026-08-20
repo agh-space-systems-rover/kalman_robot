@@ -1,4 +1,5 @@
 #include <aruco_opencv_msgs/msg/aruco_detection.hpp>
+#include <geometry_msgs/msg/pose_stamped.hpp>
 #include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_components/register_node_macro.hpp>
@@ -29,11 +30,17 @@ class PanelTracker : public rclcpp::Node {
             "detection_topic", "/d455_arm/aruco_detections"
         );
         declare_parameter<double>("ema_alpha", 0.2);
+        declare_parameter<int>("ee_marker_id", 99);
+        declare_parameter<std::string>("ee_marker_frame", "aruco_under_j6");
+        declare_parameter<std::string>("ee_frame", "arm_link_end");
 
         get_parameter("tracking_frame", tracking_frame_);
         get_parameter("board_frame", board_frame_);
         get_parameter("detection_topic", detection_topic_);
         get_parameter("ema_alpha", ema_alpha_);
+        get_parameter("ee_marker_id", ee_marker_id_);
+        get_parameter("ee_marker_frame", ee_marker_frame_);
+        get_parameter("ee_frame", ee_frame_);
 
         ema_alpha_ = std::clamp(ema_alpha_, 1e-6, 1.0);
 
@@ -44,6 +51,9 @@ class PanelTracker : public rclcpp::Node {
 
         pose_pub_ = create_publisher<
             geometry_msgs::msg::PoseWithCovarianceStamped>("panel_pose", 10);
+        visual_ee_pub_ = create_publisher<geometry_msgs::msg::PoseStamped>(
+            "visual_ee_pose", 10
+        );
 
         detection_sub_ =
             create_subscription<aruco_opencv_msgs::msg::ArucoDetection>(
@@ -83,14 +93,19 @@ class PanelTracker : public rclcpp::Node {
     std::string tracking_frame_;
     std::string board_frame_;
     std::string detection_topic_;
+    std::string ee_marker_frame_;
+    std::string ee_frame_;
+    int ee_marker_id_{99};
     double ema_alpha_;
     bool filter_initialized_{false};
     tf2::Transform filtered_board_pose_;
+    std::optional<tf2::Transform> cached_marker_to_ee_;
 
     rclcpp::Subscription<aruco_opencv_msgs::msg::ArucoDetection>::SharedPtr
         detection_sub_;
     rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr
         pose_pub_;
+    rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr visual_ee_pub_;
     std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
     std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
     std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
@@ -272,6 +287,55 @@ class PanelTracker : public rclcpp::Node {
         return covariance;
     }
 
+    std::optional<tf2::Transform> marker_to_ee() {
+        try {
+            const auto transform = tf_buffer_->lookupTransform(
+                ee_marker_frame_,
+                ee_frame_,
+                tf2::TimePointZero,
+                tf2::durationFromSec(0.1)
+            );
+            tf2::Transform current;
+            tf2::fromMsg(transform.transform, current);
+
+            if (cached_marker_to_ee_) {
+                const tf2::Transform delta = cached_marker_to_ee_->inverse() * current;
+                const double translation_change = delta.getOrigin().length();
+                tf2::Quaternion rotation_change = delta.getRotation();
+                rotation_change.normalize();
+                const double rotation_angle = 2.0 * std::acos(std::clamp(
+                    std::abs(static_cast<double>(rotation_change.w())), 0.0, 1.0
+                ));
+                if (translation_change > 1e-5 || rotation_angle > 1e-4) {
+                    RCLCPP_WARN_THROTTLE(
+                        get_logger(),
+                        *get_clock(),
+                        2000,
+                        "Transform %s -> %s is not static (delta %.6f m, %.6f rad)",
+                        ee_marker_frame_.c_str(),
+                        ee_frame_.c_str(),
+                        translation_change,
+                        rotation_angle
+                    );
+                }
+            } else {
+                cached_marker_to_ee_ = current;
+            }
+            return current;
+        } catch (const tf2::TransformException &ex) {
+            RCLCPP_WARN_THROTTLE(
+                get_logger(),
+                *get_clock(),
+                1000,
+                "Could not resolve %s -> %s: %s",
+                ee_marker_frame_.c_str(),
+                ee_frame_.c_str(),
+                ex.what()
+            );
+            return std::nullopt;
+        }
+    }
+
     void on_detection(
         const aruco_opencv_msgs::msg::ArucoDetection::SharedPtr msg
     ) {
@@ -309,13 +373,8 @@ class PanelTracker : public rclcpp::Node {
         std::vector<tf2::Transform> board_estimates;
         std::vector<int> marker_ids;
         std::vector<aruco_opencv_msgs::msg::MarkerPose> used_markers;
+        std::optional<tf2::Transform> camera_to_ee_marker;
         for (const auto &marker : msg->markers) {
-            const auto board_to_marker =
-                board_to_marker_from_layout(marker.marker_id);
-            if (!board_to_marker.has_value()) {
-                continue;
-            }
-
             geometry_msgs::msg::Transform marker_transform_msg;
             marker_transform_msg.translation.x = marker.pose.position.x;
             marker_transform_msg.translation.y = marker.pose.position.y;
@@ -325,8 +384,18 @@ class PanelTracker : public rclcpp::Node {
             tf2::Transform t_camera_marker;
             tf2::fromMsg(marker_transform_msg, t_camera_marker);
 
+            if (marker.marker_id == ee_marker_id_) {
+                camera_to_ee_marker = t_camera_marker;
+            }
+
+            const auto board_to_marker =
+                board_to_marker_from_layout(marker.marker_id);
+            if (!board_to_marker.has_value()) {
+                continue;
+            }
+
             board_estimates.push_back(
-                t_tracking_camera * t_camera_marker * board_to_marker->inverse()
+                t_camera_marker * board_to_marker->inverse()
             );
             marker_ids.push_back(marker.marker_id);
             used_markers.push_back(marker);
@@ -342,12 +411,14 @@ class PanelTracker : public rclcpp::Node {
             apply_ema(averaged_measurement);
         const auto covariance =
             estimate_covariance(board_estimates, averaged_measurement, used_markers);
+        const tf2::Transform filtered_tracking_board =
+            t_tracking_camera * filtered_measurement;
 
         geometry_msgs::msg::TransformStamped board_tf;
         board_tf.header.stamp = stamp;
         board_tf.header.frame_id = tracking_frame_;
         board_tf.child_frame_id = board_frame_;
-        board_tf.transform = tf2::toMsg(filtered_measurement);
+        board_tf.transform = tf2::toMsg(filtered_tracking_board);
         tf_broadcaster_->sendTransform(board_tf);
 
         geometry_msgs::msg::PoseWithCovarianceStamped pose_msg;
@@ -358,6 +429,25 @@ class PanelTracker : public rclcpp::Node {
         pose_msg.pose.pose.orientation = board_tf.transform.rotation;
         pose_msg.pose.covariance = covariance;
         pose_pub_->publish(pose_msg);
+
+        if (camera_to_ee_marker) {
+            const auto marker_to_end_effector = marker_to_ee();
+            if (marker_to_end_effector) {
+                const tf2::Transform panel_to_ee =
+                    filtered_measurement.inverse() * *camera_to_ee_marker *
+                    *marker_to_end_effector;
+                geometry_msgs::msg::PoseStamped visual_ee;
+                visual_ee.header.stamp = stamp;
+                visual_ee.header.frame_id = board_frame_;
+                visual_ee.pose.position.x = panel_to_ee.getOrigin().x();
+                visual_ee.pose.position.y = panel_to_ee.getOrigin().y();
+                visual_ee.pose.position.z = panel_to_ee.getOrigin().z();
+                visual_ee.pose.orientation = tf2::toMsg(
+                    panel_to_ee.getRotation()
+                );
+                visual_ee_pub_->publish(visual_ee);
+            }
+        }
 
         RCLCPP_DEBUG(
             get_logger(),

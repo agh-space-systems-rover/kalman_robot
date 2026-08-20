@@ -132,6 +132,15 @@ def launch_setup(context):
         ),
     }
 
+    visual_refinement_params = {
+        "visual_refinement_dof": int(
+            LaunchConfiguration("visual_refinement_dof").perform(context)
+        ),
+        "visual_refinement_panel_frame": LaunchConfiguration(
+            "panel_board_frame"
+        ).perform(context),
+    }
+
     if 1:
         actions += launch_node_or_load_component(
             component_container=component_container,
@@ -148,6 +157,7 @@ def launch_setup(context):
                 {"layout_yaml": ParameterValue(panel_layout_file, value_type=str)},
                 {"tree_xml": ParameterValue(tree_xml_file, value_type=str)},
                 {"auto_start": ParameterValue(False, value_type=bool)},
+                visual_refinement_params,
             ],
         )
 
@@ -307,13 +317,19 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument(
                 "panel_detection_topic",
-                default_value="/d455_arm/aruco_detections",
+                default_value="/d455_arm_wheel/aruco_detections",
                 description="Aruco detection topic used by the panel tracker.",
             ),
             DeclareLaunchArgument(
                 "panel_tracker_ema_alpha",
                 default_value="0.2",
                 description="EMA smoothing factor for panel pose tracking.",
+            ),
+            DeclareLaunchArgument(
+                "visual_refinement_dof",
+                default_value="3",
+                choices=["3", "6"],
+                description="Visual final correction mode: translation only (3) or full pose (6).",
             ),
             OpaqueFunction(function=launch_setup),
         ]
