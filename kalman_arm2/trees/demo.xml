@@ -8,7 +8,7 @@
       <Fallback name="EnsureInitialPanelPose">
         <Sequence>
           <IsPanelPoseAvailable />
-          <IsPanelPoseFresh max_age_ms="300" />
+          <IsPanelPoseFresh max_age_ms="500" />
         </Sequence>
         <AcquirePanelPose timeout_ms="3000" max_age_ms="300" />
         <Sequence>
@@ -48,17 +48,14 @@
       <Say message="Fine goal reached" />
 
       <IsPanelPoseGood
-        max_age_ms="200"
+        max_age_ms="500"
         max_position_error="0.03"
         max_normal_error_deg="8.0" />
 
-      <ComputePanelTarget
-        panel_relative_pose="{requested_panel_pose}"
-        orientation_mode="normal_to_panel"
-        target_pose="{target_pose}" />
-
-      <SetMissionFeedback text="Moving to final panel target" />
-      <IKNavigateToPose pose="{target_pose}" timeout_ms="15000" />
+      <SetMissionFeedback text="Visually refining final panel target" />
+      <VisualRefineToPanel
+        pose="{requested_panel_pose}"
+        timeout_ms="20000" />
     </Sequence>
   </BehaviorTree>
 </root>

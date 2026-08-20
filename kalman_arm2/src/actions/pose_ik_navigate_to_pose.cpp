@@ -78,7 +78,12 @@ BT::PortsList PoseIKNavigateToPose::providedPorts() {
 }
 
 BT::NodeStatus PoseIKNavigateToPose::onStart() {
-	input_pose_ = getInput<geometry_msgs::msg::Pose>("pose").value();
+	const auto input_pose = getInput<geometry_msgs::msg::Pose>("pose");
+	if (!input_pose) {
+		RCLCPP_ERROR(parent_->get_logger(), "%s has no target pose", name().c_str());
+		return BT::NodeStatus::FAILURE;
+	}
+	input_pose_ = input_pose.value();
 
 	tf2::Quaternion tool_alignment;
 	tool_alignment.setRPY(0, M_PI_2, M_PI_2);
@@ -146,8 +151,10 @@ BT::NodeStatus PoseIKNavigateToPose::onRunning() {
 		    rclcpp::Duration::from_seconds(0.1)
 		);
 
+		geometry_msgs::msg::Pose identity_pose;
+		identity_pose.orientation.w = 1.0;
 		const geometry_msgs::msg::Pose current_pose = transformPoseWithTf(
-		    geometry_msgs::msg::Pose{}, toTf(base_T_ee.transform)
+		    identity_pose, toTf(base_T_ee.transform)
 		);
 
 		const double dx = commanded_pose_.position.x - current_pose.position.x;
