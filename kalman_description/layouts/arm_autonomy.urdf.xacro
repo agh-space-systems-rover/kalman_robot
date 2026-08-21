@@ -47,4 +47,11 @@
         <child link="aruco_under_j6" />
     </joint>
 
+    <link name="arm_link_gripper" />
+    <joint name="arm_joint_for_gripper_end" type="fixed">
+        <origin xyz="0.08 0.0 0.025" rpy="1.570 0.0 -1.570" />
+        <parent link="arm_link_end" />
+        <child link="arm_link_gripper" />
+    </joint>
+
 </robot>
