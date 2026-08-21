@@ -52,6 +52,9 @@ def launch_setup(context):
         "singularity_preferred_positions": yaml.safe_load(
             LaunchConfiguration("ik_singularity_preferred_positions").perform(context)
         ),
+        "min_linear_speed": 0.0,
+        "fine_approach_angular_scale": 0.4,
+        "max_linear_speed": 0.4,
     }
 
     actions = []
@@ -242,7 +245,7 @@ def launch_setup(context):
                 name="rosbridge_client_" + topic.replace("/", "_").strip("_"),
                 parameters=[
                     {
-                        "ws_address": "192.168.1.77:9473",
+                        "ws_address": "192.168.1.2:9473",
                         "topic": topic,
                         "type": msg_type,
                         "mode": mode,
@@ -357,7 +360,7 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument(
                 "visual_refinement_dof",
-                default_value="3",
+                default_value="6",
                 choices=["3", "6"],
                 description="Visual final correction mode: translation only (3) or full pose (6).",
             ),

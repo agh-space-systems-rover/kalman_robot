@@ -279,7 +279,7 @@ BT::NodeStatus VisualRefineToPanel::begin_correction() {
             parent_->get_logger(),
             *parent_->get_clock(),
             1000,
-            "Visual EE pose uses frame '%s', expected '%s'", 
+            "Visual EE pose uses frame '%s', expected '%s'",
             visual_pose->header.frame_id.c_str(),
             panel_frame_.c_str()
         );
