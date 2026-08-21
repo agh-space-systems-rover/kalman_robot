@@ -31,11 +31,19 @@
         <origin xyz="-0.012 0.019 0.200" rpy="0.000 0.550 -0.584" />
     </xacro:sensor_d455>
 
+    <!-- <link name="aruco_under_j6" /> -->
+    <!-- <joint name="aruco_joint" type="fixed"> -->
+        <!-- <origin xyz="0.08 0 0.05" rpy="0.785 0 0" /> -->
+        <!-- <origin xyz="0.117 0.011 0.062" rpy="3.086 0.784 -1.600" /> -->
+        <!-- <parent link="arm_link_6" /> -->
+        <!-- <child link="aruco_under_j6" /> -->
+    <!-- </joint> -->
+
     <link name="aruco_under_j6" />
     <joint name="aruco_joint" type="fixed">
         <!-- <origin xyz="0.08 0 0.05" rpy="0.785 0 0" /> -->
-        <origin xyz="0.117 0.011 0.062" rpy="3.086 0.784 -1.600" />
-        <parent link="arm_link_6" />
+        <origin xyz="0.0 0.0 -0.065" rpy="1.538 -0.116 -2.102" />
+        <parent link="arm_link_end" />
         <child link="aruco_under_j6" />
     </joint>
 

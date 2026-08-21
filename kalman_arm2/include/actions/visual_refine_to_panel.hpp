@@ -60,9 +60,9 @@ class VisualRefineToPanel : public BT::StatefulActionNode {
     std::string panel_frame_;
     int refinement_dof_{3};
     int max_corrections_{10};
-    double max_measurement_age_s_{0.3};
+    double max_measurement_age_s_{0.5};
     double settle_time_s_{0.4};
-    double max_translation_step_{0.03};
+    double max_translation_step_{0.3};
     double max_rotation_step_rad_{0.0872664626};
     double visual_position_tolerance_{0.01};
     double visual_orientation_tolerance_rad_{0.0523598776};
