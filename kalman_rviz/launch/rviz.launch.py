@@ -37,7 +37,6 @@ def launch_setup(context):
                 "--log-level",
                 "warn",
             ],
-            prefix="vglrun -d egl",
         )
         for config in configs
     ]
