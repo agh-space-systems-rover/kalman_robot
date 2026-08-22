@@ -7,12 +7,17 @@
 #include "actions/do_something.hpp"
 #include "actions/find_panel.hpp"
 #include "actions/get_next_goal.hpp"
+#include "actions/gripper_actions.hpp"
 #include "actions/ik_navigate_to_pose.hpp"
 #include "actions/pose_ik_navigate_to_pose.hpp"
+#include "actions/rotate_ee_along_normal_joint.hpp"
+#include "actions/rotate_ee_along_normal_twist.hpp"
 #include "actions/set_mission_feedback.hpp"
 #include "actions/say_something.hpp"
 #include "actions/show_board.hpp"
+#include "actions/transform_pose.hpp"
 #include "actions/visual_refine_to_panel.hpp"
+#include "actions/visual_refine_to_panel_twist.hpp"
 #include "conditions/has_next_goal.hpp"
 #include "conditions/is_panel_pose_available.hpp"
 #include "conditions/is_panel_pose_fresh.hpp"
@@ -82,13 +87,30 @@ public:
 		declare_parameter<double>("visual_refinement_settle_time_s", 0.4);
 		declare_parameter<double>("visual_refinement_max_translation_step", 0.10);
 		declare_parameter<double>("visual_refinement_max_rotation_step_deg", 5.0);
-		declare_parameter<double>("visual_refinement_position_tolerance", 0.01);
-		declare_parameter<double>("visual_refinement_orientation_tolerance_deg", 3.0);
+		declare_parameter<double>("visual_refinement_position_tolerance", 0.015);
+		declare_parameter<double>("visual_refinement_orientation_tolerance_deg", 4.0);
 		declare_parameter<double>("visual_refinement_nominal_position_tolerance", 0.01);
 		declare_parameter<double>("visual_refinement_nominal_orientation_tolerance_deg", 5.0);
 		declare_parameter<std::string>("visual_refinement_base_frame", "base_link");
 		declare_parameter<std::string>("visual_refinement_ee_frame", "arm_link_end");
 		declare_parameter<std::string>("visual_refinement_panel_frame", "aruco_board");
+		declare_parameter<double>("visual_refinement_twist_linear_kp", 0.8);
+		declare_parameter<double>("visual_refinement_twist_max_linear_speed", 0.12);
+		declare_parameter<double>("visual_refinement_twist_min_linear_speed", 0.015);
+		declare_parameter<double>("visual_refinement_twist_min_speed_activation_distance", 0.03);
+		declare_parameter<double>("visual_refinement_twist_angular_kp", 2.0);
+		declare_parameter<double>("visual_refinement_twist_max_angular_speed", 0.6);
+		declare_parameter<double>("gripper_open_position", 1.57);
+		declare_parameter<double>("gripper_closed_position", 0.0);
+		declare_parameter<std::string>("rotate_ee_base_frame", "base_link");
+		declare_parameter<std::string>("rotate_ee_frame", "arm_link_end");
+		declare_parameter<double>("rotate_ee_angular_kp", 1.5);
+		declare_parameter<double>("rotate_ee_max_angular_speed", 0.3);
+		declare_parameter<double>("rotate_ee_min_angular_speed", 0.05);
+		declare_parameter<double>("rotate_ee_joint_kp", 1.5);
+		declare_parameter<double>("rotate_ee_joint_max_speed", 0.3);
+		declare_parameter<double>("rotate_ee_joint_min_speed", 0.05);
+		declare_parameter<double>("rotate_ee_tolerance_deg", 1.0);
 
 		mission_helper_ = std::make_shared<MissionHelper>(
 		    // FIXME: assumption that the panel layout was read successfully
@@ -178,8 +200,36 @@ public:
 			factory_->registerBuilder<ShowBoard>(
 			    "ShowBoard", Builder<ShowBoard>()
 			);
+			factory_->registerBuilder<TransformPose>(
+			    "TransformPose", Builder<TransformPose>()
+			);
+			factory_->registerBuilder<OpenGripper>(
+			    "OpenGripper", Builder<OpenGripper>()
+			);
+			factory_->registerBuilder<CloseGripper>(
+			    "CloseGripper", Builder<CloseGripper>()
+			);
+			factory_->registerBuilder<RotateEEAlongNormalTwist>(
+			    "RotateEEAlongNormalTwist",
+			    Builder<RotateEEAlongNormalTwist>()
+			);
+			factory_->registerBuilder<RotateEEAlongNormalTwist>(
+			    "RotateEEAlongNormal", Builder<RotateEEAlongNormalTwist>()
+			);
+			factory_->registerBuilder<RotateEEAlongNormalJoint>(
+			    "RotateEEAlongNormalJoint",
+			    Builder<RotateEEAlongNormalJoint>()
+			);
+			factory_->registerBuilder<RotateEEAlongNormalJoint>(
+			    "RotateEEAloneNormalJoint",
+			    Builder<RotateEEAlongNormalJoint>()
+			);
 			factory_->registerBuilder<VisualRefineToPanel>(
 			    "VisualRefineToPanel", Builder<VisualRefineToPanel>()
+			);
+			factory_->registerBuilder<VisaulRefineToPanelTwist>(
+			    "VisaulRefineToPanelTwist",
+			    Builder<VisaulRefineToPanelTwist>()
 			);
 
 			// Build tree

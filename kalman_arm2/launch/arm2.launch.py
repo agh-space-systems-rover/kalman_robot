@@ -153,8 +153,11 @@ def launch_setup(context):
             LaunchConfiguration("visual_refinement_dof").perform(context)
         ),
         "visual_refinement_panel_frame": LaunchConfiguration(
-            "panel_board_frame"
+            "panel_board_frame",
         ).perform(context),
+        # "visual_refinement_twist_angular_kp": 0.4,
+        # "visual_refinement_twist_max_angular_speed": 0.1,
+        # "visual_refinement_max_measurement_age_s": 0.1,
     }
 
     if 1:
