@@ -77,6 +77,7 @@ BT::NodeStatus ArmNavigateToPose::onStart() {
 
 	kalman_interfaces::action::ArmGotoJointPose::Goal goal;
 	goal.target_pos.joints = target_joints;
+	goal.target_pos.jaw    = jaw;
 	goal.ignore_mask       = ignore_mask.to_ulong();
 
 	auto send_opts =

@@ -63,7 +63,7 @@ class VisualRefineToPanel : public BT::StatefulActionNode {
     double max_measurement_age_s_{0.5};
     double settle_time_s_{0.4};
     double max_translation_step_{0.3};
-    double max_rotation_step_rad_{0.0872664626};
+    double max_rotation_step_rad_{0.78};
     double visual_position_tolerance_{0.01};
     double visual_orientation_tolerance_rad_{0.0523598776};
     double nominal_position_tolerance_{0.01};

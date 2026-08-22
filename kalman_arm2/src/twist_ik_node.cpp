@@ -66,6 +66,7 @@ public:
 	Eigen::VectorXd                           singularity_preferred_positions;
 	bool                                      joints_initialized;
 	bool                                      kinematics_ready;
+	bool                                      was_active;
 
 	// Latest twist message
 	geometry_msgs::msg::TwistStamped::SharedPtr latest_twist;
@@ -74,7 +75,7 @@ public:
 
 	TwistIK(const rclcpp::NodeOptions &options)
 	    : Node("twist_ik", options), joints_initialized(false),
-	      kinematics_ready(false), last_twist_time(now()) {
+	      kinematics_ready(false), was_active(false), last_twist_time(now()) {
 
 		this->declare_parameter<std::string>("base_link", "base_link");
 		this->declare_parameter<std::string>(
@@ -547,6 +548,24 @@ public:
 		return true;
 	}
 
+	void publish_zero_velocity() {
+		auto vel_msg         = kalman_interfaces::msg::ArmValues();
+		vel_msg.header.stamp = now();
+		vel_msg.joints.fill(0.0);
+		vel_msg.jaw = 0.0;
+		joint_vel_pub->publish(vel_msg);
+	}
+
+	bool twist_is_zero(const geometry_msgs::msg::Twist &twist) const {
+		constexpr double epsilon = 1e-9;
+		return std::abs(twist.linear.x) <= epsilon &&
+		       std::abs(twist.linear.y) <= epsilon &&
+		       std::abs(twist.linear.z) <= epsilon &&
+		       std::abs(twist.angular.x) <= epsilon &&
+		       std::abs(twist.angular.y) <= epsilon &&
+		       std::abs(twist.angular.z) <= epsilon;
+	}
+
 	void compute_joint_velocities() {
 		if (!kinematics_ready || !joints_initialized) {
 			return;
@@ -557,13 +576,22 @@ public:
 			std::lock_guard<std::mutex> lock(twist_mutex);
 			if (!latest_twist ||
 			    (now() - last_twist_time).seconds() > control_timeout) {
+				if (was_active) {
+					publish_zero_velocity();
+					was_active = false;
+				}
 				return;
 			}
 			twist_msg = latest_twist;
 		}
+		was_active = true;
 
 		geometry_msgs::msg::Twist base_twist =
 		    transform_twist_to_base_frame(twist_msg);
+		if (twist_is_zero(base_twist)) {
+			publish_zero_velocity();
+			return;
+		}
 
 		Eigen::VectorXd joint_velocities;
 		if (!solve_joint_velocities(base_twist, joint_velocities)) {
