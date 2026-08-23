@@ -21,6 +21,9 @@ class GripperCommandAction : public BT::StatefulActionNode {
 
   protected:
 	static BT::PortsList commonPorts();
+	BT::NodeStatus start_command(double timeout_ms, double tolerance);
+	void set_target_position(double target_position);
+	rclcpp::Node *parent_;
 
   private:
 	void current_position_callback(
@@ -29,7 +32,6 @@ class GripperCommandAction : public BT::StatefulActionNode {
 	void publish_target(double position) const;
 	std::optional<double> current_position() const;
 
-	rclcpp::Node *parent_;
 	rclcpp::Subscription<kalman_interfaces::msg::ArmValues>::SharedPtr
 	    current_position_sub_;
 	rclcpp::Publisher<kalman_interfaces::msg::ArmValues>::SharedPtr target_pub_;
@@ -61,4 +63,16 @@ class CloseGripper : public GripperCommandAction {
 	);
 
 	static BT::PortsList providedPorts();
+};
+
+class SetGripperAngle : public GripperCommandAction {
+  public:
+	SetGripperAngle(
+	    const std::string           &name,
+	    const BT::NodeConfiguration &config,
+	    rclcpp::Node                *parent
+	);
+
+	static BT::PortsList providedPorts();
+	BT::NodeStatus       onStart() override;
 };
