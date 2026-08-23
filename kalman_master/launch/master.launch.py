@@ -146,10 +146,7 @@ def launch_setup(context):
             "rfid_driver",
             "tunnel_client",
             "storage_driver",
-            # "sand_storage_driver",
             "ph_driver",
-            "camera_2dof_driver",
-            "laser_driver",
         ],
         "arm": [
             "master_com",
