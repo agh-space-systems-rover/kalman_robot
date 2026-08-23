@@ -58,7 +58,8 @@
 
       <SetMissionFeedback text="Visually refining final panel target" />
 
-      <OpenGripper timeout_ms="5000" tolerance="0.20" />
+      <!-- <OpenGripper timeout_ms="5000" tolerance="0.20" /> -->
+      <SetGripperAngle degrees="30.0" timeout_ms="5000" tolerance_deg="10.0" />
 
       <TransformPose
         pose="{requested_panel_pose}"
