@@ -51,9 +51,14 @@ void GripperCommandAction::publish_target(double position) const {
 	target_pub_->publish(target);
 }
 
-BT::NodeStatus GripperCommandAction::onStart() {
-	const double timeout_ms = getInput<double>("timeout_ms").value_or(5000.0);
-	tolerance_ = getInput<double>("tolerance").value_or(0.05);
+void GripperCommandAction::set_target_position(double target_position) {
+	target_position_ = target_position;
+}
+
+BT::NodeStatus GripperCommandAction::start_command(
+    double timeout_ms, double tolerance
+) {
+	tolerance_ = tolerance;
 	if (!std::isfinite(timeout_ms) || timeout_ms <= 0.0 ||
 	    !std::isfinite(tolerance_) || tolerance_ <= 0.0) {
 		RCLCPP_ERROR(parent_->get_logger(), "%s has invalid parameters", name().c_str());
@@ -64,6 +69,13 @@ BT::NodeStatus GripperCommandAction::onStart() {
 	    parent_->now() + rclcpp::Duration::from_seconds(timeout_ms / 1000.0);
 	publish_target(target_position_);
 	return BT::NodeStatus::RUNNING;
+}
+
+BT::NodeStatus GripperCommandAction::onStart() {
+	return start_command(
+	    getInput<double>("timeout_ms").value_or(5000.0),
+	    getInput<double>("tolerance").value_or(0.05)
+	);
 }
 
 BT::NodeStatus GripperCommandAction::onRunning() {
@@ -133,4 +145,42 @@ CloseGripper::CloseGripper(
 
 BT::PortsList CloseGripper::providedPorts() {
 	return commonPorts();
+}
+
+SetGripperAngle::SetGripperAngle(
+    const std::string           &name,
+    const BT::NodeConfiguration &config,
+    rclcpp::Node                *parent
+)
+    : GripperCommandAction(name, config, parent, 0.0) {}
+
+BT::PortsList SetGripperAngle::providedPorts() {
+	return {
+	    BT::InputPort<double>("degrees", "Target gripper angle in degrees"),
+	    BT::InputPort<double>("timeout_ms", 5000.0, "Timeout in milliseconds"),
+	    BT::InputPort<double>(
+	        "tolerance_deg", 5.0, "Gripper angle tolerance in degrees"
+	    ),
+	};
+}
+
+BT::NodeStatus SetGripperAngle::onStart() {
+	const auto degrees = getInput<double>("degrees");
+	if (!degrees || !std::isfinite(degrees.value()) || degrees.value() < 0.0 ||
+	    degrees.value() > 90.0) {
+		RCLCPP_ERROR(
+		    parent_->get_logger(),
+		    "%s requires a finite gripper angle in [0, 90] degrees",
+		    name().c_str()
+		);
+		return BT::NodeStatus::FAILURE;
+	}
+
+	const double tolerance_deg =
+	    getInput<double>("tolerance_deg").value_or(5.0);
+	set_target_position(degrees.value() * M_PI / 180.0);
+	return start_command(
+	    getInput<double>("timeout_ms").value_or(5000.0),
+	    tolerance_deg * M_PI / 180.0
+	);
 }

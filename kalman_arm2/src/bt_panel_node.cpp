@@ -209,6 +209,9 @@ public:
 			factory_->registerBuilder<CloseGripper>(
 			    "CloseGripper", Builder<CloseGripper>()
 			);
+			factory_->registerBuilder<SetGripperAngle>(
+			    "SetGripperAngle", Builder<SetGripperAngle>()
+			);
 			factory_->registerBuilder<RotateEEAlongNormalTwist>(
 			    "RotateEEAlongNormalTwist",
 			    Builder<RotateEEAlongNormalTwist>()
