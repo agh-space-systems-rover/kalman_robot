@@ -14,7 +14,7 @@ storage = {
             "scale": 23739.0 / 1310000.0,
             "bias": -44568183.0 / 1310000.0,
             # safe angles for the servo
-            "open_angle": 100,
+            "open_angle": 176,
             "close_angle": 0,
         }
     ],
@@ -24,7 +24,7 @@ storage = {
             "channel": 0,
             "scale": 23739.0 / 1425700.0,
             "bias": -447639993.0 / 712850.0,
-            "open_angle": 100,
+            "open_angle": 192,
             "close_angle": 0,
         },
         {
@@ -32,7 +32,7 @@ storage = {
             "channel": 2,
             "scale": 23739.0 / 1425700.0,
             "bias": 0.0,
-            "open_angle": 100,
+            "open_angle": 192,
             "close_angle": 0,
         },
     ],
