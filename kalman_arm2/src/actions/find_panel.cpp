@@ -60,7 +60,7 @@ BT::PortsList FindPanel::providedPorts() {
             "Camera info topic used for intrinsics"
         ),
         BT::InputPort<std::string>(
-            "end_effector_frame", "arm_link_end", "Arm end effector frame"
+            "end_effector_frame", "arm_link_gripper", "Arm end effector frame"
         ),
         BT::InputPort<double>(
             "view_margin", 1.15, "Safety margin applied to board size"
@@ -129,7 +129,7 @@ geometry_msgs::msg::Pose FindPanel::compute_target_pose(
     const auto camera_frame =
         getInput<std::string>("camera_frame").value_or("d455_arm_color_optical_frame");
     const auto end_effector_frame =
-        getInput<std::string>("end_effector_frame").value_or("arm_link_end");
+        getInput<std::string>("end_effector_frame").value_or("arm_link_gripper");
     const double view_margin = getInput<double>("view_margin").value_or(1.15);
     const double min_standoff = getInput<double>("min_standoff").value_or(0.35);
 
@@ -186,15 +186,6 @@ geometry_msgs::msg::Pose FindPanel::compute_target_pose(
     target_pose.position.y = base_to_ee.getOrigin().y();
     target_pose.position.z = base_to_ee.getOrigin().z();
     target_pose.orientation = tf2::toMsg(base_to_ee.getRotation());
-
-    tf2::Quaternion tool_alignment;
-    tool_alignment.setRPY(0.0, M_PI_2, M_PI_2);
-
-    tf2::Quaternion ee_rotation;
-    tf2::fromMsg(target_pose.orientation, ee_rotation);
-    tf2::Quaternion input_rotation = ee_rotation * tool_alignment.inverse();
-    input_rotation.normalize();
-    target_pose.orientation = tf2::toMsg(input_rotation);
     return target_pose;
 }
 

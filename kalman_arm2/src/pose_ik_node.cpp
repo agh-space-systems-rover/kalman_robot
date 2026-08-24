@@ -82,7 +82,7 @@ class PoseIK : public rclcpp::Node {
 	    : Node("pose_ik", options), joints_initialized(false),
 	      kinematics_ready(false), was_active(false), last_goal_time(now()) {
 		declare_parameter<std::string>("base_link", "base_link");
-		declare_parameter<std::string>("end_effector_link", "arm_link_end");
+		declare_parameter<std::string>("end_effector_link", "arm_link_gripper");
 		declare_parameter<float>("max_joint_vel", 0.5);
 		declare_parameter<double>("update_rate", 10.0);
 		declare_parameter<double>("control_timeout", 0.5);
@@ -571,7 +571,9 @@ class PoseIK : public rclcpp::Node {
 		tf2::fromMsg(target.orientation, q_target);
 		q_current.normalize();
 		q_target.normalize();
-		tf2::Quaternion q_error = q_current.inverse() * q_target;
+		// KDL Jacobian angular rows are expressed in base_link, so use the
+		// spatial rotation error rather than the body-frame rotation error.
+		tf2::Quaternion q_error = q_target * q_current.inverse();
 		q_error.normalize();
 		if (q_error.getW() < 0.0) {
 			q_error = tf2::Quaternion(

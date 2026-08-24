@@ -142,7 +142,7 @@ VisaulRefineToPanelTwist::VisaulRefineToPanelTwist(
 BT::PortsList VisaulRefineToPanelTwist::providedPorts() {
 	return {
 	    BT::InputPort<geometry_msgs::msg::Pose>(
-	        "pose", "Literal desired arm_link_end pose in the panel frame"
+	        "pose", "Literal desired arm_link_gripper pose in the panel frame"
 	    ),
 	    BT::InputPort<double>("timeout_ms", "Timeout in milliseconds"),
 	};
@@ -214,19 +214,6 @@ BT::NodeStatus VisaulRefineToPanelTwist::onStart() {
 		return BT::NodeStatus::FAILURE;
 	}
 	desired_panel_pose_ = desired_pose.value();
-	{
-    	tf2::Quaternion tool_alignment;
-    	tool_alignment.setRPY(0, M_PI_2, M_PI_2);
-
-    	tf2::Quaternion target_rotation;
-    	tf2::fromMsg(desired_panel_pose_.orientation, target_rotation);
-    	target_rotation.normalize();
-
-    	const tf2::Quaternion aligned_rotation =
-        target_rotation * tool_alignment;
-
-    	desired_panel_pose_.orientation = tf2::toMsg(aligned_rotation);
-	}
 
 	const auto timeout = getInput<double>("timeout_ms");
 	const double timeout_ms = timeout ? timeout.value() : 15000.0;

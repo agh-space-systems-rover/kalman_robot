@@ -79,7 +79,7 @@ public:
 
 		this->declare_parameter<std::string>("base_link", "base_link");
 		this->declare_parameter<std::string>(
-		    "end_effector_link", "arm_link_end"
+		    "end_effector_link", "arm_link_gripper"
 		);
 		this->declare_parameter<float>("max_joint_vel", 0.5);
 		this->declare_parameter<double>("update_rate", 10.0);

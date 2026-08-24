@@ -220,7 +220,7 @@ inline geometry_msgs::msg::Vector3 scaledLinearVelocity(
 
 BT::NodeStatus IKNavigateToPose::onRunning() {
 	const std::string base_frame_        = "base_link";
-	const std::string end_effector_frame = "arm_link_end";
+	const std::string end_effector_frame = "arm_link_gripper";
 
   if (parent_->now() >= deadline_) {
     geometry_msgs::msg::TwistStamped zero_vel{};
@@ -261,32 +261,11 @@ BT::NodeStatus IKNavigateToPose::onRunning() {
       );
 
 			{
-				// We want the end effector to be perpendicular to marker
-				tf2::Quaternion q;
-				q.setRPY(0, M_PI_2, M_PI_2);
-				auto            pose_copy = pose;
-				tf2::Quaternion target_rotation;
-				tf2::fromMsg(pose.orientation, target_rotation);
-
-				const auto rot        = target_rotation * q;
-				pose_copy.orientation = tf2::toMsg(rot);
-
-				// geometry_msgs::msg::TransformStamped transform;
-				// transform.header.frame_id = "base_link";
-				// transform.child_frame_id = "Test_debug_frame";
-				// transform.transform.rotation = pose_copy.orientation;
-				// transform.transform.translation.x = pose_copy.position.x;
-				// transform.transform.translation.y = pose_copy.position.y;
-				// transform.transform.translation.z = pose_copy.position.z;
-
-				// static_broadcaster_->sendTransform(transform);
-
-				twist.twist.angular = angularVelToTarget(
-				    current_pose.orientation, pose_copy.orientation
-				);
+				twist.twist.angular =
+				    angularVelToTarget(current_pose.orientation, pose.orientation);
 				const auto v = twist.twist.linear;
 				const double angular_error = quaternionAngleToTarget(
-				    current_pose.orientation, pose_copy.orientation
+				    current_pose.orientation, pose.orientation
 				);
 
 				const auto vec3mag = [](geometry_msgs::msg::Vector3 v) -> float {

@@ -74,7 +74,7 @@ RotateEEAlongNormalTwist::RotateEEAlongNormalTwist(
 
 BT::PortsList RotateEEAlongNormalTwist::providedPorts() {
 	return {
-	    BT::InputPort<double>("degrees", "Signed rotation around EE-local +X"),
+	    BT::InputPort<double>("degrees", "Signed rotation around EE-local +Z"),
 	    BT::InputPort<double>("timeout_ms", 10000.0, "Timeout in milliseconds"),
 	};
 }
@@ -143,7 +143,7 @@ BT::NodeStatus RotateEEAlongNormalTwist::onStart() {
 
 	const double angle_rad = degrees_input.value() * M_PI / 180.0;
 	tf2::Quaternion relative_rotation;
-	relative_rotation.setRotation(tf2::Vector3(1.0, 0.0, 0.0), angle_rad);
+	relative_rotation.setRotation(tf2::Vector3(0.0, 0.0, 1.0), angle_rad);
 	target_rotation_ = base_to_ee->getRotation() * relative_rotation;
 	target_rotation_.normalize();
 	deadline_ =

@@ -92,7 +92,7 @@ public:
 		declare_parameter<double>("visual_refinement_nominal_position_tolerance", 0.01);
 		declare_parameter<double>("visual_refinement_nominal_orientation_tolerance_deg", 5.0);
 		declare_parameter<std::string>("visual_refinement_base_frame", "base_link");
-		declare_parameter<std::string>("visual_refinement_ee_frame", "arm_link_end");
+		declare_parameter<std::string>("visual_refinement_ee_frame", "arm_link_gripper");
 		declare_parameter<std::string>("visual_refinement_panel_frame", "aruco_board");
 		declare_parameter<double>("visual_refinement_twist_linear_kp", 0.8);
 		declare_parameter<double>("visual_refinement_twist_max_linear_speed", 0.12);
@@ -103,7 +103,7 @@ public:
 		declare_parameter<double>("gripper_open_position", 1.57);
 		declare_parameter<double>("gripper_closed_position", 0.0);
 		declare_parameter<std::string>("rotate_ee_base_frame", "base_link");
-		declare_parameter<std::string>("rotate_ee_frame", "arm_link_end");
+		declare_parameter<std::string>("rotate_ee_frame", "arm_link_gripper");
 		declare_parameter<double>("rotate_ee_angular_kp", 1.5);
 		declare_parameter<double>("rotate_ee_max_angular_speed", 0.3);
 		declare_parameter<double>("rotate_ee_min_angular_speed", 0.05);
