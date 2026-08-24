@@ -42,12 +42,16 @@ Run Streamlit only (rosbridge must already be reachable):
 ros2 run kalman_tools master_frame_panel
 ```
 
+### Usage
+
+Operator how-to (launch, UI, troubleshooting): [`docs/kalman_tools.md`](../../../docs/kalman_tools.md) at the workspace root.
+
 ### Manual test checklist
 
-1. Start `master_loopback`, launch the panel, send `AUTONOMY_SWITCH` with payload `1`, confirm receive on topic suffix `x20`.
-2. Start spam at 1 s interval, verify repeated sends, then stop per-row and with **Stop all spam**.
-3. Select multiple receive frame IDs and confirm subscriptions update.
-4. Add a filter such as `data[1] == 0` and verify only matching messages appear.
+1. Start `master_loopback`, launch the panel, send `AUTONOMY_SWITCH` with payload `1`, confirm receive on topic suffix `x20` after selecting that ID on the right.
+2. Start spam at 1 s interval, verify repeated sends, then stop per-row and with **Emergency Intercept: Cease All Spams**.
+3. Select multiple receive frame IDs and confirm the log topics update.
+4. Add a payload filter (index, operator, byte) and verify only matching messages appear.
 5. With GS running, use `start_rosbridge:=false rosbridge_port:=9065`.
 
 ### Adding another tool
