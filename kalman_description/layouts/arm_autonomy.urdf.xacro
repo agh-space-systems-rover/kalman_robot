@@ -28,7 +28,8 @@
         parent="swivel_fl_link"
         use_nominal_extrinsics="true">
         <!-- <origin xyz="-0.012 0.019 0.059" rpy="0.000 0.550 -0.584" /> -->
-        <origin xyz="-0.012 0.019 0.200" rpy="0.000 0.550 -0.584" />
+        <!-- <origin xyz="0.100 -0.020 0.000" rpy="0.000 0.550 -0.584" /> -->
+        <origin xyz="0.200 0.010 0.000" rpy="0.000 0.550 -0.584" />
     </xacro:sensor_d455>
 
     <!-- <link name="aruco_under_j6" /> -->
@@ -42,7 +43,8 @@
     <link name="aruco_under_j6" />
     <joint name="aruco_joint" type="fixed">
         <!-- <origin xyz="0.08 0 0.05" rpy="0.785 0 0" /> -->
-        <origin xyz="0.0 0.0 -0.065" rpy="1.538 -0.116 -2.102" />
+        <!-- <origin xyz="0.0 0.0 -0.065" rpy="1.538 -0.116 -2.102" /> -->
+        <origin xyz="0.006 0.0 -0.055" rpy="1.538 -0.116 -2.102" />
         <parent link="arm_link_end" />
         <child link="aruco_under_j6" />
     </joint>

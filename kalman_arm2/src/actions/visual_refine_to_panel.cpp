@@ -136,7 +136,7 @@ VisualRefineToPanel::VisualRefineToPanel(
 BT::PortsList VisualRefineToPanel::providedPorts() {
     return {
         BT::InputPort<geometry_msgs::msg::Pose>(
-            "pose", "Literal desired arm_link_end pose in the panel frame"
+            "pose", "Literal desired arm_link_gripper pose in the panel frame"
         ),
         BT::InputPort<double>("timeout_ms", "Timeout in milliseconds"),
     };
