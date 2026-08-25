@@ -17,6 +17,7 @@
 #include <sensor_msgs/image_encodings.hpp>
 #include <sensor_msgs/msg/camera_info.hpp>
 #include <sensor_msgs/msg/image.hpp>
+#include <std_msgs/msg/float64_multi_array.hpp>
 #include <tf2/LinearMath/Transform.hpp>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <tf2_ros/buffer.h>
@@ -52,6 +53,9 @@ class PanelRectifier : public rclcpp::Node {
         );
         const std::string valid_topic = declare_parameter<std::string>(
             "valid_topic", "panel/valid"
+        );
+        const std::string pixel_transform_topic = declare_parameter<std::string>(
+            "pixel_transform_topic", "panel/pixel_to_panel"
         );
         pixels_per_meter_ = declare_parameter<double>("pixels_per_meter", 1000.0);
         tf_timeout_s_ = declare_parameter<double>("tf_timeout_s", 0.1);
@@ -121,6 +125,12 @@ class PanelRectifier : public rclcpp::Node {
         valid_pub_ = create_publisher<sensor_msgs::msg::Image>(
             valid_topic, output_qos
         );
+        auto transform_qos = rclcpp::QoS(1).reliable().transient_local();
+        pixel_transform_pub_ =
+            create_publisher<std_msgs::msg::Float64MultiArray>(
+                pixel_transform_topic, transform_qos
+            );
+        publish_pixel_transform();
 
         RCLCPP_INFO(
             get_logger(),
@@ -475,6 +485,33 @@ class PanelRectifier : public rclcpp::Node {
         }
     }
 
+    void publish_pixel_transform() {
+        std_msgs::msg::Float64MultiArray transform;
+        transform.layout.dim.resize(2);
+        transform.layout.dim[0].label = "rows";
+        transform.layout.dim[0].size = 3;
+        transform.layout.dim[0].stride = 9;
+        transform.layout.dim[1].label = "columns";
+        transform.layout.dim[1].size = 3;
+        transform.layout.dim[1].stride = 3;
+
+        const double meters_per_pixel = 1.0 / pixels_per_meter_;
+        transform.data = {
+            meters_per_pixel,
+            0.0,
+            -static_cast<double>(left_border_px_) * meters_per_pixel -
+                0.5 * board_width_,
+            0.0,
+            -meters_per_pixel,
+            static_cast<double>(top_border_px_) * meters_per_pixel +
+                0.5 * board_height_,
+            0.0,
+            0.0,
+            1.0,
+        };
+        pixel_transform_pub_->publish(transform);
+    }
+
     void publish_outputs(
         const std_msgs::msg::Header &input_header,
         const cv::Mat &image,
@@ -670,6 +707,8 @@ class PanelRectifier : public rclcpp::Node {
     rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr image_pub_;
     rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr height_pub_;
     rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr valid_pub_;
+    rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr
+        pixel_transform_pub_;
 };
 
 } // namespace kalman_arm2
