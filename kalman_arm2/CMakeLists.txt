@@ -23,6 +23,8 @@ find_package(yaml-cpp REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(behaviortree_cpp_v3 REQUIRED)
 find_package(tf2_eigen REQUIRED)
+find_package(cv_bridge REQUIRED)
+find_package(OpenCV REQUIRED)
 
 find_package(kalman_interfaces REQUIRED)
 set (CMAKE_CXX_STANDARD 20 REQUIRED)
@@ -75,6 +77,16 @@ rclcpp_components_register_node(
   EXECUTABLE panel_tracker
 )
 
+add_library(panel_rectifier_node SHARED src/panel_rectifier_node.cpp)
+ament_target_dependencies(panel_rectifier_node rclcpp rclcpp_components sensor_msgs tf2_ros tf2_geometry_msgs cv_bridge yaml-cpp)
+target_include_directories(panel_rectifier_node PRIVATE ${OpenCV_INCLUDE_DIRS})
+target_link_libraries(panel_rectifier_node ${OpenCV_LIBS} yaml-cpp)
+rclcpp_components_register_node(
+  panel_rectifier_node
+  PLUGIN "kalman_arm2::PanelRectifier"
+  EXECUTABLE panel_rectifier
+)
+
 add_library(bt_panel_node SHARED src/bt_panel_node.cpp
 src/actions/do_something.cpp include/actions/do_something.hpp
 src/actions/arm_navigate_to_pose.cpp include/actions/arm_navigate_to_pose.hpp
@@ -114,7 +126,7 @@ target_link_libraries(bt_panel_node yaml-cpp)
 # target_compile_features(bt_panel_node PUBLIC cxx_std_20)
 
 ament_export_targets(kalman_arm2-targets)
-install(TARGETS twist_ik_node pose_ik_node goto_joint_pose_node panel_layout_node panel_tracker_node bt_panel_node
+install(TARGETS twist_ik_node pose_ik_node goto_joint_pose_node panel_layout_node panel_tracker_node panel_rectifier_node bt_panel_node
   EXPORT kalman_arm2-targets
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib

@@ -147,6 +147,26 @@ def launch_setup(context):
             LaunchConfiguration("panel_tracker_ema_alpha").perform(context)
         ),
     }
+    panel_rectifier_params = {
+        "layout_yaml": ParameterValue(panel_layout_file, value_type=str),
+        "board_frame": LaunchConfiguration("panel_board_frame").perform(context),
+        "image_topic": LaunchConfiguration("panel_image_topic").perform(context),
+        "camera_info_topic": LaunchConfiguration(
+            "panel_camera_info_topic"
+        ).perform(context),
+        "pixels_per_meter": float(
+            LaunchConfiguration("panel_pixels_per_meter").perform(context)
+        ),
+        "left_border_m": float(
+            LaunchConfiguration("panel_left_border_m").perform(context)
+        ),
+        "top_border_m": float(
+            LaunchConfiguration("panel_top_border_m").perform(context)
+        ),
+        "draw_board_outline": yaml.safe_load(
+            LaunchConfiguration("panel_draw_board_outline").perform(context)
+        ),
+    }
 
     visual_refinement_params = {
         "visual_refinement_dof": int(
@@ -217,6 +237,15 @@ def launch_setup(context):
         plugin="kalman_arm2::PanelTracker",
         namespace="arm",
         parameters=[panel_tracker_params],
+    )
+
+    actions += launch_node_or_load_component(
+        component_container=component_container,
+        package="kalman_arm2",
+        executable="panel_rectifier",
+        plugin="kalman_arm2::PanelRectifier",
+        namespace="arm",
+        parameters=[panel_rectifier_params],
     )
 
     # Joy node
@@ -308,7 +337,8 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument(
                 "ik_joint_centering_gain",
-                default_value="1.5",
+                # default_value="1.5",
+                default_value="0.0",
                 description="Nullspace gain that pulls joints toward preferred positions.",
             ),
             DeclareLaunchArgument(
@@ -360,6 +390,36 @@ def generate_launch_description():
                 "panel_tracker_ema_alpha",
                 default_value="0.2",
                 description="EMA smoothing factor for panel pose tracking.",
+            ),
+            DeclareLaunchArgument(
+                "panel_image_topic",
+                default_value="/d455_arm_wheel/color/image_raw",
+                description="Raw panel camera image consumed by the rectifier.",
+            ),
+            DeclareLaunchArgument(
+                "panel_camera_info_topic",
+                default_value="/d455_arm_wheel/color/camera_info",
+                description="Panel camera calibration consumed by the rectifier.",
+            ),
+            DeclareLaunchArgument(
+                "panel_pixels_per_meter",
+                default_value="1000.0",
+                description="Scale of the top-down panel image.",
+            ),
+            DeclareLaunchArgument(
+                "panel_left_border_m",
+                default_value="0.05",
+                description="Extra view outside the YAML panel boundary on its left.",
+            ),
+            DeclareLaunchArgument(
+                "panel_top_border_m",
+                default_value="0.05",
+                description="Extra view outside the YAML panel boundary above it.",
+            ),
+            DeclareLaunchArgument(
+                "panel_draw_board_outline",
+                default_value="true",
+                description="Draw a green outline around the YAML panel area.",
             ),
             DeclareLaunchArgument(
                 "visual_refinement_dof",
