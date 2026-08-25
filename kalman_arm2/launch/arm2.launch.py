@@ -151,6 +151,7 @@ def launch_setup(context):
         "layout_yaml": ParameterValue(panel_layout_file, value_type=str),
         "board_frame": LaunchConfiguration("panel_board_frame").perform(context),
         "image_topic": LaunchConfiguration("panel_image_topic").perform(context),
+        "depth_topic": LaunchConfiguration("panel_depth_topic").perform(context),
         "camera_info_topic": LaunchConfiguration(
             "panel_camera_info_topic"
         ).perform(context),
@@ -395,6 +396,11 @@ def generate_launch_description():
                 "panel_image_topic",
                 default_value="/d455_arm_wheel/color/image_raw",
                 description="Raw panel camera image consumed by the rectifier.",
+            ),
+            DeclareLaunchArgument(
+                "panel_depth_topic",
+                default_value="/d455_arm_wheel/depth/image_raw",
+                description="Aligned depth image consumed by the orthographic renderer.",
             ),
             DeclareLaunchArgument(
                 "panel_camera_info_topic",

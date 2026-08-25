@@ -15,6 +15,7 @@
 
   <depend>sensor_msgs</depend>
   <depend>cv_bridge</depend>
+  <depend>message_filters</depend>
 
   <depend>geometry_msgs</depend>
   <depend>std_msgs</depend>

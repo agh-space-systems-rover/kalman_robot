@@ -24,6 +24,7 @@ find_package(Eigen3 REQUIRED)
 find_package(behaviortree_cpp_v3 REQUIRED)
 find_package(tf2_eigen REQUIRED)
 find_package(cv_bridge REQUIRED)
+find_package(message_filters REQUIRED)
 find_package(OpenCV REQUIRED)
 
 find_package(kalman_interfaces REQUIRED)
@@ -78,7 +79,7 @@ rclcpp_components_register_node(
 )
 
 add_library(panel_rectifier_node SHARED src/panel_rectifier_node.cpp)
-ament_target_dependencies(panel_rectifier_node rclcpp rclcpp_components sensor_msgs tf2_ros tf2_geometry_msgs cv_bridge yaml-cpp)
+ament_target_dependencies(panel_rectifier_node rclcpp rclcpp_components sensor_msgs tf2_ros tf2_geometry_msgs cv_bridge message_filters yaml-cpp)
 target_include_directories(panel_rectifier_node PRIVATE ${OpenCV_INCLUDE_DIRS})
 target_link_libraries(panel_rectifier_node ${OpenCV_LIBS} yaml-cpp)
 rclcpp_components_register_node(
