@@ -249,6 +249,21 @@ def launch_setup(context):
         parameters=[panel_rectifier_params],
     )
 
+    actions += launch_node_or_load_component(
+        component_container=component_container,
+        package="kalman_arm2",
+        executable="panel_click_marker",
+        plugin="kalman_arm2::PanelClickMarker",
+        namespace="arm",
+        parameters=[
+            {
+                "board_frame": LaunchConfiguration("panel_board_frame").perform(
+                    context
+                )
+            }
+        ],
+    )
+
     # Joy node
     actions += [
         Node(

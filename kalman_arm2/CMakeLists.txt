@@ -88,6 +88,16 @@ rclcpp_components_register_node(
   EXECUTABLE panel_rectifier
 )
 
+add_library(panel_click_marker_node SHARED src/panel_click_marker_node.cpp)
+ament_target_dependencies(panel_click_marker_node rclcpp rclcpp_components geometry_msgs sensor_msgs std_msgs visualization_msgs cv_bridge message_filters)
+target_include_directories(panel_click_marker_node PRIVATE ${OpenCV_INCLUDE_DIRS})
+target_link_libraries(panel_click_marker_node ${OpenCV_LIBS})
+rclcpp_components_register_node(
+  panel_click_marker_node
+  PLUGIN "kalman_arm2::PanelClickMarker"
+  EXECUTABLE panel_click_marker
+)
+
 add_library(bt_panel_node SHARED src/bt_panel_node.cpp
 src/actions/do_something.cpp include/actions/do_something.hpp
 src/actions/arm_navigate_to_pose.cpp include/actions/arm_navigate_to_pose.hpp
@@ -127,7 +137,7 @@ target_link_libraries(bt_panel_node yaml-cpp)
 # target_compile_features(bt_panel_node PUBLIC cxx_std_20)
 
 ament_export_targets(kalman_arm2-targets)
-install(TARGETS twist_ik_node pose_ik_node goto_joint_pose_node panel_layout_node panel_tracker_node panel_rectifier_node bt_panel_node
+install(TARGETS twist_ik_node pose_ik_node goto_joint_pose_node panel_layout_node panel_tracker_node panel_rectifier_node panel_click_marker_node bt_panel_node
   EXPORT kalman_arm2-targets
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
