@@ -52,6 +52,14 @@ class PoseRequestSender(Node):
             self.send_goal,
             10,
         )
+        self._execute_sub_special = self.create_subscription(
+            ArmPoseSelect,
+            "/pose_request/execute_special",
+            self.send_special_goal,
+            10,
+        )
+        self.special_poses: dict[int,dict] = {}
+        self.load_special_poses(f"{arm_config}/config/special_poses.yaml")
 
         self._status_pub = self.create_publisher(
             ArmGoalStatus, "/pose_request/status", 10
@@ -65,6 +73,49 @@ class PoseRequestSender(Node):
         self._abort_sub = self.create_subscription(
             Empty, "/pose_request/abort", self.abort, 10
         )
+    def load_special_poses(self, filename: str):
+        try:
+            with open(filename, "r") as f:
+                data = yaml.safe_load(f)
+                for pose in data.get("special_poses", []):
+                    self.special_poses[int(pose['id'])] = pose
+        except Exception as e:
+            self.get_logger().error(f"Failed to load special poses from {filename}: {e}")
+
+    def send_special_goal(self, msg: ArmPoseSelect):
+        if not self.joints:
+            self.get_logger().warn("Target rejected: No current joint positions (arm_state not yet received).")
+            return
+        if msg.pose_id not in self.special_poses:
+            self.get_logger().warn(f"Target rejected: Pose ID {msg.pose_id} not found in special poses.")
+            self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.INVALID_ID))
+            return
+
+        pose_config = self.special_poses[msg.pose_id]
+        target_state = JointState()
+        names = []
+        positions = []
+        for joint_name, rule in pose_config.get("joints", {}).items():
+            if joint_name not in self.joints:
+                continue
+            action = rule.get("action", "hold")
+            current_val = self.joints[joint_name]
+            match action:
+                case "hold":
+                    target_value = current_val
+                case "fixed":
+                    target_value = rule.get("value", 0.0)
+                case "reversed":
+                    target_value = -current_val
+                case "offset":
+                    target_value = current_val + rule.get("offset", 0.0)
+            names.append(joint_name)
+            positions.append(target_value)
+
+        target_state.name = names
+        target_state.position = positions
+        self.send_goal(target_state)
+
     def load_default_request(self, filename: str):
         try:
             default_config = None
