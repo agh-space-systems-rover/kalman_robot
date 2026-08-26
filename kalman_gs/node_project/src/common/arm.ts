@@ -1,6 +1,6 @@
-import { alertsRef, settingsRef } from '../common/refs';
-import { ros } from '../common/ros';
-import { ArmAxesLocks, SetFeedRequest } from '../common/ros-interfaces';
+import { alertsRef, settingsRef } from './refs';
+import { ros } from './ros';
+import { ArmAxesLocks, JointState, SetFeedRequest } from './ros-interfaces';
 import { getKeybind } from './keybinds';
 import { Service, Topic } from 'roslib';
 
@@ -26,6 +26,78 @@ let lastStatusTrajectory: string = 'UNKNOWN';
 
 let rotationalLock = false;
 
+export const WARN_THRESHOLD = (20 * Math.PI) / 180;
+export const ERROR_THRESHOLD = (5 * Math.PI) / 180;
+
+export const CUSTOM_POSES_KEY = 'custom_arm_poses';
+export const HIDDEN_POSES_KEY = 'hidden_arm_poses';
+export const KEEP_ALIVE_STATUSES = ['GOAL_ACCEPTED', 'GOAL_SENDING'];
+
+export interface ArmPose {
+  id: number;
+  name: string;
+  path: string;
+  joints: number[];
+  joints_set: number[];
+  joints_checked: number[];
+  joints_reversed?: number[];
+  isCustom?: boolean;
+}
+
+export const jointLimitsRad = [
+  { min: -6.2815926, max: 6.2815926 },
+  { min: -3.1415926, max: 3.1415926 },
+  { min: -2.88, max: 2.88 },
+  { min: -6.4, max: 6.4 },
+  { min: -1.75, max: 1.75 },
+  { min: -3.4032, max: 3.4032 }
+];
+export function rad2deg(rad: number): number {
+  return (rad * 180) / Math.PI;
+}
+
+export function isCloseEnough(
+  jointsA: number[],
+  jointsB: number[],
+  maxDistance: number,
+  checkedJoints: number[] = []
+): boolean {
+  if (jointsA.length !== jointsB.length) return false;
+  for (let i = 0; i < jointsA.length; i++) {
+    if (checkedJoints.includes(i + 1) && Math.abs(jointsA[i] - jointsB[i]) > maxDistance) {
+      return false;
+    }
+  }
+  return true;
+}
+export let lastJointState: JointState | null = null;
+export function getNamesAndValues() {
+  const names = lastJointState?.name ?? [];
+  const positions = lastJointState?.position ?? [];
+
+  return names
+    .map((name, i) => ({
+      name,
+      value: positions[i] ?? 0
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .slice(0, 6);
+}
+
+window.addEventListener('ros-connect', () => {
+  const jointTopic = new Topic({
+    ros: ros,
+    name: '/arm_controllers/joint_states',
+    messageType: 'sensor_msgs/JointState'
+  });
+
+  jointTopic.subscribe((message) => {
+    const msg = message as JointState;
+    lastJointState = msg;
+    window.dispatchEvent(new CustomEvent('joint-state'));
+  });
+});
+
 export let armAxesLocks: ArmAxesLocks = {
   x: false,
   y: false,
@@ -35,7 +107,7 @@ export let armAxesLocks: ArmAxesLocks = {
   yaw: false
 };
 
-const ARM_STATUSES = {
+const ARM_STATUSES: Record<number, string> = {
   0: 'SUCCESS',
   1: 'CANCELLING',
   2: 'CANCEL_SUCCESS',
@@ -120,28 +192,32 @@ window.addEventListener('ros-connect', () => {
     messageType: 'kalman_interfaces/ArmAxesLocks'
   });
 
-  setLinearScale.subscribe((msg: { data: number }) => {
+  setLinearScale.subscribe((message) => {
+    const msg = message as {data: number};
     lastServoLinearScale = msg.data;
     window.dispatchEvent(new CustomEvent('servo-linear-scale'));
   });
 
-  setRotationalScale.subscribe((msg: { data: number }) => {
+  setRotationalScale.subscribe((message) => {
+    const msg = message as {data: number};
     lastServoRotationalScale = msg.data;
     window.dispatchEvent(new CustomEvent('servo-rotational-scale'));
   });
 
-  statusPoseTopic.subscribe((msg: { status: number }) => {
+  statusPoseTopic.subscribe((message) => {
+    const msg = message as { status: number };
     lastStatusPose = ARM_STATUSES[msg.status];
     window.dispatchEvent(new CustomEvent('pose-status'));
   });
 
-  statusTrajectoryTopic.subscribe((msg: { status: number }) => {
+  statusTrajectoryTopic.subscribe((message) => {
+    const msg = message as { status: number };
     lastStatusTrajectory = ARM_STATUSES[msg.status];
     window.dispatchEvent(new CustomEvent('trajectory-status'));
   });
 
-  setLinearScaleTo(lastServoLinearScale);
-  setRotationalScaleTo(lastServoRotationalScale);
+  setLinearScaleTo(lastServoLinearScale ?? 0);
+  setRotationalScaleTo(lastServoRotationalScale ?? 0);
   armAxesLocksTopic?.publish(armAxesLocks);
 });
 
@@ -195,7 +271,7 @@ function keepAliveTrajectory() {
   }
 }
 
-export function toggleArmAxisLock(axis: string) {
+export function toggleArmAxisLock(axis: keyof ArmAxesLocks) {
   armAxesLocks[axis] = !armAxesLocks[axis];
   armAxesLocksTopic?.publish(armAxesLocks);
   window.dispatchEvent(new CustomEvent('arm-axis-lock-update'));
@@ -203,7 +279,7 @@ export function toggleArmAxisLock(axis: string) {
 
 window.addEventListener('keydown', (event) => {
   // Check if any input box is focused.
-  if (document.activeElement.tagName === 'INPUT') {
+  if (document.activeElement?.tagName === 'INPUT') {
     return;
   }
   // Check if settings are open.
