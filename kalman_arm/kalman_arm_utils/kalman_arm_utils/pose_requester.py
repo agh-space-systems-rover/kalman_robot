@@ -11,6 +11,7 @@ from moveit_msgs.msg import Constraints, JointConstraint, MoveItErrorCodes
 from example_interfaces.msg import Empty
 from kalman_interfaces.msg import ArmPoseSelect, ArmGoalStatus, ArmState
 from std_msgs.msg import UInt8
+from sensor_msgs.msg import JointState
 
 # Threshold distance - how much each joint can be away from predefined position
 MAX_DISTANCE_RAD = 0.35  # about 20
@@ -46,7 +47,7 @@ class PoseRequestSender(Node):
         )
 
         self._execute_sub = self.create_subscription(
-            ArmPoseSelect,
+            JointState,
             "/pose_request/execute",
             self.send_goal,
             10,
@@ -95,9 +96,10 @@ class PoseRequestSender(Node):
         self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.ABORT_RECEIVED))
         self.timer_callback()
 
-    def send_goal(self, msg: ArmPoseSelect):
-        while len(self.joints.keys()) == 0:
-            rclpy.spin_once(self)
+    def send_goal(self, msg: JointState):
+        if not self.joints:
+            self.get_logger().warn("Target rejected: No current joint positions (arm_state not yet received).")
+            return
 
         if self._goal_handle:
             self.get_logger().info("Canceling previous goal")
@@ -109,7 +111,7 @@ class PoseRequestSender(Node):
         else:
             self.publish_pose_goal(msg)
 
-    def publish_pose_goal(self, msg: ArmPoseSelect):
+    def publish_pose_goal(self, msg: JointState):
         request = self.default_request
         request.request.goal_constraints = [self.build_goal_constraints(msg)]
 
@@ -118,16 +120,21 @@ class PoseRequestSender(Node):
         self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.GOAL_SENDING))
         self.send_request(request)
 
-    def build_goal_constraints(self, msg: ArmPoseSelect) -> Constraints:
+    def build_goal_constraints(self, msg: JointState) -> Constraints:
         goal_constraints: Constraints = Constraints(name="pose")
         joints_names = sorted(self.joints.keys(), key=lambda x: x)
         joint_constraints: list[JointConstraint] = [JointConstraint(joint_name=name) for name in joints_names]
-        for i in range(6):
-            joint_constraints[i].position = msg.positions[i] if i in msg.joints_set else self.joints[joint_constraints[i].joint_name]
-            joint_constraints[i].tolerance_above = 0.01
-            joint_constraints[i].tolerance_below = 0.01
-            if i in msg.joints_reversed:
-                joint_constraints[i].position = -self.joints[joint_constraints[i].joint_name] #TODO change into bool (only joint 5 is suposed to be reversed)
+
+        request_joint = dict(zip(msg.name, msg.position))
+        for i, constrain in enumerate(joint_constraints):
+            name = constrain.joint_name
+            if name in request_joint:
+                constrain.position = float(request_joint[name])
+            else:
+                constrain.position = float(self.joints[name])
+            constrain.tolerance_above = 0.01
+            constrain.tolerance_below = 0.01
+
         goal_constraints.joint_constraints = joint_constraints
         return goal_constraints
     
