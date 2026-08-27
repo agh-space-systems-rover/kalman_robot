@@ -48,11 +48,21 @@ export interface Float64MultiArray {
 }
 
 const UPDATE_EVENT = 'arm-autonomy-update';
+const LOG_PREFIX = '[arm-autonomy]';
 
 let latestImage: RosImage | null = null;
 let latestDetections: Detection2D[] = [];
 let latestHomography: number[] | null = null;
 let topicsInitialized = false;
+let imageFrameCount = 0;
+
+function log(message: string, data?: unknown) {
+  if (data === undefined) {
+    console.log(`${LOG_PREFIX} ${message}`);
+  } else {
+    console.log(`${LOG_PREFIX} ${message}`, data);
+  }
+}
 
 function notifyUpdate() {
   window.dispatchEvent(new CustomEvent(UPDATE_EVENT));
@@ -171,11 +181,18 @@ export function addArmAutonomyListener(listener: () => void): () => void {
   return () => window.removeEventListener(UPDATE_EVENT, handler);
 }
 
+export function ensureArmAutonomySubscriptions(): void {
+  if (ros.isConnected) {
+    initTopics();
+  }
+}
+
 function initTopics() {
   if (topicsInitialized) {
     return;
   }
   topicsInitialized = true;
+  log('subscribing to ROS topics', ARM_AUTONOMY_TOPICS);
 
   const imageTopic = new Topic<RosImage>({
     ros,
@@ -184,6 +201,17 @@ function initTopics() {
   });
   imageTopic.subscribe((msg) => {
     latestImage = msg;
+    imageFrameCount += 1;
+    if (imageFrameCount === 1 || imageFrameCount % 30 === 0) {
+      log(`image frame #${imageFrameCount}`, {
+        width: msg.width,
+        height: msg.height,
+        encoding: msg.encoding,
+        step: msg.step,
+        dataType: typeof msg.data,
+        dataLength: typeof msg.data === 'string' ? msg.data.length : msg.data?.length
+      });
+    }
     notifyUpdate();
   });
 
@@ -194,6 +222,7 @@ function initTopics() {
   });
   detectionsTopic.subscribe((msg) => {
     latestDetections = msg.detections ?? [];
+    log(`yolo detections: ${latestDetections.length}`);
     notifyUpdate();
   });
 
@@ -204,6 +233,11 @@ function initTopics() {
   });
   homographyTopic.subscribe((msg) => {
     latestHomography = msg.data?.length >= 9 ? msg.data : null;
+    if (latestHomography) {
+      log('homography received', { length: msg.data.length, data: latestHomography.slice(0, 9) });
+    } else {
+      console.warn(`${LOG_PREFIX} homography too short`, { length: msg.data?.length ?? 0 });
+    }
     notifyUpdate();
   });
 }
