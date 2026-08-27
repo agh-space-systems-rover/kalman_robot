@@ -4,7 +4,8 @@ import { Topic } from 'roslib';
 export const ARM_AUTONOMY_TOPICS = {
   image: '/arm/panel/image_rectified',
   yolo: '/yolo_detections',
-  homography: '/arm/panel/homography'
+  homography: '/arm/panel/homography',
+  target: '/arm/panel/target'
 } as const;
 
 export type ImageXY = { x: number; y: number };
@@ -47,6 +48,20 @@ export interface Float64MultiArray {
   data: number[];
 }
 
+export interface PointStamped {
+  header: {
+    stamp: { sec: number; nanosec: number };
+    frame_id: string;
+  };
+  point: { x: number; y: number; z: number };
+}
+
+export interface ArmAutonomyTargetPayload {
+  imageXY: ImageXY;
+  sendXY: SendXY;
+  label?: string;
+}
+
 const UPDATE_EVENT = 'arm-autonomy-update';
 const LOG_PREFIX = '[arm-autonomy]';
 
@@ -55,6 +70,7 @@ let latestDetections: Detection2D[] = [];
 let latestHomography: number[] | null = null;
 let topicsInitialized = false;
 let imageFrameCount = 0;
+let targetTopic: Topic<PointStamped> | null = null;
 
 function log(message: string, data?: unknown) {
   if (data === undefined) {
@@ -185,6 +201,52 @@ export function ensureArmAutonomySubscriptions(): void {
   if (ros.isConnected) {
     initTopics();
   }
+}
+
+function getTargetPublisher(): Topic<PointStamped> {
+  if (!targetTopic) {
+    targetTopic = new Topic<PointStamped>({
+      ros,
+      name: ARM_AUTONOMY_TOPICS.target,
+      messageType: 'geometry_msgs/PointStamped'
+    });
+  }
+  return targetTopic;
+}
+
+export function publishArmAutonomyTarget(payload: ArmAutonomyTargetPayload): boolean {
+  if (!ros.isConnected) {
+    console.warn(`${LOG_PREFIX} cannot publish target — ROS disconnected`);
+    return false;
+  }
+
+  ensureArmAutonomySubscriptions();
+
+  const nowMs = Date.now();
+  const msg: PointStamped = {
+    header: {
+      stamp: {
+        sec: Math.floor(nowMs / 1000),
+        nanosec: (nowMs % 1000) * 1_000_000
+      },
+      frame_id: payload.label ?? 'panel'
+    },
+    point: {
+      x: payload.sendXY.x,
+      y: payload.sendXY.y,
+      z: 0
+    }
+  };
+
+  getTargetPublisher().publish(msg);
+  log('published panel target', {
+    topic: ARM_AUTONOMY_TOPICS.target,
+    label: msg.header.frame_id,
+    imageXY: payload.imageXY,
+    sendXY: payload.sendXY,
+    message: msg
+  });
+  return true;
 }
 
 function initTopics() {
