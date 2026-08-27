@@ -7,6 +7,12 @@ endif()
 
 find_package(ament_cmake REQUIRED)
 
+install(PROGRAMS
+  scripts/fake_yolo_publisher
+  scripts/publish_identity_homography
+  DESTINATION lib/${PROJECT_NAME}
+)
+
 install(DIRECTORY launch/
   DESTINATION share/${PROJECT_NAME}/launch
 )
