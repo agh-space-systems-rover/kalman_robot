@@ -135,6 +135,13 @@ station:
         max: 1
         bytes: 1
     - name: pose_request/execute
+      type: sensor_msgs/msg/JointState
+      max_rate: 2
+      float_range:
+        min: -6.4
+        max: 6.4
+        bytes: 4
+    - name: pose_request/execute_special
       type: kalman_interfaces/msg/ArmPoseSelect
       max_rate: 2
       int_range:
