@@ -25,6 +25,15 @@ def load_yaml(package_name, file_path):
         return None
 
 
+# TODO currently our distrobox is running ROS2 Humble, but rover Rolling
+# This is a workaround to allow the servo node_main to run in Humble, but it should be removed when we move to Humber on Rover
+servo_exec = "servo_node_main"
+servo_lib_dir = os.path.join(
+    os.getenv("ROS_PREFIX", "/opt/ros/rolling"), "lib", "moveit_servo"
+)
+if os.path.exists(os.path.join(servo_lib_dir, "servo_node")):
+    servo_exec = "servo_node"
+
 def generate_launch_description():
     moveit_config = MoveItConfigsBuilder(
         "arm", package_name="kalman_arm_moveit_config"
@@ -38,7 +47,7 @@ def generate_launch_description():
     # As opposed to a node component, this may be necessary (for example) if Servo is running on a different PC
     servo_node = Node(
         package="moveit_servo",
-        executable="servo_node_main",
+        executable=servo_exec,
         parameters=[
             servo_params,
             moveit_config.robot_description,
