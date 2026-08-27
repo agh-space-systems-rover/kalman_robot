@@ -5,7 +5,10 @@ Dev launch and rosbag fixture for the **Arm Autonomy** panel in `kalman_gs`.
 ## Quick start
 
 ```bash
-# after building the workspace
+# build once after pulling this package
+colcon build --packages-select kalman_arm_autonomy_panel --symlink-install
+source install/setup.bash
+
 ros2 launch kalman_arm_autonomy_panel arm_autonomy_panel_dev.launch.py
 ```
 
