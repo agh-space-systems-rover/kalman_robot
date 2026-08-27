@@ -177,7 +177,7 @@ export function PoseRequester({ editMode, onSelectPose }: PoseRequesterProps) {
                 }}
                 >
                 <div className={styles['pose-name']}>
-                    {pose.name} {pose.isSpecial ? '(Special)' : ''}
+                    {pose.name}
                 </div>
                 <div className={styles['pose-option-actions']}>
                     {editMode && (
