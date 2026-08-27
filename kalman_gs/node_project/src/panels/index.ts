@@ -1,4 +1,5 @@
 import Arms from './arm';
+import ArmAutonomy from './arm-autonomy';
 import Camera2Dof from './camera-2dof';
 import Drill from './drill';
 import ArmHeader from './arm.header';
@@ -25,7 +26,8 @@ import {
   faMobileScreenButton,
   faPalette,
   faMicroscope,
-  faOilWell
+  faOilWell,
+  faHandPointer
 } from '@fortawesome/free-solid-svg-icons';
 
 // Add new panels here:
@@ -41,6 +43,7 @@ export type PanelID =
   | 'ueuos'
   | 'science'
   | 'camera-2dof'
+  | 'arm-autonomy'
   | 'drill';
 export const defaultPanel: PanelID = 'map';
 export const panelInfos: Panels = {
@@ -105,6 +108,11 @@ export const panelInfos: Panels = {
     Component: Camera2Dof,
     name: 'Camera 2DOF',
     icon: faCamera
+  },
+  'arm-autonomy': {
+    Component: ArmAutonomy,
+    name: 'Arm Autonomy',
+    icon: faHandPointer
   }
 };
 
