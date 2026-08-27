@@ -12,6 +12,9 @@
   <exec_depend>ros2launch</exec_depend>
   <exec_depend>rosbag2</exec_depend>
   <exec_depend>kalman_gs</exec_depend>
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>vision_msgs</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
 
   <export>
     <build_type>ament_cmake</build_type>

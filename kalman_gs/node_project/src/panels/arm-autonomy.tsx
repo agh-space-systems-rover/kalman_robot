@@ -12,6 +12,7 @@ import {
   getArmAutonomyHomography,
   getArmAutonomyImage,
   ImageXY,
+  publishArmAutonomyTarget,
   SendXY
 } from '../common/arm-autonomy';
 import { alertsRef } from '../common/refs';
@@ -124,15 +125,27 @@ export default function ArmAutonomyPanel() {
   }
 
   function handleSend() {
-    if (!sendXY) {
-      console.warn(`${LOG_PREFIX} SEND ignored — no sendXY`);
+    if (!sendXY || !imageXY) {
+      console.warn(`${LOG_PREFIX} SEND ignored — missing coordinates`);
       return;
     }
-    console.log(`${LOG_PREFIX} SEND clicked`, sendXY);
-    alertsRef.current?.pushAlert(
-      `SEND stub: target panel (${sendXY.x.toFixed(2)}, ${sendXY.y.toFixed(2)}) — action client TODO`,
-      'success'
-    );
+
+    const label =
+      selectedIndex !== null && detections[selectedIndex]
+        ? detectionLabel(detections[selectedIndex])
+        : undefined;
+
+    const published = publishArmAutonomyTarget({ imageXY, sendXY, label });
+    console.log(`${LOG_PREFIX} SEND clicked`, { imageXY, sendXY, label, published });
+
+    if (published) {
+      alertsRef.current?.pushAlert(
+        `Sent panel target (${sendXY.x.toFixed(2)}, ${sendXY.y.toFixed(2)}) on /arm/panel/target`,
+        'success'
+      );
+    } else {
+      alertsRef.current?.pushAlert('Failed to send panel target — ROS disconnected.', 'error');
+    }
   }
 
   const { width, height } = imageSize;
