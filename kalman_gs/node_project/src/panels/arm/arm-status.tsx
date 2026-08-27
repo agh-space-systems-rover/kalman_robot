@@ -150,10 +150,7 @@ export function ArmStatus({ editMode, onPoseSaved }: ArmStatusProps) {
             const newPose: ArmPose = {
             id: Date.now(),
             name: poseName,
-            path: 'FIXME path',
-            joints: currentValues,
-            joints_set: [1, 2, 3, 4, 5, 6],
-            joints_checked: [1, 2, 3, 4, 5, 6]
+            joints: currentValues
             };
 
             localStorage.setItem(CUSTOM_POSES_KEY, JSON.stringify([...savedPoses, newPose]));

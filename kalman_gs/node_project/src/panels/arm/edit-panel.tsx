@@ -1,6 +1,6 @@
 import React from 'react';
 import styles from '../arm.module.css';
-import { ArmPose, CUSTOM_POSES_KEY, getNamesAndValues } from '../../common/arm';
+import { ArmPose, CUSTOM_POSES_KEY, getNamesAndValues, rad2deg } from '../../common/arm';
 import { modalRef } from '../../common/refs';
 import { faSave, faTrash, faUpload } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -78,7 +78,7 @@ export function EditPanel({ pose, onChangePose }: EditPanelProps) {
         modalRef.current?.showConfirm({
         title: 'Update Pose Position',
         icon: faSave,
-        message: 'Are you sure?',
+        message: 'Are you sure you want to capture the arm current position?',
         confirmText: 'Update',
         cancelText: 'Cancel',
         onConfirm: () => {
@@ -104,30 +104,6 @@ export function EditPanel({ pose, onChangePose }: EditPanelProps) {
         });
     };
 
-    const toggleInArray = (field: 'joints_set' | 'joints_checked' | 'joints_reversed', jointIdx: number) => {
-        const currentArray = pose[field] || [];
-        const jointNum = jointIdx + 1;
-        const newArray = currentArray.includes(jointNum)
-        ? currentArray.filter((n) => n !== jointNum)
-        : [...currentArray, jointNum].sort((a, b) => a - b);
-
-        updatePoseField(field, newArray);
-    };
-
-    const JointCheckbox = ({ data, name }: { data: number[]; name: 'joints_set' | 'joints_checked' | 'joints_reversed' }) => (
-        <>
-        {Array.from({ length: 6 }, (_, i) => (
-            <input
-            key={i}
-            type="checkbox"
-            disabled={isReadOnly}
-            checked={data.includes(i + 1)}
-            onChange={() => toggleInArray(name, i)}
-            />
-        ))}
-        </>
-    );
-
     return (
         <div className={styles['edit-panel']}>
         <h2 className={styles['pose-header']}>{isReadOnly ? 'View Pose' : 'Edit Pose'}</h2>
@@ -135,7 +111,7 @@ export function EditPanel({ pose, onChangePose }: EditPanelProps) {
             <FontAwesomeIcon icon={faUpload} /> Export Pose
         </div>
 
-        <div>
+        <div style={{ marginTop: '10px' }}>
             <div className={styles['grid-row']}>
             <div className={styles['row-label']}>Joint</div>
             {Array.from({ length: 6 }, (_, i) => (
@@ -145,16 +121,12 @@ export function EditPanel({ pose, onChangePose }: EditPanelProps) {
             ))}
             </div>
             <div className={styles['grid-row']}>
-            <div className={styles['row-label']}>Set</div>
-            <JointCheckbox data={pose.joints_set} name="joints_set" />
-            </div>
-            <div className={styles['grid-row']}>
-            <div className={styles['row-label']}>Checked</div>
-            <JointCheckbox data={pose.joints_checked} name="joints_checked" />
-            </div>
-            <div className={styles['grid-row']}>
-            <div className={styles['row-label']}>Reversed</div>
-            <JointCheckbox data={pose.joints_reversed || []} name="joints_reversed" />
+            <div className={styles['row-label']}>Angle</div>
+            {pose.joints.slice(0, 6).map((rad, i) => (
+                <div key={i} className={styles['column-header']}>
+                {rad2deg(rad).toFixed(0)}°
+                </div>
+            ))}
             </div>
         </div>
 
@@ -170,7 +142,7 @@ export function EditPanel({ pose, onChangePose }: EditPanelProps) {
             Rename
             </div>
             <div onClick={handleUpdatePose} className={styles['edit-button']}>
-            <FontAwesomeIcon icon={faSave} /> Update
+            <FontAwesomeIcon icon={faSave} /> Capture Pos
             </div>
             <div onClick={handleDelete} className={styles['edit-button']}>
             <FontAwesomeIcon icon={faTrash} /> Delete

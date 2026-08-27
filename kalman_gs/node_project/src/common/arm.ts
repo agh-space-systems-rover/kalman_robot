@@ -9,6 +9,7 @@ let setRotationalScale: Topic<unknown> | null = null;
 
 let abortPoseTopic: Topic<unknown> | null = null;
 let executePoseTopic: Topic<unknown> | null = null;
+let executePoseSpecialTopic: Topic<unknown> | null = null;
 let keepAlivePoseTopic: Topic<unknown> | null = null;
 let statusPoseTopic: Topic<unknown> | null = null;
 
@@ -36,11 +37,8 @@ export const KEEP_ALIVE_STATUSES = ['GOAL_ACCEPTED', 'GOAL_SENDING'];
 export interface ArmPose {
   id: number;
   name: string;
-  path: string;
   joints: number[];
-  joints_set: number[];
-  joints_checked: number[];
-  joints_reversed?: number[];
+  isSpecial?: boolean;
   isCustom?: boolean;
 }
 
@@ -70,6 +68,15 @@ export function isCloseEnough(
   }
   return true;
 }
+export const ARM_JOINT_NAMES = [
+  'arm_joint_1',
+  'arm_joint_2',
+  'arm_joint_3',
+  'arm_joint_4',
+  'arm_joint_5',
+  'arm_joint_6'
+];
+
 export let lastJointState: JointState | null = null;
 export function getNamesAndValues() {
   const names = lastJointState?.name ?? [];
@@ -147,6 +154,12 @@ window.addEventListener('ros-connect', () => {
   executePoseTopic = new Topic({
     ros: ros,
     name: '/pose_request/execute',
+    messageType: 'sensor_msgs/msg/JointState'
+  });
+
+  executePoseSpecialTopic = new Topic({
+    ros: ros,
+    name: '/pose_request/execute_special',
     messageType: 'kalman_interfaces/ArmPoseSelect'
   });
 
@@ -241,9 +254,31 @@ function abortPose() {
   }
 }
 
-function sendPoseRequest(id: number) {
+function buildJointStateMsg(pose: ArmPose): JointState {
+  return {
+    header: { stamp: { sec: 0, nanosec: 0 }, frame_id: '' },
+    name: [...ARM_JOINT_NAMES],
+    position: pose.joints.slice(0, 6),
+    velocity: [],
+    effort: []
+  };
+}
+
+function sendPoseRequest(pose: ArmPose) {
+  if (pose.isSpecial) {
+    sendPoseSpecialRequest(pose.id);
+    return;
+  }
+
   if (executePoseTopic) {
-    executePoseTopic.publish({ pose_id: id });
+    const jointStateMsg = buildJointStateMsg(pose);
+    executePoseTopic.publish(jointStateMsg);
+  }
+}
+
+function sendPoseSpecialRequest(id: number) {
+  if (executePoseSpecialTopic) {
+    executePoseSpecialTopic.publish({ pose_id: id });
   }
 }
 
@@ -347,6 +382,7 @@ export {
   lastServoRotationalScale,
   abortPose,
   sendPoseRequest,
+  sendPoseSpecialRequest,
   keepAlivePose,
   lastStatusPose,
   abortTrajectory,

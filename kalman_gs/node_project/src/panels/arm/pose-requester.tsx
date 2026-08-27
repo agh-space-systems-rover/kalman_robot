@@ -38,14 +38,6 @@ export function PoseRequester({ editMode, onSelectPose }: PoseRequesterProps) {
         setRerenderCount((count) => count + 1);
     }, []);
 
-    const toggleHiddenPose = useCallback((poseId: number) => {
-        setHiddenPoseIds((prev) => {
-        const updated = prev.includes(poseId) ? prev.filter((id) => id !== poseId) : [...prev, poseId];
-        localStorage.setItem(HIDDEN_POSES_KEY, JSON.stringify(updated));
-        return updated;
-        });
-    }, []);
-
     useEffect(() => {
         const loadCustomPoses = () => {
         const savedPosesRaw = localStorage.getItem(CUSTOM_POSES_KEY);
@@ -90,6 +82,14 @@ export function PoseRequester({ editMode, onSelectPose }: PoseRequesterProps) {
     const currentPose = allPoses.find((p) => p.id === currentPoseId) || allPoses[0];
     const predefinedJointValues = currentPose?.joints ?? [0, 0, 0, 0, 0, 0];
 
+    const handleSend = async () => {
+        if (!currentPose) return;
+        keepAlive.current = true;
+        keepAlivePose();
+        await new Promise((r) => setTimeout(r, 200));
+        sendPoseRequest(currentPose);
+    };
+
     const handleImportSinglePose = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -132,20 +132,6 @@ export function PoseRequester({ editMode, onSelectPose }: PoseRequesterProps) {
         e.target.value = '';
     };
 
-    const isJointSet: boolean[] = Array(6).fill(false);
-    const isJointChecked: boolean[] = Array(6).fill(false);
-
-    if (currentPose) {
-        currentPose.joints_set?.forEach((val) => {
-        isJointSet[val - 1] = true;
-        });
-        currentPose.joints_checked?.forEach((val) => {
-        isJointChecked[val - 1] = true;
-        });
-    }
-
-    const closeEnough = true;
-
     return (
         <div className={styles['pose-requester']}>
         <div className={styles['header-container']}>
@@ -171,10 +157,7 @@ export function PoseRequester({ editMode, onSelectPose }: PoseRequesterProps) {
             </div>
             <div className={styles['joint-column']}>
                 {Array.from({ length: 6 }, (_, i) => (
-                <div
-                    className={`${styles['joint-value']} ${!isJointSet[i] ? styles['joint-not-set'] : ''}`}
-                    key={i}
-                >
+                <div className={styles['joint-value']} key={i}>
                     {rad2deg(predefinedJointValues[i]).toFixed(0)}
                 </div>
                 ))}
@@ -193,7 +176,9 @@ export function PoseRequester({ editMode, onSelectPose }: PoseRequesterProps) {
                     if (editMode && pose.joints) onSelectPose(pose);
                 }}
                 >
-                <div className={styles['pose-name']}>{pose.name}</div>
+                <div className={styles['pose-name']}>
+                    {pose.name} {pose.isSpecial ? '(Special)' : ''}
+                </div>
                 <div className={styles['pose-option-actions']}>
                     {editMode && (
                     <button
@@ -202,7 +187,11 @@ export function PoseRequester({ editMode, onSelectPose }: PoseRequesterProps) {
                         title={hiddenPoseIds.includes(pose.id) ? 'Show pose' : 'Hide pose'}
                         onClick={(e) => {
                         e.stopPropagation();
-                        toggleHiddenPose(pose.id);
+                        setHiddenPoseIds((prev) => {
+                            const next = prev.includes(pose.id) ? prev.filter((id) => id !== pose.id) : [...prev, pose.id];
+                            localStorage.setItem(HIDDEN_POSES_KEY, JSON.stringify(next));
+                            return next;
+                        });
                         }}
                     >
                         <FontAwesomeIcon icon={hiddenPoseIds.includes(pose.id) ? faEyeSlash : faEye} />
@@ -216,20 +205,8 @@ export function PoseRequester({ editMode, onSelectPose }: PoseRequesterProps) {
         </div>
 
         <div className={styles['pose-buttons']}>
-            <div
-            className={`${styles['pose-button']} ${styles['pose-send']} ${
-                closeEnough ? styles['send-ready'] : styles['send-not-ready']
-            }`}
-            onClick={async () => {
-                if (closeEnough) {
-                keepAlive.current = true;
-                keepAlivePose();
-                await new Promise((r) => setTimeout(r, 500));
-                sendPoseRequest(currentPoseId);
-                }
-            }}
-            >
-            {closeEnough ? 'Send Pose' : 'Cannot Send'}
+            <div className={`${styles['pose-button']} ${styles['pose-send']} ${styles['send-ready']}`} onClick={handleSend}>
+            Send Pose
             </div>
             <div className={`${styles['pose-button']} ${styles['pose-abort']}`} onClick={abortPose}>
             Abort
