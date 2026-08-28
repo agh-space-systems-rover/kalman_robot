@@ -98,6 +98,7 @@ install(PROGRAMS
   scripts/rosbridge_client
   scripts/fake_yolo_publisher
   scripts/publish_identity_homography
+  scripts/publish_fake_panel_target
   DESTINATION lib/${PROJECT_NAME}
 )
 
