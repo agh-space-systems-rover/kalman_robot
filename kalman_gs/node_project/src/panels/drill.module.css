@@ -32,7 +32,7 @@
 .button-row,
 .input-row,
 .drill-row,
-.universal-row {
+.servo-row {
   display: flex;
   flex-direction: row;
   justify-content: stretch;
@@ -83,8 +83,12 @@
   flex: 0 0 120px;
 }
 
-.universal-label {
-  flex: 0 0 90px;
+.servo-label {
+  flex: 0 0 32px;
+}
+
+.icon-button {
+  flex: 0 0 calc(1em + 10px);
 }
 
 .disabled-input {

@@ -12,15 +12,14 @@ import {
   faTrash,
   faList,
   faBan,
-  faMagnet,
   faArrowDown,
   faArrowUp,
   faStop,
   faDiagramProject,
-  faRuler,
-  faRobot,
-  faOilWell,
-  faPlay
+  faMinus,
+  faPlay,
+  faPlus,
+  faSliders
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useEffect, useState, useRef } from 'react';
@@ -28,27 +27,22 @@ import { Topic, Service } from 'roslib';
 
 import Button from '../components/button';
 import Dropdown from '../components/dropdown';
+import Input from '../components/input';
 import Label from '../components/label';
 
 const STORAGE_OPTIONS = [
   { name: 'Sand Storage', value: 'sand', icon: faFlask },
   { name: 'Rock Storage', value: 'rock', icon: faBox },
   { name: 'pH Probe', value: 'ph', icon: faDroplet },
-  { name: 'Magnetometer', value: 'magneto', icon: faMagnet },
-  { name: 'Drill', value: 'drill', icon: faOilWell }
+  { name: 'Sikbox', value: 'sikbox', icon: faSliders }
 ];
-// Drill ROS clients
-let drillWeightTopic: any;
-let drillWeightService: any;
-let drillAutoStartService: any;
-let drillAutoStopService: any;
 
 // Global ROS clients
 let sandWeightTopic: any;
 let rockWeightTopic: any;
 let phValueTopic: any;
 let phRailTargetVelTopic: any;
-let magnetometerTopic: any;
+let fastclickTopic: Topic<{ data: number }> | undefined;
 let sandWeightService: any;
 let rockWeightService: any;
 let sandOpenService: any;
@@ -56,7 +50,6 @@ let sandCloseService: any;
 let rockOpenService: any;
 let rockCloseService: any;
 let phValueService: any;
-let magnetometerResetService: any;
 
 window.addEventListener('ros-connect', () => {
   // Weight topics
@@ -80,11 +73,10 @@ window.addEventListener('ros-connect', () => {
     name: '/science/ph/rail/target_vel',
     messageType: 'std_msgs/Float32'
   });
-
-  magnetometerTopic = new Topic({
+  fastclickTopic = new Topic({
     ros,
-    name: '/science/magnetic_field/value',
-    messageType: 'sensor_msgs/MagneticField'
+    name: '/fastclick',
+    messageType: 'std_msgs/UInt8'
   });
 
   // Weight request services
@@ -128,34 +120,6 @@ window.addEventListener('ros-connect', () => {
     serviceType: 'std_srvs/Trigger'
   });
 
-  magnetometerResetService = new Service({
-    ros,
-    name: '/science/magnetic_field/value/req',
-    serviceType: 'std_srvs/Trigger'
-  });
-
-  // Drill topics/services
-  drillWeightTopic = new Topic({
-    ros,
-    name: '/science/drill/weight',
-    messageType: 'std_msgs/Float32'
-  });
-  drillWeightService = new Service({
-    ros,
-    name: '/science/drill/weight/req',
-    serviceType: 'std_srvs/Trigger'
-  });
-  drillAutoStartService = new Service({
-    ros,
-    name: '/science/drill/auto/start',
-    serviceType: 'std_srvs/Trigger'
-  });
-  drillAutoStopService = new Service({
-    ros,
-    name: '/science/drill/auto/stop',
-    serviceType: 'std_srvs/Trigger'
-  });
-
   window.dispatchEvent(new CustomEvent('science-subscribed'));
 });
 
@@ -164,7 +128,6 @@ type SciencePanelProps = {
     selectedStorage: string;
     sandTareHistory?: number[];
     rockTareHistory?: number[];
-    drillTareHistory?: number[];
   };
 };
 
@@ -174,15 +137,10 @@ type StorageContainerProps = {
   onTareHistoryChange: (history: number[]) => void;
 };
 
-type DrillContainerProps = {
-  tareHistory: number[];
-  onTareHistoryChange: (history: number[]) => void;
-};
-
 type PHProbeProps = {};
 
 export default function Science({ props }: SciencePanelProps) {
-  if (props.selectedStorage === undefined) {
+  if (!STORAGE_OPTIONS.some((option) => option.value === props.selectedStorage)) {
     props.selectedStorage = 'sand';
   }
   if (props.sandTareHistory === undefined) {
@@ -191,17 +149,12 @@ export default function Science({ props }: SciencePanelProps) {
   if (props.rockTareHistory === undefined) {
     props.rockTareHistory = [];
   }
-  if (props.drillTareHistory === undefined) {
-    props.drillTareHistory = [];
-  }
-
   const [selectedStorage, setSelectedStorage] = useState(props.selectedStorage);
   const [rerenderCount, setRerenderCount] = useState(0);
 
   const getTareHistory = () => {
     if (selectedStorage === 'sand') return props.sandTareHistory;
     if (selectedStorage === 'rock') return props.rockTareHistory;
-    if (selectedStorage === 'drill') return props.drillTareHistory;
     return [];
   };
 
@@ -210,8 +163,6 @@ export default function Science({ props }: SciencePanelProps) {
       props.sandTareHistory = history;
     } else if (selectedStorage === 'rock') {
       props.rockTareHistory = history;
-    } else if (selectedStorage === 'drill') {
-      props.drillTareHistory = history;
     }
     setRerenderCount(rerenderCount + 1);
   };
@@ -244,12 +195,8 @@ export default function Science({ props }: SciencePanelProps) {
           />
         )}
 
-        {selectedStorage === 'drill' && (
-          <DrillContainer tareHistory={getTareHistory()} onTareHistoryChange={setTareHistory} />
-        )}
-
         {selectedStorage === 'ph' && <PHProbe />}
-        {selectedStorage === 'magneto' && <Magnetometer />}
+        {selectedStorage === 'sikbox' && <Sikbox />}
       </div>
     </div>
   );
@@ -565,231 +512,67 @@ function PHProbe({}: PHProbeProps) {
   );
 }
 
-function Magnetometer() {
-  const [magField, setMagField] = useState(null);
-  const [rerenderCount, setRerenderCount] = useState(0);
+type SikboxPreset = 0 | 180 | 190 | 255;
 
-  useEffect(() => {
-    const updateScience = () => {
-      setRerenderCount((count) => count + 1);
-    };
-    window.addEventListener('science-subscribed', updateScience);
-    return () => {
-      window.removeEventListener('science-subscribed', updateScience);
-    };
-  }, []);
+function Sikbox() {
+  const inputRef = useRef<Input>(null);
+  const [value, setValue] = useState(0);
+  const [activePreset, setActivePreset] = useState<SikboxPreset | null>(null);
 
-  useEffect(() => {
-    setMagField(null);
-    if (!magnetometerTopic) return;
-    const cb = (msg) => {
-      setMagField({
-        x: msg.magnetic_field.x,
-        y: msg.magnetic_field.y,
-        z: msg.magnetic_field.z,
-        abs: Math.sqrt(msg.magnetic_field.x ** 2 + msg.magnetic_field.y ** 2 + msg.magnetic_field.z ** 2)
-      });
-    };
-    magnetometerTopic.subscribe(cb);
-    return () => magnetometerTopic.unsubscribe(cb);
-  }, [rerenderCount]);
+  const publishValue = (rawValue: unknown, preset: SikboxPreset | null = null) => {
+    const parsedValue = typeof rawValue === 'number' ? rawValue : parseFloat(String(rawValue));
+    const nextValue = Number.isFinite(parsedValue) ? Math.max(0, Math.min(255, Math.round(parsedValue))) : value;
+    setValue(nextValue);
+    setActivePreset(preset);
+    inputRef.current?.setValue(nextValue);
+    fastclickTopic?.publish({ data: nextValue });
+  };
 
-  function requestMagnetometerMeasurement() {
-    if (magnetometerResetService) {
-      magnetometerResetService.callService({}, () => {});
-    }
-  }
-
-  const style = getComputedStyle(document.body);
-  const redBg = style.getPropertyValue('--red-background');
-  const greenBg = style.getPropertyValue('--green-background');
-  const blueBg = style.getPropertyValue('--blue-background');
-  const magentaBg = style.getPropertyValue('--magenta-background');
-  const darkBg = style.getPropertyValue('--dark-background');
-
-  return (
-    <>
-      <div className={styles['science-row']}>
-        <Label color={redBg}>X</Label>
-        <Label color={darkBg} className={styles['science-row-item'] + ' ' + styles['science-selectable']}>
-          {magField ? magField.x.toFixed(2) : '---'}
-        </Label>
-        <Label color={greenBg}>Y</Label>
-        <Label color={darkBg} className={styles['science-row-item'] + ' ' + styles['science-selectable']}>
-          {magField ? magField.y.toFixed(2) : '---'}
-        </Label>
-        <Label color={blueBg}>Z</Label>
-        <Label color={darkBg} className={styles['science-row-item'] + ' ' + styles['science-selectable']}>
-          {magField ? magField.z.toFixed(2) : '---'}
-        </Label>
-      </div>
-      <div className={styles['science-row']}>
-        <Label color={magentaBg}>
-          <FontAwesomeIcon icon={faRuler} />
-        </Label>
-        <Label color={darkBg} className={styles['science-row-item'] + ' ' + styles['science-selectable']}>
-          {magField ? magField.abs.toFixed(2) : '---'}
-        </Label>
-      </div>
-      <div className={styles['science-row']}>
-        <Button
-          className={styles['science-row-item']}
-          tooltip='Request new magnetometer measurement'
-          onClick={requestMagnetometerMeasurement}
-        >
-          <FontAwesomeIcon icon={faArrowRotateRight} />
-          &nbsp;&nbsp;<span style={{ marginTop: '2px' }}>Refresh</span>
-        </Button>
-      </div>
-    </>
+  const renderPresetButton = (label: string, preset: SikboxPreset, start: boolean) => (
+    <Button
+      className={styles['science-row-item']}
+      tooltip={`Publish ${preset} on /fastclick`}
+      style={{
+        backgroundColor:
+          activePreset === preset ? (start ? 'var(--green-background)' : 'var(--red-background)') : undefined
+      }}
+      onClick={() => publishValue(preset, preset)}
+    >
+      <FontAwesomeIcon icon={start ? faPlay : faStop} />
+      &nbsp;&nbsp;{label}
+    </Button>
   );
-}
-
-function DrillContainer({ tareHistory, onTareHistoryChange }: DrillContainerProps) {
-  const [weight, setWeight] = useState<number | null>(null);
-  const [rerenderCount, setRerenderCount] = useState(0);
-
-  // Rerender on science-subscribed event
-  useEffect(() => {
-    const updateScience = () => {
-      setRerenderCount((count) => count + 1);
-    };
-    window.addEventListener('science-subscribed', updateScience);
-    return () => {
-      window.removeEventListener('science-subscribed', updateScience);
-    };
-  }, []);
-
-  // Subscribe to drill weight topic
-  useEffect(() => {
-    setWeight(null);
-    if (!drillWeightTopic) return;
-    const cb = (msg: { data: number }) => {
-      setWeight(msg.data);
-    };
-    drillWeightTopic.subscribe(cb);
-    return () => drillWeightTopic.unsubscribe(cb);
-  }, [rerenderCount]);
-
-  // Service call helpers
-  function callDrillWeightService() {
-    if (drillWeightService) {
-      drillWeightService.callService({}, () => {});
-    }
-  }
-
-  function handleTare() {
-    if (weight !== null) {
-      const currentTareOffset = tareHistory.reduce((sum, value) => sum + value, 0);
-      const tareValue = weight - currentTareOffset;
-      const newHistory = [...tareHistory, tareValue];
-      onTareHistoryChange(newHistory);
-    }
-  }
-
-  function clearTareHistory() {
-    onTareHistoryChange([]);
-  }
-
-  function handleStartAutonomy() {
-    if (drillAutoStartService) {
-      drillAutoStartService.callService({}, () => {});
-    }
-  }
-
-  function handleStopAutonomy() {
-    if (drillAutoStopService) {
-      drillAutoStopService.callService({}, () => {});
-    }
-  }
-
-  const tareOffset = tareHistory.reduce((sum, value) => sum + value, 0);
-  const displayWeight = weight !== null ? weight - tareOffset : null;
-
-  const style = getComputedStyle(document.body);
-  const magentaBg = style.getPropertyValue('--magenta-background');
-  const greenBg = style.getPropertyValue('--green-background');
-  const darkBg = style.getPropertyValue('--dark-background');
 
   return (
     <>
+      <div className={styles['sikbox-header']}>Fastclick</div>
       <div className={styles['science-row']}>
-        <Label color={magentaBg}>
-          <FontAwesomeIcon icon={faRobot} />
-        </Label>
-        <Button className={styles['science-row-item']} tooltip='Start drill autonomy' onClick={handleStartAutonomy}>
-          <FontAwesomeIcon icon={faPlay} />
-          &nbsp;&nbsp;Start
-        </Button>
-        <Button className={styles['science-row-item']} tooltip='Stop drill autonomy' onClick={handleStopAutonomy}>
-          <FontAwesomeIcon icon={faStop} />
-          &nbsp;&nbsp;Stop
-        </Button>
+        {renderPresetButton('Stop Fastclick', 0, false)}
+        {renderPresetButton('Start Fastclick', 180, true)}
       </div>
 
+      <div className={styles['sikbox-header']}>Sikbox</div>
       <div className={styles['science-row']}>
-        <Label color={greenBg}>
-          <FontAwesomeIcon icon={faWeightHanging} />
-        </Label>
-        <Label color={darkBg} className={styles['science-row-item'] + ' ' + styles['science-selectable']}>
-          {displayWeight !== null ? `${displayWeight.toFixed(2)} g` : '---'}
-        </Label>
-        <Button tooltip='Refresh weight measurement' onClick={callDrillWeightService}>
-          <FontAwesomeIcon icon={faArrowRotateRight} />
-        </Button>
+        {renderPresetButton('Stop Sikbox', 190, false)}
+        {renderPresetButton('Start Sikbox', 255, true)}
       </div>
 
+      <div className={styles['sikbox-header']}>Value</div>
       <div className={styles['science-row']}>
-        <Button
+        <Button tooltip='Decrease value by 1' onClick={() => publishValue(value - 1)}>
+          <FontAwesomeIcon icon={faMinus} />
+        </Button>
+        <Input
+          ref={inputRef}
+          type='float'
           className={styles['science-row-item']}
-          tooltip='Set current weight as zero (tare)'
-          onClick={handleTare}
-          disabled={weight === null}
-        >
-          <FontAwesomeIcon icon={faWeightHanging} />
-          &nbsp;&nbsp;Tare
+          defaultValue='0'
+          onChange={(text) => publishValue(text)}
+        />
+        <Button tooltip='Increase value by 1' onClick={() => publishValue(value + 1)}>
+          <FontAwesomeIcon icon={faPlus} />
         </Button>
       </div>
-
-      <div className={styles['science-row']}>
-        <div className={styles['tare-history']}>
-          <div className={styles['science-row']}>
-            <Label className={styles['tare-history-header']}>
-              <FontAwesomeIcon icon={tareHistory.length > 0 ? faList : faBan} />
-              &nbsp; {tareHistory.length > 0 ? '' : 'No'} Tare History
-            </Label>
-          </div>
-          {tareHistory.map((tareValue, index) => (
-            <div key={index} className={styles['science-row']}>
-              <Label className={styles['tare-entry']}>
-                {index + 1}. {tareValue.toFixed(2)} g
-              </Label>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {tareHistory.length > 0 && (
-        <div className={styles['science-row']}>
-          <Button
-            className={styles['science-row-item']}
-            tooltip='Clear all tare history'
-            onClick={() => {
-              modalRef.current?.showConfirm({
-                title: 'Clear tare history',
-                icon: faTrash,
-                message: 'Are you sure you want to clear all tare history?',
-                confirmText: 'Clear',
-                cancelText: 'Cancel',
-                onConfirm: clearTareHistory
-              });
-            }}
-          >
-            <FontAwesomeIcon icon={faTrash} />
-            &nbsp;&nbsp;Clear History
-          </Button>
-        </div>
-      )}
     </>
   );
 }

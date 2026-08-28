@@ -50,3 +50,11 @@
   background-color: var(--background) !important;
   flex-grow: 1;
 }
+
+.sikbox-header {
+  color: var(--foreground);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: center;
+  margin: 4px 0 5px;
+}
