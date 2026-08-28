@@ -48,12 +48,15 @@ export interface Float64MultiArray {
   data: number[];
 }
 
-export interface PointStamped {
+export interface PoseStamped {
   header: {
     stamp: { sec: number; nanosec: number };
     frame_id: string;
   };
-  point: { x: number; y: number; z: number };
+  pose: {
+    position: { x: number; y: number; z: number };
+    orientation: { x: number; y: number; z: number; w: number };
+  };
 }
 
 export interface ArmAutonomyTargetPayload {
@@ -70,7 +73,7 @@ let latestDetections: Detection2D[] = [];
 let latestHomography: number[] | null = null;
 let topicsInitialized = false;
 let imageFrameCount = 0;
-let targetTopic: Topic<PointStamped> | null = null;
+let targetTopic: Topic<PoseStamped> | null = null;
 
 function log(message: string, data?: unknown) {
   if (data === undefined) {
@@ -203,12 +206,12 @@ export function ensureArmAutonomySubscriptions(): void {
   }
 }
 
-function getTargetPublisher(): Topic<PointStamped> {
+function getTargetPublisher(): Topic<PoseStamped> {
   if (!targetTopic) {
-    targetTopic = new Topic<PointStamped>({
+    targetTopic = new Topic<PoseStamped>({
       ros,
       name: ARM_AUTONOMY_TOPICS.target,
-      messageType: 'geometry_msgs/PointStamped'
+      messageType: 'geometry_msgs/PoseStamped'
     });
   }
   return targetTopic;
@@ -223,7 +226,7 @@ export function publishArmAutonomyTarget(payload: ArmAutonomyTargetPayload): boo
   ensureArmAutonomySubscriptions();
 
   const nowMs = Date.now();
-  const msg: PointStamped = {
+  const msg: PoseStamped = {
     header: {
       stamp: {
         sec: Math.floor(nowMs / 1000),
@@ -231,10 +234,13 @@ export function publishArmAutonomyTarget(payload: ArmAutonomyTargetPayload): boo
       },
       frame_id: payload.label ?? 'panel'
     },
-    point: {
-      x: payload.sendXY.x,
-      y: payload.sendXY.y,
-      z: 0
+    pose: {
+      position: {
+        x: payload.sendXY.x,
+        y: payload.sendXY.y,
+        z: 0
+      },
+      orientation: { x: 0, y: 0, z: 0, w: 1 }
     }
   };
 
