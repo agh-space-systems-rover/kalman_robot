@@ -24,12 +24,12 @@ rx_mappings:
     conversion:
       type: "direct"
 
-  - can_id: 0xEB
-    ros_topic: "/magneto/data"
-    ros_type: "std_msgs/msg/UInt8MultiArray"
-    max_rate: 5
-    conversion:
-      type: "direct"
+  #- can_id: 0xEB
+  #  ros_topic: "/magneto/data"
+  #  ros_type: "std_msgs/msg/UInt8MultiArray"
+  #  max_rate: 5
+  #  conversion:
+  #    type: "direct"
 
 # TX mappings (ROS to CAN)
 tx_mappings:
@@ -40,19 +40,19 @@ tx_mappings:
     conversion:
       type: "direct"
 
-  - can_id: 0xE4
-    ros_topic: "/magneto/tare"
-    ros_type: "std_msgs/msg/UInt8MultiArray"
-    max_rate: 2
-    conversion:
-      type: "direct"
-
-  - can_id: 0xE5
-    ros_topic: "/magneto/request"
-    ros_type: "std_msgs/msg/UInt8MultiArray"
-    max_rate: 2
-    conversion:
-      type: "direct"
+  #- can_id: 0xE4
+  #  ros_topic: "/magneto/tare"
+  #  ros_type: "std_msgs/msg/UInt8MultiArray"
+  #  max_rate: 2
+  #  conversion:
+  #    type: "direct"
+  #
+  #- can_id: 0xE5
+  #  ros_topic: "/magneto/request"
+  #  ros_type: "std_msgs/msg/UInt8MultiArray"
+  #  max_rate: 2
+  #  conversion:
+  #    type: "direct"
 
   - can_id: 0xE6
     ros_topic: "/kutong/request"
