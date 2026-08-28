@@ -89,4 +89,4 @@ ros2 topic echo /arm/panel/target
 | `/arm/panel/image_rectified` | `sensor_msgs/Image` | camera |
 | `/yolo_detections` | `vision_msgs/Detection2DArray` | bbox overlay |
 | `/arm/panel/homography` | `std_msgs/Float64MultiArray` | image → panel |
-| `/arm/panel/target` | `geometry_msgs/PointStamped` | SEND output |
+| `/arm/panel/target` | `geometry_msgs/PoseStamped` | SEND output |
