@@ -2,6 +2,7 @@
 """Publish sample vision_msgs/Detection2DArray for Arm Autonomy panel testing."""
 
 import argparse
+import copy
 
 import rclpy
 from rclpy.node import Node
@@ -39,6 +40,34 @@ DEFAULT_DETECTIONS = [
 ]
 
 
+def clamp_center(spec: dict, image_width: int, image_height: int) -> dict:
+    half_w = spec["size_x"] / 2.0
+    half_h = spec["size_y"] / 2.0
+    spec["center_x"] = max(half_w, min(image_width - half_w, spec["center_x"]))
+    spec["center_y"] = max(half_h, min(image_height - half_h, spec["center_y"]))
+    return spec
+
+
+def build_keyframes(base_detections: list[dict], image_width: int, image_height: int) -> list[list[dict]]:
+    """Cycle through a few layouts so the GS panel can be exercised with moving boxes."""
+    offsets = [
+        (0.0, 0.0),
+        (70.0, -50.0),
+        (-60.0, 40.0),
+        (40.0, 80.0),
+    ]
+    keyframes = []
+    for dx, dy in offsets:
+        frame = []
+        for spec in base_detections:
+            moved = copy.deepcopy(spec)
+            moved["center_x"] += dx
+            moved["center_y"] += dy
+            frame.append(clamp_center(moved, image_width, image_height))
+        keyframes.append(frame)
+    return keyframes
+
+
 def build_detection(spec: dict) -> Detection2D:
     det = Detection2D()
     det.bbox.center.position.x = float(spec["center_x"])
@@ -54,21 +83,59 @@ def build_detection(spec: dict) -> Detection2D:
 
 
 class FakeYoloPublisher(Node):
-    def __init__(self, topic: str, rate_hz: float, detections: list[dict]):
+    def __init__(
+        self,
+        topic: str,
+        rate_hz: float,
+        image_width: int,
+        image_height: int,
+        motion_period: float | None,
+    ):
         super().__init__("fake_yolo_publisher")
         self._publisher = self.create_publisher(Detection2DArray, topic, 10)
-        self._detections = [build_detection(spec) for spec in detections]
+        self._keyframes = build_keyframes(DEFAULT_DETECTIONS, image_width, image_height)
+        self._keyframe_idx = 0
+        self._publish_count = 0
+        self._motion_enabled = motion_period is not None and motion_period > 0.0
+        self._steps_per_motion = (
+            max(1, int(round(rate_hz * motion_period))) if self._motion_enabled else 0
+        )
+        self._detections = [build_detection(spec) for spec in self._keyframes[0]]
         self._timer = self.create_timer(1.0 / rate_hz, self._publish)
         self.get_logger().info(
             f"Publishing {len(self._detections)} fake detections on {topic} at {rate_hz:.1f} Hz"
         )
-        for i, spec in enumerate(detections):
+        if self._motion_enabled:
+            self.get_logger().info(
+                f"BBox motion enabled: {len(self._keyframes)} keyframes every {motion_period:.1f}s"
+            )
+        for i, spec in enumerate(self._keyframes[0]):
             self.get_logger().info(
                 f"  [{i}] {spec['class_id']}: center=({spec['center_x']}, {spec['center_y']}), "
                 f"size=({spec['size_x']} x {spec['size_y']})"
             )
 
+    def _advance_keyframe(self):
+        self._keyframe_idx = (self._keyframe_idx + 1) % len(self._keyframes)
+        specs = self._keyframes[self._keyframe_idx]
+        self._detections = [build_detection(spec) for spec in specs]
+        self.get_logger().info(
+            f"Switched to motion keyframe {self._keyframe_idx}: "
+            + ", ".join(
+                f"{spec['class_id']}=({spec['center_x']:.0f},{spec['center_y']:.0f})"
+                for spec in specs
+            )
+        )
+
     def _publish(self):
+        if (
+            self._motion_enabled
+            and self._publish_count > 0
+            and self._publish_count % self._steps_per_motion == 0
+        ):
+            self._advance_keyframe()
+        self._publish_count += 1
+
         msg = Detection2DArray()
         msg.header.stamp = self.get_clock().now().to_msg()
         msg.header.frame_id = "panel_camera"
@@ -101,10 +168,23 @@ def main():
         default=DEFAULT_IMAGE_HEIGHT,
         help=f"Reference image height for log hints (default: {DEFAULT_IMAGE_HEIGHT})",
     )
+    parser.add_argument(
+        "--motion-period",
+        type=float,
+        default=3.0,
+        help="Seconds between bbox layout changes; 0 disables motion (default: 3)",
+    )
     args = parser.parse_args()
+    motion_period = args.motion_period if args.motion_period > 0 else None
 
     rclpy.init()
-    node = FakeYoloPublisher(args.topic, args.rate, DEFAULT_DETECTIONS)
+    node = FakeYoloPublisher(
+        args.topic,
+        args.rate,
+        args.image_width,
+        args.image_height,
+        motion_period,
+    )
     node.get_logger().info(
         f"Reference image size: {args.image_width} x {args.image_height} "
         "(adjust bbox defaults in script if your stream differs)"
