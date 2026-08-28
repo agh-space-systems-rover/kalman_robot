@@ -6,7 +6,7 @@ import os
 
 
 def generate_launch_description():
-    pkg_share = get_package_share_directory("kalman_arm_autonomy_panel")
+    pkg_share = get_package_share_directory("kalman_arm2")
     bag_path = os.path.join(pkg_share, "rosbag2_2026_08_26-00_51_05")
 
     gs_launch = IncludeLaunchDescription(

@@ -96,7 +96,13 @@ install(PROGRAMS
   scripts/gamepad_control
   scripts/joint_republisher
   scripts/rosbridge_client
+  scripts/fake_yolo_publisher
+  scripts/publish_identity_homography
   DESTINATION lib/${PROJECT_NAME}
+)
+
+install(DIRECTORY rosbag2_2026_08_26-00_51_05/
+  DESTINATION share/${PROJECT_NAME}/rosbag2_2026_08_26-00_51_05
 )
 
 install(DIRECTORY config launch trees
