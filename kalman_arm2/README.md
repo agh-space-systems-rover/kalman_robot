@@ -82,6 +82,21 @@ ros2 run kalman_arm2 publish_identity_homography
 ros2 topic echo /arm/panel/target
 ```
 
+**Optional — fake SEND without GS** (same `PoseStamped` format as panel):
+
+```bash
+ros2 run kalman_arm2 publish_fake_panel_target
+# or periodic:
+ros2 run kalman_arm2 publish_fake_panel_target --rate 1 --x 225 --y 320 --frame-id button_a
+```
+
+CLI one-liner:
+
+```bash
+ros2 topic pub --once /arm/panel/target geometry_msgs/msg/PoseStamped \
+"{header: {frame_id: button_a}, pose: {position: {x: 225.0, y: 320.0, z: 0.0}, orientation: {w: 1.0}}}"
+```
+
 ### Panel topics (kalman_gs)
 
 | Topic | Type | Role |
