@@ -34,6 +34,7 @@
   <depend>kalman_interfaces</depend>
   <exec_depend>kalman_utils</exec_depend>
   <exec_depend>kalman_aruco</exec_depend>
+  <exec_depend>kalman_yolo</exec_depend>
   <exec_depend>kalman_arm</exec_depend>
 
   <test_depend>ament_lint_auto</test_depend>
