@@ -24,3 +24,10 @@ To make the arm avoid twisting joint 5, you can use the following, or make the g
                 description="Nullspace gain that pulls joints toward preferred positions.",
             ),
 ```
+
+
+## Notes
+For center knob:
+```bash
+ros2 action send_goal /arm/move_to_panel_pose kalman_interfaces/action/MoveToPanelPose   '{target_pose: {position: {x: -0.07517217, y: 0.07195299569680749, z: 0.09098195987914491}, orientation: {x: 0.0, y: 0.0, z: -0.383, w: 0.924}}}'
+```

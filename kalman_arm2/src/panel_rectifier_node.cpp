@@ -1,13 +1,17 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <cstdint>
+#include <deque>
 #include <limits>
 #include <memory>
+#include <mutex>
 #include <stdexcept>
 #include <string>
 #include <vector>
 
 #include <cv_bridge/cv_bridge.h>
+#include <kalman_interfaces/msg/instance_contour_array.hpp>
 #include <message_filters/subscriber.h>
 #include <message_filters/time_synchronizer.h>
 #include <opencv2/calib3d.hpp>
@@ -56,6 +60,16 @@ class PanelRectifier : public rclcpp::Node {
         );
         const std::string pixel_transform_topic = declare_parameter<std::string>(
             "pixel_transform_topic", "panel/pixel_to_panel"
+        );
+        const std::string contour_topic = declare_parameter<std::string>(
+            "contour_topic", "/d455_arm_wheel/yolo_contours"
+        );
+        const std::string segmentation_debug_topic =
+            declare_parameter<std::string>(
+                "segmentation_debug_topic", "panel/segmentation_debug"
+            );
+        projection_cache_size_ = declare_parameter<int>(
+            "projection_cache_size", 30
         );
         pixels_per_meter_ = declare_parameter<double>("pixels_per_meter", 1000.0);
         tf_timeout_s_ = declare_parameter<double>("tf_timeout_s", 0.1);
@@ -125,6 +139,17 @@ class PanelRectifier : public rclcpp::Node {
         valid_pub_ = create_publisher<sensor_msgs::msg::Image>(
             valid_topic, output_qos
         );
+        segmentation_debug_pub_ = create_publisher<sensor_msgs::msg::Image>(
+            segmentation_debug_topic, output_qos
+        );
+        contour_sub_ = create_subscription<
+            kalman_interfaces::msg::InstanceContourArray>(
+            contour_topic,
+            output_qos,
+            std::bind(
+                &PanelRectifier::on_contours, this, std::placeholders::_1
+            )
+        );
         auto transform_qos = rclcpp::QoS(1).reliable().transient_local();
         pixel_transform_pub_ =
             create_publisher<std_msgs::msg::Float64MultiArray>(
@@ -151,6 +176,14 @@ class PanelRectifier : public rclcpp::Node {
         sensor_msgs::msg::Image,
         sensor_msgs::msg::Image,
         sensor_msgs::msg::CameraInfo>;
+
+    struct ProjectionCacheEntry {
+        builtin_interfaces::msg::Time stamp;
+        cv::Mat image;
+        cv::Mat source_indices;
+        int source_width{0};
+        int source_height{0};
+    };
 
     struct CalibrationData {
         cv::Mat map_x;
@@ -212,6 +245,9 @@ class PanelRectifier : public rclcpp::Node {
         }
         if (max_splat_radius_px_ < 0 || outline_thickness_px_ <= 0) {
             throw std::invalid_argument("invalid rasterization pixel sizes");
+        }
+        if (projection_cache_size_ <= 0) {
+            throw std::invalid_argument("projection_cache_size must be positive");
         }
     }
 
@@ -406,7 +442,8 @@ class PanelRectifier : public rclcpp::Node {
         const tf2::Transform &board_from_camera,
         cv::Mat &output,
         cv::Mat &height,
-        cv::Mat &valid
+        cv::Mat &valid,
+        cv::Mat &source_indices
     ) const {
         const double minimum_x = -0.5 * board_width_ - left_border_m_;
         const double maximum_x = 0.5 * board_width_;
@@ -462,12 +499,28 @@ class PanelRectifier : public rclcpp::Node {
                     radius = 0;
                 }
 
+                const float mapped_x = calibration.map_x.at<float>(row, column);
+                const float mapped_y = calibration.map_y.at<float>(row, column);
+                int raw_index = -1;
+                if (std::isfinite(mapped_x) && std::isfinite(mapped_y) &&
+                    mapped_x > -0.5F &&
+                    mapped_x < static_cast<float>(calibration.image_size.width) -
+                                   0.5F &&
+                    mapped_y > -0.5F &&
+                    mapped_y < static_cast<float>(calibration.image_size.height) -
+                                   0.5F) {
+                    const int raw_x = static_cast<int>(std::lround(mapped_x));
+                    const int raw_y = static_cast<int>(std::lround(mapped_y));
+                    raw_index = raw_y * calibration.image_size.width + raw_x;
+                }
+
                 for (int target_y = std::max(0, output_y - radius);
                      target_y <= std::min(output_height_ - 1, output_y + radius);
                      ++target_y) {
                     float *height_pixels = height.ptr<float>(target_y);
                     unsigned char *valid_pixels = valid.ptr<unsigned char>(target_y);
                     cv::Vec3b *output_pixels = output.ptr<cv::Vec3b>(target_y);
+                    int *source_index_pixels = source_indices.ptr<int>(target_y);
                     for (int target_x = std::max(0, output_x - radius);
                          target_x <= std::min(output_width_ - 1, output_x + radius);
                          ++target_x) {
@@ -478,11 +531,158 @@ class PanelRectifier : public rclcpp::Node {
                             );
                             valid_pixels[target_x] = 255;
                             output_pixels[target_x] = color_pixels[column];
+                            source_index_pixels[target_x] = raw_index;
                         }
                     }
                 }
             }
         }
+    }
+
+    static bool same_stamp(
+        const builtin_interfaces::msg::Time &left,
+        const builtin_interfaces::msg::Time &right
+    ) {
+        return left.sec == right.sec && left.nanosec == right.nanosec;
+    }
+
+    static cv::Vec3b color_for_class(const std::string &class_id) {
+        uint32_t hash = 2166136261U;
+        for (const unsigned char byte : class_id) {
+            hash ^= byte;
+            hash *= 16777619U;
+        }
+
+        cv::Mat hsv(1, 1, CV_8UC3, cv::Scalar(hash % 180U, 220, 255));
+        cv::Mat bgr;
+        cv::cvtColor(hsv, bgr, cv::COLOR_HSV2BGR);
+        return bgr.at<cv::Vec3b>(0, 0);
+    }
+
+    void cache_projection(
+        const builtin_interfaces::msg::Time &stamp,
+        const cv::Mat &image,
+        const cv::Mat &source_indices,
+        int source_width,
+        int source_height
+    ) {
+        ProjectionCacheEntry entry{
+            stamp,
+            image.clone(),
+            source_indices.clone(),
+            source_width,
+            source_height,
+        };
+        std::lock_guard<std::mutex> lock(projection_cache_mutex_);
+        projection_cache_.push_back(std::move(entry));
+        while (projection_cache_.size() >
+               static_cast<size_t>(projection_cache_size_)) {
+            projection_cache_.pop_front();
+        }
+    }
+
+    void on_contours(
+        const kalman_interfaces::msg::InstanceContourArray::ConstSharedPtr message
+    ) {
+        ProjectionCacheEntry cached;
+        {
+            std::lock_guard<std::mutex> lock(projection_cache_mutex_);
+            const auto entry = std::find_if(
+                projection_cache_.begin(),
+                projection_cache_.end(),
+                [&message](const ProjectionCacheEntry &candidate) {
+                    return same_stamp(candidate.stamp, message->header.stamp);
+                }
+            );
+            if (entry == projection_cache_.end()) {
+                RCLCPP_WARN_THROTTLE(
+                    get_logger(),
+                    *get_clock(),
+                    2000,
+                    "No orthographic projection cached for contour stamp %d.%09u",
+                    message->header.stamp.sec,
+                    message->header.stamp.nanosec
+                );
+                return;
+            }
+            cached = *entry;
+        }
+
+        if (message->image_width != static_cast<uint32_t>(cached.source_width) ||
+            message->image_height != static_cast<uint32_t>(cached.source_height)) {
+            RCLCPP_WARN_THROTTLE(
+                get_logger(),
+                *get_clock(),
+                2000,
+                "Contour dimensions %ux%u differ from cached source %dx%d",
+                message->image_width,
+                message->image_height,
+                cached.source_width,
+                cached.source_height
+            );
+            return;
+        }
+
+        cv::Mat labels(
+            cached.source_height,
+            cached.source_width,
+            CV_16UC1,
+            cv::Scalar(0)
+        );
+        std::vector<cv::Vec3b> label_colors(message->instances.size() + 1);
+        const size_t maximum_labels = std::min<size_t>(
+            message->instances.size(), std::numeric_limits<uint16_t>::max()
+        );
+        for (size_t index = 0; index < maximum_labels; ++index) {
+            const auto &instance = message->instances[index];
+            if (instance.points.size() < 3) {
+                continue;
+            }
+            std::vector<cv::Point> contour;
+            contour.reserve(instance.points.size());
+            for (const auto &point : instance.points) {
+                contour.emplace_back(point.x, point.y);
+            }
+            const uint16_t label = static_cast<uint16_t>(index + 1);
+            const std::vector<std::vector<cv::Point>> contours{std::move(contour)};
+            cv::fillPoly(labels, contours, cv::Scalar(label));
+            label_colors[label] = color_for_class(instance.class_id);
+        }
+
+        cv::Mat debug = cached.image.clone();
+        constexpr unsigned int overlay_weight = 128;
+        for (int row = 0; row < debug.rows; ++row) {
+            cv::Vec3b *debug_pixels = debug.ptr<cv::Vec3b>(row);
+            const int *source_pixels = cached.source_indices.ptr<int>(row);
+            for (int column = 0; column < debug.cols; ++column) {
+                const int source_index = source_pixels[column];
+                if (source_index < 0) {
+                    continue;
+                }
+                const uint16_t label = labels.ptr<uint16_t>()[source_index];
+                if (label == 0 || label >= label_colors.size()) {
+                    continue;
+                }
+                const cv::Vec3b color = label_colors[label];
+                for (int channel = 0; channel < 3; ++channel) {
+                    debug_pixels[column][channel] = static_cast<unsigned char>(
+                        (static_cast<unsigned int>(debug_pixels[column][channel]) *
+                             (256U - overlay_weight) +
+                         static_cast<unsigned int>(color[channel]) * overlay_weight) /
+                        256U
+                    );
+                }
+            }
+        }
+
+        std_msgs::msg::Header header = message->header;
+        header.frame_id = board_frame_;
+        segmentation_debug_pub_->publish(
+            *cv_bridge::CvImage(
+                 header, sensor_msgs::image_encodings::BGR8, debug
+             )
+                 .toImageMsg()
+        );
     }
 
     void publish_pixel_transform() {
@@ -614,6 +814,9 @@ class PanelRectifier : public rclcpp::Node {
             cv::Mat valid(
                 output_height_, output_width_, CV_8UC1, cv::Scalar(0)
             );
+            cv::Mat source_indices(
+                output_height_, output_width_, CV_32SC1, cv::Scalar(-1)
+            );
             render_points(
                 rectified_color,
                 rectified_depth,
@@ -621,7 +824,8 @@ class PanelRectifier : public rclcpp::Node {
                 board_from_camera_transform,
                 output,
                 height,
-                valid
+                valid,
+                source_indices
             );
 
             if (draw_board_outline_) {
@@ -637,6 +841,13 @@ class PanelRectifier : public rclcpp::Node {
                     cv::LINE_AA
                 );
             }
+            cache_projection(
+                image_message->header.stamp,
+                output,
+                source_indices,
+                static_cast<int>(image_message->width),
+                static_cast<int>(image_message->height)
+            );
             publish_outputs(image_message->header, output, height, valid);
         } catch (const tf2::TransformException &error) {
             RCLCPP_WARN_THROTTLE(
@@ -694,6 +905,7 @@ class PanelRectifier : public rclcpp::Node {
     int top_border_px_{0};
     int output_width_{0};
     int output_height_{0};
+    int projection_cache_size_{30};
 
     std::shared_ptr<CalibrationData> calibration_;
     std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
@@ -703,10 +915,16 @@ class PanelRectifier : public rclcpp::Node {
     message_filters::Subscriber<sensor_msgs::msg::Image> depth_sub_;
     message_filters::Subscriber<sensor_msgs::msg::CameraInfo> camera_info_sub_;
     std::shared_ptr<Synchronizer> synchronizer_;
+    rclcpp::Subscription<kalman_interfaces::msg::InstanceContourArray>::SharedPtr
+        contour_sub_;
+
+    std::mutex projection_cache_mutex_;
+    std::deque<ProjectionCacheEntry> projection_cache_;
 
     rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr image_pub_;
     rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr height_pub_;
     rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr valid_pub_;
+    rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr segmentation_debug_pub_;
     rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr
         pixel_transform_pub_;
 };

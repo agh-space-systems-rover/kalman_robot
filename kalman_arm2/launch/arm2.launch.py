@@ -231,6 +231,20 @@ def launch_setup(context):
         )
     ]
 
+    actions += [
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(
+                PathJoinSubstitution(
+                    [FindPackageShare("kalman_yolo"), "launch", "yolo.launch.py"]
+                )
+            ),
+            launch_arguments={
+                "rgbd_ids": "d455_arm_wheel",
+                "config": "panel",
+            }.items(),
+        )
+    ]
+
     actions += launch_node_or_load_component(
         component_container=component_container,
         package="kalman_arm2",
