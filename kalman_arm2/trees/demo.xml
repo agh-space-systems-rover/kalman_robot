@@ -3,7 +3,7 @@
     <Sequence name="PanelMissionSequence">
       <SetMissionFeedback text="Moving to observation pose" />
       <!-- <CloseGripper timeout_ms="5000" tolerance="0.20" /> -->
-      <OpenGripper timeout_ms="5000" tolerance="0.20" />
+      <!-- <OpenGripper timeout_ms="5000" tolerance="0.20" /> -->
       <ArmNavigateToPose j0="0.0" j1="-1.2" j2="2.7" j3="0" j4="0.2" j5="0.0" />
       <!-- <ArmNavigateToPose j0="0.0" j1="0.0" j2="0.0" j3="0.0" j4="0.0" j5="0.0" jaw="0.0" /> -->
 
@@ -63,7 +63,7 @@
 
       <TransformPose
         pose="{requested_panel_pose}"
-        z="0.05"
+        z="0.07"
         transformed_pose="{requested_panel_pose_offset}" />
 
       <ForceSuccess>
@@ -76,17 +76,42 @@
         pose="{requested_panel_pose_offset}"
         timeout_ms="40000" />
 
+      <CloseGripper timeout_ms="5000" tolerance="0.20" />
       <VisaulRefineToPanelTwist
         pose="{requested_panel_pose}"
         timeout_ms="30000" />
 
-      <RotateEEAlongNormalJoint degrees="45.0"/>
+      <!-- Note, this does take the rotation into account! -->
+      <TransformPose
+        pose="{requested_panel_pose}"
+        x="-0.05"
+        transformed_pose="{requested_panel_pose_offset}" />
 
       <CloseGripper timeout_ms="5000" tolerance="0.20" />
-
-      <RotateEEAlongNormalJoint degrees="45.0" />
-      <RotateEEAlongNormalJoint degrees="45.0" />
       <OpenGripper timeout_ms="5000" tolerance="0.20" />
+
+      <!-- <VisaulRefineToPanelTwist
+        pose="{requested_panel_pose_offset}"
+        timeout_ms="40000" /> -->
+
+      <!-- <CloseGripper timeout_ms="5000" tolerance="0.20" /> -->
+
+      <!-- <TransformPose
+        pose="{requested_panel_pose}"
+        z="0.25"
+        transformed_pose="{requested_panel_pose_offset}" /> -->
+
+      <!-- <VisaulRefineToPanelTwist
+        pose="{requested_panel_pose_offset}"
+        timeout_ms="40000" /> -->
+
+      <!-- <RotateEEAlongNormalJoint degrees="45.0"/> -->
+
+      <!-- <CloseGripper timeout_ms="5000" tolerance="0.20" /> -->
+
+      <!-- <RotateEEAlongNormalJoint degrees="45.0" /> -->
+      <!-- <RotateEEAlongNormalJoint degrees="45.0" /> -->
+      <!-- <OpenGripper timeout_ms="5000" tolerance="0.20" /> -->
     </Sequence>
   </BehaviorTree>
 </root>
