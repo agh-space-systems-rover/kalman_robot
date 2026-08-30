@@ -147,8 +147,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--topic",
-        default="/yolo_detections",
-        help="Detection2DArray topic (default: /yolo_detections)",
+        default="/arm/panel/detections_rectified",
+        help="Detection2DArray topic (default: /arm/panel/detections_rectified)",
     )
     parser.add_argument(
         "--rate",

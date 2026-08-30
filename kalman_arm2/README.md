@@ -64,7 +64,7 @@ ros2 bag play \
 ros2 launch kalman_gs gs.launch.py
 ```
 
-**3. Fake YOLO detections** (3 clickable buttons on 450×650 image from bag):
+**3. Fake rectified detections** (3 clickable buttons on 450×650 image from bag):
 
 ```bash
 ros2 run kalman_arm2 fake_yolo_publisher
@@ -102,6 +102,6 @@ ros2 topic pub --once /arm/panel/target geometry_msgs/msg/PoseStamped \
 | Topic | Type | Role |
 |-------|------|------|
 | `/arm/panel/image_rectified` | `sensor_msgs/Image` | camera |
-| `/yolo_detections` | `vision_msgs/Detection2DArray` | bbox overlay |
-| `/arm/panel/homography` | `std_msgs/Float64MultiArray` | image → panel |
+| `/arm/panel/detections_rectified` | `vision_msgs/Detection2DArray` | bbox overlay in rectified-image pixels |
+| `/arm/panel/homography` | `std_msgs/Float64MultiArray` | row-major 3×3 rectified pixel → panel meter transform |
 | `/arm/panel/target` | `geometry_msgs/PoseStamped` | SEND output |
