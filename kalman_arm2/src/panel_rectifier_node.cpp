@@ -13,7 +13,8 @@
 #include <cv_bridge/cv_bridge.h>
 #include <kalman_interfaces/msg/instance_contour_array.hpp>
 #include <message_filters/subscriber.h>
-#include <message_filters/time_synchronizer.h>
+#include <message_filters/sync_policies/approximate_time.h>
+#include <message_filters/synchronizer.h>
 #include <opencv2/calib3d.hpp>
 #include <opencv2/imgproc.hpp>
 #include <rclcpp/rclcpp.hpp>
@@ -76,6 +77,8 @@ class PanelRectifier : public rclcpp::Node {
         projection_cache_size_ = declare_parameter<int>(
             "projection_cache_size", 30
         );
+        sync_queue_size_ = declare_parameter<int>("sync_queue_size", 30);
+        sync_tolerance_s_ = declare_parameter<double>("sync_tolerance_s", 0.02);
         pixels_per_meter_ = declare_parameter<double>("pixels_per_meter", 1000.0);
         tf_timeout_s_ = declare_parameter<double>("tf_timeout_s", 0.1);
         use_latest_transform_ = declare_parameter<bool>(
@@ -114,24 +117,30 @@ class PanelRectifier : public rclcpp::Node {
         tf_buffer_ = std::make_unique<tf2_ros::Buffer>(get_clock());
         tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
 
-        rclcpp::QoS input_qos(1);
+        rclcpp::QoS input_qos(5);
         input_qos.durability(RMW_QOS_POLICY_DURABILITY_VOLATILE);
         input_qos.reliability(RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT);
         image_sub_.subscribe(this, image_topic, input_qos.get_rmw_qos_profile());
         depth_sub_.subscribe(this, depth_topic, input_qos.get_rmw_qos_profile());
-        camera_info_sub_.subscribe(
-            this, camera_info_topic, input_qos.get_rmw_qos_profile()
+        camera_info_sub_ = create_subscription<sensor_msgs::msg::CameraInfo>(
+            camera_info_topic,
+            input_qos,
+            std::bind(
+                &PanelRectifier::on_camera_info, this, std::placeholders::_1
+            )
         );
 
         synchronizer_ = std::make_shared<Synchronizer>(
-            image_sub_, depth_sub_, camera_info_sub_, 10
+            SynchronizationPolicy(sync_queue_size_), image_sub_, depth_sub_
+        );
+        synchronizer_->setMaxIntervalDuration(
+            rclcpp::Duration::from_seconds(sync_tolerance_s_)
         );
         synchronizer_->registerCallback(std::bind(
             &PanelRectifier::on_rgbd,
             this,
             std::placeholders::_1,
-            std::placeholders::_2,
-            std::placeholders::_3
+            std::placeholders::_2
         ));
 
         const auto output_qos = rclcpp::SensorDataQoS();
@@ -169,22 +178,26 @@ class PanelRectifier : public rclcpp::Node {
         RCLCPP_INFO(
             get_logger(),
             "Orthographic panel renderer: %.3f x %.3f m with left/top border "
-            "%.3f/%.3f m -> %d x %d px at %.1f px/m",
+            "%.3f/%.3f m -> %d x %d px at %.1f px/m; approximate RGB-D sync "
+            "queue=%d tolerance=%.3f s",
             board_width_,
             board_height_,
             left_border_m_,
             top_border_m_,
             output_width_,
             output_height_,
-            pixels_per_meter_
+            pixels_per_meter_,
+            sync_queue_size_,
+            sync_tolerance_s_
         );
     }
 
   private:
-    using Synchronizer = message_filters::TimeSynchronizer<
-        sensor_msgs::msg::Image,
-        sensor_msgs::msg::Image,
-        sensor_msgs::msg::CameraInfo>;
+    using SynchronizationPolicy =
+        message_filters::sync_policies::ApproximateTime<
+            sensor_msgs::msg::Image,
+            sensor_msgs::msg::Image>;
+    using Synchronizer = message_filters::Synchronizer<SynchronizationPolicy>;
 
     struct ProjectionCacheEntry {
         builtin_interfaces::msg::Time stamp;
@@ -257,6 +270,14 @@ class PanelRectifier : public rclcpp::Node {
         }
         if (projection_cache_size_ <= 0) {
             throw std::invalid_argument("projection_cache_size must be positive");
+        }
+        if (sync_queue_size_ <= 0) {
+            throw std::invalid_argument("sync_queue_size must be positive");
+        }
+        if (!std::isfinite(sync_tolerance_s_) || sync_tolerance_s_ <= 0.0) {
+            throw std::invalid_argument(
+                "sync_tolerance_s must be finite and positive"
+            );
         }
     }
 
@@ -790,12 +811,33 @@ class PanelRectifier : public rclcpp::Node {
         publish_pixel_transform();
     }
 
+    void on_camera_info(
+        const sensor_msgs::msg::CameraInfo::ConstSharedPtr message
+    ) {
+        std::lock_guard<std::mutex> lock(camera_info_mutex_);
+        latest_camera_info_ = message;
+    }
+
     void on_rgbd(
         const sensor_msgs::msg::Image::ConstSharedPtr &image_message,
-        const sensor_msgs::msg::Image::ConstSharedPtr &depth_message,
-        const sensor_msgs::msg::CameraInfo::ConstSharedPtr &camera_info_message
+        const sensor_msgs::msg::Image::ConstSharedPtr &depth_message
     ) {
         try {
+            sensor_msgs::msg::CameraInfo::ConstSharedPtr camera_info_message;
+            {
+                std::lock_guard<std::mutex> lock(camera_info_mutex_);
+                camera_info_message = latest_camera_info_;
+            }
+            if (!camera_info_message) {
+                RCLCPP_WARN_THROTTLE(
+                    get_logger(),
+                    *get_clock(),
+                    2000,
+                    "Cannot render orthographic panel before camera info arrives"
+                );
+                return;
+            }
+
             if (image_message->width != depth_message->width ||
                 image_message->height != depth_message->height ||
                 image_message->width != camera_info_message->width ||
@@ -956,6 +998,8 @@ class PanelRectifier : public rclcpp::Node {
     int output_width_{0};
     int output_height_{0};
     int projection_cache_size_{30};
+    int sync_queue_size_{30};
+    double sync_tolerance_s_{0.02};
 
     std::shared_ptr<CalibrationData> calibration_;
     std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
@@ -963,8 +1007,11 @@ class PanelRectifier : public rclcpp::Node {
 
     message_filters::Subscriber<sensor_msgs::msg::Image> image_sub_;
     message_filters::Subscriber<sensor_msgs::msg::Image> depth_sub_;
-    message_filters::Subscriber<sensor_msgs::msg::CameraInfo> camera_info_sub_;
+    rclcpp::Subscription<sensor_msgs::msg::CameraInfo>::SharedPtr camera_info_sub_;
     std::shared_ptr<Synchronizer> synchronizer_;
+
+    std::mutex camera_info_mutex_;
+    sensor_msgs::msg::CameraInfo::ConstSharedPtr latest_camera_info_;
     rclcpp::Subscription<kalman_interfaces::msg::InstanceContourArray>::SharedPtr
         contour_sub_;
 

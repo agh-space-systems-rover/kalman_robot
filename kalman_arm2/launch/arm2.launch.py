@@ -155,6 +155,12 @@ def launch_setup(context):
         "camera_info_topic": LaunchConfiguration(
             "panel_camera_info_topic"
         ).perform(context),
+        "sync_queue_size": int(
+            LaunchConfiguration("panel_sync_queue_size").perform(context)
+        ),
+        "sync_tolerance_s": float(
+            LaunchConfiguration("panel_sync_tolerance_s").perform(context)
+        ),
         "pixels_per_meter": float(
             LaunchConfiguration("panel_pixels_per_meter").perform(context)
         ),
@@ -435,6 +441,16 @@ def generate_launch_description():
                 "panel_camera_info_topic",
                 default_value="/d455_arm_wheel/color/camera_info",
                 description="Panel camera calibration consumed by the rectifier.",
+            ),
+            DeclareLaunchArgument(
+                "panel_sync_queue_size",
+                default_value="30",
+                description="Queue size for approximate panel RGB-D synchronization.",
+            ),
+            DeclareLaunchArgument(
+                "panel_sync_tolerance_s",
+                default_value="0.02",
+                description="Maximum timestamp skew for panel RGB-D synchronization.",
             ),
             DeclareLaunchArgument(
                 "panel_pixels_per_meter",
