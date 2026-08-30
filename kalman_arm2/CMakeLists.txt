@@ -162,6 +162,7 @@ install(PROGRAMS
   scripts/arm1_moveit_compat
   scripts/gamepad_control
   scripts/joint_republisher
+  scripts/rock_detector
   scripts/rosbridge_client
   scripts/fake_yolo_publisher
   scripts/publish_identity_homography
