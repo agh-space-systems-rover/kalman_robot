@@ -234,7 +234,7 @@ BT::NodeStatus VisualRefineToPanel::begin_correction() {
             *parent_->get_clock(),
             2000,
             "Visual refinement has received no EE pose on 'visual_ee_pose'. Marker %d and at least one panel marker must be detected in the same camera frame.",
-            99
+            31
         );
         return BT::NodeStatus::RUNNING;
     }
@@ -257,7 +257,7 @@ BT::NodeStatus VisualRefineToPanel::begin_correction() {
             parent_->get_logger(),
             *parent_->get_clock(),
             2000,
-            "Visual EE pose is stale (age %.3f s, limit %.3f s). Marker 99 or all panel markers are likely no longer detected.",
+            "Visual EE pose is stale (age %.3f s, limit %.3f s). Marker 31 or all panel markers are likely no longer detected.",
             measurement_age_s,
             max_measurement_age_s_
         );
@@ -374,7 +374,7 @@ BT::NodeStatus VisualRefineToPanel::onRunning() {
         if (!visual_pose) {
             RCLCPP_ERROR(
                 parent_->get_logger(),
-                "%s timed out in state '%s' after %d corrections: no visual EE pose was ever received. Verify marker 99 and at least one panel marker are visible.",
+                "%s timed out in state '%s' after %d corrections: no visual EE pose was ever received. Verify marker 31 and at least one panel marker are visible.",
                 name().c_str(),
                 state_name(),
                 correction_count_

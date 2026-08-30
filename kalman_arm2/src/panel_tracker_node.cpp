@@ -30,7 +30,7 @@ class PanelTracker : public rclcpp::Node {
             "detection_topic", "/d455_arm/aruco_detections"
         );
         declare_parameter<double>("ema_alpha", 0.2);
-        declare_parameter<int>("ee_marker_id", 99);
+        declare_parameter<int>("ee_marker_id", 31);
         declare_parameter<std::string>("ee_marker_frame", "aruco_under_j6");
         declare_parameter<std::string>("ee_frame", "arm_link_gripper");
 
@@ -95,7 +95,7 @@ class PanelTracker : public rclcpp::Node {
     std::string detection_topic_;
     std::string ee_marker_frame_;
     std::string ee_frame_;
-    int ee_marker_id_{99};
+    int ee_marker_id_{31};
     double ema_alpha_;
     bool filter_initialized_{false};
     tf2::Transform filtered_board_pose_;
