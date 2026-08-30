@@ -83,9 +83,9 @@ class PanelTracker : public rclcpp::Node {
     };
 
     static constexpr std::array<MarkerLayout, 3> kMarkers{{
-        {0, 0.0, 0.0},
-        {1, 0.26, 0.0},
-        {2, 0.0, 0.383},
+        {13, 0.0, 0.0},
+        {14, 0.26, 0.0},
+        {15, 0.0, 0.383},
     }};
     static constexpr double kBoardWidth = 0.4;
     static constexpr double kBoardHeight = 0.6;
