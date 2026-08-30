@@ -45,7 +45,7 @@
 
 .bbox {
   position: absolute;
-  border: 2px solid rgba(79, 156, 255, 0.85);
+  border: 2px solid var(--detection-color, rgba(79, 156, 255, 0.85));
   box-sizing: border-box;
   pointer-events: none;
 }
@@ -60,6 +60,7 @@
   top: -1.1rem;
   left: 0;
   font-size: 0.65rem;
+  line-height: 1.2;
   font-weight: bold;
   color: var(--foreground);
   background: rgba(0, 0, 0, 0.55);
@@ -74,15 +75,15 @@
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  border: 2px solid rgba(79, 156, 255, 0.95);
-  background: rgba(79, 156, 255, 0.2);
+  border: 2px solid var(--detection-color, rgba(79, 156, 255, 0.95));
+  background: var(--detection-fill, rgba(79, 156, 255, 0.2));
   transform: translate(-50%, -50%);
   cursor: pointer;
   pointer-events: auto;
 }
 
 .hit-target:hover {
-  background: rgba(79, 156, 255, 0.4);
+  background: var(--detection-hover-fill, rgba(79, 156, 255, 0.4));
 }
 
 .hit-target-selected {
@@ -120,11 +121,10 @@
 
 .controls {
   display: flex;
-  flex-direction: column;
   gap: 0.5rem;
 }
 
-.send-button {
-  width: 100%;
+.control-button {
+  flex: 1;
   text-align: center;
 }

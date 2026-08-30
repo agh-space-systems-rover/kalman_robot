@@ -17,17 +17,33 @@ import {
 } from '../common/arm-autonomy';
 import { alertsRef } from '../common/refs';
 import { ros } from '../common/ros';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { CSSProperties, useCallback, useEffect, useRef, useState } from 'react';
 
 import Button from '../components/button';
 
 const LOG_PREFIX = '[arm-autonomy panel]';
 
-function formatXY(xy: ImageXY | SendXY | null): string {
+function formatXY(xy: ImageXY | SendXY | null, decimalPlaces = 1): string {
   if (!xy) {
     return '—';
   }
-  return `${xy.x.toFixed(1)}, ${xy.y.toFixed(1)}`;
+  return `${xy.x.toFixed(decimalPlaces)}, ${xy.y.toFixed(decimalPlaces)}`;
+}
+
+function detectionColorStyle(det: Detection2D): CSSProperties {
+  const classId = det.results[0]?.hypothesis.class_id ?? 'detection';
+  let hash = 2166136261;
+  for (let index = 0; index < classId.length; index++) {
+    hash ^= classId.charCodeAt(index);
+    hash = Math.imul(hash, 16777619) >>> 0;
+  }
+
+  const hue = (hash % 180) * 2;
+  return {
+    '--detection-color': `hsl(${hue} 85% 60%)`,
+    '--detection-fill': `hsl(${hue} 85% 60% / 0.2)`,
+    '--detection-hover-fill': `hsl(${hue} 85% 60% / 0.4)`
+  } as CSSProperties;
 }
 
 export default function ArmAutonomyPanel() {
@@ -41,6 +57,7 @@ export default function ArmAutonomyPanel() {
   const [hasImage, setHasImage] = useState(false);
   const [rosConnected, setRosConnected] = useState(false);
   const [decodeError, setDecodeError] = useState<string | null>(null);
+  const [feedPaused, setFeedPaused] = useState(false);
 
   const drawImageData = useCallback((imageData: ImageData) => {
     const canvas = canvasRef.current;
@@ -60,6 +77,10 @@ export default function ArmAutonomyPanel() {
   }, []);
 
   const refreshFromRos = useCallback(() => {
+    if (feedPaused) {
+      return;
+    }
+
     const image = getArmAutonomyImage();
     if (image) {
       const imageData = decodeRosImage(image);
@@ -81,7 +102,7 @@ export default function ArmAutonomyPanel() {
 
     setDetections(getArmAutonomyDetections());
     setHasHomography(getArmAutonomyHomography() !== null);
-  }, [drawImageData]);
+  }, [drawImageData, feedPaused]);
 
   useEffect(() => {
     console.log(`${LOG_PREFIX} mounted`);
@@ -171,7 +192,7 @@ export default function ArmAutonomyPanel() {
                 const halfH = det.bbox.size_y / 2;
                 const selected = selectedIndex === index;
                 return (
-                  <div key={`${det.id ?? index}-${cx}-${cy}`}>
+                  <div key={`${det.id ?? index}-${cx}-${cy}`} style={detectionColorStyle(det)}>
                     <div
                       className={`${styles['bbox']} ${selected ? styles['bbox-selected'] : ''}`}
                       style={{
@@ -225,12 +246,20 @@ export default function ArmAutonomyPanel() {
           image XY: <strong>{formatXY(imageXY)}</strong>
         </span>
         <span className={styles['status-item']}>
-          send XY: <strong>{formatXY(sendXY)}</strong>
+          send XY: <strong>{formatXY(sendXY, 3)}</strong>
         </span>
       </div>
 
       <div className={styles['controls']}>
-        <Button className={styles['send-button']} disabled={!sendXY} onClick={handleSend}>
+        <Button
+          className={styles['control-button']}
+          active={feedPaused}
+          onClick={() => setFeedPaused((paused) => !paused)}
+          tooltip={feedPaused ? 'Resume video and detections' : 'Pause video and detections'}
+        >
+          {feedPaused ? 'Paused' : 'Live'}
+        </Button>
+        <Button className={styles['control-button']} disabled={!sendXY} onClick={handleSend}>
           SEND
         </Button>
       </div>
