@@ -3,7 +3,7 @@ import { Topic } from 'roslib';
 
 export const ARM_AUTONOMY_TOPICS = {
   image: '/arm/panel/image_rectified',
-  yolo: '/yolo_detections',
+  detections: '/arm/panel/detections_rectified',
   homography: '/arm/panel/homography',
   target: '/arm/panel/target'
 } as const;
@@ -285,12 +285,12 @@ function initTopics() {
 
   const detectionsTopic = new Topic<Detection2DArray>({
     ros,
-    name: ARM_AUTONOMY_TOPICS.yolo,
+    name: ARM_AUTONOMY_TOPICS.detections,
     messageType: 'vision_msgs/Detection2DArray'
   });
   detectionsTopic.subscribe((msg) => {
     latestDetections = msg.detections ?? [];
-    log(`yolo detections: ${latestDetections.length}`);
+    log(`rectified detections: ${latestDetections.length}`);
     notifyUpdate();
   });
 

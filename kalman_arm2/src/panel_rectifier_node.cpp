@@ -23,6 +23,7 @@
 #include <sensor_msgs/msg/image.hpp>
 #include <std_msgs/msg/float64_multi_array.hpp>
 #include <tf2/LinearMath/Transform.hpp>
+#include <vision_msgs/msg/detection2_d_array.hpp>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
@@ -67,6 +68,10 @@ class PanelRectifier : public rclcpp::Node {
         const std::string segmentation_debug_topic =
             declare_parameter<std::string>(
                 "segmentation_debug_topic", "panel/segmentation_debug"
+            );
+        const std::string rectified_detections_topic =
+            declare_parameter<std::string>(
+                "rectified_detections_topic", "panel/detections_rectified"
             );
         projection_cache_size_ = declare_parameter<int>(
             "projection_cache_size", 30
@@ -142,6 +147,10 @@ class PanelRectifier : public rclcpp::Node {
         segmentation_debug_pub_ = create_publisher<sensor_msgs::msg::Image>(
             segmentation_debug_topic, output_qos
         );
+        rectified_detections_pub_ =
+            create_publisher<vision_msgs::msg::Detection2DArray>(
+                rectified_detections_topic, rclcpp::QoS(10).reliable()
+            );
         contour_sub_ = create_subscription<
             kalman_interfaces::msg::InstanceContourArray>(
             contour_topic,
@@ -650,6 +659,10 @@ class PanelRectifier : public rclcpp::Node {
         }
 
         cv::Mat debug = cached.image.clone();
+        std::vector<int> minimum_x(message->instances.size() + 1, debug.cols);
+        std::vector<int> minimum_y(message->instances.size() + 1, debug.rows);
+        std::vector<int> maximum_x(message->instances.size() + 1, -1);
+        std::vector<int> maximum_y(message->instances.size() + 1, -1);
         constexpr unsigned int overlay_weight = 128;
         for (int row = 0; row < debug.rows; ++row) {
             cv::Vec3b *debug_pixels = debug.ptr<cv::Vec3b>(row);
@@ -663,6 +676,11 @@ class PanelRectifier : public rclcpp::Node {
                 if (label == 0 || label >= label_colors.size()) {
                     continue;
                 }
+                minimum_x[label] = std::min(minimum_x[label], column);
+                minimum_y[label] = std::min(minimum_y[label], row);
+                maximum_x[label] = std::max(maximum_x[label], column);
+                maximum_y[label] = std::max(maximum_y[label], row);
+
                 const cv::Vec3b color = label_colors[label];
                 for (int channel = 0; channel < 3; ++channel) {
                     debug_pixels[column][channel] = static_cast<unsigned char>(
@@ -677,6 +695,34 @@ class PanelRectifier : public rclcpp::Node {
 
         std_msgs::msg::Header header = message->header;
         header.frame_id = board_frame_;
+
+        vision_msgs::msg::Detection2DArray detections;
+        detections.header = header;
+        for (size_t index = 0; index < maximum_labels; ++index) {
+            const size_t label = index + 1;
+            if (maximum_x[label] < minimum_x[label] ||
+                maximum_y[label] < minimum_y[label]) {
+                continue;
+            }
+
+            const auto &instance = message->instances[index];
+            vision_msgs::msg::Detection2D detection;
+            detection.id = instance.id;
+            detection.bbox.center.position.x =
+                0.5 * static_cast<double>(minimum_x[label] + maximum_x[label]);
+            detection.bbox.center.position.y =
+                0.5 * static_cast<double>(minimum_y[label] + maximum_y[label]);
+            detection.bbox.size_x =
+                static_cast<double>(maximum_x[label] - minimum_x[label] + 1);
+            detection.bbox.size_y =
+                static_cast<double>(maximum_y[label] - minimum_y[label] + 1);
+            detection.results.resize(1);
+            detection.results[0].hypothesis.class_id = instance.class_id;
+            detection.results[0].hypothesis.score = instance.score;
+            detections.detections.push_back(std::move(detection));
+        }
+        rectified_detections_pub_->publish(detections);
+
         segmentation_debug_pub_->publish(
             *cv_bridge::CvImage(
                  header, sensor_msgs::image_encodings::BGR8, debug
@@ -738,6 +784,10 @@ class PanelRectifier : public rclcpp::Node {
              )
                  .toImageMsg()
         );
+
+        // Transient-local data is not replayed to volatile rosbridge subscribers.
+        // Publish alongside every image so late ground-station clients receive it.
+        publish_pixel_transform();
     }
 
     void on_rgbd(
@@ -925,6 +975,8 @@ class PanelRectifier : public rclcpp::Node {
     rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr height_pub_;
     rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr valid_pub_;
     rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr segmentation_debug_pub_;
+    rclcpp::Publisher<vision_msgs::msg::Detection2DArray>::SharedPtr
+        rectified_detections_pub_;
     rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr
         pixel_transform_pub_;
 };
