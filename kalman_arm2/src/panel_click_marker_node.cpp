@@ -31,7 +31,7 @@ class PanelClickMarker : public rclcpp::Node {
             "click_topic", "panel/image_rectified_mouse_left"
         );
         const std::string transform_topic = declare_parameter<std::string>(
-            "pixel_transform_topic", "panel/pixel_to_panel"
+            "pixel_transform_topic", "panel/homography"
         );
         const std::string height_topic = declare_parameter<std::string>(
             "height_topic", "panel/height"

@@ -225,8 +225,8 @@ def launch_setup(context):
             launch_arguments={
                 "component_container": component_container,
                 "rgbd_ids": "d455_arm_wheel",
-                "dict": "5X5_100",
-                "size": "0.055",
+                "dict": "ARUCO_ORIGINAL",
+                "size": "0.050",
             }.items(),
         )
     ]

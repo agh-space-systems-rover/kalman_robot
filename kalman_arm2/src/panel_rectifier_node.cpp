@@ -59,7 +59,7 @@ class PanelRectifier : public rclcpp::Node {
             "valid_topic", "panel/valid"
         );
         const std::string pixel_transform_topic = declare_parameter<std::string>(
-            "pixel_transform_topic", "panel/pixel_to_panel"
+            "pixel_transform_topic", "panel/homography"
         );
         const std::string contour_topic = declare_parameter<std::string>(
             "contour_topic", "/d455_arm_wheel/yolo_contours"
