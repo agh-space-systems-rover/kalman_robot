@@ -24,13 +24,13 @@ def generate_launch_description():
             },
             "slam": {
                 "rgbd_ids": RGBD_IDS,
-                "gps_datum": "50.06622974 19.91320048",  # ERC2025 Marsyard S1, Kraków
-                "fiducials": "erc2025",
+                "gps_datum": "50.06614847 19.91317746",  # ERC 2026 Marsyard S1, Kraków
+                "fiducials": "erc2026",
                 "use_mag": "true",
             },
             "nav2": {
                 "rgbd_ids": RGBD_IDS,
-                "static_map": "erc2025",
+                "static_map": "erc2026",
             },
             "wheels": {},
             "supervisor": {},

@@ -5,7 +5,7 @@ def generate_launch_description():
     return gen_launch(
         {
             "unity_sim": {
-                "scene": "ERC2025",
+                "scene": "ERC2026",
                 "selective_launch": "no_rs_pub",
             },
             "rviz": {
@@ -13,8 +13,5 @@ def generate_launch_description():
             },
             "gs": {},
             "wheels": {},
-            "description": {
-                "layout": "autonomy",
-            },
-        }
+        },
     )
