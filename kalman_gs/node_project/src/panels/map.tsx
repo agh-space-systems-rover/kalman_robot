@@ -10,8 +10,9 @@ import { Quaternion, Vector3, quatConj, quatTimesVec } from '../common/mini-math
 import { ros } from '../common/ros';
 import { GeoPoint, GeoPath, WheelStates } from '../common/ros-interfaces';
 import { waypoints } from '../common/waypoints';
-import erc2024Overlay from '../media/erc2024-overlay.png';
-import erc2025Overlay from '../media/erc2025-overlay.png';
+// import erc2024Overlay from '../media/erc2024-overlay.png';
+// import erc2025Overlay from '../media/erc2025-overlay.png';
+import erc2026Overlay from '../media/erc2026-overlay.png';
 import { faGlobe, faCopy } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import Leaflet from 'leaflet';
@@ -250,12 +251,20 @@ export default class Map extends Component<Props> {
               [50.0659224467215, 19.9137533400464]
             ]}
           />*/}
-          <ImageOverlay
+          {/*<ImageOverlay
             url={erc2025Overlay}
             bounds={[
               // Order of points does not matter as long as they are diagonally opposite corners of the image:
               [50.065971191749, 19.9130887981378],
               [50.066363153534, 19.9137014499564]
+            ]}
+          />*/}
+          <ImageOverlay
+            url={erc2026Overlay}
+            bounds={[
+              // Order of points does not matter as long as they are diagonally opposite corners of the image:
+              [50.0659272323843, 19.913038935498],
+              [50.0663700403647, 19.913732017035]
             ]}
           />
           <Marker
