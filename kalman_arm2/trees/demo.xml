@@ -74,7 +74,7 @@
 
       <VisaulRefineToPanelTwist
         pose="{requested_panel_pose_offset}"
-        timeout_ms="40000" />
+        timeout_ms="30000" />
 
       <CloseGripper timeout_ms="5000" tolerance="0.20" />
       <VisaulRefineToPanelTwist

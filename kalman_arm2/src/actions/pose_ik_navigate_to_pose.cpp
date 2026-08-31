@@ -83,8 +83,15 @@ BT::NodeStatus PoseIKNavigateToPose::onStart() {
 		RCLCPP_ERROR(parent_->get_logger(), "%s has no target pose", name().c_str());
 		return BT::NodeStatus::FAILURE;
 	}
-	input_pose_   = input_pose.value();
-	commanded_pose_ = input_pose_;
+	input_pose_ = input_pose.value();
+
+	tf2::Quaternion tool_alignment;
+	tool_alignment.setRPY(0, M_PI_2, M_PI_2);
+
+	tf2::Quaternion target_rotation;
+	tf2::fromMsg(input_pose_.orientation, target_rotation);
+	commanded_pose_             = input_pose_;
+	commanded_pose_.orientation = tf2::toMsg(target_rotation * tool_alignment);
 
 	const auto   timeout_input = getInput<double>("timeout_ms");
 	const double timeout_ms = timeout_input ? timeout_input.value() : 10'000.0;
@@ -127,7 +134,7 @@ void PoseIKNavigateToPose::publish_target_pose() const {
 
 BT::NodeStatus PoseIKNavigateToPose::onRunning() {
 	const std::string base_frame        = "base_link";
-	const std::string end_effector_link = "arm_link_gripper";
+	const std::string end_effector_link = "arm_link_end";
 
 	if (parent_->now() >= deadline_) {
 		RCLCPP_WARN_STREAM(parent_->get_logger(), name() << " timed out");

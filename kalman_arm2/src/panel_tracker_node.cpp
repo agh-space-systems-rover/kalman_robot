@@ -33,11 +33,7 @@ class PanelTracker : public rclcpp::Node {
         declare_parameter<double>("ema_alpha", 0.2);
         declare_parameter<int>("ee_marker_id", 31);
         declare_parameter<std::string>("ee_marker_frame", "aruco_under_j6");
-        declare_parameter<int>("secondary_ee_marker_id", 30);
-        declare_parameter<std::string>(
-            "secondary_ee_marker_frame", "aruco_left_of_j6"
-        );
-        declare_parameter<std::string>("ee_frame", "arm_link_gripper");
+        declare_parameter<std::string>("ee_frame", "arm_link_end");
 
         get_parameter("tracking_frame", tracking_frame_);
         get_parameter("board_frame", board_frame_);
