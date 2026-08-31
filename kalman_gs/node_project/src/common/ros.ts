@@ -23,7 +23,7 @@ setInterval(() => {
 
     if (reconnectionTimeout === undefined) {
       reconnectionTimeout = setTimeout(() => {
-        ros.connect('ws://localhost:9065');
+        ros.connect(`ws://${window.location.hostname}:9065`);
         reconnectionTimeout = undefined;
       }, 1000);
     }

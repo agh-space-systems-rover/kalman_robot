@@ -238,7 +238,7 @@ export default class Map extends Component<Props> {
             // Instead, use MapProxy which will cache the tiles for faster access.
             // This should also prevent Google from throttling the requests.
             // In case of lost internet connection, the tiles will still be available.
-            url='http://localhost:8065/wmts/gm_layer/gm_grid/{z}/{x}/{y}.png'
+            url={`http://${window.location.hostname}:8065/wmts/gm_layer/gm_grid/{z}/{x}/{y}.png`}
             maxNativeZoom={19}
             maxZoom={23}
             minZoom={3}

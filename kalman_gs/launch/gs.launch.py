@@ -41,7 +41,7 @@ def generate_launch_description():
                     mapproxy_util,
                     "serve-develop",
                     mapproxy_yaml_path,
-                    "-blocalhost:8065",
+                    "-b0.0.0.0:8065",
                 ],
             ),
             Node(
