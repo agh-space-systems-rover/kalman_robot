@@ -158,10 +158,6 @@ install(PROGRAMS
   DESTINATION lib/${PROJECT_NAME}
 )
 
-install(DIRECTORY rosbag2_2026_08_26-00_51_05/
-  DESTINATION share/${PROJECT_NAME}/rosbag2_2026_08_26-00_51_05
-)
-
 install(DIRECTORY config launch trees
   DESTINATION share/${PROJECT_NAME}
 )
