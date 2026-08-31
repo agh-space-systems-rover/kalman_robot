@@ -18,7 +18,6 @@
   <depend>sensor_msgs</depend>
   <depend>cv_bridge</depend>
   <depend>message_filters</depend>
-  <depend>vision_msgs</depend>
 
   <depend>geometry_msgs</depend>
   <depend>std_msgs</depend>
@@ -37,10 +36,6 @@
   <depend>control_msgs</depend>
   <exec_depend>python3-websocket</exec_depend>
   <exec_depend>rosbridge_server</exec_depend>
-  <exec_depend>ros2launch</exec_depend>
-  <exec_depend>rosbag2</exec_depend>
-  <exec_depend>kalman_gs</exec_depend>
-  <exec_depend>rclpy</exec_depend>
   
   <depend>kalman_interfaces</depend>
   <exec_depend>kalman_utils</exec_depend>

@@ -55,6 +55,11 @@
   box-shadow: 0 0 0 1px rgba(255, 196, 64, 0.5);
 }
 
+.bbox-invalid {
+  border-style: dashed;
+  opacity: 0.55;
+}
+
 .bbox-label {
   position: absolute;
   top: -1.1rem;
@@ -89,6 +94,11 @@
 .hit-target-selected {
   border-color: rgba(255, 196, 64, 0.95);
   background: rgba(255, 196, 64, 0.35);
+}
+
+.hit-target:disabled {
+  cursor: not-allowed;
+  opacity: 0.35;
 }
 
 .placeholder {

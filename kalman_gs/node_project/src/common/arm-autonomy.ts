@@ -5,17 +5,32 @@ export const ARM_AUTONOMY_TOPICS = {
   image: '/arm/panel/image_rectified',
   detections: '/arm/panel/detections_rectified',
   homography: '/arm/panel/homography',
-  target: '/arm/panel/target'
+  target: '/arm/panel/target',
+  rockImage: '/d455_arm_wheel/yolo_annotated/compressed',
+  rockDetections: '/arm/rock_detections',
+  rockPositions: '/arm/rock_positions',
+  rockTarget: '/arm/target_pose'
 } as const;
 
 export type ImageXY = { x: number; y: number };
 export type SendXY = { x: number; y: number };
+
+export interface Header {
+  stamp?: { sec?: number; nanosec?: number };
+  frame_id?: string;
+}
 
 export interface RosImage {
   height: number;
   width: number;
   encoding: string;
   step: number;
+  data: string | number[];
+}
+
+export interface RosCompressedImage {
+  header?: Header;
+  format: string;
   data: string | number[];
 }
 
@@ -36,6 +51,7 @@ export interface BoundingBox2D {
 
 export interface Detection2D {
   id?: string;
+  header?: Header;
   bbox: BoundingBox2D;
   results: ObjectHypothesisWithPose[];
 }
@@ -59,6 +75,11 @@ export interface PoseStamped {
   };
 }
 
+export interface PoseArray {
+  header?: Header;
+  poses: PoseStamped['pose'][];
+}
+
 export interface ArmAutonomyTargetPayload {
   imageXY: ImageXY;
   sendXY: SendXY;
@@ -71,9 +92,19 @@ const LOG_PREFIX = '[arm-autonomy]';
 let latestImage: RosImage | null = null;
 let latestDetections: Detection2D[] = [];
 let latestHomography: number[] | null = null;
+let latestRockImage: RosCompressedImage | null = null;
+let latestRockDetections: Detection2D[] = [];
+let latestRockPositions: PoseStamped['pose'][] = [];
+let latestRockFrame = 'base_link';
 let topicsInitialized = false;
 let imageFrameCount = 0;
 let targetTopic: Topic<PoseStamped> | null = null;
+let rockTargetTopic: Topic<PoseStamped> | null = null;
+let rockTargetPublishInterval: ReturnType<typeof setInterval> | null = null;
+let rockTargetStopTimeout: ReturnType<typeof setTimeout> | null = null;
+
+const ROCK_TARGET_PUBLISH_PERIOD_MS = 100;
+const ROCK_TARGET_PUBLISH_DURATION_MS = 15_000;
 
 function log(message: string, data?: unknown) {
   if (data === undefined) {
@@ -153,6 +184,26 @@ export function decodeRosImage(msg: RosImage): ImageData | null {
   return new ImageData(rgba, width, height);
 }
 
+export function compressedImageDataUrl(msg: RosCompressedImage | null): string | null {
+  if (!msg) {
+    return null;
+  }
+  let base64: string;
+  if (typeof msg.data === 'string') {
+    base64 = msg.data;
+  } else {
+    const bytes = Uint8Array.from(msg.data);
+    let binary = '';
+    const chunkSize = 0x8000;
+    for (let offset = 0; offset < bytes.length; offset += chunkSize) {
+      binary += String.fromCharCode(...bytes.subarray(offset, offset + chunkSize));
+    }
+    base64 = btoa(binary);
+  }
+  const mime = msg.format.toLowerCase().includes('png') ? 'image/png' : 'image/jpeg';
+  return `data:${mime};base64,${base64}`;
+}
+
 export function applyHomography(H: number[], imageX: number, imageY: number): SendXY | null {
   if (H.length < 9) {
     return null;
@@ -194,6 +245,18 @@ export function getArmAutonomyHomography(): number[] | null {
   return latestHomography;
 }
 
+export function getArmAutonomyRockImage(): RosCompressedImage | null {
+  return latestRockImage;
+}
+
+export function getArmAutonomyRockDetections(): Detection2D[] {
+  return latestRockDetections;
+}
+
+export function getArmAutonomyRockPositions(): PoseStamped['pose'][] {
+  return latestRockPositions;
+}
+
 export function addArmAutonomyListener(listener: () => void): () => void {
   const handler = () => listener();
   window.addEventListener(UPDATE_EVENT, handler);
@@ -215,6 +278,71 @@ function getTargetPublisher(): Topic<PoseStamped> {
     });
   }
   return targetTopic;
+}
+
+function getRockTargetPublisher(): Topic<PoseStamped> {
+  if (!rockTargetTopic) {
+    rockTargetTopic = new Topic<PoseStamped>({
+      ros,
+      name: ARM_AUTONOMY_TOPICS.rockTarget,
+      messageType: 'geometry_msgs/PoseStamped'
+    });
+  }
+  return rockTargetTopic;
+}
+
+export function publishArmAutonomyRockTarget(pose: PoseStamped['pose']): boolean {
+  if (
+    !ros.isConnected ||
+    !Number.isFinite(pose.position.x) ||
+    !Number.isFinite(pose.position.y) ||
+    !Number.isFinite(pose.position.z) ||
+    Math.hypot(pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w) <= 0.5
+  ) {
+    return false;
+  }
+
+  stopArmAutonomyRockTarget();
+  const frameId = latestRockFrame;
+  const publish = () => {
+    if (!ros.isConnected) {
+      stopArmAutonomyRockTarget();
+      return;
+    }
+    const nowMs = Date.now();
+    const message: PoseStamped = {
+      header: {
+        stamp: {
+          sec: Math.floor(nowMs / 1000),
+          nanosec: (nowMs % 1000) * 1_000_000
+        },
+        frame_id: frameId
+      },
+      pose
+    };
+    getRockTargetPublisher().publish(message);
+  };
+
+  publish();
+  rockTargetPublishInterval = setInterval(publish, ROCK_TARGET_PUBLISH_PERIOD_MS);
+  rockTargetStopTimeout = setTimeout(stopArmAutonomyRockTarget, ROCK_TARGET_PUBLISH_DURATION_MS);
+  log('started rock target stream', {
+    topic: ARM_AUTONOMY_TOPICS.rockTarget,
+    frameId,
+    pose
+  });
+  return true;
+}
+
+export function stopArmAutonomyRockTarget(): void {
+  if (rockTargetPublishInterval !== null) {
+    clearInterval(rockTargetPublishInterval);
+    rockTargetPublishInterval = null;
+  }
+  if (rockTargetStopTimeout !== null) {
+    clearTimeout(rockTargetStopTimeout);
+    rockTargetStopTimeout = null;
+  }
 }
 
 export function publishArmAutonomyTarget(payload: ArmAutonomyTargetPayload): boolean {
@@ -306,6 +434,37 @@ function initTopics() {
     } else {
       console.warn(`${LOG_PREFIX} homography too short`, { length: msg.data?.length ?? 0 });
     }
+    notifyUpdate();
+  });
+
+  const rockImageTopic = new Topic<RosCompressedImage>({
+    ros,
+    name: ARM_AUTONOMY_TOPICS.rockImage,
+    messageType: 'sensor_msgs/CompressedImage'
+  });
+  rockImageTopic.subscribe((msg) => {
+    latestRockImage = msg;
+    notifyUpdate();
+  });
+
+  const rockDetectionsTopic = new Topic<Detection2DArray>({
+    ros,
+    name: ARM_AUTONOMY_TOPICS.rockDetections,
+    messageType: 'vision_msgs/Detection2DArray'
+  });
+  rockDetectionsTopic.subscribe((msg) => {
+    latestRockDetections = msg.detections ?? [];
+    notifyUpdate();
+  });
+
+  const rockPositionsTopic = new Topic<PoseArray>({
+    ros,
+    name: ARM_AUTONOMY_TOPICS.rockPositions,
+    messageType: 'geometry_msgs/PoseArray'
+  });
+  rockPositionsTopic.subscribe((msg) => {
+    latestRockPositions = msg.poses ?? [];
+    latestRockFrame = msg.header?.frame_id || 'base_link';
     notifyUpdate();
   });
 }

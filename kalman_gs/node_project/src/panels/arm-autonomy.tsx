@@ -3,6 +3,7 @@ import styles from './arm-autonomy.module.css';
 import {
   addArmAutonomyListener,
   applyHomography,
+  compressedImageDataUrl,
   decodeRosImage,
   detectionCenter,
   detectionLabel,
@@ -11,9 +12,15 @@ import {
   getArmAutonomyDetections,
   getArmAutonomyHomography,
   getArmAutonomyImage,
+  getArmAutonomyRockDetections,
+  getArmAutonomyRockImage,
+  getArmAutonomyRockPositions,
   ImageXY,
+  PoseStamped,
+  publishArmAutonomyRockTarget,
   publishArmAutonomyTarget,
-  SendXY
+  SendXY,
+  stopArmAutonomyRockTarget
 } from '../common/arm-autonomy';
 import { alertsRef } from '../common/refs';
 import { ros } from '../common/ros';
@@ -46,11 +53,34 @@ function detectionColorStyle(det: Detection2D): CSSProperties {
   } as CSSProperties;
 }
 
+function validRockPose(pose: PoseStamped['pose'] | undefined): pose is PoseStamped['pose'] {
+  return Boolean(
+    pose &&
+      Number.isFinite(pose.position.x) &&
+      Number.isFinite(pose.position.y) &&
+      Number.isFinite(pose.position.z) &&
+      Math.hypot(pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w) > 0.5
+  );
+}
+
+function formatPose(pose: PoseStamped['pose'] | undefined): string {
+  if (!validRockPose(pose)) {
+    return 'not localized';
+  }
+  return `${pose.position.x.toFixed(3)}, ${pose.position.y.toFixed(3)}, ${pose.position.z.toFixed(3)}`;
+}
+
 export default function ArmAutonomyPanel() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
+  const [rockImageSize, setRockImageSize] = useState({ width: 0, height: 0 });
+  const [view, setView] = useState<'panel' | 'rocks'>('panel');
   const [detections, setDetections] = useState<Detection2D[]>([]);
+  const [rockDetections, setRockDetections] = useState<Detection2D[]>([]);
+  const [rockPositions, setRockPositions] = useState<PoseStamped['pose'][]>([]);
+  const [rockImageUrl, setRockImageUrl] = useState<string | null>(null);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [selectedRockIndex, setSelectedRockIndex] = useState<number | null>(null);
   const [imageXY, setImageXY] = useState<ImageXY | null>(null);
   const [sendXY, setSendXY] = useState<SendXY | null>(null);
   const [hasHomography, setHasHomography] = useState(false);
@@ -94,7 +124,11 @@ export default function ArmAutonomyPanel() {
       } else {
         setHasImage(false);
         setDecodeError(`unsupported encoding: ${image.encoding}`);
-        console.warn(`${LOG_PREFIX} decode failed`, { encoding: image.encoding, width: image.width, height: image.height });
+        console.warn(`${LOG_PREFIX} decode failed`, {
+          encoding: image.encoding,
+          width: image.width,
+          height: image.height
+        });
       }
     } else {
       setHasImage(false);
@@ -102,6 +136,9 @@ export default function ArmAutonomyPanel() {
 
     setDetections(getArmAutonomyDetections());
     setHasHomography(getArmAutonomyHomography() !== null);
+    setRockDetections(getArmAutonomyRockDetections());
+    setRockPositions(getArmAutonomyRockPositions());
+    setRockImageUrl(compressedImageDataUrl(getArmAutonomyRockImage()));
   }, [drawImageData, feedPaused]);
 
   useEffect(() => {
@@ -145,16 +182,35 @@ export default function ArmAutonomyPanel() {
     });
   }
 
+  function selectRock(index: number) {
+    if (!validRockPose(rockPositions[index])) {
+      return;
+    }
+    setSelectedRockIndex(index);
+    console.log(`${LOG_PREFIX} rock clicked`, {
+      index,
+      label: detectionLabel(rockDetections[index]),
+      pose: rockPositions[index]
+    });
+  }
+
   function handleSend() {
+    if (view === 'rocks') {
+      const pose = selectedRockIndex === null ? undefined : rockPositions[selectedRockIndex];
+      if (!pose || !publishArmAutonomyRockTarget(pose)) {
+        alertsRef.current?.pushAlert('Failed to send rock target — select a localized rock and check ROS.', 'error');
+        return;
+      }
+      alertsRef.current?.pushAlert(`Sent rock ${selectedRockIndex! + 1} pose on /arm/target_pose`, 'success');
+      return;
+    }
     if (!sendXY || !imageXY) {
       console.warn(`${LOG_PREFIX} SEND ignored — missing coordinates`);
       return;
     }
 
     const label =
-      selectedIndex !== null && detections[selectedIndex]
-        ? detectionLabel(detections[selectedIndex])
-        : undefined;
+      selectedIndex !== null && detections[selectedIndex] ? detectionLabel(detections[selectedIndex]) : undefined;
 
     const published = publishArmAutonomyTarget({ imageXY, sendXY, label });
     console.log(`${LOG_PREFIX} SEND clicked`, { imageXY, sendXY, label, published });
@@ -170,20 +226,46 @@ export default function ArmAutonomyPanel() {
   }
 
   const { width, height } = imageSize;
+  const selectedRockPose = selectedRockIndex === null ? undefined : rockPositions[selectedRockIndex];
+  const canSendRock = validRockPose(selectedRockPose);
 
   return (
     <div className={styles['arm-autonomy']}>
       <div className={styles['viewport']}>
         <div
           className={styles['image-frame']}
-          style={hasImage && width > 0 && height > 0 ? { aspectRatio: `${width} / ${height}` } : undefined}
+          style={
+            view === 'panel' && hasImage && width > 0 && height > 0
+              ? { aspectRatio: `${width} / ${height}` }
+              : view === 'rocks' && rockImageUrl && rockImageSize.width > 0 && rockImageSize.height > 0
+                ? {
+                    aspectRatio: `${rockImageSize.width} / ${rockImageSize.height}`
+                  }
+                : undefined
+          }
         >
           <canvas
             ref={canvasRef}
             className={styles['canvas']}
-            style={{ visibility: hasImage ? 'visible' : 'hidden' }}
+            style={{
+              display: view === 'panel' ? 'block' : 'none',
+              visibility: hasImage ? 'visible' : 'hidden'
+            }}
           />
-          {hasImage && width > 0 && height > 0 && (
+          {view === 'rocks' && rockImageUrl && (
+            <img
+              className={styles['canvas']}
+              src={rockImageUrl}
+              alt='Arm camera YOLO detections'
+              onLoad={(event) =>
+                setRockImageSize({
+                  width: event.currentTarget.naturalWidth,
+                  height: event.currentTarget.naturalHeight
+                })
+              }
+            />
+          )}
+          {view === 'panel' && hasImage && width > 0 && height > 0 && (
             <div className={styles['overlay-layer']}>
               {detections.map((det, index) => {
                 const cx = det.bbox.center.position.x;
@@ -205,7 +287,7 @@ export default function ArmAutonomyPanel() {
                       <span className={styles['bbox-label']}>{detectionLabel(det)}</span>
                     </div>
                     <button
-                      type="button"
+                      type='button'
                       className={`${styles['hit-target']} ${selected ? styles['hit-target-selected'] : ''}`}
                       style={{
                         left: `${(cx / width) * 100}%`,
@@ -219,10 +301,55 @@ export default function ArmAutonomyPanel() {
               })}
             </div>
           )}
+          {view === 'rocks' && rockImageUrl && rockImageSize.width > 0 && rockImageSize.height > 0 && (
+            <div className={styles['overlay-layer']}>
+              {rockDetections.map((det, index) => {
+                const cx = det.bbox.center.position.x;
+                const cy = det.bbox.center.position.y;
+                const halfW = det.bbox.size_x / 2;
+                const halfH = det.bbox.size_y / 2;
+                const selected = selectedRockIndex === index;
+                const localized = validRockPose(rockPositions[index]);
+                return (
+                  <div key={`${det.id ?? index}-${cx}-${cy}`} style={detectionColorStyle(det)}>
+                    <div
+                      className={`${styles['bbox']} ${
+                        selected ? styles['bbox-selected'] : ''
+                      } ${!localized ? styles['bbox-invalid'] : ''}`}
+                      style={{
+                        left: `${((cx - halfW) / rockImageSize.width) * 100}%`,
+                        top: `${((cy - halfH) / rockImageSize.height) * 100}%`,
+                        width: `${(det.bbox.size_x / rockImageSize.width) * 100}%`,
+                        height: `${(det.bbox.size_y / rockImageSize.height) * 100}%`
+                      }}
+                    >
+                      <span className={styles['bbox-label']}>
+                        {detectionLabel(det)}
+                        {!localized ? ' — no depth' : ''}
+                      </span>
+                    </div>
+                    <button
+                      type='button'
+                      className={`${styles['hit-target']} ${selected ? styles['hit-target-selected'] : ''}`}
+                      style={{
+                        left: `${(cx / rockImageSize.width) * 100}%`,
+                        top: `${(cy / rockImageSize.height) * 100}%`
+                      }}
+                      disabled={!localized}
+                      onClick={() => selectRock(index)}
+                      aria-label={`Select rock ${index + 1}`}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
-        {!hasImage && (
+        {((view === 'panel' && !hasImage) || (view === 'rocks' && !rockImageUrl)) && (
           <div className={styles['placeholder']}>
-            {decodeError ?? 'Waiting for /arm/panel/image_rectified…'}
+            {view === 'panel'
+              ? decodeError ?? 'Waiting for /arm/panel/image_rectified…'
+              : 'Waiting for /d455_arm_wheel/yolo_annotated/compressed…'}
             <br />
             <small>Open browser DevTools console for [arm-autonomy] logs.</small>
           </div>
@@ -236,21 +363,40 @@ export default function ArmAutonomyPanel() {
             {rosConnected ? 'connected' : 'disconnected'}
           </strong>
         </span>
-        <span className={styles['status-item']}>
-          Transform:{' '}
-          <strong className={hasHomography ? styles['status-ok'] : styles['status-missing']}>
-            {hasHomography ? 'OK' : 'missing'}
-          </strong>
-        </span>
-        <span className={styles['status-item']}>
-          image XY: <strong>{formatXY(imageXY)}</strong>
-        </span>
-        <span className={styles['status-item']}>
-          send XY: <strong>{formatXY(sendXY, 3)}</strong>
-        </span>
+        {view === 'panel' ? (
+          <>
+            <span className={styles['status-item']}>
+              Transform:{' '}
+              <strong className={hasHomography ? styles['status-ok'] : styles['status-missing']}>
+                {hasHomography ? 'OK' : 'missing'}
+              </strong>
+            </span>
+            <span className={styles['status-item']}>
+              image XY: <strong>{formatXY(imageXY)}</strong>
+            </span>
+            <span className={styles['status-item']}>
+              send XY: <strong>{formatXY(sendXY, 3)}</strong>
+            </span>
+          </>
+        ) : (
+          <>
+            <span className={styles['status-item']}>
+              stones: <strong>{rockDetections.length}</strong>
+            </span>
+            <span className={styles['status-item']}>
+              selected pose: <strong>{formatPose(selectedRockPose)}</strong>
+            </span>
+          </>
+        )}
       </div>
 
       <div className={styles['controls']}>
+        <Button className={styles['control-button']} active={view === 'panel'} onClick={() => setView('panel')}>
+          PANEL
+        </Button>
+        <Button className={styles['control-button']} active={view === 'rocks'} onClick={() => setView('rocks')}>
+          ROCKS
+        </Button>
         <Button
           className={styles['control-button']}
           active={feedPaused}
@@ -259,9 +405,24 @@ export default function ArmAutonomyPanel() {
         >
           {feedPaused ? 'Paused' : 'Live'}
         </Button>
-        <Button className={styles['control-button']} disabled={!sendXY} onClick={handleSend}>
+        <Button
+          className={styles['control-button']}
+          disabled={view === 'rocks' ? !canSendRock : !sendXY}
+          onClick={handleSend}
+        >
           SEND
         </Button>
+        {view === 'rocks' && (
+          <Button
+            className={styles['control-button']}
+            onClick={() => {
+              stopArmAutonomyRockTarget();
+              alertsRef.current?.pushAlert('Stopped rock target stream.', 'success');
+            }}
+          >
+            STOP
+          </Button>
+        )}
       </div>
     </div>
   );

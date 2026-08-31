@@ -241,7 +241,7 @@ def launch_setup(context):
             ),
             launch_arguments={
                 "rgbd_ids": "d455_arm_wheel",
-                "config": "panel",
+                "config": "erc2026_science",
             }.items(),
         )
     ]
@@ -337,6 +337,14 @@ def launch_setup(context):
                 ("old/joy_compressed", "/joy_compressed"),
             ],
             parameters=[joint_limit_params],
+        )
+    ]
+
+    actions += [
+        Node(
+            package="kalman_arm2",
+            executable="rock_detector",
+            namespace="arm",
         )
     ]
 
