@@ -233,8 +233,9 @@ BT::NodeStatus VisualRefineToPanel::begin_correction() {
             parent_->get_logger(),
             *parent_->get_clock(),
             2000,
-            "Visual refinement has received no EE pose on 'visual_ee_pose'. Marker %d and at least one panel marker must be detected in the same camera frame.",
-            31
+            "Visual refinement has received no EE pose on 'visual_ee_pose'. "
+            "Marker 30 or 31 and at least one panel marker must be detected "
+            "in the same camera frame."
         );
         return BT::NodeStatus::RUNNING;
     }
