@@ -58,7 +58,15 @@
     </joint>
 
     <!-- Aka marker 30 -->
-    <link name="aruco_left_of_j6" />
+    <link name="aruco_left_of_j6">
+        <visual>
+            <geometry>
+                <box size="0.062 0.062 0.0056"/>
+            </geometry>
+            <material name="arm_mat"/>
+        </visual>
+    </link>
+
     <joint name="aruco_left_joint" type="fixed">
         <origin xyz="-0.052 0.075 0.149" rpy="0.790 0.759 -0.011" />
         <parent link="aruco_under_j6" />
