@@ -5,6 +5,10 @@ from kalman_interfaces.msg import DrillTelemetry, MasterMessage
 from rclpy.node import Node
 from std_msgs.msg import Float32, Int8, UInt8, UInt16MultiArray
 
+DEPTH_SCALE = 10.0
+VELOCITY_SCALE = 100.0
+WEIGHT_SCALE = 10.0
+
 
 class DrillDriver(Node):
     def __init__(self):
@@ -13,10 +17,10 @@ class DrillDriver(Node):
         self.master_pub = self.create_publisher(
             MasterMessage, "master_com/ros_to_master", 10
         )
-        self.depth_sub = self.create_subscription(
+        self.telemetry_sub = self.create_subscription(
             MasterMessage,
             f"master_com/master_to_ros/{hex(MasterMessage.DRILL_TELEMETRY)[1:]}",
-            self.depth_response_cb,
+            self.telemetry_cb,
             10,
         )
         self.weight_response_sub = self.create_subscription(
@@ -82,19 +86,39 @@ class DrillDriver(Node):
     def autonomy_cb(self, msg: UInt8):
         self.publish(MasterMessage.DRILL_AUTONOMY, [msg.data])
 
-    def depth_response_cb(self, msg: MasterMessage):
-        if len(msg.data) < 2:
+    def telemetry_cb(self, msg: MasterMessage):
+        if len(msg.data) < 8:
+            self.get_logger().warn(
+                f"Received drill telemetry of invalid length: {len(msg.data)}"
+            )
             return
 
-        depth_raw = struct.unpack(">h", bytes(msg.data[:2]))[0]
-        self.telemetry_pub.publish(DrillTelemetry(depth_mm=depth_raw / 10))
+        depth_raw, velocity_raw = struct.unpack(">hh", bytes(msg.data[0:4]))
+        flags = msg.data[4]
+        # Byte 5 is reserved.
+        weight_raw = struct.unpack(">h", bytes(msg.data[6:8]))[0]
+
+        weight_g = weight_raw / WEIGHT_SCALE
+        self.telemetry_pub.publish(
+            DrillTelemetry(
+                depth_mm=depth_raw / DEPTH_SCALE,
+                rack_velocity_mmps=velocity_raw / VELOCITY_SCALE,
+                weight_g=weight_g,
+                flags=flags,
+                upper_limit_pressed=bool(flags & 0x01),
+                autonomy_active=bool(flags & 0x02),
+                based=bool(flags & 0x04),
+                autonomy_state=(flags >> 3) & 0x0F,
+            )
+        )
+        self.weight_pub.publish(Float32(data=weight_g))
 
     def weight_response_cb(self, msg: MasterMessage):
         if len(msg.data) != 2:
             return
 
         weight_raw = struct.unpack(">h", bytes(msg.data))[0]
-        self.weight_pub.publish(Float32(data=weight_raw / 10))
+        self.weight_pub.publish(Float32(data=weight_raw / WEIGHT_SCALE))
 
 
 def main():

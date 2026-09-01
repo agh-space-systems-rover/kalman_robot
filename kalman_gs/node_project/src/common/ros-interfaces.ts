@@ -218,11 +218,10 @@ export type Drive = {
 
 export type DrillTelemetry = {
   depth_mm?: number;
-  rack_current?: number;
-  drill_current?: number;
+  rack_velocity_mmps?: number;
+  weight_g?: number;
   flags?: number;
   upper_limit_pressed?: boolean;
-  lower_limit_pressed?: boolean;
   autonomy_active?: boolean;
   based?: boolean;
   autonomy_state?: number;
