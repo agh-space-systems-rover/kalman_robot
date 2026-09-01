@@ -10,6 +10,7 @@ find_package(geographic_msgs REQUIRED)
 rosidl_generate_interfaces(${PROJECT_NAME}
   "action/ArmGotoJointPose.action"
   "action/MoveToPanelPose.action"
+  "action/PoseIKNavigateToPose.action"
   "action/SupervisorGpsArUcoSearch.action"
   "action/SupervisorGpsGoal.action"
   "action/SupervisorGpsYoloSearch.action"

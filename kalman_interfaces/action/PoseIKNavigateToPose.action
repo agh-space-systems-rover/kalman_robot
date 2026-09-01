@@ -1,0 +1,12 @@
+# Target end-effector pose expressed in base_frame.
+geometry_msgs/Pose pose
+string base_frame
+string end_effector_link
+# Maximum execution time. Values <= 0 use the server default.
+float64 timeout_seconds
+---
+bool result
+string message
+---
+float64 position_error
+float64 orientation_error
