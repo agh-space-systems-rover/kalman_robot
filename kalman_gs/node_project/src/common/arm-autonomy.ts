@@ -9,7 +9,8 @@ export const ARM_AUTONOMY_TOPICS = {
   rockImage: '/d455_arm_wheel/yolo_annotated/compressed',
   rockDetections: '/arm/rock_detections',
   rockPositions: '/arm/rock_positions',
-  rockTarget: '/arm/target_pose'
+  rockTarget: '/arm/selected_rock_target',
+  rockStop: '/arm/stop_rock_target'
 } as const;
 
 export type ImageXY = { x: number; y: number };
@@ -100,11 +101,7 @@ let topicsInitialized = false;
 let imageFrameCount = 0;
 let targetTopic: Topic<PoseStamped> | null = null;
 let rockTargetTopic: Topic<PoseStamped> | null = null;
-let rockTargetPublishInterval: ReturnType<typeof setInterval> | null = null;
-let rockTargetStopTimeout: ReturnType<typeof setTimeout> | null = null;
-
-const ROCK_TARGET_PUBLISH_PERIOD_MS = 100;
-const ROCK_TARGET_PUBLISH_DURATION_MS = 15_000;
+let rockStopTopic: Topic<Record<string, never>> | null = null;
 
 function log(message: string, data?: unknown) {
   if (data === undefined) {
@@ -302,47 +299,37 @@ export function publishArmAutonomyRockTarget(pose: PoseStamped['pose']): boolean
     return false;
   }
 
-  stopArmAutonomyRockTarget();
-  const frameId = latestRockFrame;
-  const publish = () => {
-    if (!ros.isConnected) {
-      stopArmAutonomyRockTarget();
-      return;
-    }
-    const nowMs = Date.now();
-    const message: PoseStamped = {
-      header: {
-        stamp: {
-          sec: Math.floor(nowMs / 1000),
-          nanosec: (nowMs % 1000) * 1_000_000
-        },
-        frame_id: frameId
+  const nowMs = Date.now();
+  const message: PoseStamped = {
+    header: {
+      stamp: {
+        sec: Math.floor(nowMs / 1000),
+        nanosec: (nowMs % 1000) * 1_000_000
       },
-      pose
-    };
-    getRockTargetPublisher().publish(message);
-  };
-
-  publish();
-  rockTargetPublishInterval = setInterval(publish, ROCK_TARGET_PUBLISH_PERIOD_MS);
-  rockTargetStopTimeout = setTimeout(stopArmAutonomyRockTarget, ROCK_TARGET_PUBLISH_DURATION_MS);
-  log('started rock target stream', {
-    topic: ARM_AUTONOMY_TOPICS.rockTarget,
-    frameId,
+      frame_id: latestRockFrame
+    },
     pose
+  };
+  getRockTargetPublisher().publish(message);
+  log('published frozen rock target request', {
+    topic: ARM_AUTONOMY_TOPICS.rockTarget,
+    message
   });
   return true;
 }
 
 export function stopArmAutonomyRockTarget(): void {
-  if (rockTargetPublishInterval !== null) {
-    clearInterval(rockTargetPublishInterval);
-    rockTargetPublishInterval = null;
+  if (!ros.isConnected) {
+    return;
   }
-  if (rockTargetStopTimeout !== null) {
-    clearTimeout(rockTargetStopTimeout);
-    rockTargetStopTimeout = null;
+  if (!rockStopTopic) {
+    rockStopTopic = new Topic<Record<string, never>>({
+      ros,
+      name: ARM_AUTONOMY_TOPICS.rockStop,
+      messageType: 'std_msgs/Empty'
+    });
   }
+  rockStopTopic.publish({});
 }
 
 export function publishArmAutonomyTarget(payload: ArmAutonomyTargetPayload): boolean {

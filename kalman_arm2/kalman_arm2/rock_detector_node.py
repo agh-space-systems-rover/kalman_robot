@@ -19,6 +19,7 @@ from rclpy.duration import Duration
 from rclpy.node import Node
 from rclpy.qos import qos_profile_sensor_data
 from sensor_msgs.msg import CameraInfo, CompressedImage, Image
+from std_msgs.msg import Empty
 from std_srvs.srv import Trigger
 from vision_msgs.msg import Detection2DArray
 
@@ -43,21 +44,25 @@ class RockDetector(Node):
         self.declare_parameter("rock_class", "stone")
         self.declare_parameter("base_frame", "base_link")
         self.declare_parameter("end_effector_frame", "arm_link_end")
-        self.declare_parameter("min_depth", 0.10)
-        self.declare_parameter("max_depth", 2.0)
+        self.declare_parameter("min_depth", 0.2)
+        self.declare_parameter("max_depth", 1.5)
         self.declare_parameter("bbox_scale", 1.0)
-        self.declare_parameter("depth_band", 0.10)
+        self.declare_parameter("depth_band", 0.04)
         self.declare_parameter("min_depth_pixels", 20)
+        self.declare_parameter("min_depth_fraction", 0.08)
         self.declare_parameter("detection_timeout", 0.6)
-        self.declare_parameter("sample_jump_tolerance", 0.20)
+        self.declare_parameter("sample_jump_tolerance", 0.05)
+        self.declare_parameter("max_position_spread", 0.025)
+        self.declare_parameter("track_timeout", 2.0)
+        self.declare_parameter("track_match_distance", 1.5)
         self.declare_parameter("averaging_window", 3.0)
-        self.declare_parameter("min_samples", 5)
+        self.declare_parameter("min_samples", 10)
         # Vertical distance between the stone and arm_link_end.
-        self.declare_parameter("standoff", 0.20)
+        self.declare_parameter("standoff", 0.15)
         # The goal is an arm_link_end position expressed in base_link.
-        self.declare_parameter("min_target_distance_from_base", 0.50)
+        self.declare_parameter("min_target_distance_from_base", 0.40)
         self.declare_parameter("target_publish_rate", 10.0)
-        self.declare_parameter("arrival_tolerance", 0.05)
+        self.declare_parameter("arrival_tolerance", 0.02)
         self.declare_parameter("approach_timeout", 15.0)
 
         self.depth_topic = self.get_parameter("depth_topic").value.rstrip("/")
@@ -69,11 +74,23 @@ class RockDetector(Node):
         self.bbox_scale = float(self.get_parameter("bbox_scale").value)
         self.depth_band = float(self.get_parameter("depth_band").value)
         self.min_depth_pixels = int(self.get_parameter("min_depth_pixels").value)
+        self.min_depth_fraction = float(
+            self.get_parameter("min_depth_fraction").value
+        )
         self.detection_timeout = float(
             self.get_parameter("detection_timeout").value
         )
         self.sample_jump_tolerance = float(
             self.get_parameter("sample_jump_tolerance").value
+        )
+        self.max_position_spread = float(
+            self.get_parameter("max_position_spread").value
+        )
+        self.track_timeout = float(
+            self.get_parameter("track_timeout").value
+        )
+        self.track_match_distance = float(
+            self.get_parameter("track_match_distance").value
         )
         self.averaging_window = float(
             self.get_parameter("averaging_window").value
@@ -96,8 +113,8 @@ class RockDetector(Node):
         self.latest_detection_stamp = None
         self.last_sample_detection_stamp = None
         self.samples = deque()
-        self.rock_samples = []
-        self.rock_last_sample_detection_stamps = []
+        self.rock_tracks = []
+        self.latest_tracks = []
         self.approach_target = None
         self.approach_start_time = None
 
@@ -144,6 +161,18 @@ class RockDetector(Node):
             Detection2DArray,
             self.get_parameter("detections_topic").value,
             self.on_detections,
+            10,
+        )
+        self.selected_target_sub = self.create_subscription(
+            PoseStamped,
+            "selected_rock_target",
+            self.on_selected_target,
+            10,
+        )
+        self.stop_target_sub = self.create_subscription(
+            Empty,
+            "stop_rock_target",
+            self.on_stop_target,
             10,
         )
 
@@ -201,9 +230,9 @@ class RockDetector(Node):
         if not candidates:
             self.latest_bbox = None
             self.latest_bboxes = []
+            self.latest_tracks = []
             self.latest_detection_stamp = None
-            self.rock_samples = []
-            self.rock_last_sample_detection_stamps = []
+            self.prune_rock_tracks(self.get_clock().now())
             self.publish_empty_rock_results()
             return
 
@@ -212,22 +241,65 @@ class RockDetector(Node):
         self.latest_bboxes = sorted(
             candidates, key=lambda item: (item[1], item[2])
         )
-        tracks_reset = len(self.rock_samples) != len(self.latest_bboxes)
-        if tracks_reset:
-            self.rock_samples = [
-                deque() for _ in range(len(self.latest_bboxes))
-            ]
-            self.rock_last_sample_detection_stamps = [
-                None for _ in range(len(self.latest_bboxes))
-            ]
+        self.associate_rock_tracks(self.latest_bboxes)
         # Keep the highest-confidence rock as the legacy service target.
         self.latest_bbox = max(
             candidates, key=lambda item: (item[0], item[3] * item[4])
         )
         detection_header = self.latest_bbox[5]
         self.latest_detection_stamp = stamp_seconds(detection_header.stamp)
-        if tracks_reset:
-            self.publish_empty_rock_results()
+
+    def prune_rock_tracks(self, now):
+        self.rock_tracks = [
+            track
+            for track in self.rock_tracks
+            if (now - track["last_seen"]).nanoseconds * 1e-9
+            <= self.track_timeout
+        ]
+
+    def associate_rock_tracks(self, records):
+        now = self.get_clock().now()
+        self.prune_rock_tracks(now)
+        unmatched = set(range(len(self.rock_tracks)))
+        latest_tracks = []
+        for record in records:
+            best_index = None
+            best_distance = math.inf
+            for index in unmatched:
+                previous = self.rock_tracks[index]["bbox"]
+                scale = max(
+                    record[3],
+                    record[4],
+                    previous[3],
+                    previous[4],
+                    1.0,
+                )
+                distance = math.hypot(
+                    record[1] - previous[1],
+                    record[2] - previous[2],
+                ) / scale
+                if distance < best_distance:
+                    best_index = index
+                    best_distance = distance
+
+            if (
+                best_index is not None
+                and best_distance <= self.track_match_distance
+            ):
+                track = self.rock_tracks[best_index]
+                unmatched.remove(best_index)
+                track["bbox"] = record
+                track["last_seen"] = now
+            else:
+                track = {
+                    "bbox": record,
+                    "samples": deque(),
+                    "last_sample_stamp": None,
+                    "last_seen": now,
+                }
+                self.rock_tracks.append(track)
+            latest_tracks.append(track)
+        self.latest_tracks = latest_tracks
 
     def publish_empty_rock_results(self):
         now = self.get_clock().now().to_msg()
@@ -337,22 +409,34 @@ class RockDetector(Node):
             & (roi <= self.max_depth)
         )
         values = roi[valid]
-        if values.size < self.min_depth_pixels:
+        required_pixels = max(
+            self.min_depth_pixels,
+            int(math.ceil(np.count_nonzero(ellipse) * self.min_depth_fraction)),
+        )
+        if values.size < required_pixels:
             return None
 
-        # Determine the rock's coherent depth layer. Starting from the
-        # center-weighted lower half avoids averaging the background behind it.
-        near = values[values <= np.percentile(values, 50.0)]
-        center_depth = float(np.median(near))
+        # Estimate depth from the central half of the YOLO box. At high
+        # resolution this rejects the unstable silhouette and background
+        # pixels while retaining many samples from the rock surface.
+        core = ((xx - cx) / (0.5 * rx)) ** 2 + (
+            (yy - cy) / (0.5 * ry)
+        ) ** 2 <= 1.0
+        core_values = roi[valid & core]
+        depth_values = (
+            core_values
+            if core_values.size >= self.min_depth_pixels
+            else values
+        )
+        center_depth = float(np.median(depth_values))
         inlier = valid & (np.abs(roi - center_depth) <= self.depth_band)
-        if np.count_nonzero(inlier) < self.min_depth_pixels:
+        if np.count_nonzero(inlier) < required_pixels:
             return None
 
-        inlier_y, inlier_x = np.nonzero(inlier)
-        u = float(np.median(inlier_x + x0))
-        v = float(np.median(inlier_y + y0))
         z = float(np.median(roi[inlier]))
-        return u, v, z, inlier
+        # YOLO's bbox center is less sensitive to depth-edge speckle than the
+        # centroid of a changing inlier mask.
+        return float(cx), float(cy), z, inlier
 
     def transform_camera_point(self, u, v, z, header, depth_shape):
         info = self.camera_info
@@ -423,8 +507,10 @@ class RockDetector(Node):
             measurement = self.depth_position_in_bbox(depth, bbox)
             if measurement is None:
                 continue
-            u, v, z, _ = measurement
-            position = self.transform_camera_point(u, v, z, header, depth.shape)
+            u, v, surface_depth, _ = measurement
+            position = self.transform_camera_point(
+                u, v, surface_depth, header, depth.shape
+            )
             if position is None:
                 continue
             measured[index] = position
@@ -437,27 +523,25 @@ class RockDetector(Node):
 
         now = self.get_clock().now()
         for index, position in measured.items():
+            track = self.latest_tracks[index]
             detection_stamp = stamp_seconds(
                 self.latest_bboxes[index][5].stamp
             )
-            if (
-                detection_stamp
-                == self.rock_last_sample_detection_stamps[index]
-            ):
+            if detection_stamp == track["last_sample_stamp"]:
                 continue
-            self.prune_rock_samples(index, now)
-            track = self.rock_samples[index]
-            if track:
+            self.prune_rock_samples(track, now)
+            samples = track["samples"]
+            if samples:
                 previous = np.median(
-                    np.array([sample[1] for sample in track]), axis=0
+                    np.array([sample[1] for sample in samples]), axis=0
                 )
                 if (
                     np.linalg.norm(position - previous)
                     > self.sample_jump_tolerance
                 ):
-                    track.clear()
-            track.append((now, position))
-            self.rock_last_sample_detection_stamps[index] = detection_stamp
+                    samples.clear()
+            samples.append((now, position))
+            track["last_sample_stamp"] = detection_stamp
 
         rock_positions = PoseArray()
         rock_positions.header.stamp = now.to_msg()
@@ -467,7 +551,9 @@ class RockDetector(Node):
         # Publish only stable, depth-fused detections. The detection and pose
         # arrays are compact and have exact one-to-one index correspondence.
         for index in range(len(self.latest_bboxes)):
-            position = self.averaged_rock_position(index, now)
+            position = self.averaged_rock_position(
+                self.latest_tracks[index], now
+            )
             target_pose = (
                 self.standoff_pose(position) if position is not None else None
             )
@@ -516,31 +602,30 @@ class RockDetector(Node):
         pose.position.x = float(target_position[0])
         pose.position.y = float(target_position[1])
         pose.position.z = float(target_position[2])
-        # Keep the same overhead tool orientation used by approach_rock.
-        pose.orientation.y = math.sqrt(0.5)
-        pose.orientation.w = math.sqrt(0.5)
+        self.set_canonical_approach_orientation(pose)
         return pose
 
-    def prune_rock_samples(self, index, now):
-        samples = self.rock_samples[index]
+    @staticmethod
+    def set_canonical_approach_orientation(pose):
+        # R_y(+pi/2) expressed in base_link:
+        #   arm_link_end +X -> base_link -Z (tool points down)
+        #   arm_link_end +Z -> base_link +X (EE Z always faces robot front)
+        pose.orientation.x = 0.0
+        pose.orientation.y = math.sqrt(0.5)
+        pose.orientation.z = 0.0
+        pose.orientation.w = math.sqrt(0.5)
+
+    def prune_rock_samples(self, track, now):
+        samples = track["samples"]
         while samples and (
             (now - samples[0][0]).nanoseconds * 1e-9
             > self.averaging_window
         ):
             samples.popleft()
 
-    def averaged_rock_position(self, index, now):
-        self.prune_rock_samples(index, now)
-        samples = self.rock_samples[index]
-        if len(samples) < self.min_samples:
-            return None
-        positions = np.array([sample[1] for sample in samples])
-        median = np.median(positions, axis=0)
-        distances = np.linalg.norm(positions - median, axis=1)
-        inliers = positions[distances <= self.sample_jump_tolerance]
-        if len(inliers) < self.min_samples:
-            return None
-        return inliers.mean(axis=0)
+    def averaged_rock_position(self, track, now):
+        self.prune_rock_samples(track, now)
+        return self.stable_position(track["samples"])
 
     def prune_samples(self, now):
         while self.samples and (
@@ -551,15 +636,24 @@ class RockDetector(Node):
 
     def averaged_position(self):
         self.prune_samples(self.get_clock().now())
-        if len(self.samples) < self.min_samples:
+        return self.stable_position(self.samples)
+
+    def stable_position(self, samples):
+        if len(samples) < self.min_samples:
             return None
-        positions = np.array([sample[1] for sample in self.samples])
+        positions = np.array([sample[1] for sample in samples])
         median = np.median(positions, axis=0)
         distances = np.linalg.norm(positions - median, axis=1)
         inliers = positions[distances <= self.sample_jump_tolerance]
         if len(inliers) < self.min_samples:
             return None
-        return inliers.mean(axis=0)
+        center = np.median(inliers, axis=0)
+        spread = np.percentile(
+            np.linalg.norm(inliers - center, axis=1), 90.0
+        )
+        if spread > self.max_position_spread:
+            return None
+        return center
 
     def publish_rock_pose(self, position, now):
         pose = PoseStamped()
@@ -591,6 +685,60 @@ class RockDetector(Node):
         except tf2_ros.TransformException:
             return None
         return transform.transform
+
+    def on_selected_target(self, target):
+        if target.header.frame_id != self.base_frame:
+            self.get_logger().warn(
+                "Rejected selected rock target in frame "
+                f"'{target.header.frame_id}'; expected '{self.base_frame}'"
+            )
+            return
+        position = target.pose.position
+        self.set_canonical_approach_orientation(target.pose)
+        orientation = target.pose.orientation
+        values = (
+            position.x,
+            position.y,
+            position.z,
+            orientation.x,
+            orientation.y,
+            orientation.z,
+            orientation.w,
+        )
+        quaternion_norm = math.sqrt(
+            orientation.x**2
+            + orientation.y**2
+            + orientation.z**2
+            + orientation.w**2
+        )
+        if not all(math.isfinite(value) for value in values):
+            self.get_logger().warn("Rejected non-finite selected rock target")
+            return
+        if quaternion_norm < 0.5:
+            self.get_logger().warn(
+                "Rejected selected rock target with invalid orientation"
+            )
+            return
+        if (
+            math.hypot(position.x, position.y)
+            < self.min_target_distance_from_base
+        ):
+            self.get_logger().warn(
+                "Rejected selected rock target inside the base safety radius"
+            )
+            return
+
+        target.header.stamp = self.get_clock().now().to_msg()
+        self.approach_target = target
+        self.approach_start_time = self.get_clock().now()
+        self.get_logger().info(
+            "Accepted frozen GS rock target "
+            f"({position.x:.3f}, {position.y:.3f}, {position.z:.3f})"
+        )
+
+    def on_stop_target(self, _message):
+        self.approach_target = None
+        self.get_logger().info("Stopped GS rock target")
 
     def on_approach_rock(self, request, response):
         rock = self.averaged_position()

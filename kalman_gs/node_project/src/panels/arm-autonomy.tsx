@@ -201,7 +201,7 @@ export default function ArmAutonomyPanel() {
         alertsRef.current?.pushAlert('Failed to send rock target — select a localized rock and check ROS.', 'error');
         return;
       }
-      alertsRef.current?.pushAlert(`Sent rock ${selectedRockIndex! + 1} pose on /arm/target_pose`, 'success');
+      alertsRef.current?.pushAlert(`Started approach to rock ${selectedRockIndex! + 1}`, 'success');
       return;
     }
     if (!sendXY || !imageXY) {
