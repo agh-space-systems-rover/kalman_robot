@@ -6,4 +6,10 @@
       Robot hardware plugin for 6 dof robot tutorial.
     </description>
   </class>
+
+  <class name="kalman_arm_controller/ArmSimSystem" type="kalman_arm_controller::ArmSimSystem" base_class_type="hardware_interface::SystemInterface">
+    <description>
+      Simulated Kalman Arm hardware interface without CAN bus dependencies.
+    </description>
+  </class>
 </library>

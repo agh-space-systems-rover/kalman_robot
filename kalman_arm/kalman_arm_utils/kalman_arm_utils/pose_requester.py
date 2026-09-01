@@ -152,6 +152,13 @@ class PoseRequestSender(Node):
 
             request = MoveGroup.Goal()
 
+            if 'request' in predefined_pose:
+                predefined_pose['request'].pop('cartesian_speed_limited_link', None)
+                predefined_pose['request'].pop('max_cartesian_speed', None)
+            else:
+                predefined_pose.pop('cartesian_speed_limited_link', None)
+                predefined_pose.pop('max_cartesian_speed', None)
+
             set_message_fields(request, predefined_pose)
 
             return request
