@@ -133,9 +133,6 @@ def launch_setup(context):
         [FindPackageShare("kalman_arm2"), "config", "panel_layout.yaml"]
     )
 
-    tree_xml_file = PathJoinSubstitution(
-        [FindPackageShare("kalman_arm2"), "trees", "demo.xml"]
-    )
 
     panel_tracker_params = {
         "tracking_frame": LaunchConfiguration("panel_tracking_frame").perform(context),
@@ -201,8 +198,6 @@ def launch_setup(context):
             ],
             parameters=[
                 {"layout_yaml": ParameterValue(panel_layout_file, value_type=str)},
-                {"tree_xml": ParameterValue(tree_xml_file, value_type=str)},
-                {"auto_start": ParameterValue(False, value_type=bool)},
                 visual_refinement_params,
             ],
         )

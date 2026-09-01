@@ -28,8 +28,13 @@
 #include <behaviortree_cpp_v3/behavior_tree.h>
 #include <behaviortree_cpp_v3/bt_factory.h>
 #include <behaviortree_cpp_v3/loggers/bt_zmq_publisher.h> // optional (Groot)
+#include <ament_index_cpp/get_package_share_directory.hpp>
 #include <kalman_interfaces/action/move_to_panel_pose.hpp>
+#include <filesystem>
+#include <fstream>
+#include <map>
 #include <memory>
+#include <sstream>
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_action/create_server.hpp>
 #include <rclcpp_action/rclcpp_action.hpp>
@@ -74,13 +79,10 @@ public:
 	using GoalHandle = rclcpp_action::ServerGoalHandle<MoveToPanelPose>;
 
 	BTPanel(const rclcpp::NodeOptions &options) : Node("bt_panel", options) {
-		declare_parameter<std::string>("tree_xml");
-
 		panel_layout_yaml_path_ = declare_parameter<std::string>("layout_yaml");
 		declare_parameter<bool>("enable_zmq_publisher", false);
 
 		declare_parameter<double>("tick_rate_hz", 20.0);
-		declare_parameter<bool>("auto_start", true);
 		declare_parameter<int>("visual_refinement_dof", 3);
 		declare_parameter<int>("visual_refinement_max_corrections", 10);
 		declare_parameter<double>("visual_refinement_max_measurement_age_s", 0.3);
@@ -120,12 +122,8 @@ public:
 		    }
 		);
 
-		// Build the tree
+		// Register node types and preload all installed behavior tree XML files.
 		configure();
-
-		if (tree_ && get_parameter("auto_start").as_bool()) {
-			startTicking();
-		}
 
 		using namespace std::placeholders;
 		this->actionServer = rclcpp_action::create_server<MoveToPanelPose>(
@@ -138,9 +136,6 @@ public:
 	}
 
 	void configure() {
-		const auto tree_xml = get_parameter("tree_xml").as_string();
-		// Load XML (supports package:// if you use BT factory helpers)
-
 		try {
 			factory_ = std::make_unique<BT::BehaviorTreeFactory>();
 
@@ -235,17 +230,29 @@ public:
 			    Builder<VisaulRefineToPanelTwist>()
 			);
 
-			// Build tree
-			tree_ = std::make_unique<BT::Tree>(
-			    factory_->createTreeFromFile(tree_xml)
-			);
-
-			const auto bboard = tree_->rootBlackboard();
-			bboard->set("state", mission_helper_);
-
-			// Optional: publish to Groot (set enable_zmq_publisher=true)
-			if (get_parameter("enable_zmq_publisher").as_bool()) {
-				zmq_publisher_ = std::make_unique<BT::PublisherZMQ>(*tree_);
+			const auto trees_directory = std::filesystem::path(
+			    ament_index_cpp::get_package_share_directory("kalman_arm2")
+			) / "trees";
+			for (const auto &entry : std::filesystem::directory_iterator(trees_directory)) {
+				if (!entry.is_regular_file() || entry.path().extension() != ".xml") {
+					continue;
+				}
+				std::ifstream stream(entry.path());
+				if (!stream) {
+					throw std::runtime_error(
+					    "Cannot read behavior tree " + entry.path().string()
+					);
+				}
+				std::ostringstream contents;
+				contents << stream.rdbuf();
+				const auto name = entry.path().stem().string();
+				tree_xml_by_name_[name] = contents.str();
+				RCLCPP_INFO(get_logger(), "Loaded behavior tree '%s'", name.c_str());
+			}
+			if (tree_xml_by_name_.empty()) {
+				throw std::runtime_error(
+				    "No behavior tree XML files found in " + trees_directory.string()
+				);
 			}
 		} catch (const std::exception &e) {
 			RCLCPP_ERROR(get_logger(), "Failed to configure BT: %s", e.what());
@@ -282,17 +289,38 @@ private:
 		feedback->progress = "checking";
 		goal_handle->publish_feedback(feedback);
 
-		if (!tree_) {
-			auto result    = std::make_shared<MoveToPanelPose::Result>();
-			result->result = false;
+		const auto &tree_name = goal_handle->get_goal()->behavior_tree;
+		const auto tree_xml = tree_xml_by_name_.find(tree_name);
+		if (tree_xml == tree_xml_by_name_.end()) {
+			auto result     = std::make_shared<MoveToPanelPose::Result>();
+			result->result  = false;
+			result->message = tree_name + " does not exist";
+			RCLCPP_ERROR(get_logger(), "%s", result->message.c_str());
 			goal_handle->abort(result);
 			return;
 		}
 
-		tree_->rootBlackboard()->set(
-		    "requested_panel_pose",
-		    sanitizeRequestedPanelPose(goal_handle->get_goal()->target_pose)
-		);
+		try {
+			zmq_publisher_.reset();
+			tree_ = std::make_unique<BT::Tree>(
+			    factory_->createTreeFromText(tree_xml->second)
+			);
+			tree_->rootBlackboard()->set("state", mission_helper_);
+			tree_->rootBlackboard()->set(
+			    "requested_panel_pose",
+			    sanitizeRequestedPanelPose(goal_handle->get_goal()->target_pose)
+			);
+			if (get_parameter("enable_zmq_publisher").as_bool()) {
+				zmq_publisher_ = std::make_unique<BT::PublisherZMQ>(*tree_);
+			}
+		} catch (const std::exception &e) {
+			auto result     = std::make_shared<MoveToPanelPose::Result>();
+			result->result  = false;
+			result->message = "Failed to create " + tree_name + ": " + e.what();
+			RCLCPP_ERROR(get_logger(), "%s", result->message.c_str());
+			goal_handle->abort(result);
+			return;
+		}
 		currentHandle = goal_handle;
 		last_feedback_progress_.clear();
 		startTicking();
@@ -356,8 +384,9 @@ private:
 				if (tree_) {
 					tree_->rootNode()->halt();
 				}
-					auto result    = std::make_shared<MoveToPanelPose::Result>();
-					result->result = false;
+					auto result     = std::make_shared<MoveToPanelPose::Result>();
+					result->result  = false;
+					result->message = "Mission canceled";
 					currentHandle->canceled(result);
 					currentHandle.reset();
 					last_feedback_progress_.clear();
@@ -380,8 +409,11 @@ private:
 				    toStr(status, true).c_str()
 				);
 
-				auto result    = std::make_shared<MoveToPanelPose::Result>();
-				result->result = (status == BT::NodeStatus::SUCCESS);
+				auto result     = std::make_shared<MoveToPanelPose::Result>();
+				result->result  = (status == BT::NodeStatus::SUCCESS);
+				result->message = result->result
+				                      ? "Mission succeeded"
+				                      : "Behavior tree returned failure";
 
 				// Only transition if the goal is still active
 				if (currentHandle && currentHandle->is_active()) {
@@ -431,6 +463,7 @@ private:
 	}
 
 	std::unique_ptr<BT::BehaviorTreeFactory> factory_;
+	std::map<std::string, std::string>       tree_xml_by_name_;
 	std::unique_ptr<BT::Tree>                tree_;
 	std::unique_ptr<BT::PublisherZMQ>        zmq_publisher_; // optional
 	std::string                              panel_layout_yaml_path_;

@@ -3,9 +3,11 @@ project(kalman_arm2)
 
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_python REQUIRED)
+find_package(ament_index_cpp REQUIRED)
 
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
+find_package(rclcpp_action REQUIRED)
 
 find_package(sensor_msgs REQUIRED)
 find_package(control_msgs REQUIRED)
@@ -127,7 +129,7 @@ src/actions/rotate_ee_along_normal_twist.cpp include/actions/rotate_ee_along_nor
 src/actions/rotate_ee_along_normal_joint.cpp include/actions/rotate_ee_along_normal_joint.hpp
 src/actions/transform_pose.cpp include/actions/transform_pose.hpp
 )
-ament_target_dependencies(bt_panel_node rclcpp rclcpp_components kalman_interfaces geometry_msgs sensor_msgs std_msgs tf2_ros tf2_geometry_msgs aruco_opencv_msgs behaviortree_cpp_v3 std_srvs tf2_eigen visualization_msgs yaml-cpp)
+ament_target_dependencies(bt_panel_node ament_index_cpp rclcpp rclcpp_components kalman_interfaces geometry_msgs sensor_msgs std_msgs tf2_ros tf2_geometry_msgs aruco_opencv_msgs behaviortree_cpp_v3 std_srvs tf2_eigen visualization_msgs yaml-cpp)
 rclcpp_components_register_node(
   bt_panel_node
   PLUGIN "kalman_arm2::BTPanel"
@@ -137,8 +139,16 @@ rclcpp_components_register_node(
 target_link_libraries(bt_panel_node yaml-cpp)
 # target_compile_features(bt_panel_node PUBLIC cxx_std_20)
 
+add_library(panel_mission_trigger_node SHARED src/panel_mission_trigger_node.cpp)
+ament_target_dependencies(panel_mission_trigger_node rclcpp rclcpp_components rclcpp_action kalman_interfaces geometry_msgs)
+rclcpp_components_register_node(
+  panel_mission_trigger_node
+  PLUGIN "kalman_arm2::PanelMissionTrigger"
+  EXECUTABLE panel_mission_trigger
+)
+
 ament_export_targets(kalman_arm2-targets)
-install(TARGETS twist_ik_node pose_ik_node goto_joint_pose_node panel_layout_node panel_tracker_node panel_rectifier_node panel_click_marker_node bt_panel_node
+install(TARGETS twist_ik_node pose_ik_node goto_joint_pose_node panel_layout_node panel_tracker_node panel_rectifier_node panel_click_marker_node bt_panel_node panel_mission_trigger_node
   EXPORT kalman_arm2-targets
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib

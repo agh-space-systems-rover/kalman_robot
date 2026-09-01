@@ -12,7 +12,7 @@
 
 Launch with gamepad control: `ros2 launch kalman_arm2 arm2.launch.py enable_gamepad:=true`
 
-Trigger panel location mission: `ros2 action send_goal /arm/move_to_panel_pose kalman_interfaces/action/MoveToPanelPose '{target_pose: {position: {x: 0.0, y: 0.0, z: 0.2}, orientation: {x: 0.0, y: 0.0, z: 0.0, w: 1.0}}}'`
+Trigger panel location mission: `ros2 action send_goal /arm/move_to_panel_pose kalman_interfaces/action/MoveToPanelPose '{behavior_tree: demo, target_pose: {position: {x: 0.0, y: 0.0, z: 0.2}, orientation: {x: 0.0, y: 0.0, z: 0.0, w: 1.0}}}'`
 
 
 ## Notes for future
@@ -29,7 +29,7 @@ To make the arm avoid twisting joint 5, you can use the following, or make the g
 ## Notes
 For center knob:
 ```bash
-ros2 action send_goal /arm/move_to_panel_pose kalman_interfaces/action/MoveToPanelPose   '{target_pose: {position: {x: -0.07517217, y: 0.07195299569680749, z: 0.09098195987914491}, orientation: {x: 0.0, y: 0.0, z: -0.383, w: 0.924}}}'
+ros2 action send_goal /arm/move_to_panel_pose kalman_interfaces/action/MoveToPanelPose   '{behavior_tree: demo, target_pose: {position: {x: -0.07517217, y: 0.07195299569680749, z: 0.09098195987914491}, orientation: {x: 0.0, y: 0.0, z: -0.383, w: 0.924}}}'
 ```
 
 ## Arm Autonomy GS panel (dev)
@@ -88,6 +88,14 @@ ros2 topic echo /arm/panel/target
 ros2 run kalman_arm2 publish_fake_panel_target
 # or periodic:
 ros2 run kalman_arm2 publish_fake_panel_target --rate 1 --x 225 --y 320 --frame-id button_a
+```
+
+**Optional — trigger the arm mission from the target** (bridges `/arm/panel/target` → `/arm/move_to_panel_pose`, uses target x/y verbatim, z fixed):
+
+```bash
+ros2 run kalman_arm2 panel_mission_trigger
+# override height (default 0.05 m):
+ros2 run kalman_arm2 panel_mission_trigger --ros-args -p target_z:=0.1
 ```
 
 CLI one-liner:
