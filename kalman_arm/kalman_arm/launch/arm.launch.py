@@ -34,15 +34,6 @@ def generate_launch_description():
         )
     )
 
-    hardware = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            [
-                os.path.join(get_package_share_directory("kalman_arm"), "launch"),
-                "/drivers.launch.py",
-            ]
-        )
-    )
-
     move_group = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             [
@@ -73,5 +64,5 @@ def generate_launch_description():
     )
 
     return LaunchDescription(
-        [arm_controller, master, servo, hardware, move_group, trajectories, can_bridge]
+        [arm_controller, master, servo, move_group, trajectories, can_bridge]
     )
