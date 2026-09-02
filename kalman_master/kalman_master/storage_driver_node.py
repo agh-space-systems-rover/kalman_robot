@@ -28,7 +28,7 @@ STORAGE_DEFAULT_CONFIG = {
         {
             "board": 0,
             "channel": 0,
-            "scale": 23739.0 / 1425700.0,
+            "scale": (23739.0 / 1425700.0) * 1.05,
             "bias": -447639993.0 / 712850.0,
             "open_angle": 192,
             "close_angle": 0,
@@ -36,7 +36,7 @@ STORAGE_DEFAULT_CONFIG = {
         {
             "board": 0,
             "channel": 2,
-            "scale": 23739.0 / 1425700.0,
+            "scale": (23739.0 / 1425700.0) * 1.05,
             "bias": 0.0,
             "open_angle": 192,
             "close_angle": 0,
