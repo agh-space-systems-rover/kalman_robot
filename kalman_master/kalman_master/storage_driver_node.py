@@ -1,11 +1,17 @@
+import copy
+import os
 import struct
+
 import rclpy
+import yaml
 from rclpy.node import Node
 from kalman_interfaces.msg import MasterMessage
-from std_msgs.msg import Float32, Empty
+from std_msgs.msg import Float32
 from std_srvs.srv import Trigger
 
-storage = {
+STORAGE_CONFIG_PATH = os.path.expanduser("~/.config/kalman/storage_calib.yaml")
+
+STORAGE_DEFAULT_CONFIG = {
     "sand": [
         {
             "board": 0,
@@ -39,19 +45,43 @@ storage = {
 }
 
 
+def load_storage_config():
+    storage_config = copy.deepcopy(STORAGE_DEFAULT_CONFIG)
+    if not os.path.exists(STORAGE_CONFIG_PATH):
+        return storage_config
+
+    with open(STORAGE_CONFIG_PATH, "r") as f:
+        storage_calib = yaml.safe_load(f)
+
+    storage_by_address = {
+        (info["board"], info["channel"]): info
+        for infos in storage_config.values()
+        for info in infos
+    }
+    for calibration in storage_calib:
+        storage_info = storage_by_address[
+            (calibration["board"], calibration["channel"])
+        ]
+        storage_info["scale"] = calibration["scale"]
+        storage_info["bias"] = calibration["bias"]
+    return storage_config
+
+
 class StorageDriver(Node):
     def __init__(self):
         super().__init__("storage_driver")
 
+        self.storage_config = load_storage_config()
+
         # Create publishers for each storage
         self.api_pubs = {}
-        for storage_name in storage.keys():
+        for storage_name in self.storage_config.keys():
             val_topic = f"science/storage/{storage_name}/weight"
             self.api_pubs[storage_name] = self.create_publisher(Float32, val_topic, 10)
 
         # Create value request services for each storage
         self.value_req_srv = {}
-        for storage_name in storage.keys():
+        for storage_name in self.storage_config.keys():
             req_srv_name = f"science/storage/{storage_name}/weight/req"
             self.value_req_srv[storage_name] = self.create_service(
                 Trigger,
@@ -73,7 +103,7 @@ class StorageDriver(Node):
         # Create open/close services for each storage
         self.open_srv = {}
         self.close_srv = {}
-        for storage_name in storage.keys():
+        for storage_name in self.storage_config.keys():
             open_srv_name = f"science/storage/{storage_name}/open"
             close_srv_name = f"science/storage/{storage_name}/close"
             self.open_srv[storage_name] = self.create_service(
@@ -92,10 +122,19 @@ class StorageDriver(Node):
             )
 
         # Track last values to sum them up for multi-channel storages
-        self.last_values = {name: [0.0] * len(infos) for name, infos in storage.items()}
+        self.last_values = {
+            name: [0.0] * len(infos)
+            for name, infos in self.storage_config.items()
+        }
+
+        self.clear_calibration_srv = self.create_service(
+            Trigger,
+            "science/storage/calibration/clear",
+            self.handle_clear_calibration,
+        )
 
     def handle_value_req(self, storage_name, response):
-        storage_infos = storage[storage_name]
+        storage_infos = self.storage_config[storage_name]
         for storage_info in storage_infos:
             board_id = storage_info["board"]
             channel_id = storage_info["channel"]
@@ -121,11 +160,12 @@ class StorageDriver(Node):
         board_id, channel_id, value = struct.unpack("<BBi", padded_data)
 
         self.get_logger().info(f"{channel_id} = {value}")
+        self.storage_config = load_storage_config()
 
         # Find which storage this corresponds to
         storage_name = None
         info_idx = 0
-        for name, infos in storage.items():
+        for name, infos in self.storage_config.items():
             for idx, info in enumerate(infos):
                 if info["board"] == board_id and info["channel"] == channel_id:
                     storage_name = name
@@ -138,8 +178,8 @@ class StorageDriver(Node):
         if storage_name:
             # Apply linear mapping
             value = (
-                value * storage[storage_name][info_idx]["scale"]
-                + storage[storage_name][info_idx]["bias"]
+                value * self.storage_config[storage_name][info_idx]["scale"]
+                + self.storage_config[storage_name][info_idx]["bias"]
             )
             self.last_values[storage_name][info_idx] = value
             total_value = sum(self.last_values[storage_name])
@@ -151,8 +191,21 @@ class StorageDriver(Node):
                 f"Unknown storage response: board_id={board_id}, channel_id={channel_id}"
             )
 
+    def handle_clear_calibration(self, request, response):
+        del request
+        if os.path.exists(STORAGE_CONFIG_PATH):
+            os.remove(STORAGE_CONFIG_PATH)
+        self.storage_config = copy.deepcopy(STORAGE_DEFAULT_CONFIG)
+        self.last_values = {
+            name: [0.0] * len(infos)
+            for name, infos in self.storage_config.items()
+        }
+        response.success = True
+        response.message = "Storage calibration cleared"
+        return response
+
     def handle_servo(self, storage_name, open_flag, response):
-        storage_infos = storage[storage_name]
+        storage_infos = self.storage_config[storage_name]
         for storage_info in storage_infos:
             board_id = storage_info["board"]
             channel_id = storage_info["channel"]

@@ -49,6 +49,7 @@ let sandOpenService: any;
 let sandCloseService: any;
 let rockOpenService: any;
 let rockCloseService: any;
+let storageCalibrationClearService: any;
 let phValueService: any;
 
 window.addEventListener('ros-connect', () => {
@@ -110,6 +111,11 @@ window.addEventListener('ros-connect', () => {
   rockCloseService = new Service({
     ros,
     name: '/science/storage/rock/close',
+    serviceType: 'std_srvs/Trigger'
+  });
+  storageCalibrationClearService = new Service({
+    ros,
+    name: '/science/storage/calibration/clear',
     serviceType: 'std_srvs/Trigger'
   });
 
@@ -259,6 +265,12 @@ function StorageContainer({ selectedStorage, tareHistory, onTareHistoryChange }:
     onTareHistoryChange([]);
   }
 
+  function clearStorageCalibration() {
+    if (storageCalibrationClearService) {
+      storageCalibrationClearService.callService({}, () => {});
+    }
+  }
+
   const tareOffset = tareHistory.reduce((sum, value) => sum + value, 0);
   const displayWeight = weight !== null ? weight - tareOffset : null;
 
@@ -296,6 +308,21 @@ function StorageContainer({ selectedStorage, tareHistory, onTareHistoryChange }:
         </Label>
         <Button tooltip='Refresh weight measurement' onClick={() => callStorageService('weight')}>
           <FontAwesomeIcon icon={faArrowRotateRight} />
+        </Button>
+        <Button
+          tooltip='Clear entire storage calibration'
+          onClick={() => {
+            modalRef.current?.showConfirm({
+              title: 'Clear storage calibration',
+              icon: faTrash,
+              message: 'Remove the entire storage calibration config?',
+              confirmText: 'Clear',
+              cancelText: 'Cancel',
+              onConfirm: clearStorageCalibration
+            });
+          }}
+        >
+          <FontAwesomeIcon icon={faTrash} />
         </Button>
       </div>
 

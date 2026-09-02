@@ -8,6 +8,8 @@ ament_python_install_package(${PROJECT_NAME})
 
 install(PROGRAMS
   scripts/master_frame_panel
+  scripts/ph_calib
+  scripts/storage_calib
   DESTINATION lib/${PROJECT_NAME}
 )
 

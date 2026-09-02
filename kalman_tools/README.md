@@ -2,6 +2,22 @@
 
 Auxiliary desktop and operator tools for the Kalman robot stack.
 
+## Calibration GUIs
+
+Build and source the package, then run either calibration tool:
+
+```bash
+ros2 run kalman_tools ph_calib
+ros2 run kalman_tools storage_calib
+```
+
+`ph_calib` saves pH calibration to `~/.config/kalman/ph_calib.yaml`.
+
+`storage_calib` calculates a linear mapping from two known-weight/raw-reading
+pairs and saves it to `~/.config/kalman/storage_calib.yaml`. Sensor entries are
+matched by their board and channel numbers. The GUI can also remove the entire
+storage calibration file.
+
 ## Master Frame Panel
 
 Streamlit app for sending and receiving Master protocol frames through rosbridge.
