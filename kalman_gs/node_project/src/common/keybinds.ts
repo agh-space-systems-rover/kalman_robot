@@ -10,17 +10,17 @@ const defaultKeybinds = {
   // Feeds
   'Cycle Feed 1 Cameras Backwards': 'PageUp',
   'Cycle Feed 1 Cameras': 'PageDown',
-  'Show Camera 1 on Feed 1': 'Digit6', // Changed due to ERC 2026 operators' request
+  'Show Camera 1 on Feed 1': 'Digit8', // Changed due to ERC 2026 operators' request
   'Show Camera 2 on Feed 1': 'Digit7', // Changed due to ERC 2026 operators' request
-  'Show Camera 3 on Feed 1': 'Digit8', // Changed due to ERC 2026 operators' request
+  'Show Camera 3 on Feed 1': 'Digit6', // Changed due to ERC 2026 operators' request
   'Show Camera 4 on Feed 1': 'Digit5', // Changed due to ERC 2026 operators' request
   'Show Camera 5 on Feed 1': 'Digit4', // Changed due to ERC 2026 operators' request
   'Show Camera 6 on Feed 1': 'Digit3', // Changed due to ERC 2026 operators' request
   'Show Camera 7 on Feed 1': 'Digit2', // Changed due to ERC 2026 operators' request
   'Show Camera 8 on Feed 1': 'Digit1', // Changed due to ERC 2026 operators' request
-  'Show Camera 1 on Feed 2': 'KeyY', // Changed due to ERC 2026 operators' request
+  'Show Camera 1 on Feed 2': 'KeyI', // Changed due to ERC 2026 operators' request
   'Show Camera 2 on Feed 2': 'KeyU', // Changed due to ERC 2026 operators' request
-  'Show Camera 3 on Feed 2': 'KeyI', // Changed due to ERC 2026 operators' request
+  'Show Camera 3 on Feed 2': 'KeyY', // Changed due to ERC 2026 operators' request
   'Show Camera 4 on Feed 2': 'KeyT', // Changed due to ERC 2026 operators' request
   'Show Camera 5 on Feed 2': 'KeyR', // Changed due to ERC 2026 operators' request
   'Show Camera 6 on Feed 2': 'KeyE', // Changed due to ERC 2026 operators' request
