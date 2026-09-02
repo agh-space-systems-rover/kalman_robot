@@ -11,6 +11,8 @@ uint8 STATE_ERROR = 8
 float32 depth_mm
 float32 rack_velocity_mmps
 float32 weight_g
+float32 rack_current_a
+float32 drill_current_a
 
 # Raw status byte: limit switch, autonomy enable and base detection in bits 0-2,
 # autonomy state in bits 3-6.

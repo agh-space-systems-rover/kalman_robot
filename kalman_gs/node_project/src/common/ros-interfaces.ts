@@ -220,6 +220,8 @@ export type DrillTelemetry = {
   depth_mm?: number;
   rack_velocity_mmps?: number;
   weight_g?: number;
+  rack_current_a?: number;
+  drill_current_a?: number;
   flags?: number;
   upper_limit_pressed?: boolean;
   autonomy_active?: boolean;

@@ -8,6 +8,7 @@ from std_msgs.msg import Float32, Int8, UInt8, UInt16MultiArray
 DEPTH_SCALE = 10.0
 VELOCITY_SCALE = 100.0
 WEIGHT_SCALE = 10.0
+CURRENT_SCALE = 1000.0
 
 
 class DrillDriver(Node):
@@ -87,7 +88,7 @@ class DrillDriver(Node):
         self.publish(MasterMessage.DRILL_AUTONOMY, [msg.data])
 
     def telemetry_cb(self, msg: MasterMessage):
-        if len(msg.data) < 8:
+        if len(msg.data) < 12:
             self.get_logger().warn(
                 f"Received drill telemetry of invalid length: {len(msg.data)}"
             )
@@ -97,6 +98,9 @@ class DrillDriver(Node):
         flags = msg.data[4]
         # Byte 5 is reserved.
         weight_raw = struct.unpack(">h", bytes(msg.data[6:8]))[0]
+        rack_current_raw, drill_current_raw = struct.unpack(
+            ">hh", bytes(msg.data[8:12])
+        )
 
         weight_g = weight_raw / WEIGHT_SCALE
         self.telemetry_pub.publish(
@@ -104,6 +108,8 @@ class DrillDriver(Node):
                 depth_mm=depth_raw / DEPTH_SCALE,
                 rack_velocity_mmps=velocity_raw / VELOCITY_SCALE,
                 weight_g=weight_g,
+                rack_current_a=rack_current_raw / CURRENT_SCALE,
+                drill_current_a=drill_current_raw / CURRENT_SCALE,
                 flags=flags,
                 upper_limit_pressed=bool(flags & 0x01),
                 autonomy_active=bool(flags & 0x02),
