@@ -3,6 +3,7 @@ import struct
 import sys
 import threading
 
+import numpy as np
 import rclpy
 import yaml
 from PyQt5 import QtCore, QtWidgets
@@ -27,13 +28,9 @@ class CompactDoubleSpinBox(QtWidgets.QDoubleSpinBox):
         return text if "." in text else f"{text}.0"
 
 
-def calculate_calibration(known_1, measured_1, known_2, measured_2):
-    if measured_1 == measured_2:
-        raise ValueError("Measured values must be different.")
-
-    scale = (known_2 - known_1) / (measured_2 - measured_1)
-    bias = known_1 - scale * measured_1
-    return scale, bias
+def calculate_calibration(known_values, measured_values):
+    scale, bias = np.polyfit(measured_values, known_values, 1)
+    return float(scale), float(bias)
 
 
 def load_calibrations():
@@ -109,8 +106,6 @@ class StorageCalibNode(Node):
         self.request_pub.publish(request)
 
     def handle_response(self, message):
-        if len(message.data) < 6:
-            return
         board, channel, value = struct.unpack("<BBi", bytes(message.data[:6]))
         self.measurement_callback(board, channel, value)
 
@@ -124,7 +119,7 @@ class StorageCalibApp(QtWidgets.QWidget):
         self.ros_node.measurement_callback = (
             self.measurement_bridge.received.emit
         )
-        self.waiting_for_measurement = [False, False]
+        self.waiting_for_measurement = []
         self.setWindowTitle("Storage Calibration")
 
         layout = QtWidgets.QHBoxLayout(self)
@@ -146,28 +141,25 @@ class StorageCalibApp(QtWidgets.QWidget):
         self.known_inputs = []
         self.measured_inputs = []
         self.measure_buttons = []
-        for number in range(1, 3):
-            group = QtWidgets.QGroupBox(f"Measurement {number}")
-            form = QtWidgets.QFormLayout(group)
+        measurements_container = QtWidgets.QWidget()
+        self.measurements_layout = QtWidgets.QVBoxLayout(
+            measurements_container
+        )
+        self.measurements_layout.setContentsMargins(0, 0, 0, 0)
+        measurements_scroll = QtWidgets.QScrollArea()
+        measurements_scroll.setWidgetResizable(True)
+        measurements_scroll.setWidget(measurements_container)
+        measurements_scroll.setMinimumHeight(260)
+        calibration_layout.addWidget(measurements_scroll)
 
-            known_input = self.make_value_input()
-            known_input.setSuffix(" g")
-            measured_input = self.make_value_input()
-            measured_input.setSpecialValueText("---")
-            measured_input.setValue(measured_input.minimum())
-            measured_input.setEnabled(False)
-            form.addRow("Known weight:", known_input)
-            form.addRow("Measured/raw value:", measured_input)
-            measure_button = QtWidgets.QPushButton("Measure")
-            measure_button.clicked.connect(
-                lambda _, index=number - 1: self.request_measurement(index)
-            )
-            form.addRow("", measure_button)
-            calibration_layout.addWidget(group)
+        self.add_measurement()
+        self.add_measurement()
 
-            self.known_inputs.append(known_input)
-            self.measured_inputs.append(measured_input)
-            self.measure_buttons.append(measure_button)
+        self.add_measurement_button = QtWidgets.QPushButton(
+            "+ Add measurement"
+        )
+        self.add_measurement_button.clicked.connect(self.add_measurement)
+        calibration_layout.addWidget(self.add_measurement_button)
 
         self.result_label = QtWidgets.QLabel("Scale: ---\nBias: ---")
         calibration_layout.addWidget(self.result_label)
@@ -228,6 +220,34 @@ class StorageCalibApp(QtWidgets.QWidget):
         self.refresh_config_table()
         self.resize(900, 720)
 
+    def add_measurement(self):
+        index = len(self.known_inputs)
+        group = QtWidgets.QGroupBox(f"Measurement {index + 1}")
+        form = QtWidgets.QFormLayout(group)
+
+        known_input = self.make_value_input()
+        known_input.setSuffix(" g")
+        measured_input = self.make_value_input()
+        measured_input.setSpecialValueText("---")
+        measured_input.setValue(measured_input.minimum())
+        measured_input.setEnabled(False)
+        form.addRow("Known weight:", known_input)
+        form.addRow("Measured/raw value:", measured_input)
+
+        measure_button = QtWidgets.QPushButton("Measure")
+        measure_button.clicked.connect(
+            lambda _, measurement_index=index: self.request_measurement(
+                measurement_index
+            )
+        )
+        form.addRow("", measure_button)
+        self.measurements_layout.addWidget(group)
+
+        self.known_inputs.append(known_input)
+        self.measured_inputs.append(measured_input)
+        self.measure_buttons.append(measure_button)
+        self.waiting_for_measurement.append(False)
+
     @staticmethod
     def make_value_input():
         value_input = CompactDoubleSpinBox()
@@ -236,19 +256,29 @@ class StorageCalibApp(QtWidgets.QWidget):
         return value_input
 
     def calculate_and_save(self):
-        measured_values = [
-            measured_input.value()
-            for measured_input in self.measured_inputs
+        points = [
+            (measured_input.value(), known_input.value())
+            for known_input, measured_input in zip(
+                self.known_inputs, self.measured_inputs
+            )
+            if measured_input.text() != "---"
         ]
+        if len(points) < 2:
+            QtWidgets.QMessageBox.warning(
+                self,
+                "Cannot calibrate",
+                "At least two measurements are required.",
+            )
+            return
+
+        measured_values, known_values = map(list, zip(*points))
 
         try:
             scale, bias = calculate_calibration(
-                self.known_inputs[0].value(),
-                measured_values[0],
-                self.known_inputs[1].value(),
-                measured_values[1],
+                known_values,
+                measured_values,
             )
-        except ValueError as error:
+        except (ValueError, np.linalg.LinAlgError) as error:
             QtWidgets.QMessageBox.warning(self, "Cannot calibrate", str(error))
             return
 
@@ -256,7 +286,12 @@ class StorageCalibApp(QtWidgets.QWidget):
         channel = self.channel_input.value()
         save_calibration(board, channel, scale, bias)
         self.result_label.setText(f"Scale: {scale:.9g}\nBias: {bias:.9g}")
-        self.plot_calibration(measured_values, scale, bias)
+        self.plot_calibration(
+            measured_values,
+            known_values,
+            scale,
+            bias,
+        )
         self.update_existing_label()
         self.refresh_config_table()
         QtWidgets.QMessageBox.information(
@@ -276,11 +311,9 @@ class StorageCalibApp(QtWidgets.QWidget):
         self.ros_node.request_measurement(board, channel)
 
     def handle_measurement(self, board, channel, value):
-        if self.waiting_for_measurement[0]:
-            measurement_index = 0
-        elif self.waiting_for_measurement[1]:
-            measurement_index = 1
-        else:
+        try:
+            measurement_index = self.waiting_for_measurement.index(True)
+        except ValueError:
             return
 
         self.measured_inputs[measurement_index].setValue(value)
@@ -292,7 +325,7 @@ class StorageCalibApp(QtWidgets.QWidget):
         if not any(self.waiting_for_measurement):
             self.measurement_loader.hide()
 
-    def plot_calibration(self, measured_values, scale, bias):
+    def plot_calibration(self, measured_values, known_values, scale, bias):
         raw_min, raw_max = sorted(measured_values)
         raw_span = raw_max - raw_min
         padding = raw_span * 0.1 or 1.0
@@ -303,7 +336,7 @@ class StorageCalibApp(QtWidgets.QWidget):
         axes = self.figure.add_subplot(111)
         axes.scatter(
             measured_values,
-            [known_input.value() for known_input in self.known_inputs],
+            known_values,
             label="Measurements",
             zorder=2,
         )

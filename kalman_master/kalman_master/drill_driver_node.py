@@ -89,9 +89,6 @@ class DrillDriver(Node):
 
     def telemetry_cb(self, msg: MasterMessage):
         if len(msg.data) < 12:
-            self.get_logger().warn(
-                f"Received drill telemetry of invalid length: {len(msg.data)}"
-            )
             return
 
         depth_raw, velocity_raw = struct.unpack(">hh", bytes(msg.data[0:4]))
