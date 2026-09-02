@@ -127,12 +127,6 @@ class StorageDriver(Node):
             for name, infos in self.storage_config.items()
         }
 
-        self.clear_calibration_srv = self.create_service(
-            Trigger,
-            "science/storage/calibration/clear",
-            self.handle_clear_calibration,
-        )
-
     def handle_value_req(self, storage_name, response):
         storage_infos = self.storage_config[storage_name]
         for storage_info in storage_infos:
@@ -190,19 +184,6 @@ class StorageDriver(Node):
             self.get_logger().warn(
                 f"Unknown storage response: board_id={board_id}, channel_id={channel_id}"
             )
-
-    def handle_clear_calibration(self, request, response):
-        del request
-        if os.path.exists(STORAGE_CONFIG_PATH):
-            os.remove(STORAGE_CONFIG_PATH)
-        self.storage_config = copy.deepcopy(STORAGE_DEFAULT_CONFIG)
-        self.last_values = {
-            name: [0.0] * len(infos)
-            for name, infos in self.storage_config.items()
-        }
-        response.success = True
-        response.message = "Storage calibration cleared"
-        return response
 
     def handle_servo(self, storage_name, open_flag, response):
         storage_infos = self.storage_config[storage_name]

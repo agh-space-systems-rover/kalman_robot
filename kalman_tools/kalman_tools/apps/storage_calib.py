@@ -1,18 +1,24 @@
 import os
 import struct
 import sys
+import threading
 
 import rclpy
 import yaml
 from PyQt5 import QtCore, QtWidgets
 from kalman_interfaces.msg import MasterMessage
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg import (
+    FigureCanvasQTAgg as FigureCanvas,
+)
 from matplotlib.figure import Figure
 from rclpy.node import Node
-from std_srvs.srv import Trigger
 
 
 CALIB_PATH = os.path.expanduser("~/.config/kalman/storage_calib.yaml")
+
+
+class MeasurementBridge(QtCore.QObject):
+    received = QtCore.pyqtSignal(int, int, int)
 
 
 class CompactDoubleSpinBox(QtWidgets.QDoubleSpinBox):
@@ -77,6 +83,11 @@ def remove_calibration(board, channel):
         os.remove(CALIB_PATH)
 
 
+def clear_calibrations():
+    if os.path.exists(CALIB_PATH):
+        os.remove(CALIB_PATH)
+
+
 class StorageCalibNode(Node):
     def __init__(self, measurement_callback):
         super().__init__("storage_calib")
@@ -89,9 +100,6 @@ class StorageCalibNode(Node):
             f"master_com/master_to_ros/{hex(MasterMessage.SCALE_RES)[1:]}",
             self.handle_response,
             10,
-        )
-        self.clear_client = self.create_client(
-            Trigger, "science/storage/calibration/clear"
         )
 
     def request_measurement(self, board, channel):
@@ -106,19 +114,17 @@ class StorageCalibNode(Node):
         board, channel, value = struct.unpack("<BBi", bytes(message.data[:6]))
         self.measurement_callback(board, channel, value)
 
-    def clear_driver_calibration(self):
-        if self.clear_client.service_is_ready():
-            self.clear_client.call_async(Trigger.Request())
-
 
 class StorageCalibApp(QtWidgets.QWidget):
     def __init__(self, ros_node):
         super().__init__()
         self.ros_node = ros_node
-        self.ros_node.measurement_callback = self.handle_measurement
-        self.pending_measurement = None
-        self.pending_sensor = None
-        self.measurement_in_progress = False
+        self.measurement_bridge = MeasurementBridge(self)
+        self.measurement_bridge.received.connect(self.handle_measurement)
+        self.ros_node.measurement_callback = (
+            self.measurement_bridge.received.emit
+        )
+        self.waiting_for_measurement = [False, False]
         self.setWindowTitle("Storage Calibration")
 
         layout = QtWidgets.QHBoxLayout(self)
@@ -146,10 +152,10 @@ class StorageCalibApp(QtWidgets.QWidget):
 
             known_input = self.make_value_input()
             known_input.setSuffix(" g")
-            measured_input = QtWidgets.QLabel("---")
-            measured_input.setAlignment(
-                QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter
-            )
+            measured_input = self.make_value_input()
+            measured_input.setSpecialValueText("---")
+            measured_input.setValue(measured_input.minimum())
+            measured_input.setEnabled(False)
             form.addRow("Known weight:", known_input)
             form.addRow("Measured/raw value:", measured_input)
             measure_button = QtWidgets.QPushButton("Measure")
@@ -169,19 +175,11 @@ class StorageCalibApp(QtWidgets.QWidget):
         self.measurement_status = QtWidgets.QLabel()
         calibration_layout.addWidget(self.measurement_status)
 
-        self.validation_label = QtWidgets.QLabel()
-        self.validation_label.setStyleSheet("color: #c62828;")
-        calibration_layout.addWidget(self.validation_label)
-
         self.measurement_loader = QtWidgets.QProgressBar()
         self.measurement_loader.setRange(0, 0)
         self.measurement_loader.setTextVisible(False)
         self.measurement_loader.hide()
         calibration_layout.addWidget(self.measurement_loader)
-
-        self.measurement_timeout = QtCore.QTimer(self)
-        self.measurement_timeout.setSingleShot(True)
-        self.measurement_timeout.timeout.connect(self.handle_measurement_timeout)
 
         self.save_button = QtWidgets.QPushButton("Calculate and save")
         self.save_button.clicked.connect(self.calculate_and_save)
@@ -228,7 +226,6 @@ class StorageCalibApp(QtWidgets.QWidget):
         self.channel_input.valueChanged.connect(self.update_existing_label)
         self.update_existing_label()
         self.refresh_config_table()
-        self.update_measurement_controls()
         self.resize(900, 720)
 
     @staticmethod
@@ -239,27 +236,10 @@ class StorageCalibApp(QtWidgets.QWidget):
         return value_input
 
     def calculate_and_save(self):
-        try:
-            measured_values = [
-                float(measured_input.text())
-                for measured_input in self.measured_inputs
-            ]
-        except ValueError:
-            QtWidgets.QMessageBox.warning(
-                self,
-                "Cannot calibrate",
-                "Both measured/raw values are required.",
-            )
-            return
-
-        if measured_values[0] == measured_values[1]:
-            self.update_measurement_controls()
-            QtWidgets.QMessageBox.warning(
-                self,
-                "Cannot calibrate",
-                "Measured/raw values must be different.",
-            )
-            return
+        measured_values = [
+            measured_input.value()
+            for measured_input in self.measured_inputs
+        ]
 
         try:
             scale, bias = calculate_calibration(
@@ -286,100 +266,31 @@ class StorageCalibApp(QtWidgets.QWidget):
         )
 
     def request_measurement(self, index):
-        self.pending_measurement = index
         board = self.board_input.value()
         channel = self.channel_input.value()
-        self.pending_sensor = (board, channel)
+        self.waiting_for_measurement[index] = True
         self.measurement_status.setText(
             f"Waiting for board {board}, channel {channel}..."
         )
         self.measurement_loader.show()
-        self.measurement_in_progress = True
-        self.update_measurement_controls()
-        self.measurement_timeout.start(10_000)
         self.ros_node.request_measurement(board, channel)
 
     def handle_measurement(self, board, channel, value):
-        if self.pending_measurement is None:
-            return
-        if (board, channel) != self.pending_sensor:
-            return
-
-        self.measured_inputs[self.pending_measurement].setText(str(value))
-        self.measurement_status.setText(
-            f"Received raw value {value} from "
-            f"board {board}, channel {channel}."
-        )
-        self.measurement_timeout.stop()
-        self.measurement_loader.hide()
-        self.measurement_in_progress = False
-        self.pending_measurement = None
-        self.pending_sensor = None
-        self.update_measurement_controls()
-
-    def handle_measurement_timeout(self):
-        if self.pending_measurement is None:
-            return
-
-        board, channel = self.pending_sensor
-        self.pending_measurement = None
-        self.pending_sensor = None
-        self.measurement_loader.hide()
-        self.measurement_in_progress = False
-        self.update_measurement_controls()
-        self.measurement_status.setText(
-            f"Timed out after 10 seconds for board {board}, channel {channel}."
-        )
-
-    @staticmethod
-    def has_numeric_value(value_input):
-        try:
-            float(value_input.text())
-        except ValueError:
-            return False
-        return True
-
-    def update_measurement_controls(self):
-        first_is_available = self.has_numeric_value(self.measured_inputs[0])
-        second_is_available = self.has_numeric_value(self.measured_inputs[1])
-        controls_enabled = not self.measurement_in_progress
-
-        self.measure_buttons[0].setEnabled(controls_enabled)
-        self.measured_inputs[0].setEnabled(controls_enabled)
-        self.measure_buttons[1].setEnabled(
-            controls_enabled and first_is_available
-        )
-        self.measured_inputs[1].setEnabled(
-            controls_enabled and first_is_available
-        )
-        self.board_input.setEnabled(controls_enabled)
-        self.channel_input.setEnabled(controls_enabled)
-
-        values_are_equal = False
-        if first_is_available and second_is_available:
-            values_are_equal = (
-                float(self.measured_inputs[0].text())
-                == float(self.measured_inputs[1].text())
-            )
-
-        if values_are_equal:
-            invalid_style = "border: 1px solid #c62828;"
-            for measured_input in self.measured_inputs:
-                measured_input.setStyleSheet(invalid_style)
-            self.validation_label.setText(
-                "Measured/raw values must be different."
-            )
+        if self.waiting_for_measurement[0]:
+            measurement_index = 0
+        elif self.waiting_for_measurement[1]:
+            measurement_index = 1
         else:
-            for measured_input in self.measured_inputs:
-                measured_input.setStyleSheet("")
-            self.validation_label.clear()
+            return
 
-        self.save_button.setEnabled(
-            controls_enabled
-            and first_is_available
-            and second_is_available
-            and not values_are_equal
+        self.measured_inputs[measurement_index].setValue(value)
+        self.waiting_for_measurement[measurement_index] = False
+        self.measurement_status.setText(
+            f"Received raw value {value} from board {board}, "
+            f"channel {channel}."
         )
+        if not any(self.waiting_for_measurement):
+            self.measurement_loader.hide()
 
     def plot_calibration(self, measured_values, scale, bias):
         raw_min, raw_max = sorted(measured_values)
@@ -480,9 +391,7 @@ class StorageCalibApp(QtWidgets.QWidget):
         if answer != QtWidgets.QMessageBox.Yes:
             return
 
-        if os.path.exists(CALIB_PATH):
-            os.remove(CALIB_PATH)
-        self.ros_node.clear_driver_calibration()
+        clear_calibrations()
         self.result_label.setText("Scale: ---\nBias: ---")
         self.update_existing_label()
         self.refresh_config_table()
@@ -494,16 +403,17 @@ def main():
     ros_node = StorageCalibNode(measurement_callback=lambda *args: None)
     gui = StorageCalibApp(ros_node)
 
-    ros_timer = QtCore.QTimer()
-    ros_timer.timeout.connect(
-        lambda: rclpy.spin_once(ros_node, timeout_sec=0.0)
+    ros_thread = threading.Thread(
+        target=rclpy.spin,
+        args=(ros_node,),
+        daemon=True,
     )
-    ros_timer.start(10)
+    ros_thread.start()
     gui.show()
     exit_code = app.exec_()
-    ros_timer.stop()
-    ros_node.destroy_node()
     rclpy.shutdown()
+    ros_thread.join(timeout=2.0)
+    ros_node.destroy_node()
     sys.exit(exit_code)
 
 
