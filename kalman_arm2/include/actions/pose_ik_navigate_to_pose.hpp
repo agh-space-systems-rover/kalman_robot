@@ -1,6 +1,7 @@
 #pragma once
 
 #include <atomic>
+#include <cstdint>
 #include <future>
 #include <memory>
 #include <mutex>
@@ -37,4 +38,6 @@ class PoseIKNavigateToPose : public BT::StatefulActionNode {
 	std::optional<rclcpp_action::ResultCode> last_result_;
 	std::string last_message_;
 	std::atomic<bool> halted_{false};
+	std::atomic<bool> goal_active_{false};
+	std::atomic<uint64_t> goal_generation_{0};
 };

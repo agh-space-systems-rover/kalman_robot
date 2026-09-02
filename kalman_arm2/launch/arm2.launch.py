@@ -95,20 +95,11 @@ def launch_setup(context):
         namespace="arm",
         remappings=[
             ("current_pos", "current_pos"),
-            ("target_pose", "target_pose"),
             ("target_vel", "target_vel/joints"),
         ],
         parameters=[twist_ik_params],
     )
 
-    actions += launch_node_or_load_component(
-        component_container=component_container,
-        package="kalman_arm2",
-        executable="pose_ik_navigate_to_pose_action",
-        plugin="kalman_arm2::PoseIKNavigateToPoseAction",
-        namespace="arm",
-        remappings=[("target_pose", "target_pose")],
-    )
 
     # Gamepad control node
     actions += [

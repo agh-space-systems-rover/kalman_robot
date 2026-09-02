@@ -91,8 +91,6 @@ public:
 		declare_parameter<double>("visual_refinement_max_rotation_step_deg", 5.0);
 		declare_parameter<double>("visual_refinement_position_tolerance", 0.015);
 		declare_parameter<double>("visual_refinement_orientation_tolerance_deg", 4.0);
-		declare_parameter<double>("visual_refinement_nominal_position_tolerance", 0.01);
-		declare_parameter<double>("visual_refinement_nominal_orientation_tolerance_deg", 5.0);
 		declare_parameter<std::string>("visual_refinement_base_frame", "base_link");
 		declare_parameter<std::string>("visual_refinement_ee_frame", "arm_link_gripper");
 		declare_parameter<std::string>("visual_refinement_panel_frame", "aruco_board");

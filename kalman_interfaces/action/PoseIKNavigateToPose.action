@@ -1,6 +1,8 @@
 # Target end-effector pose expressed in base_frame.
 geometry_msgs/Pose pose
+# Coordinate frame in which pose is expressed; it need not be the KDL chain root.
 string base_frame
+# Controlled robot tip. Valid values: arm_link_end, arm_link_gripper.
 string end_effector_link
 # Maximum execution time. Values <= 0 use the server default.
 float64 timeout_seconds

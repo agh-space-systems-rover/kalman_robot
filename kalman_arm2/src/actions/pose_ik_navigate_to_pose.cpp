@@ -61,16 +61,35 @@ BT::NodeStatus PoseIKNavigateToPose::onStart() {
 		last_message_.clear();
 	}
 	halted_ = false;
+	const uint64_t generation = ++goal_generation_;
 
 	auto options = rclcpp_action::Client<Action>::SendGoalOptions{};
-	options.result_callback = [this](const GoalHandle::WrappedResult &result) {
+	options.result_callback = [this, generation](
+	                              const GoalHandle::WrappedResult &result
+	                          ) {
+		if (generation != goal_generation_.load()) {
+			return;
+		}
+		goal_active_ = false;
 		std::lock_guard<std::mutex> lock(mutex_);
 		last_result_ = result.code;
 		if (result.result) {
 			last_message_ = result.result->message;
 		}
 	};
-	goal_handle_future_ = client_->async_send_goal(goal, options);
+	goal_active_ = true;
+	try {
+		goal_handle_future_ = client_->async_send_goal(goal, options);
+	} catch (const std::exception &error) {
+		goal_active_ = false;
+		RCLCPP_ERROR(
+		    parent_->get_logger(),
+		    "%s failed to send action goal: %s",
+		    name().c_str(),
+		    error.what()
+		);
+		return BT::NodeStatus::FAILURE;
+	}
 	return BT::NodeStatus::RUNNING;
 }
 
@@ -100,6 +119,7 @@ BT::NodeStatus PoseIKNavigateToPose::onRunning() {
 	        std::future_status::ready) {
 		const auto goal_handle = goal_handle_future_.get();
 		if (!goal_handle) {
+			goal_active_ = false;
 			RCLCPP_ERROR(
 			    parent_->get_logger(), "%s action goal was rejected", name().c_str()
 			);
@@ -112,14 +132,22 @@ BT::NodeStatus PoseIKNavigateToPose::onRunning() {
 
 void PoseIKNavigateToPose::onHalted() {
 	halted_ = true;
-	if (goal_handle_future_.valid() &&
-	    goal_handle_future_.wait_for(std::chrono::milliseconds(0)) ==
-	        std::future_status::ready) {
-		const auto goal_handle = goal_handle_future_.get();
-		if (goal_handle) {
-			client_->async_cancel_goal(goal_handle);
+	if (!goal_active_.exchange(false)) {
+		return;
+	}
+	++goal_generation_;
+	try {
+		if (goal_handle_future_.valid() &&
+		    goal_handle_future_.wait_for(std::chrono::milliseconds(0)) ==
+		        std::future_status::ready) {
+			const auto goal_handle = goal_handle_future_.get();
+			if (goal_handle) {
+				client_->async_cancel_goal(goal_handle);
+			}
+		} else {
+			client_->async_cancel_all_goals();
 		}
-	} else {
-		client_->async_cancel_all_goals();
+	} catch (const rclcpp_action::exceptions::UnknownGoalHandleError &) {
+		// Goal reached a terminal state between our active check and cancel.
 	}
 }

@@ -48,7 +48,7 @@ rclcpp_components_register_node(
 )
 
 add_library(pose_ik_node SHARED src/pose_ik_node.cpp)
-ament_target_dependencies(pose_ik_node rclcpp rclcpp_components kalman_interfaces geometry_msgs std_msgs urdf kdl_parser orocos_kdl_vendor tf2_ros tf2_geometry_msgs)
+ament_target_dependencies(pose_ik_node rclcpp rclcpp_components rclcpp_action kalman_interfaces geometry_msgs std_msgs urdf kdl_parser orocos_kdl_vendor tf2_ros tf2_geometry_msgs)
 target_link_libraries(pose_ik_node Eigen3::Eigen)
 rclcpp_components_register_node(
   pose_ik_node
@@ -56,13 +56,6 @@ rclcpp_components_register_node(
   EXECUTABLE pose_ik
 )
 
-add_library(pose_ik_navigate_to_pose_action_node SHARED src/pose_ik_navigate_to_pose_action_node.cpp)
-ament_target_dependencies(pose_ik_navigate_to_pose_action_node rclcpp rclcpp_components rclcpp_action kalman_interfaces geometry_msgs tf2_ros tf2_geometry_msgs visualization_msgs)
-rclcpp_components_register_node(
-  pose_ik_navigate_to_pose_action_node
-  PLUGIN "kalman_arm2::PoseIKNavigateToPoseAction"
-  EXECUTABLE pose_ik_navigate_to_pose_action
-)
 
 add_library(goto_joint_pose_node SHARED src/goto_joint_pose_node.cpp)
 ament_target_dependencies(goto_joint_pose_node rclcpp rclcpp_components kalman_interfaces geometry_msgs std_msgs urdf tf2_ros tf2_geometry_msgs)
@@ -156,7 +149,7 @@ rclcpp_components_register_node(
 )
 
 ament_export_targets(kalman_arm2-targets)
-install(TARGETS twist_ik_node pose_ik_node pose_ik_navigate_to_pose_action_node goto_joint_pose_node panel_layout_node panel_tracker_node panel_rectifier_node panel_click_marker_node bt_panel_node panel_mission_trigger_node
+install(TARGETS twist_ik_node pose_ik_node goto_joint_pose_node panel_layout_node panel_tracker_node panel_rectifier_node panel_click_marker_node bt_panel_node panel_mission_trigger_node
   EXPORT kalman_arm2-targets
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
