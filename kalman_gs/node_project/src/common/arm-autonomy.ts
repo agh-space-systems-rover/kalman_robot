@@ -18,7 +18,7 @@ const COMPACT_HERMAN_JOINTS = [0.0, -0.4098, 2.567, 0.0, -0.6277, 0.0] as const;
 const JAW_CLOSED_POSITION = 0.0;
 const JAW_OPEN_POSITION = 1.57;
 const ROCK_BASE_FRAME = 'base_link';
-const ROCK_END_EFFECTOR_FRAME = 'arm_link_gripper';
+const ROCK_END_EFFECTOR_FRAME = 'arm_link_end';
 const ROCK_APPROACH_TIMEOUT_SECONDS = 15;
 
 export type ImageXY = { x: number; y: number };
