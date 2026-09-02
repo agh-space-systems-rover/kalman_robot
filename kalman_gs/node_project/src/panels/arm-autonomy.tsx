@@ -202,7 +202,9 @@ export default function ArmAutonomyPanel() {
         return;
       }
       alertsRef.current?.pushAlert(
-        `Moving to compact_herman, then approaching rock ${selectedRockIndex! + 1}`,
+        `Closing gripper, moving to compact_herman, approaching rock ${
+          selectedRockIndex! + 1
+        }, then opening gripper`,
         'success'
       );
       return;

@@ -9,13 +9,16 @@ export const ARM_AUTONOMY_TOPICS = {
   rockImage: '/d455_arm_wheel/yolo_annotated/compressed',
   rockDetections: '/arm/rock_detections',
   rockPositions: '/arm/rock_positions',
+  jawTarget: '/arm/target_pos/jaw',
   compactAction: '/arm/goto_pose',
   rockTargetAction: '/arm/pose_ik_navigate_to_pose'
 } as const;
 
 const COMPACT_HERMAN_JOINTS = [0.0, -0.4098, 2.567, 0.0, -0.6277, 0.0] as const;
+const JAW_CLOSED_POSITION = 0.0;
+const JAW_OPEN_POSITION = 1.57;
 const ROCK_BASE_FRAME = 'base_link';
-const ROCK_END_EFFECTOR_FRAME = 'arm_link_end';
+const ROCK_END_EFFECTOR_FRAME = 'arm_link_gripper';
 const ROCK_APPROACH_TIMEOUT_SECONDS = 15;
 
 export type ImageXY = { x: number; y: number };
@@ -137,6 +140,7 @@ let latestRockFrame = 'base_link';
 let topicsInitialized = false;
 let imageFrameCount = 0;
 let targetTopic: Topic<PoseStamped> | null = null;
+let jawTargetTopic: Topic<ArmValues> | null = null;
 let compactActionClient: Action<ArmGotoJointPoseGoal, ArmGotoJointPoseFeedback, Record<string, never>> | null = null;
 let rockTargetActionClient: Action<
   PoseIKNavigateToPoseGoal,
@@ -336,6 +340,28 @@ function getCompactActionClient(): Action<ArmGotoJointPoseGoal, ArmGotoJointPose
   return compactActionClient;
 }
 
+function publishJawTarget(jaw: number): void {
+  if (!jawTargetTopic) {
+    jawTargetTopic = new Topic<ArmValues>({
+      ros,
+      name: ARM_AUTONOMY_TOPICS.jawTarget,
+      messageType: 'kalman_interfaces/ArmValues'
+    });
+  }
+  const nowMs = Date.now();
+  jawTargetTopic.publish({
+    header: {
+      stamp: {
+        sec: Math.floor(nowMs / 1000),
+        nanosec: (nowMs % 1000) * 1_000_000
+      },
+      frame_id: ''
+    },
+    joints: [0, 0, 0, 0, 0, 0],
+    jaw
+  });
+}
+
 function getRockTargetActionClient(): Action<
   PoseIKNavigateToPoseGoal,
   PoseIKNavigateToPoseFeedback,
@@ -365,6 +391,7 @@ export function publishArmAutonomyRockTarget(pose: PoseStamped['pose']): boolean
 
   stopArmAutonomyRockTarget();
   const sequence = ++rockActionSequence;
+  publishJawTarget(JAW_CLOSED_POSITION);
   const nowMs = Date.now();
   const compactGoal: ArmGotoJointPoseGoal = {
     target_pos: {
@@ -403,6 +430,7 @@ export function publishArmAutonomyRockTarget(pose: PoseStamped['pose']): boolean
           }
           currentRockAction = null;
           if (result.result) {
+            publishJawTarget(JAW_OPEN_POSITION);
             log('rock target action succeeded', result);
           } else {
             console.warn(`${LOG_PREFIX} rock target action failed`, result);
@@ -444,7 +472,7 @@ export function publishArmAutonomyRockTarget(pose: PoseStamped['pose']): boolean
     client: compactClient,
     id: compactGoalId
   };
-  log('sent compact_herman action', compactGoal);
+  log('closed gripper; sent compact_herman action', compactGoal);
   return true;
 }
 

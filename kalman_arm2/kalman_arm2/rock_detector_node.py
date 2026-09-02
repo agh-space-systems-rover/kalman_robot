@@ -54,9 +54,9 @@ class RockDetector(Node):
         self.declare_parameter("track_match_distance", 1.5)
         self.declare_parameter("averaging_window", 3.0)
         self.declare_parameter("min_samples", 10)
-        # Vertical distance between the stone and the controlled end effector.
-        self.declare_parameter("standoff", 0.15)
-        # The goal is an end-effector position expressed in base_link.
+        # Vertical distance between the stone and arm_link_gripper.
+        self.declare_parameter("standoff", 0.10)
+        # The goal is an arm_link_gripper position expressed in base_link.
         self.declare_parameter("min_target_distance_from_base", 0.40)
 
         self.depth_topic = self.get_parameter("depth_topic").value.rstrip("/")
@@ -546,7 +546,7 @@ class RockDetector(Node):
             self.publish_rock_pose(average, now)
 
     def standoff_pose(self, rock):
-        """Return the ready-to-send end-effector pose for a detected rock."""
+        """Return an arm_link_gripper target directly above a detected rock."""
         target_position = np.array(
             [rock[0], rock[1], rock[2] + self.standoff],
             dtype=np.float64,
@@ -558,18 +558,21 @@ class RockDetector(Node):
         pose.position.x = float(target_position[0])
         pose.position.y = float(target_position[1])
         pose.position.z = float(target_position[2])
-        self.set_canonical_approach_orientation(pose)
+        self.set_gripper_approach_orientation(pose, target_position)
         return pose
 
     @staticmethod
-    def set_canonical_approach_orientation(pose):
-        # R_y(+pi/2) expressed in base_link:
-        #   EE +X -> base_link -Z (tool points down)
-        #   EE +Z -> base_link +X (EE Z always faces robot front)
+    def set_gripper_approach_orientation(pose, target_position):
+        # The URDF rotates arm_link_gripper relative to arm_link_end, making
+        # gripper -Z the downward approach axis. Keep +Z upward and rotate
+        # around base_link Z so gripper +Y faces from the arm base toward the
+        # selected rock.
+        bearing = math.atan2(target_position[1], target_position[0])
+        yaw = bearing - math.pi / 2.0
         pose.orientation.x = 0.0
-        pose.orientation.y = math.sqrt(0.5)
-        pose.orientation.z = 0.0
-        pose.orientation.w = math.sqrt(0.5)
+        pose.orientation.y = 0.0
+        pose.orientation.z = math.sin(0.5 * yaw)
+        pose.orientation.w = math.cos(0.5 * yaw)
 
     def prune_rock_samples(self, track, now):
         samples = track["samples"]
