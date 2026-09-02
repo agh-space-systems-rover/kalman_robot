@@ -76,33 +76,21 @@ ros2 run kalman_arm2 fake_yolo_publisher
 ros2 run kalman_arm2 publish_identity_homography
 ```
 
-**5. In GS panel:** click bbox center → **SEND** → verify with:
+**5. In GS panel:** click bbox center, then:
+
+- **SEND Approach** runs the `approach` behavior tree.
+- **SEND Interact** runs the tree named by the raw detection `class_id`.
+- The paired **Abort** button cancels the active action.
+- The text field below each button pair displays action feedback and result.
+
+The panel sends goals directly to `/arm/move_to_panel_pose` with target z fixed at 0.05 m.
+
+CLI equivalent:
 
 ```bash
-ros2 topic echo /arm/panel/target
-```
-
-**Optional — fake SEND without GS** (same `PoseStamped` format as panel):
-
-```bash
-ros2 run kalman_arm2 publish_fake_panel_target
-# or periodic:
-ros2 run kalman_arm2 publish_fake_panel_target --rate 1 --x 225 --y 320 --frame-id button_a
-```
-
-**Optional — trigger the arm mission from the target** (bridges `/arm/panel/target` → `/arm/move_to_panel_pose`, uses target x/y verbatim, z fixed):
-
-```bash
-ros2 run kalman_arm2 panel_mission_trigger
-# override height (default 0.05 m):
-ros2 run kalman_arm2 panel_mission_trigger --ros-args -p target_z:=0.1
-```
-
-CLI one-liner:
-
-```bash
-ros2 topic pub --once /arm/panel/target geometry_msgs/msg/PoseStamped \
-"{header: {frame_id: button_a}, pose: {position: {x: 225.0, y: 320.0, z: 0.0}, orientation: {w: 1.0}}}"
+ros2 action send_goal /arm/move_to_panel_pose kalman_interfaces/action/MoveToPanelPose \
+"{behavior_tree: approach, target_pose: {position: {x: 0.1, y: 0.2, z: 0.05}, orientation: {w: 1.0}}}" \
+--feedback
 ```
 
 ### Panel topics (kalman_gs)
@@ -112,4 +100,3 @@ ros2 topic pub --once /arm/panel/target geometry_msgs/msg/PoseStamped \
 | `/arm/panel/image_rectified` | `sensor_msgs/Image` | camera |
 | `/arm/panel/detections_rectified` | `vision_msgs/Detection2DArray` | bbox overlay in rectified-image pixels |
 | `/arm/panel/homography` | `std_msgs/Float64MultiArray` | row-major 3×3 rectified pixel → panel meter transform |
-| `/arm/panel/target` | `geometry_msgs/PoseStamped` | SEND output |
