@@ -19,8 +19,6 @@ from rclpy.duration import Duration
 from rclpy.node import Node
 from rclpy.qos import qos_profile_sensor_data
 from sensor_msgs.msg import CameraInfo, CompressedImage, Image
-from std_msgs.msg import Empty
-from std_srvs.srv import Trigger
 from vision_msgs.msg import Detection2DArray
 
 
@@ -43,7 +41,6 @@ class RockDetector(Node):
         self.declare_parameter("detections_topic", "/yolo_detections")
         self.declare_parameter("rock_class", "stone")
         self.declare_parameter("base_frame", "base_link")
-        self.declare_parameter("end_effector_frame", "arm_link_end")
         self.declare_parameter("min_depth", 0.2)
         self.declare_parameter("max_depth", 1.5)
         self.declare_parameter("bbox_scale", 1.0)
@@ -57,18 +54,14 @@ class RockDetector(Node):
         self.declare_parameter("track_match_distance", 1.5)
         self.declare_parameter("averaging_window", 3.0)
         self.declare_parameter("min_samples", 10)
-        # Vertical distance between the stone and arm_link_end.
+        # Vertical distance between the stone and the controlled end effector.
         self.declare_parameter("standoff", 0.15)
-        # The goal is an arm_link_end position expressed in base_link.
+        # The goal is an end-effector position expressed in base_link.
         self.declare_parameter("min_target_distance_from_base", 0.40)
-        self.declare_parameter("target_publish_rate", 10.0)
-        self.declare_parameter("arrival_tolerance", 0.02)
-        self.declare_parameter("approach_timeout", 15.0)
 
         self.depth_topic = self.get_parameter("depth_topic").value.rstrip("/")
         self.rock_class = self.get_parameter("rock_class").value
         self.base_frame = self.get_parameter("base_frame").value
-        self.end_effector_frame = self.get_parameter("end_effector_frame").value
         self.min_depth = float(self.get_parameter("min_depth").value)
         self.max_depth = float(self.get_parameter("max_depth").value)
         self.bbox_scale = float(self.get_parameter("bbox_scale").value)
@@ -100,12 +93,6 @@ class RockDetector(Node):
         self.min_target_distance_from_base = float(
             self.get_parameter("min_target_distance_from_base").value
         )
-        self.arrival_tolerance = float(
-            self.get_parameter("arrival_tolerance").value
-        )
-        self.approach_timeout = float(
-            self.get_parameter("approach_timeout").value
-        )
 
         self.camera_info = None
         self.latest_bbox = None
@@ -115,16 +102,10 @@ class RockDetector(Node):
         self.samples = deque()
         self.rock_tracks = []
         self.latest_tracks = []
-        self.approach_target = None
-        self.approach_start_time = None
 
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer, self)
-        self.tf_broadcaster = tf2_ros.TransformBroadcaster(self)
 
-        self.target_pose_pub = self.create_publisher(
-            PoseStamped, "target_pose", 10
-        )
         self.rock_pose_pub = self.create_publisher(
             PoseStamped, "rock_pose", 10
         )
@@ -162,31 +143,6 @@ class RockDetector(Node):
             self.get_parameter("detections_topic").value,
             self.on_detections,
             10,
-        )
-        self.selected_target_sub = self.create_subscription(
-            PoseStamped,
-            "selected_rock_target",
-            self.on_selected_target,
-            10,
-        )
-        self.stop_target_sub = self.create_subscription(
-            Empty,
-            "stop_rock_target",
-            self.on_stop_target,
-            10,
-        )
-
-        self.approach_srv = self.create_service(
-            Trigger, "approach_rock", self.on_approach_rock
-        )
-        self.stop_srv = self.create_service(
-            Trigger, "stop_approach", self.on_stop_approach
-        )
-        publish_rate = float(
-            self.get_parameter("target_publish_rate").value
-        )
-        self.target_timer = self.create_timer(
-            1.0 / publish_rate, self.publish_target
         )
 
         self.get_logger().info(
@@ -564,8 +520,8 @@ class RockDetector(Node):
         self.rock_detections_pub.publish(rock_detections)
         self.rock_positions_pub.publish(rock_positions)
 
-        # Preserve the existing single-target averaging/service behavior using
-        # only the highest-confidence detection.
+        # Preserve the diagnostic single-rock pose using the
+        # highest-confidence detection.
         if (
             primary_position is None
             or self.latest_detection_stamp == self.last_sample_detection_stamp
@@ -590,7 +546,7 @@ class RockDetector(Node):
             self.publish_rock_pose(average, now)
 
     def standoff_pose(self, rock):
-        """Return the ready-to-send arm_link_end pose for a detected rock."""
+        """Return the ready-to-send end-effector pose for a detected rock."""
         target_position = np.array(
             [rock[0], rock[1], rock[2] + self.standoff],
             dtype=np.float64,
@@ -608,8 +564,8 @@ class RockDetector(Node):
     @staticmethod
     def set_canonical_approach_orientation(pose):
         # R_y(+pi/2) expressed in base_link:
-        #   arm_link_end +X -> base_link -Z (tool points down)
-        #   arm_link_end +Z -> base_link +X (EE Z always faces robot front)
+        #   EE +X -> base_link -Z (tool points down)
+        #   EE +Z -> base_link +X (EE Z always faces robot front)
         pose.orientation.x = 0.0
         pose.orientation.y = math.sqrt(0.5)
         pose.orientation.z = 0.0
@@ -665,173 +621,6 @@ class RockDetector(Node):
         pose.pose.orientation.w = 1.0
         self.rock_pose_pub.publish(pose)
 
-        # transform = TransformStamped()
-        # transform.header = pose.header
-        # transform.child_frame_id = "rock"
-        # transform.transform.translation.x = float(position[0])
-        # transform.transform.translation.y = float(position[1])
-        # transform.transform.translation.z = float(position[2])
-        # transform.transform.rotation.w = 1.0
-        # self.tf_broadcaster.sendTransform(transform)
-
-    def current_ee_pose(self):
-        try:
-            transform = self.tf_buffer.lookup_transform(
-                self.base_frame,
-                self.end_effector_frame,
-                rclpy.time.Time(),
-                timeout=Duration(seconds=0.1),
-            )
-        except tf2_ros.TransformException:
-            return None
-        return transform.transform
-
-    def on_selected_target(self, target):
-        if target.header.frame_id != self.base_frame:
-            self.get_logger().warn(
-                "Rejected selected rock target in frame "
-                f"'{target.header.frame_id}'; expected '{self.base_frame}'"
-            )
-            return
-        position = target.pose.position
-        self.set_canonical_approach_orientation(target.pose)
-        orientation = target.pose.orientation
-        values = (
-            position.x,
-            position.y,
-            position.z,
-            orientation.x,
-            orientation.y,
-            orientation.z,
-            orientation.w,
-        )
-        quaternion_norm = math.sqrt(
-            orientation.x**2
-            + orientation.y**2
-            + orientation.z**2
-            + orientation.w**2
-        )
-        if not all(math.isfinite(value) for value in values):
-            self.get_logger().warn("Rejected non-finite selected rock target")
-            return
-        if quaternion_norm < 0.5:
-            self.get_logger().warn(
-                "Rejected selected rock target with invalid orientation"
-            )
-            return
-        if (
-            math.hypot(position.x, position.y)
-            < self.min_target_distance_from_base
-        ):
-            self.get_logger().warn(
-                "Rejected selected rock target inside the base safety radius"
-            )
-            return
-
-        target.header.stamp = self.get_clock().now().to_msg()
-        self.approach_target = target
-        self.approach_start_time = self.get_clock().now()
-        self.get_logger().info(
-            "Accepted frozen GS rock target "
-            f"({position.x:.3f}, {position.y:.3f}, {position.z:.3f})"
-        )
-
-    def on_stop_target(self, _message):
-        self.approach_target = None
-        self.get_logger().info("Stopped GS rock target")
-
-    def on_approach_rock(self, request, response):
-        rock = self.averaged_position()
-        if rock is None:
-            response.success = False
-            response.message = (
-                f"No stable YOLO rock estimate ({len(self.samples)} samples, "
-                f"need {self.min_samples})"
-            )
-            return response
-
-        # Approach vertically from above: XY is centered on the stone and
-        # standoff controls only the positive base_link Z offset.
-        target_pose = self.standoff_pose(rock)
-        if target_pose is None:
-            unsafe_position = np.array(
-                [rock[0], rock[1], rock[2] + self.standoff],
-                dtype=np.float64,
-            )
-            target_horizontal_distance = float(
-                np.linalg.norm(unsafe_position[:2])
-            )
-            response.success = False
-            response.message = (
-                "Unsafe target: arm_link_end horizontal distance would be "
-                f"{target_horizontal_distance:.3f} m from base_link (minimum "
-                f"{self.min_target_distance_from_base:.3f} m)"
-            )
-            return response
-
-        target_position = np.array(
-            [
-                target_pose.position.x,
-                target_pose.position.y,
-                target_pose.position.z,
-            ]
-        )
-        target_radius = float(np.linalg.norm(target_position))
-        target = PoseStamped()
-        target.header.frame_id = self.base_frame
-        target.pose = target_pose
-        self.approach_target = target
-        self.approach_start_time = self.get_clock().now()
-
-        response.success = True
-        response.message = (
-            f"Approaching rock at ({rock[0]:.3f}, {rock[1]:.3f}, "
-            f"{rock[2]:.3f}) from above; target z="
-            f"{target_position[2]:.3f} (standoff={self.standoff:.3f} m), "
-            f"target radius={target_radius:.3f} m"
-        )
-        return response
-
-    def on_stop_approach(self, request, response):
-        self.approach_target = None
-        response.success = True
-        response.message = "Approach stopped"
-        return response
-
-    def publish_target(self):
-        if self.approach_target is None:
-            return
-        now = self.get_clock().now()
-        if (
-            self.approach_timeout > 0.0
-            and (now - self.approach_start_time).nanoseconds * 1e-9
-            > self.approach_timeout
-        ):
-            self.approach_target = None
-            self.get_logger().warn("Rock approach timed out")
-            return
-
-        ee = self.current_ee_pose()
-        if ee is not None:
-            error = np.linalg.norm(
-                np.array(
-                    [ee.translation.x, ee.translation.y, ee.translation.z]
-                )
-                - np.array(
-                    [
-                        self.approach_target.pose.position.x,
-                        self.approach_target.pose.position.y,
-                        self.approach_target.pose.position.z,
-                    ]
-                )
-            )
-            if error <= self.arrival_tolerance:
-                self.approach_target = None
-                self.get_logger().info("Rock approach target reached")
-                return
-
-        self.approach_target.header.stamp = now.to_msg()
-        self.target_pose_pub.publish(self.approach_target)
 
 def main():
     rclpy.init()

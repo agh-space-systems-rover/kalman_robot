@@ -201,7 +201,10 @@ export default function ArmAutonomyPanel() {
         alertsRef.current?.pushAlert('Failed to send rock target — select a localized rock and check ROS.', 'error');
         return;
       }
-      alertsRef.current?.pushAlert(`Started approach to rock ${selectedRockIndex! + 1}`, 'success');
+      alertsRef.current?.pushAlert(
+        `Moving to compact_herman, then approaching rock ${selectedRockIndex! + 1}`,
+        'success'
+      );
       return;
     }
     if (!sendXY || !imageXY) {
@@ -417,7 +420,7 @@ export default function ArmAutonomyPanel() {
             className={styles['control-button']}
             onClick={() => {
               stopArmAutonomyRockTarget();
-              alertsRef.current?.pushAlert('Stopped rock target stream.', 'success');
+              alertsRef.current?.pushAlert('Canceled rock approach action.', 'success');
             }}
           >
             STOP

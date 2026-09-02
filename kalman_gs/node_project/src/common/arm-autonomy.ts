@@ -1,5 +1,5 @@
 import { ros } from './ros';
-import { Topic } from 'roslib';
+import { Action, Topic } from 'roslib';
 
 export const ARM_AUTONOMY_TOPICS = {
   image: '/arm/panel/image_rectified',
@@ -9,9 +9,14 @@ export const ARM_AUTONOMY_TOPICS = {
   rockImage: '/d455_arm_wheel/yolo_annotated/compressed',
   rockDetections: '/arm/rock_detections',
   rockPositions: '/arm/rock_positions',
-  rockTarget: '/arm/selected_rock_target',
-  rockStop: '/arm/stop_rock_target'
+  compactAction: '/arm/goto_pose',
+  rockTargetAction: '/arm/pose_ik_navigate_to_pose'
 } as const;
+
+const COMPACT_HERMAN_JOINTS = [0.0, -0.4098, 2.567, 0.0, -0.6277, 0.0] as const;
+const ROCK_BASE_FRAME = 'base_link';
+const ROCK_END_EFFECTOR_FRAME = 'arm_link_end';
+const ROCK_APPROACH_TIMEOUT_SECONDS = 15;
 
 export type ImageXY = { x: number; y: number };
 export type SendXY = { x: number; y: number };
@@ -81,6 +86,38 @@ export interface PoseArray {
   poses: PoseStamped['pose'][];
 }
 
+interface ArmValues {
+  header: Header;
+  joints: number[];
+  jaw: number;
+}
+
+interface ArmGotoJointPoseGoal {
+  target_pos: ArmValues;
+  ignore_mask: number;
+}
+
+interface ArmGotoJointPoseFeedback {
+  current_pos: ArmValues;
+}
+
+interface PoseIKNavigateToPoseGoal {
+  pose: PoseStamped['pose'];
+  base_frame: string;
+  end_effector_link: string;
+  timeout_seconds: number;
+}
+
+interface PoseIKNavigateToPoseResult {
+  result: boolean;
+  message: string;
+}
+
+interface PoseIKNavigateToPoseFeedback {
+  position_error: number;
+  orientation_error: number;
+}
+
 export interface ArmAutonomyTargetPayload {
   imageXY: ImageXY;
   sendXY: SendXY;
@@ -100,8 +137,19 @@ let latestRockFrame = 'base_link';
 let topicsInitialized = false;
 let imageFrameCount = 0;
 let targetTopic: Topic<PoseStamped> | null = null;
-let rockTargetTopic: Topic<PoseStamped> | null = null;
-let rockStopTopic: Topic<Record<string, never>> | null = null;
+let compactActionClient: Action<ArmGotoJointPoseGoal, ArmGotoJointPoseFeedback, Record<string, never>> | null = null;
+let rockTargetActionClient: Action<
+  PoseIKNavigateToPoseGoal,
+  PoseIKNavigateToPoseFeedback,
+  PoseIKNavigateToPoseResult
+> | null = null;
+let rockActionSequence = 0;
+let currentRockAction: {
+  client:
+    | Action<ArmGotoJointPoseGoal, ArmGotoJointPoseFeedback, Record<string, never>>
+    | Action<PoseIKNavigateToPoseGoal, PoseIKNavigateToPoseFeedback, PoseIKNavigateToPoseResult>;
+  id: string;
+} | null = null;
 
 function log(message: string, data?: unknown) {
   if (data === undefined) {
@@ -277,20 +325,36 @@ function getTargetPublisher(): Topic<PoseStamped> {
   return targetTopic;
 }
 
-function getRockTargetPublisher(): Topic<PoseStamped> {
-  if (!rockTargetTopic) {
-    rockTargetTopic = new Topic<PoseStamped>({
+function getCompactActionClient(): Action<ArmGotoJointPoseGoal, ArmGotoJointPoseFeedback, Record<string, never>> {
+  if (!compactActionClient) {
+    compactActionClient = new Action({
       ros,
-      name: ARM_AUTONOMY_TOPICS.rockTarget,
-      messageType: 'geometry_msgs/PoseStamped'
+      name: ARM_AUTONOMY_TOPICS.compactAction,
+      actionType: 'kalman_interfaces/ArmGotoJointPose'
     });
   }
-  return rockTargetTopic;
+  return compactActionClient;
+}
+
+function getRockTargetActionClient(): Action<
+  PoseIKNavigateToPoseGoal,
+  PoseIKNavigateToPoseFeedback,
+  PoseIKNavigateToPoseResult
+> {
+  if (!rockTargetActionClient) {
+    rockTargetActionClient = new Action({
+      ros,
+      name: ARM_AUTONOMY_TOPICS.rockTargetAction,
+      actionType: 'kalman_interfaces/PoseIKNavigateToPose'
+    });
+  }
+  return rockTargetActionClient;
 }
 
 export function publishArmAutonomyRockTarget(pose: PoseStamped['pose']): boolean {
   if (
     !ros.isConnected ||
+    latestRockFrame !== ROCK_BASE_FRAME ||
     !Number.isFinite(pose.position.x) ||
     !Number.isFinite(pose.position.y) ||
     !Number.isFinite(pose.position.z) ||
@@ -299,37 +363,97 @@ export function publishArmAutonomyRockTarget(pose: PoseStamped['pose']): boolean
     return false;
   }
 
+  stopArmAutonomyRockTarget();
+  const sequence = ++rockActionSequence;
   const nowMs = Date.now();
-  const message: PoseStamped = {
-    header: {
-      stamp: {
-        sec: Math.floor(nowMs / 1000),
-        nanosec: (nowMs % 1000) * 1_000_000
+  const compactGoal: ArmGotoJointPoseGoal = {
+    target_pos: {
+      header: {
+        stamp: {
+          sec: Math.floor(nowMs / 1000),
+          nanosec: (nowMs % 1000) * 1_000_000
+        },
+        frame_id: ''
       },
-      frame_id: latestRockFrame
+      joints: [...COMPACT_HERMAN_JOINTS],
+      jaw: 0
     },
-    pose
+    // compact_herman specifies joints 1-6 only, so preserve the jaw.
+    ignore_mask: 1 << 6
   };
-  getRockTargetPublisher().publish(message);
-  log('published frozen rock target request', {
-    topic: ARM_AUTONOMY_TOPICS.rockTarget,
-    message
-  });
+  const compactClient = getCompactActionClient();
+  const compactGoalId = compactClient.sendGoal(
+    compactGoal,
+    () => {
+      if (sequence !== rockActionSequence) {
+        return;
+      }
+      const targetGoal: PoseIKNavigateToPoseGoal = {
+        pose,
+        base_frame: ROCK_BASE_FRAME,
+        end_effector_link: ROCK_END_EFFECTOR_FRAME,
+        timeout_seconds: ROCK_APPROACH_TIMEOUT_SECONDS
+      };
+      const targetClient = getRockTargetActionClient();
+      const targetGoalId = targetClient.sendGoal(
+        targetGoal,
+        (result) => {
+          if (sequence !== rockActionSequence) {
+            return;
+          }
+          currentRockAction = null;
+          if (result.result) {
+            log('rock target action succeeded', result);
+          } else {
+            console.warn(`${LOG_PREFIX} rock target action failed`, result);
+          }
+        },
+        undefined,
+        (error) => {
+          if (sequence !== rockActionSequence) {
+            return;
+          }
+          currentRockAction = null;
+          console.warn(`${LOG_PREFIX} rock target action failed`, error);
+        }
+      );
+      if (!targetGoalId) {
+        currentRockAction = null;
+        console.warn(`${LOG_PREFIX} failed to send rock target action`);
+        return;
+      }
+      currentRockAction = {
+        client: targetClient,
+        id: targetGoalId
+      };
+      log('compact_herman reached; sent rock target action', targetGoal);
+    },
+    undefined,
+    (error) => {
+      if (sequence !== rockActionSequence) {
+        return;
+      }
+      currentRockAction = null;
+      console.warn(`${LOG_PREFIX} compact_herman action failed`, error);
+    }
+  );
+  if (!compactGoalId) {
+    return false;
+  }
+  currentRockAction = {
+    client: compactClient,
+    id: compactGoalId
+  };
+  log('sent compact_herman action', compactGoal);
   return true;
 }
 
 export function stopArmAutonomyRockTarget(): void {
-  if (!ros.isConnected) {
-    return;
+  ++rockActionSequence;
+  if (currentRockAction) {
+    currentRockAction.client.cancelGoal(currentRockAction.id);
+    currentRockAction = null;
   }
-  if (!rockStopTopic) {
-    rockStopTopic = new Topic<Record<string, never>>({
-      ros,
-      name: ARM_AUTONOMY_TOPICS.rockStop,
-      messageType: 'std_msgs/Empty'
-    });
-  }
-  rockStopTopic.publish({});
 }
 
 export function publishArmAutonomyTarget(payload: ArmAutonomyTargetPayload): boolean {
