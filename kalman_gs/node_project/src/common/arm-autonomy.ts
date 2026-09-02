@@ -5,7 +5,6 @@ export const ARM_AUTONOMY_TOPICS = {
   image: '/arm/panel/image_rectified',
   detections: '/arm/panel/detections_rectified',
   homography: '/arm/panel/homography',
-  target: '/arm/panel/target',
   rockImage: '/d455_arm_wheel/yolo_annotated/compressed',
   rockDetections: '/arm/rock_detections',
   rockPositions: '/arm/rock_positions',
@@ -14,6 +13,11 @@ export const ARM_AUTONOMY_TOPICS = {
   rockTargetAction: '/arm/pose_ik_navigate_to_pose'
 } as const;
 
+export const ARM_AUTONOMY_ACTIONS = {
+  moveToPanelPose: '/arm/move_to_panel_pose'
+} as const;
+
+const TARGET_Z_METERS = 0.05;
 const COMPACT_HERMAN_JOINTS = [0.0, -0.4098, 2.567, 0.0, -0.6277, 0.0] as const;
 const JAW_CLOSED_POSITION = 0.0;
 const JAW_OPEN_POSITION = 1.57;
@@ -27,6 +31,17 @@ export type SendXY = { x: number; y: number };
 export interface Header {
   stamp?: { sec?: number; nanosec?: number };
   frame_id?: string;
+}
+
+export interface PoseStamped {
+  header: {
+    stamp: { sec: number; nanosec: number };
+    frame_id: string;
+  };
+  pose: {
+    position: { x: number; y: number; z: number };
+    orientation: { x: number; y: number; z: number; w: number };
+  };
 }
 
 export interface RosImage {
@@ -73,15 +88,12 @@ export interface Float64MultiArray {
   data: number[];
 }
 
-export interface PoseStamped {
-  header: {
-    stamp: { sec: number; nanosec: number };
-    frame_id: string;
-  };
-  pose: {
+export interface MoveToPanelPoseGoal {
+  target_pose: {
     position: { x: number; y: number; z: number };
     orientation: { x: number; y: number; z: number; w: number };
   };
+  behavior_tree: string;
 }
 
 export interface PoseArray {
@@ -121,10 +133,19 @@ interface PoseIKNavigateToPoseFeedback {
   orientation_error: number;
 }
 
-export interface ArmAutonomyTargetPayload {
-  imageXY: ImageXY;
-  sendXY: SendXY;
-  label?: string;
+export interface MoveToPanelPoseFeedback {
+  progress: string;
+}
+
+export interface MoveToPanelPoseResult {
+  result: boolean;
+  message: string;
+}
+
+export interface ArmAutonomyGoalCallbacks {
+  onResult: (result: MoveToPanelPoseResult) => void;
+  onFeedback: (feedback: MoveToPanelPoseFeedback) => void;
+  onFailed: (error: string) => void;
 }
 
 const UPDATE_EVENT = 'arm-autonomy-update';
@@ -139,13 +160,17 @@ let latestRockPositions: PoseStamped['pose'][] = [];
 let latestRockFrame = 'base_link';
 let topicsInitialized = false;
 let imageFrameCount = 0;
-let targetTopic: Topic<PoseStamped> | null = null;
 let jawTargetTopic: Topic<ArmValues> | null = null;
 let compactActionClient: Action<ArmGotoJointPoseGoal, ArmGotoJointPoseFeedback, Record<string, never>> | null = null;
 let rockTargetActionClient: Action<
   PoseIKNavigateToPoseGoal,
   PoseIKNavigateToPoseFeedback,
   PoseIKNavigateToPoseResult
+> | null = null;
+let moveToPanelPoseAction: Action<
+  MoveToPanelPoseGoal,
+  MoveToPanelPoseFeedback,
+  MoveToPanelPoseResult
 > | null = null;
 let rockActionSequence = 0;
 let currentRockAction: {
@@ -318,15 +343,19 @@ export function ensureArmAutonomySubscriptions(): void {
   }
 }
 
-function getTargetPublisher(): Topic<PoseStamped> {
-  if (!targetTopic) {
-    targetTopic = new Topic<PoseStamped>({
+function getMoveToPanelPoseAction(): Action<
+  MoveToPanelPoseGoal,
+  MoveToPanelPoseFeedback,
+  MoveToPanelPoseResult
+> {
+  if (!moveToPanelPoseAction) {
+    moveToPanelPoseAction = new Action({
       ros,
-      name: ARM_AUTONOMY_TOPICS.target,
-      messageType: 'geometry_msgs/PoseStamped'
+      name: ARM_AUTONOMY_ACTIONS.moveToPanelPose,
+      actionType: 'kalman_interfaces/MoveToPanelPose'
     });
   }
-  return targetTopic;
+  return moveToPanelPoseAction;
 }
 
 function getCompactActionClient(): Action<ArmGotoJointPoseGoal, ArmGotoJointPoseFeedback, Record<string, never>> {
@@ -484,41 +513,46 @@ export function stopArmAutonomyRockTarget(): void {
   }
 }
 
-export function publishArmAutonomyTarget(payload: ArmAutonomyTargetPayload): boolean {
+export function sendArmAutonomyGoal(
+  sendXY: SendXY,
+  behaviorTree: string,
+  callbacks: ArmAutonomyGoalCallbacks
+): string | null {
   if (!ros.isConnected) {
-    console.warn(`${LOG_PREFIX} cannot publish target — ROS disconnected`);
-    return false;
+    callbacks.onFailed('ROS disconnected');
+    return null;
   }
 
-  ensureArmAutonomySubscriptions();
-
-  const nowMs = Date.now();
-  const msg: PoseStamped = {
-    header: {
-      stamp: {
-        sec: Math.floor(nowMs / 1000),
-        nanosec: (nowMs % 1000) * 1_000_000
-      },
-      frame_id: payload.label ?? 'panel'
-    },
-    pose: {
-      position: {
-        x: payload.sendXY.x,
-        y: payload.sendXY.y,
-        z: 0
-      },
+  const goal: MoveToPanelPoseGoal = {
+    target_pose: {
+      position: { x: sendXY.x, y: sendXY.y, z: TARGET_Z_METERS },
       orientation: { x: 0, y: 0, z: 0, w: 1 }
-    }
+    },
+    behavior_tree: behaviorTree
   };
 
-  getTargetPublisher().publish(msg);
-  log('published panel target', {
-    topic: ARM_AUTONOMY_TOPICS.target,
-    label: msg.header.frame_id,
-    imageXY: payload.imageXY,
-    sendXY: payload.sendXY,
-    message: msg
+  const goalId = getMoveToPanelPoseAction().sendGoal(
+    goal,
+    callbacks.onResult,
+    callbacks.onFeedback,
+    callbacks.onFailed
+  );
+  log('sent MoveToPanelPose goal', {
+    action: ARM_AUTONOMY_ACTIONS.moveToPanelPose,
+    behaviorTree,
+    sendXY,
+    targetZ: TARGET_Z_METERS,
+    goalId
   });
+  return goalId ?? null;
+}
+
+export function cancelArmAutonomyGoal(goalId: string): boolean {
+  if (!ros.isConnected || !moveToPanelPoseAction) {
+    return false;
+  }
+  moveToPanelPoseAction.cancelGoal(goalId);
+  log('requested MoveToPanelPose cancellation', { goalId });
   return true;
 }
 
