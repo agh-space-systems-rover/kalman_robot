@@ -1,0 +1,15 @@
+#!/usr/bin/env python3
+import subprocess
+import sys
+from importlib.util import find_spec
+
+
+def main() -> None:
+    spec = find_spec("kalman_tools.apps.master_frame_panel")
+    if spec is None or spec.origin is None:
+        raise RuntimeError("Could not locate kalman_tools.apps.master_frame_panel")
+    subprocess.check_call(["streamlit", "run", spec.origin, *sys.argv[1:]])
+
+
+if __name__ == "__main__":
+    main()
