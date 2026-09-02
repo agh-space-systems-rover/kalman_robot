@@ -131,13 +131,14 @@
 
 .controls {
   display: flex;
+  flex-wrap: wrap;
   align-items: stretch;
   gap: 0.5rem;
 }
 
 .action-control {
-  flex: 1;
-  min-width: 0;
+  flex: 1 1 14rem;
+  min-width: 12rem;
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
