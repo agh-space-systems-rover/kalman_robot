@@ -29,8 +29,65 @@ class CompactDoubleSpinBox(QtWidgets.QDoubleSpinBox):
 
 
 def calculate_calibration(known_values, measured_values):
-    scale, bias = np.polyfit(measured_values, known_values, 1)
-    return float(scale), float(bias)
+    scale, bias, _, _ = calculate_robust_calibration(
+        known_values,
+        measured_values,
+    )
+    return scale, bias
+
+
+def calculate_robust_calibration(known_values, measured_values):
+    known = np.asarray(known_values, dtype=float)
+    measured = np.asarray(measured_values, dtype=float)
+    if len(known) < 2:
+        raise ValueError("At least two measurements are required.")
+    if len(np.unique(measured)) < 2:
+        raise ValueError("Measured/raw values must be different.")
+
+    inliers = np.ones(len(known), dtype=bool)
+    if len(known) >= 4:
+        tolerance = max(float(np.ptp(known)) * 0.02, 1e-9)
+        best_score = None
+        best_inliers = inliers
+
+        for first in range(len(known) - 1):
+            for second in range(first + 1, len(known)):
+                raw_delta = measured[second] - measured[first]
+                if raw_delta == 0:
+                    continue
+
+                candidate_scale = (
+                    (known[second] - known[first]) / raw_delta
+                )
+                candidate_bias = (
+                    known[first] - candidate_scale * measured[first]
+                )
+                residuals = np.abs(
+                    known - (candidate_scale * measured + candidate_bias)
+                )
+                candidate_inliers = residuals <= tolerance
+                inlier_count = int(np.count_nonzero(candidate_inliers))
+                if inlier_count < 2:
+                    continue
+
+                inlier_error = float(
+                    np.mean(residuals[candidate_inliers] ** 2)
+                )
+                score = (inlier_count, -inlier_error)
+                if best_score is None or score > best_score:
+                    best_score = score
+                    best_inliers = candidate_inliers
+
+        inliers = best_inliers
+
+    scale, bias = np.polyfit(measured[inliers], known[inliers], 1)
+    predicted = scale * measured[inliers] + bias
+    residual_sum = float(np.sum((known[inliers] - predicted) ** 2))
+    total_sum = float(
+        np.sum((known[inliers] - np.mean(known[inliers])) ** 2)
+    )
+    r_squared = 1.0 if total_sum == 0 else 1.0 - residual_sum / total_sum
+    return float(scale), float(bias), inliers, r_squared
 
 
 def load_calibrations():
@@ -120,6 +177,8 @@ class StorageCalibApp(QtWidgets.QWidget):
             self.measurement_bridge.received.emit
         )
         self.waiting_for_measurement = []
+        self.expected_sensors = []
+        self.calculated_calibration = None
         self.setWindowTitle("Storage Calibration")
 
         layout = QtWidgets.QHBoxLayout(self)
@@ -173,9 +232,15 @@ class StorageCalibApp(QtWidgets.QWidget):
         self.measurement_loader.hide()
         calibration_layout.addWidget(self.measurement_loader)
 
-        self.save_button = QtWidgets.QPushButton("Calculate and save")
-        self.save_button.clicked.connect(self.calculate_and_save)
-        calibration_layout.addWidget(self.save_button)
+        calibration_actions = QtWidgets.QHBoxLayout()
+        self.calculate_button = QtWidgets.QPushButton("Calculate")
+        self.calculate_button.clicked.connect(self.calculate)
+        calibration_actions.addWidget(self.calculate_button)
+        self.save_button = QtWidgets.QPushButton("Save")
+        self.save_button.clicked.connect(self.save_result)
+        self.save_button.setEnabled(False)
+        calibration_actions.addWidget(self.save_button)
+        calibration_layout.addLayout(calibration_actions)
 
         self.existing_label = QtWidgets.QLabel()
         calibration_layout.addWidget(self.existing_label)
@@ -209,7 +274,7 @@ class StorageCalibApp(QtWidgets.QWidget):
         config_layout.addWidget(self.config_table)
 
         self.remove_button = QtWidgets.QPushButton(
-            "Remove selected board + channel"
+            "Remove selected board and channel"
         )
         self.remove_button.clicked.connect(self.remove_selected_calibration)
         config_layout.addWidget(self.remove_button)
@@ -247,6 +312,9 @@ class StorageCalibApp(QtWidgets.QWidget):
         self.measured_inputs.append(measured_input)
         self.measure_buttons.append(measure_button)
         self.waiting_for_measurement.append(False)
+        self.expected_sensors.append(None)
+        known_input.valueChanged.connect(self.invalidate_calculation)
+        measured_input.valueChanged.connect(self.invalidate_calculation)
 
     @staticmethod
     def make_value_input():
@@ -255,7 +323,12 @@ class StorageCalibApp(QtWidgets.QWidget):
         value_input.setDecimals(6)
         return value_input
 
-    def calculate_and_save(self):
+    def invalidate_calculation(self):
+        self.calculated_calibration = None
+        if hasattr(self, "save_button"):
+            self.save_button.setEnabled(False)
+
+    def calculate(self):
         points = [
             (measured_input.value(), known_input.value())
             for known_input, measured_input in zip(
@@ -274,7 +347,7 @@ class StorageCalibApp(QtWidgets.QWidget):
         measured_values, known_values = map(list, zip(*points))
 
         try:
-            scale, bias = calculate_calibration(
+            scale, bias, inliers, r_squared = calculate_robust_calibration(
                 known_values,
                 measured_values,
             )
@@ -282,16 +355,31 @@ class StorageCalibApp(QtWidgets.QWidget):
             QtWidgets.QMessageBox.warning(self, "Cannot calibrate", str(error))
             return
 
-        board = self.board_input.value()
-        channel = self.channel_input.value()
-        save_calibration(board, channel, scale, bias)
-        self.result_label.setText(f"Scale: {scale:.9g}\nBias: {bias:.9g}")
+        self.calculated_calibration = (scale, bias)
+        inlier_count = int(np.count_nonzero(inliers))
+        self.result_label.setText(
+            f"Scale: {scale:.9g}\n"
+            f"Bias: {bias:.9g}\n"
+            f"R²: {r_squared:.6f}\n"
+            f"Used points: {inlier_count}/{len(inliers)}"
+        )
         self.plot_calibration(
             measured_values,
             known_values,
+            inliers,
             scale,
             bias,
         )
+        self.save_button.setEnabled(True)
+
+    def save_result(self):
+        if self.calculated_calibration is None:
+            return
+
+        scale, bias = self.calculated_calibration
+        board = self.board_input.value()
+        channel = self.channel_input.value()
+        save_calibration(board, channel, scale, bias)
         self.update_existing_label()
         self.refresh_config_table()
         QtWidgets.QMessageBox.information(
@@ -303,7 +391,9 @@ class StorageCalibApp(QtWidgets.QWidget):
     def request_measurement(self, index):
         board = self.board_input.value()
         channel = self.channel_input.value()
+        self.invalidate_calculation()
         self.waiting_for_measurement[index] = True
+        self.expected_sensors[index] = (board, channel)
         self.measurement_status.setText(
             f"Waiting for board {board}, channel {channel}..."
         )
@@ -311,13 +401,23 @@ class StorageCalibApp(QtWidgets.QWidget):
         self.ros_node.request_measurement(board, channel)
 
     def handle_measurement(self, board, channel, value):
-        try:
-            measurement_index = self.waiting_for_measurement.index(True)
-        except ValueError:
+        sensor = (board, channel)
+        measurement_index = next(
+            (
+                index
+                for index, waiting in enumerate(
+                    self.waiting_for_measurement
+                )
+                if waiting and self.expected_sensors[index] == sensor
+            ),
+            None,
+        )
+        if measurement_index is None:
             return
 
         self.measured_inputs[measurement_index].setValue(value)
         self.waiting_for_measurement[measurement_index] = False
+        self.expected_sensors[measurement_index] = None
         self.measurement_status.setText(
             f"Received raw value {value} from board {board}, "
             f"channel {channel}."
@@ -325,8 +425,18 @@ class StorageCalibApp(QtWidgets.QWidget):
         if not any(self.waiting_for_measurement):
             self.measurement_loader.hide()
 
-    def plot_calibration(self, measured_values, known_values, scale, bias):
-        raw_min, raw_max = sorted(measured_values)
+    def plot_calibration(
+        self,
+        measured_values,
+        known_values,
+        inliers,
+        scale,
+        bias,
+    ):
+        measured_values = np.asarray(measured_values)
+        known_values = np.asarray(known_values)
+        raw_min = min(measured_values)
+        raw_max = max(measured_values)
         raw_span = raw_max - raw_min
         padding = raw_span * 0.1 or 1.0
         line_x = [raw_min - padding, raw_max + padding]
@@ -335,16 +445,23 @@ class StorageCalibApp(QtWidgets.QWidget):
         self.figure.clear()
         axes = self.figure.add_subplot(111)
         axes.scatter(
-            measured_values,
-            known_values,
-            label="Measurements",
+            measured_values[inliers],
+            known_values[inliers],
             zorder=2,
         )
-        axes.plot(line_x, line_y, color="red", label="Calibration")
-        axes.set_xlabel("Measured/raw value")
-        axes.set_ylabel("Known weight [g]")
+        if not np.all(inliers):
+            axes.scatter(
+                measured_values[~inliers],
+                known_values[~inliers],
+                color="orange",
+                marker="x",
+                s=60,
+                zorder=3,
+            )
+        axes.plot(line_x, line_y, color="red")
+        axes.set_xlabel("Raw")
+        axes.set_ylabel("Weight [g]")
         axes.grid(True, alpha=0.3)
-        axes.legend()
         self.figure.tight_layout()
         self.canvas.draw()
 
@@ -425,6 +542,7 @@ class StorageCalibApp(QtWidgets.QWidget):
             return
 
         clear_calibrations()
+        self.invalidate_calculation()
         self.result_label.setText("Scale: ---\nBias: ---")
         self.update_existing_label()
         self.refresh_config_table()
