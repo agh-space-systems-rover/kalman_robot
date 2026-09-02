@@ -28,6 +28,7 @@ const RACK_MIN = -20;
 const RACK_MAX = 20;
 const DRILL_MIN = -100;
 const DRILL_MAX = 100;
+const DRILL_TO_GROUND_CM = 35;
 const SERVO_MIN_ANGLE = 0;
 const SERVO_MAX_ANGLE = 270;
 const SERVO_CHANNELS = [0, 3, 5, 10, 12, 15] as const;
@@ -179,24 +180,32 @@ export default function Drill() {
 
   useEffect(() => {
     setTelemetry(null);
-    setWeight(null);
     setLastTelemetryAt(null);
-    setLastWeightAt(null);
     ensureDrillTopics();
 
     const telemetryCb = (msg: DrillTelemetry) => {
       setTelemetry(msg);
       setLastTelemetryAt(Date.now());
     };
+
+    drillTelemetryTopic?.subscribe(telemetryCb);
+    return () => {
+      drillTelemetryTopic?.unsubscribe(telemetryCb);
+    };
+  }, [rerenderCount]);
+
+  useEffect(() => {
+    setWeight(null);
+    setLastWeightAt(null);
+    ensureDrillTopics();
+
     const weightCb = (msg: { data: number }) => {
       setWeight(msg.data);
       setLastWeightAt(Date.now());
     };
 
-    drillTelemetryTopic?.subscribe(telemetryCb);
     drillWeightTopic?.subscribe(weightCb);
     return () => {
-      drillTelemetryTopic?.unsubscribe(telemetryCb);
       drillWeightTopic?.unsubscribe(weightCb);
     };
   }, [rerenderCount]);
@@ -326,6 +335,17 @@ export default function Drill() {
     },
     { label: 'Home', value: AutonomyState.Home, icon: faHouse, tooltip: 'Start homing' }
   ] as const;
+
+  const drillGroundOffsetCm =
+    telemetry?.depth_mm === undefined ? undefined : telemetry.depth_mm / 10 - DRILL_TO_GROUND_CM;
+  const isDrilling = drillGroundOffsetCm !== undefined && drillGroundOffsetCm > 0;
+  const drillHeightStatus = drillGroundOffsetCm === undefined ? 'No data' : isDrilling ? 'Drilling' : 'Lowering';
+  const drillHeightStatusColor =
+    drillGroundOffsetCm === undefined
+      ? 'var(--dark-active)'
+      : isDrilling
+        ? 'var(--red-background)'
+        : 'var(--green-background)';
 
   return (
     <div className={styles['drill-panel']}>
@@ -575,6 +595,25 @@ export default function Drill() {
       </div>
 
       <div className={styles['telemetry']}>
+        <div className={styles['section-header']}>Drilling Phase</div>
+        <div className={styles['drill-row']}>
+          <Label color={drillHeightStatusColor} className={styles['telemetry-label']}>
+            {drillHeightStatus}
+          </Label>
+          <div className={`${styles['disabled-input']} ${styles['selectable']}`}>
+            <input
+              value={formatNumber(
+                drillGroundOffsetCm === undefined ? undefined : Math.abs(drillGroundOffsetCm),
+                1,
+                'cm'
+              )}
+              disabled
+              readOnly
+            />
+          </div>
+        </div>
+        <div className={styles['received-text']}>{formatAge(lastTelemetryAt)}</div>
+
         <div className={styles['section-header']}>Telemetry</div>
         <div className={styles['drill-row']}>
           <Label color='var(--dark-active)' className={styles['telemetry-label']}>
@@ -594,7 +633,7 @@ export default function Drill() {
         </div>
         <div className={styles['drill-row']}>
           <Label color='var(--dark-active)' className={styles['telemetry-label']}>
-             Weight (cached)
+            Weight (cached)
           </Label>
           <div className={`${styles['disabled-input']} ${styles['selectable']}`}>
             <input value={formatNumber(telemetry?.weight_g, 1, 'g')} disabled readOnly />

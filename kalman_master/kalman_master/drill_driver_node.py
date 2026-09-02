@@ -127,7 +127,6 @@ class DrillDriver(Node):
                 autonomy_state=(flags >> 3) & 0x0F,
             )
         )
-        self.weight_pub.publish(Float32(data=weight_g))
 
     def weight_response_cb(self, msg: MasterMessage):
         if len(msg.data) != 2:
