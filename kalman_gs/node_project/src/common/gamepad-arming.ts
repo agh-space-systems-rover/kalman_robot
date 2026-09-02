@@ -137,15 +137,6 @@ function resetLockedJoints(msg: ArmFkCommand) {
   return msg;
 }
 
-function setFastclick(position: number) {
-  const fastclickTopic = new Topic({
-    ros: ros,
-    name: '/fastclick',
-    messageType: 'std_msgs/msg/UInt8'
-  });
-  fastclickTopic.publish({ data: position });
-}
-
 window.addEventListener('ros-connect', () => {
   const fkTopic = new Topic<ArmFkCommand>({
     ros: ros,
