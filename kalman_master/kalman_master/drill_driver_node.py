@@ -95,6 +95,14 @@ class DrillDriver(Node):
             return
 
         depth_raw, velocity_raw = struct.unpack(">hh", bytes(msg.data[0:4]))
+        # Byte 4 is a packed status byte:
+        # - bit 0: upper rack limit switch is pressed,
+        # - bit 1: drill autonomy is active,
+        # - bit 2: the drill is based,
+        # - bits 3-6: current autonomy state:
+        #   0 idle, 1 homing, 2 lowering drill, 3 drilling, 4 motor stop,
+        #   5 retracting, 6 measuring, 7 done, 8 error (9-15 undefined),
+        # - bit 7: unused.
         flags = msg.data[4]
         # Byte 5 is reserved.
         weight_raw = struct.unpack(">h", bytes(msg.data[6:8]))[0]
@@ -110,7 +118,6 @@ class DrillDriver(Node):
                 weight_g=weight_g,
                 rack_current_a=rack_current_raw / CURRENT_SCALE,
                 drill_current_a=drill_current_raw / CURRENT_SCALE,
-                flags=flags,
                 upper_limit_pressed=bool(flags & 0x01),
                 autonomy_active=bool(flags & 0x02),
                 based=bool(flags & 0x04),
