@@ -23,7 +23,7 @@ import { CSSProperties, useCallback, useEffect, useRef, useState } from 'react';
 import Button from '../components/button';
 
 const LOG_PREFIX = '[arm-autonomy panel]';
-type MissionKind = 'approach' | 'interact';
+type MissionKind = 'approach' | 'interact' | 'compact_herman';
 
 function formatXY(xy: ImageXY | SendXY | null, decimalPlaces = 1): string {
   if (!xy) {
@@ -63,10 +63,15 @@ export default function ArmAutonomyPanel() {
   const [activeMission, setActiveMission] = useState<MissionKind | null>(null);
   const [missionFeedback, setMissionFeedback] = useState<Record<MissionKind, string>>({
     approach: 'Ready',
-    interact: 'Select a detection'
+    interact: 'Select a detection',
+    compact_herman: 'Ready'
   });
   const activeGoalRef = useRef<{ kind: MissionKind; id: string } | null>(null);
-  const missionGenerationRef = useRef<Record<MissionKind, number>>({ approach: 0, interact: 0 });
+  const missionGenerationRef = useRef<Record<MissionKind, number>>({
+    approach: 0,
+    interact: 0,
+    compact_herman: 0
+  });
 
   const drawImageData = useCallback((imageData: ImageData) => {
     const canvas = canvasRef.current;
@@ -166,11 +171,17 @@ export default function ArmAutonomyPanel() {
   }
 
   function startMission(kind: MissionKind) {
-    if (!sendXY || activeGoalRef.current) {
+    if (activeGoalRef.current) {
       return;
     }
 
-    const behaviorTree = kind === 'approach' ? 'approach' : selectedClassId();
+    const targetXY = kind === 'compact_herman' ? sendXY ?? { x: 0, y: 0 } : sendXY;
+    if (!targetXY) {
+      return;
+    }
+
+    const behaviorTree =
+      kind === 'interact' ? selectedClassId() : kind === 'approach' ? 'approach' : 'compact_herman';
     if (!behaviorTree) {
       setFeedback(kind, 'Select a detection first');
       return;
@@ -178,7 +189,7 @@ export default function ArmAutonomyPanel() {
 
     const generation = ++missionGenerationRef.current[kind];
     setFeedback(kind, `Sending ${behaviorTree}…`);
-    const goalId = sendArmAutonomyGoal(sendXY, behaviorTree, {
+    const goalId = sendArmAutonomyGoal(targetXY, behaviorTree, {
       onFeedback: (feedback) => {
         if (missionGenerationRef.current[kind] === generation) {
           setFeedback(kind, feedback.progress || 'Running…');
@@ -218,7 +229,7 @@ export default function ArmAutonomyPanel() {
     }
     activeGoalRef.current = { kind, id: goalId };
     setActiveMission(kind);
-    console.log(`${LOG_PREFIX} action goal sent`, { kind, behaviorTree, sendXY, goalId });
+    console.log(`${LOG_PREFIX} action goal sent`, { kind, behaviorTree, targetXY, goalId });
   }
 
   function abortMission(kind: MissionKind) {
@@ -377,6 +388,31 @@ export default function ArmAutonomyPanel() {
             value={missionFeedback.interact}
             readOnly
             aria-label="Interact action feedback"
+          />
+        </div>
+
+        <div className={styles['action-control']}>
+          <div className={styles['action-buttons']}>
+            <Button
+              className={styles['control-button']}
+              disabled={activeMission !== null}
+              onClick={() => startMission('compact_herman')}
+            >
+              SEND Compact Herman
+            </Button>
+            <Button
+              className={styles['control-button']}
+              disabled={activeMission !== 'compact_herman'}
+              onClick={() => abortMission('compact_herman')}
+            >
+              Abort Compact Herman
+            </Button>
+          </div>
+          <input
+            className={styles['feedback-field']}
+            value={missionFeedback.compact_herman}
+            readOnly
+            aria-label="Compact Herman action feedback"
           />
         </div>
       </div>
