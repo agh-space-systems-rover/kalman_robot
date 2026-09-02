@@ -107,10 +107,10 @@ class DrillDriver(Node):
         # Byte 5 is reserved.
         weight_raw = struct.unpack(">h", bytes(msg.data[6:8]))[0]
         rack_current_raw = int.from_bytes(
-            msg.data[8:10], byteorder="little", signed=True
+            msg.data[8:10], byteorder="big", signed=True
         )
         drill_current_raw = int.from_bytes(
-            msg.data[10:12], byteorder="little", signed=True
+            msg.data[10:12], byteorder="big", signed=True
         )
 
         weight_g = weight_raw / WEIGHT_SCALE
