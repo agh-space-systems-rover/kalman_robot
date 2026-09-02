@@ -61,14 +61,14 @@ class DrillDriver(Node):
         value = max(-20, min(int(msg.data), 20))
         self.publish(
             MasterMessage.DRILL_RACK_SET,
-            [value & 0xFF],
+            [value + (1 << 8) if value < 0 else value],
         )
 
     def drill_cb(self, msg: Int8):
         value = max(-100, min(int(msg.data), 100))
         self.publish(
             MasterMessage.DRILL_SET,
-            [value & 0xFF],
+            [value + (1 << 8) if value < 0 else value],
         )
 
     def servo_cb(self, msg: UInt16MultiArray):
@@ -106,8 +106,11 @@ class DrillDriver(Node):
         flags = msg.data[4]
         # Byte 5 is reserved.
         weight_raw = struct.unpack(">h", bytes(msg.data[6:8]))[0]
-        rack_current_raw, drill_current_raw = struct.unpack(
-            "<hh", bytes(msg.data[8:12])
+        rack_current_raw = int.from_bytes(
+            msg.data[8:10], byteorder="little", signed=True
+        )
+        drill_current_raw = int.from_bytes(
+            msg.data[10:12], byteorder="little", signed=True
         )
 
         weight_g = weight_raw / WEIGHT_SCALE
