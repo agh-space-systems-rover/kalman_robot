@@ -1,0 +1,13 @@
+# Number of consecutive frames which must produce the same assignment.
+# Zero uses the server default.
+uint32 required_confirmations
+# Maximum calibration duration. Values <= 0 use the server default.
+float64 timeout_seconds
+---
+bool result
+string message
+string[] marker_names
+int32[] marker_ids
+---
+uint32 confirmations
+string progress

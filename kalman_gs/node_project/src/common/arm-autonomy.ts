@@ -8,7 +8,8 @@ export const ARM_AUTONOMY_TOPICS = {
 } as const;
 
 export const ARM_AUTONOMY_ACTIONS = {
-  moveToPanelPose: '/arm/move_to_panel_pose'
+  moveToPanelPose: '/arm/move_to_panel_pose',
+  calibratePanelMarkerIds: '/arm/calibrate_panel_marker_ids'
 } as const;
 
 const TARGET_Z_METERS = 0.05;
@@ -76,6 +77,29 @@ export interface ArmAutonomyGoalCallbacks {
   onFailed: (error: string) => void;
 }
 
+export interface CalibratePanelMarkerIdsGoal {
+  required_confirmations: number;
+  timeout_seconds: number;
+}
+
+export interface CalibratePanelMarkerIdsFeedback {
+  confirmations: number;
+  progress: string;
+}
+
+export interface CalibratePanelMarkerIdsResult {
+  result: boolean;
+  message: string;
+  marker_names: string[];
+  marker_ids: number[];
+}
+
+export interface PanelMarkerCalibrationCallbacks {
+  onResult: (result: CalibratePanelMarkerIdsResult) => void;
+  onFeedback: (feedback: CalibratePanelMarkerIdsFeedback) => void;
+  onFailed: (error: string) => void;
+}
+
 const UPDATE_EVENT = 'arm-autonomy-update';
 const LOG_PREFIX = '[arm-autonomy]';
 
@@ -88,6 +112,11 @@ let moveToPanelPoseAction: Action<
   MoveToPanelPoseGoal,
   MoveToPanelPoseFeedback,
   MoveToPanelPoseResult
+> | null = null;
+let calibratePanelMarkerIdsAction: Action<
+  CalibratePanelMarkerIdsGoal,
+  CalibratePanelMarkerIdsFeedback,
+  CalibratePanelMarkerIdsResult
 > | null = null;
 
 function log(message: string, data?: unknown) {
@@ -267,6 +296,31 @@ export function sendArmAutonomyGoal(
     targetZ: TARGET_Z_METERS,
     goalId
   });
+  return goalId ?? null;
+}
+
+export function inferPanelMarkerPositions(
+  callbacks: PanelMarkerCalibrationCallbacks
+): string | null {
+  if (!ros.isConnected) {
+    callbacks.onFailed('ROS disconnected');
+    return null;
+  }
+  if (!calibratePanelMarkerIdsAction) {
+    calibratePanelMarkerIdsAction = new Action({
+      ros,
+      name: ARM_AUTONOMY_ACTIONS.calibratePanelMarkerIds,
+      actionType: 'kalman_interfaces/CalibratePanelMarkerIds'
+    });
+  }
+
+  const goalId = calibratePanelMarkerIdsAction.sendGoal(
+    { required_confirmations: 5, timeout_seconds: 10.0 },
+    callbacks.onResult,
+    callbacks.onFeedback,
+    callbacks.onFailed
+  );
+  log('started panel marker ID inference', { goalId });
   return goalId ?? null;
 }
 

@@ -13,6 +13,7 @@ import {
   getArmAutonomyHomography,
   getArmAutonomyImage,
   ImageXY,
+  inferPanelMarkerPositions,
   sendArmAutonomyGoal,
   SendXY
 } from '../common/arm-autonomy';
@@ -61,6 +62,9 @@ export default function ArmAutonomyPanel() {
   const [decodeError, setDecodeError] = useState<string | null>(null);
   const [feedPaused, setFeedPaused] = useState(false);
   const [activeMission, setActiveMission] = useState<MissionKind | null>(null);
+  const [calibrationActive, setCalibrationActive] = useState(false);
+  const [calibrationFeedback, setCalibrationFeedback] = useState('Ready');
+  const calibrationGenerationRef = useRef(0);
   const [missionFeedback, setMissionFeedback] = useState<Record<MissionKind, string>>({
     approach: 'Ready',
     interact: 'Select a detection',
@@ -232,6 +236,52 @@ export default function ArmAutonomyPanel() {
     console.log(`${LOG_PREFIX} action goal sent`, { kind, behaviorTree, targetXY, goalId });
   }
 
+  function inferArucoPositions() {
+    if (calibrationActive || activeGoalRef.current) {
+      return;
+    }
+
+    const generation = ++calibrationGenerationRef.current;
+    setCalibrationActive(true);
+    setCalibrationFeedback('Starting inference…');
+    const goalId = inferPanelMarkerPositions({
+      onFeedback: (feedback) => {
+        if (calibrationGenerationRef.current === generation) {
+          setCalibrationFeedback(feedback.progress || `${feedback.confirmations}/5 frames`);
+        }
+      },
+      onResult: (result) => {
+        if (calibrationGenerationRef.current !== generation) {
+          return;
+        }
+        setCalibrationActive(false);
+        const assignment = result.marker_names
+          .map((name, index) => `${name}=${result.marker_ids[index]}`)
+          .join(', ');
+        setCalibrationFeedback(
+          `${result.result ? 'Succeeded' : 'Failed'}: ${result.message}${assignment ? ` (${assignment})` : ''}`
+        );
+        alertsRef.current?.pushAlert(
+          result.message || (result.result ? 'ArUco positions inferred.' : 'ArUco inference failed.'),
+          result.result ? 'success' : 'error'
+        );
+      },
+      onFailed: (error) => {
+        if (calibrationGenerationRef.current !== generation) {
+          return;
+        }
+        setCalibrationActive(false);
+        setCalibrationFeedback(`Action error: ${error}`);
+        alertsRef.current?.pushAlert(`Failed to infer ArUco positions: ${error}`, 'error');
+      }
+    });
+
+    if (!goalId) {
+      setCalibrationActive(false);
+      setCalibrationFeedback('Failed to send inference goal');
+    }
+  }
+
   function abortMission(kind: MissionKind) {
     const activeGoal = activeGoalRef.current;
     if (!activeGoal || activeGoal.kind !== kind) {
@@ -254,6 +304,52 @@ export default function ArmAutonomyPanel() {
 
   return (
     <div className={styles['arm-autonomy']}>
+      <div className={`${styles['controls']} ${styles['utility-controls']}`}>
+        <div className={styles['action-control']}>
+          <div className={styles['action-buttons']}>
+            <Button
+              className={styles['control-button']}
+              disabled={activeMission !== null || calibrationActive}
+              onClick={() => startMission('compact_herman')}
+            >
+              SEND Compact Herman
+            </Button>
+            <Button
+              className={styles['control-button']}
+              disabled={activeMission !== 'compact_herman'}
+              onClick={() => abortMission('compact_herman')}
+            >
+              Abort Compact Herman
+            </Button>
+          </div>
+          <input
+            className={styles['feedback-field']}
+            value={missionFeedback.compact_herman}
+            readOnly
+            aria-label="Compact Herman action feedback"
+          />
+        </div>
+
+        <div className={styles['action-control']}>
+          <div className={styles['action-buttons']}>
+            <Button
+              className={styles['control-button']}
+              active={calibrationActive}
+              disabled={calibrationActive || activeMission !== null || !rosConnected}
+              onClick={inferArucoPositions}
+            >
+              Infer aruco positions
+            </Button>
+          </div>
+          <input
+            className={styles['feedback-field']}
+            value={calibrationFeedback}
+            readOnly
+            aria-label="ArUco position inference feedback"
+          />
+        </div>
+      </div>
+
       <div className={styles['viewport']}>
         <div
           className={styles['image-frame']}
@@ -345,7 +441,7 @@ export default function ArmAutonomyPanel() {
           <div className={styles['action-buttons']}>
             <Button
               className={styles['control-button']}
-              disabled={!sendXY || activeMission !== null}
+              disabled={!sendXY || activeMission !== null || calibrationActive}
               onClick={() => startMission('approach')}
             >
               SEND Approach
@@ -370,7 +466,7 @@ export default function ArmAutonomyPanel() {
           <div className={styles['action-buttons']}>
             <Button
               className={styles['control-button']}
-              disabled={!sendXY || !selectedClassId() || activeMission !== null}
+              disabled={!sendXY || !selectedClassId() || activeMission !== null || calibrationActive}
               onClick={() => startMission('interact')}
             >
               SEND Interact
@@ -391,30 +487,6 @@ export default function ArmAutonomyPanel() {
           />
         </div>
 
-        <div className={styles['action-control']}>
-          <div className={styles['action-buttons']}>
-            <Button
-              className={styles['control-button']}
-              disabled={activeMission !== null}
-              onClick={() => startMission('compact_herman')}
-            >
-              SEND Compact Herman
-            </Button>
-            <Button
-              className={styles['control-button']}
-              disabled={activeMission !== 'compact_herman'}
-              onClick={() => abortMission('compact_herman')}
-            >
-              Abort Compact Herman
-            </Button>
-          </div>
-          <input
-            className={styles['feedback-field']}
-            value={missionFeedback.compact_herman}
-            readOnly
-            aria-label="Compact Herman action feedback"
-          />
-        </div>
       </div>
     </div>
   );

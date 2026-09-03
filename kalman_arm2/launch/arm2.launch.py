@@ -55,6 +55,8 @@ def launch_setup(context):
         "min_linear_speed": 0.0,
         "fine_approach_angular_scale": 0.4,
         "max_linear_speed": 0.4,
+        "position_tolerance": 0.005,
+        "visual_refinement_position_tolerance": 0.005,
     }
 
     actions = []
@@ -135,6 +137,7 @@ def launch_setup(context):
 
 
     panel_tracker_params = {
+        "layout_yaml": ParameterValue(panel_layout_file, value_type=str),
         "tracking_frame": LaunchConfiguration("panel_tracking_frame").perform(context),
         "board_frame": LaunchConfiguration("panel_board_frame").perform(context),
         "detection_topic": LaunchConfiguration("panel_detection_topic").perform(

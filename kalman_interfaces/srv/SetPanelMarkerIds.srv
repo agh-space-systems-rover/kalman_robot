@@ -1,0 +1,7 @@
+# Atomically assign ArUco IDs to all named panel marker slots.
+# marker_names and marker_ids must have equal lengths and cover every configured slot.
+string[] marker_names
+int32[] marker_ids
+---
+bool result
+string message
