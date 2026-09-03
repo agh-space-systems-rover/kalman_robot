@@ -75,7 +75,8 @@ rclcpp_components_register_node(
 target_link_libraries(panel_layout_node yaml-cpp)
 
 add_library(panel_tracker_node SHARED src/panel_tracker_node.cpp)
-ament_target_dependencies(panel_tracker_node rclcpp rclcpp_components geometry_msgs tf2_ros tf2_geometry_msgs aruco_opencv_msgs)
+ament_target_dependencies(panel_tracker_node rclcpp rclcpp_components rclcpp_action kalman_interfaces geometry_msgs tf2_ros tf2_geometry_msgs aruco_opencv_msgs yaml-cpp)
+target_link_libraries(panel_tracker_node yaml-cpp)
 rclcpp_components_register_node(
   panel_tracker_node
   PLUGIN "kalman_arm2::PanelTracker"

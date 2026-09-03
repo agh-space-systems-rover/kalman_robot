@@ -1,7 +1,10 @@
 #include <aruco_opencv_msgs/msg/aruco_detection.hpp>
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
+#include <kalman_interfaces/action/calibrate_panel_marker_ids.hpp>
+#include <kalman_interfaces/srv/set_panel_marker_ids.hpp>
 #include <rclcpp/rclcpp.hpp>
+#include <rclcpp_action/rclcpp_action.hpp>
 #include <rclcpp_components/register_node_macro.hpp>
 #include <tf2/LinearMath/Quaternion.hpp>
 #include <tf2/LinearMath/Transform.hpp>
@@ -10,11 +13,17 @@
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2_ros/transform_listener.h>
+#include <yaml-cpp/yaml.h>
 
 #include <algorithm>
 #include <array>
+#include <chrono>
 #include <cmath>
+#include <functional>
+#include <limits>
+#include <map>
 #include <optional>
+#include <set>
 #include <string>
 #include <utility>
 #include <vector>
@@ -23,9 +32,17 @@ namespace kalman_arm2 {
 
 class PanelTracker : public rclcpp::Node {
   public:
+    using CalibrateAction =
+        kalman_interfaces::action::CalibratePanelMarkerIds;
+    using CalibrationGoalHandle =
+        rclcpp_action::ServerGoalHandle<CalibrateAction>;
+    using SetMarkerIds = kalman_interfaces::srv::SetPanelMarkerIds;
+
     PanelTracker(const rclcpp::NodeOptions &options)
         : Node("panel_tracker", options) {
         declare_parameter<std::string>("tracking_frame", "odom");
+        layout_yaml_path_ =
+            declare_parameter<std::string>("layout_yaml", "panel_layout.yaml");
         declare_parameter<std::string>("board_frame", "aruco_board");
         declare_parameter<std::string>(
             "detection_topic", "/d455_arm/aruco_detections"
@@ -38,12 +55,26 @@ class PanelTracker : public rclcpp::Node {
             "secondary_ee_marker_frame", "aruco_left_of_j6"
         );
         declare_parameter<std::string>("ee_frame", "arm_link_gripper");
+        declare_parameter<int>("calibration_required_confirmations", 5);
+        declare_parameter<double>("calibration_timeout_seconds", 10.0);
+        declare_parameter<double>("calibration_max_distance_error", 0.05);
 
         get_parameter("tracking_frame", tracking_frame_);
         get_parameter("board_frame", board_frame_);
         get_parameter("detection_topic", detection_topic_);
         get_parameter("ema_alpha", ema_alpha_);
         get_parameter("ee_frame", ee_frame_);
+        get_parameter(
+            "calibration_required_confirmations",
+            default_calibration_confirmations_
+        );
+        get_parameter(
+            "calibration_timeout_seconds", default_calibration_timeout_seconds_
+        );
+        get_parameter(
+            "calibration_max_distance_error", calibration_max_distance_error_
+        );
+        load_layout();
 
         EeMarker primary_ee_marker;
         get_parameter("ee_marker_id", primary_ee_marker.id);
@@ -68,6 +99,24 @@ class PanelTracker : public rclcpp::Node {
             geometry_msgs::msg::PoseWithCovarianceStamped>("panel_pose", 10);
         visual_ee_pub_ = create_publisher<geometry_msgs::msg::PoseStamped>(
             "visual_ee_pose", 10
+        );
+
+        using namespace std::placeholders;
+        set_marker_ids_service_ = create_service<SetMarkerIds>(
+            "set_panel_marker_ids",
+            std::bind(&PanelTracker::set_marker_ids, this, _1, _2)
+        );
+        calibration_action_server_ =
+            rclcpp_action::create_server<CalibrateAction>(
+                this,
+                "calibrate_panel_marker_ids",
+                std::bind(&PanelTracker::handle_calibration_goal, this, _1, _2),
+                std::bind(&PanelTracker::handle_calibration_cancel, this, _1),
+                std::bind(&PanelTracker::handle_calibration_accepted, this, _1)
+            );
+        calibration_timer_ = create_wall_timer(
+            std::chrono::milliseconds(100),
+            std::bind(&PanelTracker::check_calibration_deadline, this)
         );
 
         detection_sub_ =
@@ -98,25 +147,27 @@ class PanelTracker : public rclcpp::Node {
     };
 
     struct MarkerLayout {
+        std::string name;
         int id;
         double u;
         double v;
+        double yaw_rad;
     };
 
-    static constexpr std::array<MarkerLayout, 3> kMarkers{{
-        {13, 0.0, 0.0},
-        {14, 0.26, 0.0},
-        {15, 0.0, 0.383},
-    }};
-    static constexpr double kBoardWidth = 0.4;
-    static constexpr double kBoardHeight = 0.6;
-
+    std::string layout_yaml_path_;
     std::string tracking_frame_;
     std::string board_frame_;
     std::string detection_topic_;
     std::string ee_frame_;
     std::vector<EeMarker> ee_markers_;
     double ema_alpha_;
+    double board_width_{0.0};
+    double board_height_{0.0};
+    std::vector<MarkerLayout> markers_;
+    std::set<int> allowed_marker_ids_;
+    int default_calibration_confirmations_{5};
+    double default_calibration_timeout_seconds_{10.0};
+    double calibration_max_distance_error_{0.05};
     bool filter_initialized_{false};
     tf2::Transform filtered_board_pose_;
 
@@ -128,9 +179,363 @@ class PanelTracker : public rclcpp::Node {
     std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
     std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
     std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
+    rclcpp::Service<SetMarkerIds>::SharedPtr set_marker_ids_service_;
+    rclcpp_action::Server<CalibrateAction>::SharedPtr calibration_action_server_;
+    rclcpp::TimerBase::SharedPtr calibration_timer_;
+    std::shared_ptr<CalibrationGoalHandle> calibration_goal_;
+    bool calibration_goal_reserved_{false};
+    std::optional<std::vector<int>> calibration_candidate_;
+    uint32_t calibration_confirmations_{0};
+    uint32_t required_calibration_confirmations_{0};
+    rclcpp::Time calibration_deadline_;
+
+    void load_layout() {
+        const YAML::Node config = YAML::LoadFile(layout_yaml_path_);
+        board_width_ = config["board_width"].as<double>();
+        board_height_ = config["board_height"].as<double>();
+
+        allowed_marker_ids_.clear();
+        for (const auto &id : config["allowed_marker_ids"]) {
+            allowed_marker_ids_.insert(id.as<int>());
+        }
+        if (allowed_marker_ids_.empty()) {
+            throw std::runtime_error("allowed_marker_ids must not be empty");
+        }
+
+        markers_.clear();
+        std::set<int> assigned_ids;
+        for (const auto &entry : config["markers"]) {
+            MarkerLayout marker;
+            marker.name = entry.first.as<std::string>();
+            marker.id = entry.second["id"].as<int>();
+            marker.u = entry.second["u"].as<double>();
+            marker.v = entry.second["v"].as<double>();
+            marker.yaw_rad = entry.second["yaw_deg"].as<double>(0.0) *
+                             M_PI / 180.0;
+            if (!allowed_marker_ids_.contains(marker.id)) {
+                throw std::runtime_error(
+                    "Marker slot '" + marker.name + "' uses disallowed ID " +
+                    std::to_string(marker.id)
+                );
+            }
+            if (!assigned_ids.insert(marker.id).second) {
+                throw std::runtime_error(
+                    "Marker ID " + std::to_string(marker.id) +
+                    " is assigned more than once"
+                );
+            }
+            markers_.push_back(std::move(marker));
+        }
+        if (markers_.size() < 3) {
+            throw std::runtime_error(
+                "At least three marker slots are required for calibration"
+            );
+        }
+        default_calibration_confirmations_ =
+            std::max(1, default_calibration_confirmations_);
+        if (default_calibration_timeout_seconds_ <= 0.0) {
+            default_calibration_timeout_seconds_ = 10.0;
+        }
+        if (calibration_max_distance_error_ <= 0.0) {
+            calibration_max_distance_error_ = 0.05;
+        }
+
+        RCLCPP_INFO(
+            get_logger(),
+            "Loaded %zu panel marker slots and %zu allowed IDs from %s",
+            markers_.size(),
+            allowed_marker_ids_.size(),
+            layout_yaml_path_.c_str()
+        );
+    }
+
+    bool apply_marker_ids(
+        const std::vector<std::string> &names,
+        const std::vector<int32_t> &ids,
+        std::string &error
+    ) {
+        if (names.size() != markers_.size() || ids.size() != markers_.size()) {
+            error = "Assignment must contain every configured marker slot";
+            return false;
+        }
+
+        std::map<std::string, int> assignment;
+        std::set<int> unique_ids;
+        for (size_t index = 0; index < names.size(); ++index) {
+            if (!assignment.emplace(names[index], ids[index]).second) {
+                error = "Marker slot '" + names[index] + "' occurs more than once";
+                return false;
+            }
+            if (!allowed_marker_ids_.contains(ids[index])) {
+                error = "Marker ID " + std::to_string(ids[index]) +
+                        " is not allowed on the panel";
+                return false;
+            }
+            if (!unique_ids.insert(ids[index]).second) {
+                error = "Marker ID " + std::to_string(ids[index]) +
+                        " occurs more than once";
+                return false;
+            }
+        }
+
+        for (const auto &marker : markers_) {
+            if (!assignment.contains(marker.name)) {
+                error = "Unknown or missing marker slot '" + marker.name + "'";
+                return false;
+            }
+        }
+        for (const auto &[name, id] : assignment) {
+            const auto known_slot = std::find_if(
+                markers_.begin(),
+                markers_.end(),
+                [&name](const MarkerLayout &marker) { return marker.name == name; }
+            );
+            if (known_slot == markers_.end()) {
+                error = "Unknown marker slot '" + name + "'";
+                return false;
+            }
+            known_slot->id = id;
+        }
+
+        filter_initialized_ = false;
+        RCLCPP_INFO(get_logger(), "Updated panel marker ID assignment");
+        return true;
+    }
+
+    void set_marker_ids(
+        const std::shared_ptr<SetMarkerIds::Request> request,
+        std::shared_ptr<SetMarkerIds::Response> response
+    ) {
+        if (calibration_goal_ || calibration_goal_reserved_) {
+            response->result = false;
+            response->message = "Cannot set marker IDs while calibration is active";
+            return;
+        }
+        response->result = apply_marker_ids(
+            request->marker_names, request->marker_ids, response->message
+        );
+        if (response->result) {
+            response->message = "Panel marker IDs updated";
+        }
+    }
+
+    rclcpp_action::GoalResponse handle_calibration_goal(
+        const rclcpp_action::GoalUUID &,
+        const std::shared_ptr<const CalibrateAction::Goal>
+    ) {
+        if (calibration_goal_ || calibration_goal_reserved_) {
+            RCLCPP_WARN(get_logger(), "Rejecting marker calibration: already active");
+            return rclcpp_action::GoalResponse::REJECT;
+        }
+        calibration_goal_reserved_ = true;
+        return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
+    }
+
+    rclcpp_action::CancelResponse handle_calibration_cancel(
+        const std::shared_ptr<CalibrationGoalHandle>
+    ) {
+        return rclcpp_action::CancelResponse::ACCEPT;
+    }
+
+    void handle_calibration_accepted(
+        const std::shared_ptr<CalibrationGoalHandle> goal_handle
+    ) {
+        calibration_goal_ = goal_handle;
+        calibration_goal_reserved_ = false;
+        calibration_candidate_.reset();
+        calibration_confirmations_ = 0;
+        const auto &goal = *goal_handle->get_goal();
+        required_calibration_confirmations_ = goal.required_confirmations > 0
+            ? goal.required_confirmations
+            : static_cast<uint32_t>(default_calibration_confirmations_);
+        const double timeout = goal.timeout_seconds > 0.0
+            ? goal.timeout_seconds
+            : default_calibration_timeout_seconds_;
+        calibration_deadline_ =
+            now() + rclcpp::Duration::from_seconds(timeout);
+        RCLCPP_INFO(
+            get_logger(),
+            "Started panel marker calibration; requiring %u confirmations",
+            required_calibration_confirmations_
+        );
+    }
+
+    void fill_calibration_result(CalibrateAction::Result &result) const {
+        for (const auto &marker : markers_) {
+            result.marker_names.push_back(marker.name);
+            result.marker_ids.push_back(marker.id);
+        }
+    }
+
+    void check_calibration_deadline() {
+        if (!calibration_goal_) {
+            return;
+        }
+        if (calibration_goal_->is_canceling()) {
+            auto result = std::make_shared<CalibrateAction::Result>();
+            result->result = false;
+            result->message = "Panel marker calibration canceled";
+            fill_calibration_result(*result);
+            calibration_goal_->canceled(result);
+            calibration_goal_.reset();
+            calibration_goal_reserved_ = false;
+            calibration_candidate_.reset();
+            return;
+        }
+        if (now() >= calibration_deadline_) {
+            auto result = std::make_shared<CalibrateAction::Result>();
+            result->result = false;
+            result->message = "Panel marker calibration timed out";
+            fill_calibration_result(*result);
+            calibration_goal_->abort(result);
+            calibration_goal_.reset();
+            calibration_goal_reserved_ = false;
+            calibration_candidate_.reset();
+        }
+    }
+
+    std::optional<std::vector<int>> infer_marker_ids(
+        const aruco_opencv_msgs::msg::ArucoDetection &detection
+    ) const {
+        using MarkerPose = aruco_opencv_msgs::msg::MarkerPose;
+        std::vector<const MarkerPose *> observed;
+        std::set<int> observed_ids;
+        for (const auto &marker : detection.markers) {
+            if (allowed_marker_ids_.contains(marker.marker_id) &&
+                observed_ids.insert(marker.marker_id).second) {
+                observed.push_back(&marker);
+            }
+        }
+        if (observed.size() < markers_.size()) {
+            return std::nullopt;
+        }
+
+        auto observed_distance = [](const MarkerPose &left, const MarkerPose &right) {
+            const double dx = left.pose.position.x - right.pose.position.x;
+            const double dy = left.pose.position.y - right.pose.position.y;
+            const double dz = left.pose.position.z - right.pose.position.z;
+            return std::sqrt(dx * dx + dy * dy + dz * dz);
+        };
+        auto expected_distance = [this](size_t left, size_t right) {
+            const double du = markers_[left].u - markers_[right].u;
+            const double dv = markers_[left].v - markers_[right].v;
+            return std::sqrt(du * du + dv * dv);
+        };
+
+        double best_error = std::numeric_limits<double>::infinity();
+        std::vector<int> best_assignment;
+        std::vector<size_t> assignment(markers_.size());
+        std::vector<bool> used(observed.size(), false);
+        std::function<void(size_t)> search = [&](size_t slot_index) {
+            if (slot_index == markers_.size()) {
+                double squared_error = 0.0;
+                size_t pair_count = 0;
+                for (size_t left = 0; left < markers_.size(); ++left) {
+                    for (size_t right = left + 1; right < markers_.size(); ++right) {
+                        const double error =
+                            observed_distance(
+                                *observed[assignment[left]],
+                                *observed[assignment[right]]
+                            ) - expected_distance(left, right);
+                        squared_error += error * error;
+                        ++pair_count;
+                    }
+                }
+                const double rms_error =
+                    std::sqrt(squared_error / static_cast<double>(pair_count));
+                if (rms_error < best_error) {
+                    best_error = rms_error;
+                    best_assignment.clear();
+                    for (const size_t observed_index : assignment) {
+                        best_assignment.push_back(
+                            observed[observed_index]->marker_id
+                        );
+                    }
+                }
+                return;
+            }
+
+            for (size_t observed_index = 0;
+                 observed_index < observed.size();
+                 ++observed_index) {
+                if (used[observed_index]) {
+                    continue;
+                }
+                used[observed_index] = true;
+                assignment[slot_index] = observed_index;
+                search(slot_index + 1);
+                used[observed_index] = false;
+            }
+        };
+        search(0);
+
+        if (best_error > calibration_max_distance_error_) {
+            return std::nullopt;
+        }
+        return best_assignment;
+    }
+
+    void process_calibration(
+        const aruco_opencv_msgs::msg::ArucoDetection &detection
+    ) {
+        if (!calibration_goal_ || !calibration_goal_->is_active()) {
+            return;
+        }
+        const auto inferred = infer_marker_ids(detection);
+        if (!inferred) {
+            auto feedback = std::make_shared<CalibrateAction::Feedback>();
+            feedback->confirmations = 0;
+            feedback->progress = "Waiting for a complete geometry match";
+            calibration_goal_->publish_feedback(feedback);
+            calibration_candidate_.reset();
+            calibration_confirmations_ = 0;
+            return;
+        }
+
+        if (calibration_candidate_ && *calibration_candidate_ == *inferred) {
+            ++calibration_confirmations_;
+        } else {
+            calibration_candidate_ = inferred;
+            calibration_confirmations_ = 1;
+        }
+
+        auto feedback = std::make_shared<CalibrateAction::Feedback>();
+        feedback->confirmations = calibration_confirmations_;
+        feedback->progress =
+            "Confirmed assignment in " +
+            std::to_string(calibration_confirmations_) + "/" +
+            std::to_string(required_calibration_confirmations_) + " frames";
+        calibration_goal_->publish_feedback(feedback);
+
+        if (calibration_confirmations_ < required_calibration_confirmations_) {
+            return;
+        }
+
+        std::vector<std::string> names;
+        std::vector<int32_t> ids;
+        for (size_t index = 0; index < markers_.size(); ++index) {
+            names.push_back(markers_[index].name);
+            ids.push_back(inferred->at(index));
+        }
+        std::string error;
+        auto result = std::make_shared<CalibrateAction::Result>();
+        result->result = apply_marker_ids(names, ids, error);
+        result->message = result->result
+            ? "Panel marker IDs calibrated"
+            : error;
+        fill_calibration_result(*result);
+        if (result->result) {
+            calibration_goal_->succeed(result);
+        } else {
+            calibration_goal_->abort(result);
+        }
+        calibration_goal_.reset();
+        calibration_goal_reserved_ = false;
+        calibration_candidate_.reset();
+    }
 
     std::optional<tf2::Transform> board_to_marker_from_layout(int marker_id) const {
-        for (const auto &marker : kMarkers) {
+        for (const auto &marker : markers_) {
             if (marker.id != marker_id) {
                 continue;
             }
@@ -139,11 +544,14 @@ class PanelTracker : public rclcpp::Node {
             transform.setIdentity();
             transform.setOrigin(
                 tf2::Vector3(
-                    marker.u - kBoardWidth * 0.5,
-                    -(marker.v - kBoardHeight * 0.5),
+                    marker.u - board_width_ * 0.5,
+                    -(marker.v - board_height_ * 0.5),
                     0.0
                 )
             );
+            tf2::Quaternion rotation;
+            rotation.setRPY(0.0, 0.0, marker.yaw_rad);
+            transform.setRotation(rotation);
             return transform;
         }
 
@@ -362,6 +770,7 @@ class PanelTracker : public rclcpp::Node {
         if (msg->markers.empty()) {
             return;
         }
+        process_calibration(*msg);
 
         const rclcpp::Time stamp = msg->header.stamp;
         const std::string camera_frame = msg->header.frame_id;

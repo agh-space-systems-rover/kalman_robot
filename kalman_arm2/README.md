@@ -100,3 +100,23 @@ ros2 action send_goal /arm/move_to_panel_pose kalman_interfaces/action/MoveToPan
 | `/arm/panel/image_rectified` | `sensor_msgs/Image` | camera |
 | `/arm/panel/detections_rectified` | `vision_msgs/Detection2DArray` | bbox overlay in rectified-image pixels |
 | `/arm/panel/homography` | `std_msgs/Float64MultiArray` | row-major 3×3 rectified pixel → panel meter transform |
+
+### Panel marker ID calibration
+
+Panel marker geometry and allowed IDs come from `config/panel_layout.yaml`. Runtime assignments reset to YAML values when the node restarts.
+
+Automatically infer IDs after five consecutive matching detection frames:
+
+```bash
+ros2 action send_goal /arm/calibrate_panel_marker_ids \
+  kalman_interfaces/action/CalibratePanelMarkerIds \
+  "{required_confirmations: 5, timeout_seconds: 10.0}" --feedback
+```
+
+Set an assignment manually. Names must cover every YAML marker slot and IDs must be unique members of `allowed_marker_ids`:
+
+```bash
+ros2 service call /arm/set_panel_marker_ids \
+  kalman_interfaces/srv/SetPanelMarkerIds \
+  "{marker_names: [top_left, top_right, bottom_left], marker_ids: [13, 14, 15]}"
+```
