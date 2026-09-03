@@ -154,6 +154,15 @@
   text-align: center;
 }
 
+.view-dropdown {
+  flex: 0 0 8rem;
+}
+
+.view-dropdown-popup {
+  top: auto !important;
+  bottom: 100%;
+}
+
 .live-button {
   flex: 0 0 6rem;
 }

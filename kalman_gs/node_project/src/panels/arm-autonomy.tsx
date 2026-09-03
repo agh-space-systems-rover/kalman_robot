@@ -29,6 +29,7 @@ import { ros } from '../common/ros';
 import { CSSProperties, useCallback, useEffect, useRef, useState } from 'react';
 
 import Button from '../components/button';
+import Dropdown from '../components/dropdown';
 
 const LOG_PREFIX = '[arm-autonomy panel]';
 type MissionKind = 'approach' | 'interact' | 'compact_herman';
@@ -367,51 +368,53 @@ export default function ArmAutonomyPanel() {
 
   return (
     <div className={styles['arm-autonomy']}>
-      <div className={`${styles['controls']} ${styles['utility-controls']}`}>
-        <div className={styles['action-control']}>
-          <div className={styles['action-buttons']}>
-            <Button
-              className={styles['control-button']}
-              disabled={activeMission !== null || calibrationActive}
-              onClick={() => startMission('compact_herman')}
-            >
-              SEND Compact Herman
-            </Button>
-            <Button
-              className={styles['control-button']}
-              disabled={activeMission !== 'compact_herman'}
-              onClick={() => abortMission('compact_herman')}
-            >
-              Abort Compact Herman
-            </Button>
+      {view === 'panel' && (
+        <div className={`${styles['controls']} ${styles['utility-controls']}`}>
+          <div className={styles['action-control']}>
+            <div className={styles['action-buttons']}>
+              <Button
+                className={styles['control-button']}
+                disabled={activeMission !== null || calibrationActive}
+                onClick={() => startMission('compact_herman')}
+              >
+                SEND Compact Herman
+              </Button>
+              <Button
+                className={styles['control-button']}
+                disabled={activeMission !== 'compact_herman'}
+                onClick={() => abortMission('compact_herman')}
+              >
+                Abort Compact Herman
+              </Button>
+            </div>
+            <input
+              className={styles['feedback-field']}
+              value={missionFeedback.compact_herman}
+              readOnly
+              aria-label="Compact Herman action feedback"
+            />
           </div>
-          <input
-            className={styles['feedback-field']}
-            value={missionFeedback.compact_herman}
-            readOnly
-            aria-label="Compact Herman action feedback"
-          />
-        </div>
 
-        <div className={styles['action-control']}>
-          <div className={styles['action-buttons']}>
-            <Button
-              className={styles['control-button']}
-              active={calibrationActive}
-              disabled={calibrationActive || activeMission !== null || !rosConnected}
-              onClick={inferArucoPositions}
-            >
-              Infer aruco positions
-            </Button>
+          <div className={styles['action-control']}>
+            <div className={styles['action-buttons']}>
+              <Button
+                className={styles['control-button']}
+                active={calibrationActive}
+                disabled={calibrationActive || activeMission !== null || !rosConnected}
+                onClick={inferArucoPositions}
+              >
+                Infer aruco positions
+              </Button>
+            </div>
+            <input
+              className={styles['feedback-field']}
+              value={calibrationFeedback}
+              readOnly
+              aria-label="ArUco position inference feedback"
+            />
           </div>
-          <input
-            className={styles['feedback-field']}
-            value={calibrationFeedback}
-            readOnly
-            aria-label="ArUco position inference feedback"
-          />
         </div>
-      </div>
+      )}
 
       <div className={styles['viewport']}>
         <div
@@ -573,12 +576,14 @@ export default function ArmAutonomyPanel() {
       </div>
 
       <div className={styles['controls']}>
-        <Button className={styles['control-button']} active={view === 'panel'} onClick={() => setView('panel')}>
-          PANEL
-        </Button>
-        <Button className={styles['control-button']} active={view === 'rocks'} onClick={() => setView('rocks')}>
-          ROCKS
-        </Button>
+        <Dropdown
+          className={styles['view-dropdown']}
+          popupClassName={styles['view-dropdown-popup']}
+          tooltip='Select arm autonomy view.'
+          items={[{ text: 'PANEL' }, { text: 'ROCKS' }]}
+          defaultItemIndex={view === 'panel' ? 0 : 1}
+          onChange={(index) => setView(index === 0 ? 'panel' : 'rocks')}
+        />
         <Button
           className={`${styles['control-button']} ${styles['live-button']}`}
           active={feedPaused}
