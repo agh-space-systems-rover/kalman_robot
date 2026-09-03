@@ -281,7 +281,7 @@ def launch_setup(context):
             ),
             launch_arguments={
                 "rgbd_ids": "d455_arm_wheel",
-                "config": "erc2026_science",
+                "config": "panel",
             }.items(),
         )
     ]
