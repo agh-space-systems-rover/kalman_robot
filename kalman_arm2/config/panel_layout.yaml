@@ -7,9 +7,9 @@
 allowed_marker_ids: [11, 13, 14, 15]
 
 markers:
-  top_left: {id: 13, u: 0.0, v: 0.0, yaw_deg: 0}
-  top_right: {id: 14, u: 0.261, v: 0.0, yaw_deg: 0}
-  bottom_left: {id: 15, u: 0.0, v: 0.381, yaw_deg: 0}
+  top_left: {id: 13, u: 0.025, v: 0.025, yaw_deg: 0}
+  top_right: {id: 14, u: 0.286, v: 0.025, yaw_deg: 0}
+  bottom_left: {id: 15, u: 0.0, v: 0.405, yaw_deg: 0}
 marker_size: 0.050   # meters (edge length)
-board_width: 0.400   # meters
-board_height: 0.600  # meters
+board_width: 0.350   # meters
+board_height: 0.450  # meters
