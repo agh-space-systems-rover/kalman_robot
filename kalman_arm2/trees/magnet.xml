@@ -1,0 +1,68 @@
+<root main_tree_to_execute="MainTree">
+  <BehaviorTree ID="MainTree">
+    <Sequence name="PanelMissionSequence">
+      <ComputePanelTarget
+          panel_relative_pose="{requested_panel_pose}"
+          target_standoff="0.15"
+          orientation_mode="normal_to_panel"
+          target_pose="{coarse_pose}" />
+
+      <SetMissionFeedback text="Moving to coarse panel target" />
+      <IKNavigateToPose pose="{coarse_pose}" timeout_ms="30000" />
+
+      <Say message="Coarse goal reached" />
+
+      <TransformPose
+        pose="{requested_panel_pose}"
+        x="-0.03"
+        y="0.00"
+        z="0.07"
+        transformed_pose="{requested_panel_pose_offset}" />
+
+      <ForceSuccess>
+          <VisualRefineToPanel
+            pose="{requested_panel_pose_offset}"
+            timeout_ms="10000" />
+      </ForceSuccess>
+
+      <VisaulRefineToPanelTwist
+        pose="{requested_panel_pose_offset}"
+        timeout_ms="40000" />
+
+      <TransformPose
+        pose="{requested_panel_pose_offset}"
+        rz_deg="90"
+        transformed_pose="{above_magnet_rot_90}" />
+
+      <RotateEEAlongNormalJoint degrees="-90.0" timeout_ms="20000"/>
+      <VisaulRefineToPanelTwist
+        pose="{above_magnet_rot_90}"
+        timeout_ms="40000" />
+
+      <TransformPose
+        pose="{requested_panel_pose}"
+        x="-0.05"
+        y="0.00"
+        z="-0.03"
+        rz_deg="90"
+        transformed_pose="{putting_magnet_pose}" />
+
+      <VisaulRefineToPanelTwist
+        pose="{putting_magnet_pose}"
+        timeout_ms="40000" />
+
+      <TransformPose
+        pose="{requested_panel_pose}"
+        x="-0.03"
+        y="0.00"
+        z="-0.03"
+        rz_deg="90"
+        transformed_pose="{push_against_magnet_pose}" />
+
+      <VisaulRefineToPanelTwist
+        pose="{push_against_magnet_pose}"
+        timeout_ms="40000" />
+
+    </Sequence>
+  </BehaviorTree>
+</root>

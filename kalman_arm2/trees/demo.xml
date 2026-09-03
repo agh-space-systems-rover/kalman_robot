@@ -87,8 +87,8 @@
         x="-0.05"
         transformed_pose="{requested_panel_pose_offset}" />
 
-      <CloseGripper timeout_ms="5000" tolerance="0.20" />
-      <OpenGripper timeout_ms="5000" tolerance="0.20" />
+      <!-- <CloseGripper timeout_ms="5000" tolerance="0.20" />
+      <OpenGripper timeout_ms="5000" tolerance="0.20" /> -->
 
       <!-- <VisaulRefineToPanelTwist
         pose="{requested_panel_pose_offset}"

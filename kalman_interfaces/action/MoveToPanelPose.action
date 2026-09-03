@@ -1,8 +1,12 @@
 # Target end-effector pose expressed in the panel frame.
 geometry_msgs/Pose target_pose
+# Filename stem of the behavior tree XML to execute (for example, "demo").
+string behavior_tree
 ---
 # Result of mission (0 - fail, 1 - success)
 bool result
+# Human-readable outcome or error.
+string message
 ---
 # Feedback
 string progress

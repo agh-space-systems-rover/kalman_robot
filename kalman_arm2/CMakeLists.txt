@@ -3,9 +3,11 @@ project(kalman_arm2)
 
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_python REQUIRED)
+find_package(ament_index_cpp REQUIRED)
 
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
+find_package(rclcpp_action REQUIRED)
 
 find_package(sensor_msgs REQUIRED)
 find_package(control_msgs REQUIRED)
@@ -46,13 +48,14 @@ rclcpp_components_register_node(
 )
 
 add_library(pose_ik_node SHARED src/pose_ik_node.cpp)
-ament_target_dependencies(pose_ik_node rclcpp rclcpp_components kalman_interfaces geometry_msgs std_msgs urdf kdl_parser orocos_kdl_vendor tf2_ros tf2_geometry_msgs)
+ament_target_dependencies(pose_ik_node rclcpp rclcpp_components rclcpp_action kalman_interfaces geometry_msgs std_msgs urdf kdl_parser orocos_kdl_vendor tf2_ros tf2_geometry_msgs)
 target_link_libraries(pose_ik_node Eigen3::Eigen)
 rclcpp_components_register_node(
   pose_ik_node
   PLUGIN "kalman_arm2::PoseIK"
   EXECUTABLE pose_ik
 )
+
 
 add_library(goto_joint_pose_node SHARED src/goto_joint_pose_node.cpp)
 ament_target_dependencies(goto_joint_pose_node rclcpp rclcpp_components kalman_interfaces geometry_msgs std_msgs urdf tf2_ros tf2_geometry_msgs)
@@ -72,7 +75,9 @@ rclcpp_components_register_node(
 target_link_libraries(panel_layout_node yaml-cpp)
 
 add_library(panel_tracker_node SHARED src/panel_tracker_node.cpp)
-ament_target_dependencies(panel_tracker_node rclcpp rclcpp_components geometry_msgs tf2_ros tf2_geometry_msgs aruco_opencv_msgs)
+ament_target_dependencies(panel_tracker_node rclcpp rclcpp_components rclcpp_action kalman_interfaces geometry_msgs sensor_msgs tf2_ros tf2_geometry_msgs aruco_opencv_msgs cv_bridge yaml-cpp)
+target_include_directories(panel_tracker_node PRIVATE ${OpenCV_INCLUDE_DIRS})
+target_link_libraries(panel_tracker_node Eigen3::Eigen ${OpenCV_LIBS} yaml-cpp)
 rclcpp_components_register_node(
   panel_tracker_node
   PLUGIN "kalman_arm2::PanelTracker"
@@ -127,7 +132,7 @@ src/actions/rotate_ee_along_normal_twist.cpp include/actions/rotate_ee_along_nor
 src/actions/rotate_ee_along_normal_joint.cpp include/actions/rotate_ee_along_normal_joint.hpp
 src/actions/transform_pose.cpp include/actions/transform_pose.hpp
 )
-ament_target_dependencies(bt_panel_node rclcpp rclcpp_components kalman_interfaces geometry_msgs sensor_msgs std_msgs tf2_ros tf2_geometry_msgs aruco_opencv_msgs behaviortree_cpp_v3 std_srvs tf2_eigen visualization_msgs yaml-cpp)
+ament_target_dependencies(bt_panel_node ament_index_cpp rclcpp rclcpp_components rclcpp_action kalman_interfaces geometry_msgs sensor_msgs std_msgs tf2_ros tf2_geometry_msgs aruco_opencv_msgs behaviortree_cpp_v3 std_srvs tf2_eigen visualization_msgs yaml-cpp)
 rclcpp_components_register_node(
   bt_panel_node
   PLUGIN "kalman_arm2::BTPanel"
@@ -136,6 +141,7 @@ rclcpp_components_register_node(
 
 target_link_libraries(bt_panel_node yaml-cpp)
 # target_compile_features(bt_panel_node PUBLIC cxx_std_20)
+
 
 ament_export_targets(kalman_arm2-targets)
 install(TARGETS twist_ik_node pose_ik_node goto_joint_pose_node panel_layout_node panel_tracker_node panel_rectifier_node panel_click_marker_node bt_panel_node
@@ -154,7 +160,6 @@ install(PROGRAMS
   scripts/rosbridge_client
   scripts/fake_yolo_publisher
   scripts/publish_identity_homography
-  scripts/publish_fake_panel_target
   DESTINATION lib/${PROJECT_NAME}
 )
 

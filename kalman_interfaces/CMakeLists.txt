@@ -9,7 +9,9 @@ find_package(geographic_msgs REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "action/ArmGotoJointPose.action"
+  "action/CalibratePanelMarkerIds.action"
   "action/MoveToPanelPose.action"
+  "action/PoseIKNavigateToPose.action"
   "action/SupervisorGpsArUcoSearch.action"
   "action/SupervisorGpsGoal.action"
   "action/SupervisorGpsYoloSearch.action"
@@ -41,6 +43,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/WheelTemperatures.msg"
   "srv/ReadPkgConfigFile.srv"
   "srv/SetFeed.srv"
+  "srv/SetPanelMarkerIds.srv"
   "srv/SetUeuosColor.srv"
   "srv/SetUeuosEffect.srv"
   "srv/SetUeuosState.srv"

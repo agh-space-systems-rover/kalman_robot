@@ -1,15 +1,20 @@
 #include <geometry_msgs/msg/detail/quaternion__struct.hpp>
 #include <rclcpp/rclcpp.hpp>
+#include <tf2/LinearMath/Quaternion.hpp>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <rclcpp_components/register_node_macro.hpp>
 #include <tf2_ros/static_transform_broadcaster.h>
 #include <yaml-cpp/yaml.h>
 
+#include <cmath>
+
 namespace kalman_arm2 {
 
 struct MarkerInfo {
-	double u{0.0};
-	double v{0.0};
-};
+		double u{0.0};
+		double v{0.0};
+		double yaw_rad{0.0};
+	};
 
 class PanelLayout : public rclcpp::Node {
 public:
@@ -35,11 +40,13 @@ private:
 			board_h_          = config["board_height"].as<double>();
 			YAML::Node m      = config["markers"];
 			markers_.clear();
-			for (auto it : m) {
-				int        id = it.first.as<int>();
+			for (const auto &entry : m) {
+				const int id = entry.second["id"].as<int>();
 				MarkerInfo mi;
-				mi.u         = it.second["u"].as<double>();
-				mi.v         = it.second["v"].as<double>();
+				mi.u         = entry.second["u"].as<double>();
+				mi.v         = entry.second["v"].as<double>();
+				mi.yaw_rad   = entry.second["yaw_deg"].as<double>(0.0) *
+				               M_PI / 180.0;
 				markers_[id] = mi;
 			}
 			RCLCPP_INFO(
@@ -70,6 +77,9 @@ private:
 			st.child_frame_id          = marker_frame;
 			st.transform.translation.x = marker_info.u - board_w_ * 0.5;
 			st.transform.translation.y = -(marker_info.v - board_h_ * 0.5);
+			tf2::Quaternion rotation;
+			rotation.setRPY(0.0, 0.0, marker_info.yaw_rad);
+			st.transform.rotation = tf2::toMsg(rotation);
 			static_broadcaster_->sendTransform(st);
 			RCLCPP_INFO(
 			    get_logger(),
