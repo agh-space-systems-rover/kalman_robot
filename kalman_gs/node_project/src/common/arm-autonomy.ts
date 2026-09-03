@@ -2,7 +2,7 @@ import { ros } from './ros';
 import { Action, Topic } from 'roslib';
 
 export const ARM_AUTONOMY_TOPICS = {
-  image: '/arm/panel/image_rectified',
+  image: '/arm/panel/image_rectified/compressed',
   detections: '/arm/panel/detections_rectified',
   homography: '/arm/panel/homography',
   rockImage: '/d455_arm_wheel/yolo_annotated/compressed',
@@ -45,13 +45,6 @@ export interface PoseStamped {
   };
 }
 
-export interface RosImage {
-  height: number;
-  width: number;
-  encoding: string;
-  step: number;
-  data: string | number[];
-}
 
 export interface RosCompressedImage {
   header?: Header;
@@ -175,7 +168,7 @@ export interface PanelMarkerCalibrationCallbacks {
 const UPDATE_EVENT = 'arm-autonomy-update';
 const LOG_PREFIX = '[arm-autonomy]';
 
-let latestImage: RosImage | null = null;
+let latestImage: RosCompressedImage | null = null;
 let latestDetections: Detection2D[] = [];
 let latestHomography: number[] | null = null;
 let latestRockImage: RosCompressedImage | null = null;
@@ -221,71 +214,6 @@ function notifyUpdate() {
   window.dispatchEvent(new CustomEvent(UPDATE_EVENT));
 }
 
-function imageDataToBytes(data: string | number[]): Uint8Array {
-  if (typeof data === 'string') {
-    const binary = atob(data);
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) {
-      bytes[i] = binary.charCodeAt(i);
-    }
-    return bytes;
-  }
-  return Uint8Array.from(data);
-}
-
-export function decodeRosImage(msg: RosImage): ImageData | null {
-  const { width, height, encoding, step } = msg;
-  if (width <= 0 || height <= 0) {
-    return null;
-  }
-
-  const bytes = imageDataToBytes(msg.data);
-  const rgba = new Uint8ClampedArray(width * height * 4);
-  const enc = encoding.toLowerCase();
-
-  if (enc === 'rgb8') {
-    for (let y = 0; y < height; y++) {
-      const row = y * step;
-      for (let x = 0; x < width; x++) {
-        const src = row + x * 3;
-        const dst = (y * width + x) * 4;
-        rgba[dst] = bytes[src];
-        rgba[dst + 1] = bytes[src + 1];
-        rgba[dst + 2] = bytes[src + 2];
-        rgba[dst + 3] = 255;
-      }
-    }
-  } else if (enc === 'bgr8') {
-    for (let y = 0; y < height; y++) {
-      const row = y * step;
-      for (let x = 0; x < width; x++) {
-        const src = row + x * 3;
-        const dst = (y * width + x) * 4;
-        rgba[dst] = bytes[src + 2];
-        rgba[dst + 1] = bytes[src + 1];
-        rgba[dst + 2] = bytes[src];
-        rgba[dst + 3] = 255;
-      }
-    }
-  } else if (enc === 'mono8') {
-    for (let y = 0; y < height; y++) {
-      const row = y * step;
-      for (let x = 0; x < width; x++) {
-        const gray = bytes[row + x];
-        const dst = (y * width + x) * 4;
-        rgba[dst] = gray;
-        rgba[dst + 1] = gray;
-        rgba[dst + 2] = gray;
-        rgba[dst + 3] = 255;
-      }
-    }
-  } else {
-    console.warn(`arm-autonomy: unsupported image encoding "${encoding}"`);
-    return null;
-  }
-
-  return new ImageData(rgba, width, height);
-}
 
 export function compressedImageDataUrl(msg: RosCompressedImage | null): string | null {
   if (!msg) {
@@ -336,7 +264,7 @@ export function detectionLabel(det: Detection2D): string {
   return `${result.hypothesis.class_id} (${score}%)`;
 }
 
-export function getArmAutonomyImage(): RosImage | null {
+export function getArmAutonomyImage(): RosCompressedImage | null {
   return latestImage;
 }
 
@@ -617,20 +545,17 @@ function initTopics() {
   topicsInitialized = true;
   log('subscribing to ROS topics', ARM_AUTONOMY_TOPICS);
 
-  const imageTopic = new Topic<RosImage>({
+  const imageTopic = new Topic<RosCompressedImage>({
     ros,
     name: ARM_AUTONOMY_TOPICS.image,
-    messageType: 'sensor_msgs/Image'
+    messageType: 'sensor_msgs/CompressedImage'
   });
   imageTopic.subscribe((msg) => {
     latestImage = msg;
     imageFrameCount += 1;
     if (imageFrameCount === 1 || imageFrameCount % 30 === 0) {
-      log(`image frame #${imageFrameCount}`, {
-        width: msg.width,
-        height: msg.height,
-        encoding: msg.encoding,
-        step: msg.step,
+      log(`compressed image frame #${imageFrameCount}`, {
+        format: msg.format,
         dataType: typeof msg.data,
         dataLength: typeof msg.data === 'string' ? msg.data.length : msg.data?.length
       });

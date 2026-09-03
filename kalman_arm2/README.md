@@ -97,7 +97,8 @@ ros2 action send_goal /arm/move_to_panel_pose kalman_interfaces/action/MoveToPan
 
 | Topic | Type | Role |
 |-------|------|------|
-| `/arm/panel/image_rectified` | `sensor_msgs/Image` | camera |
+| `/arm/panel/image_rectified/compressed` | `sensor_msgs/CompressedImage` | JPEG camera stream used by GS |
+| `/arm/panel/image_rectified` | `sensor_msgs/Image` | raw camera stream for ROS consumers |
 | `/arm/panel/detections_rectified` | `vision_msgs/Detection2DArray` | bbox overlay in rectified-image pixels |
 | `/arm/panel/homography` | `std_msgs/Float64MultiArray` | row-major 3×3 rectified pixel → panel meter transform |
 

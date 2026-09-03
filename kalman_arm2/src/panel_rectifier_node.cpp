@@ -16,11 +16,13 @@
 #include <message_filters/sync_policies/approximate_time.h>
 #include <message_filters/synchronizer.h>
 #include <opencv2/calib3d.hpp>
+#include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_components/register_node_macro.hpp>
 #include <sensor_msgs/image_encodings.hpp>
 #include <sensor_msgs/msg/camera_info.hpp>
+#include <sensor_msgs/msg/compressed_image.hpp>
 #include <sensor_msgs/msg/image.hpp>
 #include <std_msgs/msg/float64_multi_array.hpp>
 #include <tf2/LinearMath/Transform.hpp>
@@ -96,6 +98,7 @@ class PanelRectifier : public rclcpp::Node {
         max_splat_radius_px_ = declare_parameter<int>(
             "max_splat_radius_px", 3
         );
+        jpeg_quality_ = declare_parameter<int>("jpeg_quality", 85);
 
         load_layout(layout_yaml);
         left_border_m_ = declare_parameter<double>(
@@ -147,6 +150,10 @@ class PanelRectifier : public rclcpp::Node {
         image_pub_ = create_publisher<sensor_msgs::msg::Image>(
             output_topic, output_qos
         );
+        compressed_image_pub_ =
+            create_publisher<sensor_msgs::msg::CompressedImage>(
+                output_topic + "/compressed", output_qos
+            );
         height_pub_ = create_publisher<sensor_msgs::msg::Image>(
             height_topic, output_qos
         );
@@ -267,6 +274,9 @@ class PanelRectifier : public rclcpp::Node {
         }
         if (max_splat_radius_px_ < 0 || outline_thickness_px_ <= 0) {
             throw std::invalid_argument("invalid rasterization pixel sizes");
+        }
+        if (jpeg_quality_ < 1 || jpeg_quality_ > 100) {
+            throw std::invalid_argument("jpeg_quality must be in [1, 100]");
         }
         if (projection_cache_size_ <= 0) {
             throw std::invalid_argument("projection_cache_size must be positive");
@@ -793,6 +803,26 @@ class PanelRectifier : public rclcpp::Node {
              )
                  .toImageMsg()
         );
+
+        sensor_msgs::msg::CompressedImage compressed_image;
+        compressed_image.header = output_header;
+        compressed_image.format = "bgr8; jpeg compressed bgr8";
+        if (cv::imencode(
+                ".jpg",
+                image,
+                compressed_image.data,
+                {cv::IMWRITE_JPEG_QUALITY, jpeg_quality_}
+            )) {
+            compressed_image_pub_->publish(compressed_image);
+        } else {
+            RCLCPP_WARN_THROTTLE(
+                get_logger(),
+                *get_clock(),
+                2000,
+                "Failed to JPEG-encode rectified panel image"
+            );
+        }
+
         height_pub_->publish(
             *cv_bridge::CvImage(
                  output_header, sensor_msgs::image_encodings::TYPE_32FC1, height
@@ -991,6 +1021,7 @@ class PanelRectifier : public rclcpp::Node {
     bool draw_board_outline_{true};
     int max_splat_radius_px_{3};
     int outline_thickness_px_{2};
+    int jpeg_quality_{85};
     int board_pixel_width_{0};
     int board_pixel_height_{0};
     int left_border_px_{0};
@@ -1019,6 +1050,8 @@ class PanelRectifier : public rclcpp::Node {
     std::deque<ProjectionCacheEntry> projection_cache_;
 
     rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr image_pub_;
+    rclcpp::Publisher<sensor_msgs::msg::CompressedImage>::SharedPtr
+        compressed_image_pub_;
     rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr height_pub_;
     rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr valid_pub_;
     rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr segmentation_debug_pub_;

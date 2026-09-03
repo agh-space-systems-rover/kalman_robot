@@ -5,7 +5,6 @@ import {
   applyHomography,
   cancelArmAutonomyGoal,
   compressedImageDataUrl,
-  decodeRosImage,
   detectionCenter,
   detectionLabel,
   Detection2D,
@@ -75,13 +74,13 @@ function formatPose(pose: PoseStamped['pose'] | undefined): string {
 }
 
 export default function ArmAutonomyPanel() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
   const [rockImageSize, setRockImageSize] = useState({ width: 0, height: 0 });
   const [view, setView] = useState<'panel' | 'rocks'>('panel');
   const [detections, setDetections] = useState<Detection2D[]>([]);
   const [rockDetections, setRockDetections] = useState<Detection2D[]>([]);
   const [rockPositions, setRockPositions] = useState<PoseStamped['pose'][]>([]);
+  const [panelImageUrl, setPanelImageUrl] = useState<string | null>(null);
   const [rockImageUrl, setRockImageUrl] = useState<string | null>(null);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [selectedRockIndex, setSelectedRockIndex] = useState<number | null>(null);
@@ -108,48 +107,15 @@ export default function ArmAutonomyPanel() {
     compact_herman: 0
   });
 
-  const drawImageData = useCallback((imageData: ImageData) => {
-    const canvas = canvasRef.current;
-    if (!canvas) {
-      console.warn(`${LOG_PREFIX} canvas ref missing during draw`);
-      return false;
-    }
-    canvas.width = imageData.width;
-    canvas.height = imageData.height;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) {
-      console.warn(`${LOG_PREFIX} canvas 2d context missing`);
-      return false;
-    }
-    ctx.putImageData(imageData, 0, 0);
-    return true;
-  }, []);
 
   const refreshFromRos = useCallback(() => {
     if (feedPaused) {
       return;
     }
 
-    const image = getArmAutonomyImage();
-    if (image) {
-      const imageData = decodeRosImage(image);
-      if (imageData) {
-        const drawn = drawImageData(imageData);
-        if (drawn) {
-          setImageSize({ width: imageData.width, height: imageData.height });
-          setHasImage(true);
-          setDecodeError(null);
-        }
-      } else {
-        setHasImage(false);
-        setDecodeError(`unsupported encoding: ${image.encoding}`);
-        console.warn(`${LOG_PREFIX} decode failed`, {
-          encoding: image.encoding,
-          width: image.width,
-          height: image.height
-        });
-      }
-    } else {
+    const imageUrl = compressedImageDataUrl(getArmAutonomyImage());
+    setPanelImageUrl(imageUrl);
+    if (!imageUrl) {
       setHasImage(false);
     }
 
@@ -158,7 +124,7 @@ export default function ArmAutonomyPanel() {
     setRockDetections(getArmAutonomyRockDetections());
     setRockPositions(getArmAutonomyRockPositions());
     setRockImageUrl(compressedImageDataUrl(getArmAutonomyRockImage()));
-  }, [drawImageData, feedPaused]);
+  }, [feedPaused]);
 
   useEffect(() => {
     console.log(`${LOG_PREFIX} mounted`);
@@ -429,14 +395,27 @@ export default function ArmAutonomyPanel() {
                 : undefined
           }
         >
-          <canvas
-            ref={canvasRef}
-            className={styles['canvas']}
-            style={{
-              display: view === 'panel' ? 'block' : 'none',
-              visibility: hasImage ? 'visible' : 'hidden'
-            }}
-          />
+          {panelImageUrl && (
+            <img
+              className={styles['canvas']}
+              src={panelImageUrl}
+              alt="Rectified arm panel"
+              style={{ display: view === 'panel' ? 'block' : 'none' }}
+              onLoad={(event) => {
+                setImageSize({
+                  width: event.currentTarget.naturalWidth,
+                  height: event.currentTarget.naturalHeight
+                });
+                setHasImage(true);
+                setDecodeError(null);
+              }}
+              onError={() => {
+                setHasImage(false);
+                setDecodeError('Failed to decode compressed panel image');
+                console.warn(`${LOG_PREFIX} compressed panel image decode failed`);
+              }}
+            />
+          )}
           {view === 'rocks' && rockImageUrl && (
             <img
               className={styles['canvas']}
