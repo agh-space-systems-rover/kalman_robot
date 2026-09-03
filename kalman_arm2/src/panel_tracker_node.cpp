@@ -1,4 +1,5 @@
 #include <aruco_opencv_msgs/msg/aruco_detection.hpp>
+#include <cv_bridge/cv_bridge.h>
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
 #include <kalman_interfaces/action/calibrate_panel_marker_ids.hpp>
@@ -6,6 +7,9 @@
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_action/rclcpp_action.hpp>
 #include <rclcpp_components/register_node_macro.hpp>
+#include <sensor_msgs/image_encodings.hpp>
+#include <sensor_msgs/msg/camera_info.hpp>
+#include <sensor_msgs/msg/image.hpp>
 #include <tf2/LinearMath/Quaternion.hpp>
 #include <tf2/LinearMath/Transform.hpp>
 #include <tf2/LinearMath/Vector3.hpp>
@@ -15,6 +19,8 @@
 #include <tf2_ros/transform_listener.h>
 #include <yaml-cpp/yaml.h>
 
+#include <Eigen/Core>
+#include <Eigen/Eigenvalues>
 #include <algorithm>
 #include <array>
 #include <chrono>
@@ -47,6 +53,12 @@ class PanelTracker : public rclcpp::Node {
         declare_parameter<std::string>(
             "detection_topic", "/d455_arm/aruco_detections"
         );
+        declare_parameter<std::string>(
+            "depth_topic", "/d455_arm_wheel/depth/image_raw"
+        );
+        declare_parameter<std::string>(
+            "camera_info_topic", "/d455_arm_wheel/color/camera_info"
+        );
         declare_parameter<double>("ema_alpha", 0.2);
         declare_parameter<int>("ee_marker_id", 31);
         declare_parameter<std::string>("ee_marker_frame", "aruco_under_j6");
@@ -58,10 +70,23 @@ class PanelTracker : public rclcpp::Node {
         declare_parameter<int>("calibration_required_confirmations", 5);
         declare_parameter<double>("calibration_timeout_seconds", 10.0);
         declare_parameter<double>("calibration_max_distance_error", 0.05);
+        declare_parameter<bool>("depth_refinement_enabled", true);
+        declare_parameter<double>("depth_max_age_s", 0.1);
+        declare_parameter<double>("plane_roi_margin_m", 0.02);
+        declare_parameter<double>("plane_initial_distance_m", 0.02);
+        declare_parameter<double>("plane_min_residual_threshold_m", 0.002);
+        declare_parameter<double>("plane_robust_sigma_multiplier", 3.0);
+        declare_parameter<int>("plane_iterations", 3);
+        declare_parameter<double>("plane_max_normal_update_deg", 5.0);
+        declare_parameter<double>("plane_max_offset_update_m", 0.01);
+        declare_parameter<int>("plane_min_points", 200);
+        declare_parameter<int>("plane_pixel_stride", 2);
 
         get_parameter("tracking_frame", tracking_frame_);
         get_parameter("board_frame", board_frame_);
         get_parameter("detection_topic", detection_topic_);
+        get_parameter("depth_topic", depth_topic_);
+        get_parameter("camera_info_topic", camera_info_topic_);
         get_parameter("ema_alpha", ema_alpha_);
         get_parameter("ee_frame", ee_frame_);
         get_parameter(
@@ -74,7 +99,28 @@ class PanelTracker : public rclcpp::Node {
         get_parameter(
             "calibration_max_distance_error", calibration_max_distance_error_
         );
+        get_parameter("depth_refinement_enabled", depth_refinement_enabled_);
+        get_parameter("depth_max_age_s", depth_max_age_s_);
+        get_parameter("plane_roi_margin_m", plane_roi_margin_m_);
+        get_parameter("plane_initial_distance_m", plane_initial_distance_m_);
+        get_parameter(
+            "plane_min_residual_threshold_m", plane_min_residual_threshold_m_
+        );
+        get_parameter(
+            "plane_robust_sigma_multiplier", plane_robust_sigma_multiplier_
+        );
+        get_parameter("plane_iterations", plane_iterations_);
+        double plane_max_normal_update_deg = 5.0;
+        get_parameter(
+            "plane_max_normal_update_deg", plane_max_normal_update_deg
+        );
+        plane_max_normal_update_rad_ =
+            plane_max_normal_update_deg * M_PI / 180.0;
+        get_parameter("plane_max_offset_update_m", plane_max_offset_update_m_);
+        get_parameter("plane_min_points", plane_min_points_);
+        get_parameter("plane_pixel_stride", plane_pixel_stride_);
         load_layout();
+        validate_depth_refinement_parameters();
 
         EeMarker primary_ee_marker;
         get_parameter("ee_marker_id", primary_ee_marker.id);
@@ -129,6 +175,17 @@ class PanelTracker : public rclcpp::Node {
                     std::placeholders::_1
                 )
             );
+        const auto sensor_qos = rclcpp::SensorDataQoS();
+        depth_sub_ = create_subscription<sensor_msgs::msg::Image>(
+            depth_topic_,
+            sensor_qos,
+            std::bind(&PanelTracker::on_depth, this, std::placeholders::_1)
+        );
+        camera_info_sub_ = create_subscription<sensor_msgs::msg::CameraInfo>(
+            camera_info_topic_,
+            sensor_qos,
+            std::bind(&PanelTracker::on_camera_info, this, std::placeholders::_1)
+        );
 
         RCLCPP_INFO(
             get_logger(),
@@ -154,10 +211,33 @@ class PanelTracker : public rclcpp::Node {
         double yaw_rad;
     };
 
+    struct DepthFrame {
+        rclcpp::Time stamp;
+        cv::Mat meters;
+    };
+
+    struct CameraIntrinsics {
+        int width;
+        int height;
+        double focal_x;
+        double focal_y;
+        double center_x;
+        double center_y;
+    };
+
+    struct PlaneFit {
+        Eigen::Vector3d normal;
+        double offset;
+        double rms;
+        size_t inlier_count;
+    };
+
     std::string layout_yaml_path_;
     std::string tracking_frame_;
     std::string board_frame_;
     std::string detection_topic_;
+    std::string depth_topic_;
+    std::string camera_info_topic_;
     std::string ee_frame_;
     std::vector<EeMarker> ee_markers_;
     double ema_alpha_;
@@ -168,11 +248,27 @@ class PanelTracker : public rclcpp::Node {
     int default_calibration_confirmations_{5};
     double default_calibration_timeout_seconds_{10.0};
     double calibration_max_distance_error_{0.05};
+    bool depth_refinement_enabled_{true};
+    double depth_max_age_s_{0.1};
+    double plane_roi_margin_m_{0.02};
+    double plane_initial_distance_m_{0.02};
+    double plane_min_residual_threshold_m_{0.002};
+    double plane_robust_sigma_multiplier_{3.0};
+    int plane_iterations_{3};
+    double plane_max_normal_update_rad_{0.0872664626};
+    double plane_max_offset_update_m_{0.01};
+    int plane_min_points_{200};
+    int plane_pixel_stride_{2};
+    std::optional<DepthFrame> latest_depth_;
+    std::optional<CameraIntrinsics> camera_intrinsics_;
     bool filter_initialized_{false};
     tf2::Transform filtered_board_pose_;
 
     rclcpp::Subscription<aruco_opencv_msgs::msg::ArucoDetection>::SharedPtr
         detection_sub_;
+    rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr depth_sub_;
+    rclcpp::Subscription<sensor_msgs::msg::CameraInfo>::SharedPtr
+        camera_info_sub_;
     rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr
         pose_pub_;
     rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr visual_ee_pub_;
@@ -247,6 +343,305 @@ class PanelTracker : public rclcpp::Node {
             allowed_marker_ids_.size(),
             layout_yaml_path_.c_str()
         );
+    }
+
+    void validate_depth_refinement_parameters() const {
+        if (!std::isfinite(depth_max_age_s_) || depth_max_age_s_ <= 0.0 ||
+            !std::isfinite(plane_roi_margin_m_) || plane_roi_margin_m_ < 0.0 ||
+            plane_roi_margin_m_ * 2.0 >=
+                std::min(board_width_, board_height_) ||
+            !std::isfinite(plane_initial_distance_m_) ||
+            plane_initial_distance_m_ <= 0.0 ||
+            !std::isfinite(plane_min_residual_threshold_m_) ||
+            plane_min_residual_threshold_m_ <= 0.0 ||
+            !std::isfinite(plane_robust_sigma_multiplier_) ||
+            plane_robust_sigma_multiplier_ <= 0.0 ||
+            plane_iterations_ <= 0 ||
+            !std::isfinite(plane_max_normal_update_rad_) ||
+            plane_max_normal_update_rad_ <= 0.0 ||
+            !std::isfinite(plane_max_offset_update_m_) ||
+            plane_max_offset_update_m_ <= 0.0 ||
+            plane_min_points_ < 3 || plane_pixel_stride_ <= 0) {
+            throw std::invalid_argument("Invalid panel depth-refinement parameters");
+        }
+    }
+
+    void on_camera_info(
+        const sensor_msgs::msg::CameraInfo::SharedPtr message
+    ) {
+        if (message->width == 0 || message->height == 0 ||
+            message->k[0] <= 0.0 || message->k[4] <= 0.0) {
+            RCLCPP_WARN(get_logger(), "Ignoring invalid panel camera calibration");
+            return;
+        }
+        camera_intrinsics_ = CameraIntrinsics{
+            static_cast<int>(message->width),
+            static_cast<int>(message->height),
+            message->k[0],
+            message->k[4],
+            message->k[2],
+            message->k[5],
+        };
+    }
+
+    void on_depth(const sensor_msgs::msg::Image::SharedPtr message) {
+        try {
+            const auto image = cv_bridge::toCvShare(message);
+            cv::Mat meters;
+            if (message->encoding == sensor_msgs::image_encodings::TYPE_16UC1 ||
+                message->encoding == sensor_msgs::image_encodings::MONO16) {
+                image->image.convertTo(meters, CV_32FC1, 0.001);
+            } else if (
+                message->encoding == sensor_msgs::image_encodings::TYPE_32FC1
+            ) {
+                meters = image->image.clone();
+            } else {
+                RCLCPP_WARN_THROTTLE(
+                    get_logger(),
+                    *get_clock(),
+                    5000,
+                    "Unsupported panel depth encoding '%s'",
+                    message->encoding.c_str()
+                );
+                return;
+            }
+            latest_depth_ = DepthFrame{
+                rclcpp::Time(message->header.stamp), std::move(meters)
+            };
+        } catch (const std::exception &error) {
+            RCLCPP_WARN_THROTTLE(
+                get_logger(),
+                *get_clock(),
+                5000,
+                "Failed to decode panel depth: %s",
+                error.what()
+            );
+        }
+    }
+
+    static double median(std::vector<double> values) {
+        if (values.empty()) {
+            return 0.0;
+        }
+        const size_t middle = values.size() / 2;
+        std::nth_element(values.begin(), values.begin() + middle, values.end());
+        const double upper = values[middle];
+        if (values.size() % 2 != 0) {
+            return upper;
+        }
+        std::nth_element(
+            values.begin(), values.begin() + middle - 1, values.begin() + middle
+        );
+        return 0.5 * (values[middle - 1] + upper);
+    }
+
+    std::optional<PlaneFit> fit_panel_plane(
+        const std::vector<Eigen::Vector3d> &points,
+        const Eigen::Vector3d &prior_normal
+    ) const {
+        std::vector<size_t> inliers(points.size());
+        for (size_t index = 0; index < points.size(); ++index) {
+            inliers[index] = index;
+        }
+
+        PlaneFit fit{};
+        for (int iteration = 0; iteration < plane_iterations_; ++iteration) {
+            if (inliers.size() < static_cast<size_t>(plane_min_points_)) {
+                return std::nullopt;
+            }
+
+            Eigen::Vector3d centroid = Eigen::Vector3d::Zero();
+            for (const size_t index : inliers) {
+                centroid += points[index];
+            }
+            centroid /= static_cast<double>(inliers.size());
+
+            Eigen::Matrix3d covariance = Eigen::Matrix3d::Zero();
+            for (const size_t index : inliers) {
+                const Eigen::Vector3d centered = points[index] - centroid;
+                covariance += centered * centered.transpose();
+            }
+            covariance /= static_cast<double>(inliers.size());
+
+            const Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> solver(
+                covariance
+            );
+            if (solver.info() != Eigen::Success ||
+                solver.eigenvalues()[1] <= 1e-10) {
+                return std::nullopt;
+            }
+            fit.normal = solver.eigenvectors().col(0).normalized();
+            if (fit.normal.dot(prior_normal) < 0.0) {
+                fit.normal = -fit.normal;
+            }
+            fit.offset = -fit.normal.dot(centroid);
+            fit.inlier_count = inliers.size();
+
+            std::vector<double> absolute_residuals;
+            absolute_residuals.reserve(inliers.size());
+            double squared_residual = 0.0;
+            for (const size_t index : inliers) {
+                const double residual =
+                    fit.normal.dot(points[index]) + fit.offset;
+                absolute_residuals.push_back(std::abs(residual));
+                squared_residual += residual * residual;
+            }
+            fit.rms = std::sqrt(
+                squared_residual / static_cast<double>(inliers.size())
+            );
+
+            if (iteration + 1 >= plane_iterations_) {
+                break;
+            }
+            const double robust_sigma =
+                1.4826 * median(std::move(absolute_residuals));
+            const double threshold = std::max(
+                plane_min_residual_threshold_m_,
+                plane_robust_sigma_multiplier_ * robust_sigma
+            );
+            std::vector<size_t> trimmed;
+            trimmed.reserve(inliers.size());
+            for (const size_t index : inliers) {
+                if (std::abs(fit.normal.dot(points[index]) + fit.offset) <=
+                    threshold) {
+                    trimmed.push_back(index);
+                }
+            }
+            inliers = std::move(trimmed);
+        }
+        return fit;
+    }
+
+    std::optional<tf2::Transform> refine_with_depth(
+        const tf2::Transform &camera_to_board,
+        const rclcpp::Time &detection_stamp
+    ) {
+        if (!depth_refinement_enabled_ || !latest_depth_ ||
+            !camera_intrinsics_) {
+            return std::nullopt;
+        }
+        const double depth_age =
+            std::abs((detection_stamp - latest_depth_->stamp).seconds());
+        if (depth_age > depth_max_age_s_) {
+            return std::nullopt;
+        }
+
+        const cv::Mat &depth = latest_depth_->meters;
+        const CameraIntrinsics &intrinsics = *camera_intrinsics_;
+        if (depth.cols != intrinsics.width || depth.rows != intrinsics.height) {
+            RCLCPP_WARN_THROTTLE(
+                get_logger(),
+                *get_clock(),
+                5000,
+                "Depth dimensions %dx%d do not match camera info %dx%d",
+                depth.cols,
+                depth.rows,
+                intrinsics.width,
+                intrinsics.height
+            );
+            return std::nullopt;
+        }
+
+        const tf2::Transform board_to_camera = camera_to_board.inverse();
+        std::vector<Eigen::Vector3d> candidates;
+        candidates.reserve(
+            static_cast<size_t>(depth.rows * depth.cols) /
+            static_cast<size_t>(plane_pixel_stride_ * plane_pixel_stride_)
+        );
+        const double minimum_x = -0.5 * board_width_ + plane_roi_margin_m_;
+        const double maximum_x = 0.5 * board_width_ - plane_roi_margin_m_;
+        const double minimum_y = -0.5 * board_height_ + plane_roi_margin_m_;
+        const double maximum_y = 0.5 * board_height_ - plane_roi_margin_m_;
+        for (int row = 0; row < depth.rows; row += plane_pixel_stride_) {
+            const float *depth_values = depth.ptr<float>(row);
+            for (int column = 0; column < depth.cols;
+                 column += plane_pixel_stride_) {
+                const float range = depth_values[column];
+                if (!std::isfinite(range) || range <= 0.0F) {
+                    continue;
+                }
+                const tf2::Vector3 camera_point(
+                    (static_cast<double>(column) - intrinsics.center_x) /
+                        intrinsics.focal_x * range,
+                    (static_cast<double>(row) - intrinsics.center_y) /
+                        intrinsics.focal_y * range,
+                    range
+                );
+                const tf2::Vector3 board_point =
+                    board_to_camera * camera_point;
+                if (board_point.x() < minimum_x ||
+                    board_point.x() > maximum_x ||
+                    board_point.y() < minimum_y ||
+                    board_point.y() > maximum_y ||
+                    std::abs(board_point.z()) > plane_initial_distance_m_) {
+                    continue;
+                }
+                candidates.emplace_back(
+                    camera_point.x(), camera_point.y(), camera_point.z()
+                );
+            }
+        }
+        if (candidates.size() < static_cast<size_t>(plane_min_points_)) {
+            return std::nullopt;
+        }
+
+        const tf2::Vector3 prior_normal_tf =
+            camera_to_board.getBasis().getColumn(2).normalized();
+        const Eigen::Vector3d prior_normal(
+            prior_normal_tf.x(), prior_normal_tf.y(), prior_normal_tf.z()
+        );
+        const auto plane = fit_panel_plane(candidates, prior_normal);
+        if (!plane) {
+            return std::nullopt;
+        }
+
+        const double normal_angle = std::acos(std::clamp(
+            prior_normal.dot(plane->normal), -1.0, 1.0
+        ));
+        const tf2::Vector3 prior_origin_tf = camera_to_board.getOrigin();
+        const Eigen::Vector3d prior_origin(
+            prior_origin_tf.x(), prior_origin_tf.y(), prior_origin_tf.z()
+        );
+        const double signed_offset =
+            plane->normal.dot(prior_origin) + plane->offset;
+        if (normal_angle > plane_max_normal_update_rad_ ||
+            std::abs(signed_offset) > plane_max_offset_update_m_) {
+            return std::nullopt;
+        }
+
+        tf2::Transform refined = camera_to_board;
+        tf2::Quaternion normal_correction = tf2::Quaternion::getIdentity();
+        const tf2::Vector3 fitted_normal(
+            plane->normal.x(), plane->normal.y(), plane->normal.z()
+        );
+        tf2::Vector3 rotation_axis = prior_normal_tf.cross(fitted_normal);
+        if (rotation_axis.length2() > 1e-12) {
+            rotation_axis.normalize();
+            normal_correction.setRotation(rotation_axis, normal_angle);
+        }
+        tf2::Quaternion refined_rotation =
+            normal_correction * camera_to_board.getRotation();
+        refined_rotation.normalize();
+        refined.setRotation(refined_rotation);
+        const Eigen::Vector3d refined_origin =
+            prior_origin - signed_offset * plane->normal;
+        refined.setOrigin(tf2::Vector3(
+            refined_origin.x(), refined_origin.y(), refined_origin.z()
+        ));
+
+        RCLCPP_INFO_THROTTLE(
+            get_logger(),
+            *get_clock(),
+            2000,
+            "Depth plane refined panel from %zu/%zu points: rms=%.4f m, "
+            "normal_update=%.2f deg, offset=%.4f m",
+            plane->inlier_count,
+            candidates.size(),
+            plane->rms,
+            normal_angle * 180.0 / M_PI,
+            signed_offset
+        );
+        return refined;
     }
 
     bool apply_marker_ids(
@@ -846,14 +1241,20 @@ class PanelTracker : public rclcpp::Node {
             return;
         }
 
-        const tf2::Transform averaged_measurement =
+        const tf2::Transform averaged_camera_to_board =
             average_transforms(board_estimates);
-        const tf2::Transform filtered_measurement =
-            apply_ema(averaged_measurement);
-        const auto covariance =
-            estimate_covariance(board_estimates, averaged_measurement, used_markers);
+        const tf2::Transform camera_to_board =
+            refine_with_depth(averaged_camera_to_board, stamp)
+                .value_or(averaged_camera_to_board);
+        const tf2::Transform tracking_to_board_measurement =
+            t_tracking_camera * camera_to_board;
         const tf2::Transform filtered_tracking_board =
-            t_tracking_camera * filtered_measurement;
+            apply_ema(tracking_to_board_measurement);
+        const tf2::Transform filtered_camera_to_board =
+            t_tracking_camera.inverse() * filtered_tracking_board;
+        const auto covariance = estimate_covariance(
+            board_estimates, averaged_camera_to_board, used_markers
+        );
 
         geometry_msgs::msg::TransformStamped board_tf;
         board_tf.header.stamp = stamp;
@@ -875,7 +1276,7 @@ class PanelTracker : public rclcpp::Node {
             const tf2::Transform camera_to_ee =
                 average_transforms(camera_to_ee_estimates);
             const tf2::Transform panel_to_ee =
-                filtered_measurement.inverse() * camera_to_ee;
+                filtered_camera_to_board.inverse() * camera_to_ee;
             geometry_msgs::msg::PoseStamped visual_ee;
             visual_ee.header.stamp = stamp;
             visual_ee.header.frame_id = board_frame_;
