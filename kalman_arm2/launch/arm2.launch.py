@@ -457,7 +457,7 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument(
                 "panel_left_border_m",
-                default_value="0.05",
+                default_value="0.15",
                 description="Extra view outside the YAML panel boundary on its left.",
             ),
             DeclareLaunchArgument(
