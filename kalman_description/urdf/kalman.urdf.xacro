@@ -10,6 +10,22 @@
             <child link="base_footprint" />
         </joint>
 
+        <link name="rock_box">
+            <visual>
+                <origin xyz="0 0 0.05" rpy="0 0 0" />
+                <geometry>
+                    <box size="0.17 0.26 0.17" />
+                </geometry>
+                <material name="rock_box_mat">
+                    <color rgba="0.9 0.9 0.9 1" />
+                </material>
+            </visual>
+        </link>
+        <joint name="base_to_rock_box_joint" type="fixed">
+            <parent link="base_link" />
+            <child link="rock_box" />
+            <origin xyz="-0.28 0.0 0.1" rpy="0 0 0" />
+        </joint>
         <!-- additional robot model -->
         <xacro:include filename="$(find kalman_description)/urdf/visual_model.urdf.xacro" />
         <xacro:visual_model base_link="base_link" />
