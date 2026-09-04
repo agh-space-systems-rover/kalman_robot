@@ -104,18 +104,18 @@ def launch_setup(context):
 
 
     # Gamepad control node
-    actions += [
-        Node(
-            package="kalman_arm2",
-            executable="gamepad_control",
-            namespace="arm",
-            remappings=[
-                ("joy", "/joy"),
-                ("target_twist", "target_twist"),
-                ("jaw_vel", "target_vel/jaw"),
-            ],
-        )
-    ]
+    # actions += [
+    #     Node(
+    #         package="kalman_arm2",
+    #         executable="gamepad_control",
+    #         namespace="arm",
+    #         remappings=[
+    #             ("joy", "/joy"),
+    #             ("target_twist", "target_twist"),
+    #             ("jaw_vel", "target_vel/jaw"),
+    #         ],
+    #     )
+    # ]
 
     actions += launch_node_or_load_component(
         component_container=component_container,
