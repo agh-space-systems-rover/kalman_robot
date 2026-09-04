@@ -52,8 +52,8 @@ const readDrillMovement = () => {
 
     const settings = getDrillGamepadSettings(pad.id);
     const dpadRack = readDpadAxis(
-      isPressed(readGamepad(pad, 'dpad-up')),
       isPressed(readGamepad(pad, 'dpad-down')),
+      isPressed(readGamepad(pad, 'dpad-up')),
       settings.rackArrow
     );
     const dpadDrill = readDpadAxis(
@@ -62,7 +62,7 @@ const readDrillMovement = () => {
       settings.drillArrow
     );
 
-    rack += dpadRack ?? clamp(readGamepad(pad, 'left-y'), settings.rackStick);
+    rack += dpadRack ?? clamp(-readGamepad(pad, 'left-y'), settings.rackStick);
     drill += dpadDrill ?? clamp(readGamepad(pad, 'right-x'), settings.drillStick);
     drillGamepadsCount++;
   }
