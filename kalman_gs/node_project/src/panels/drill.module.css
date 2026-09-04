@@ -137,6 +137,11 @@
   background-color: var(--red-foreground) !important;
 }
 
+.danger-button-selected {
+  background-color: var(--red-foreground) !important;
+  box-shadow: inset 0 0 0 2px var(--foreground);
+}
+
 .received-text {
   color: var(--foreground);
   font-size: 0.8rem;

@@ -326,7 +326,7 @@ export default function Drill() {
 
   const autonomyStates = [
     { label: 'Stop', value: AutonomyState.Stop, icon: faStop, tooltip: 'Send stop command' },
-    { label: 'Start', value: AutonomyState.Start, icon: faPlay, tooltip: 'Start autonomy' },
+    { label: 'Autonomy', value: AutonomyState.Start, icon: faPlay, tooltip: 'Start autonomy' },
     {
       label: 'Autonomy Stop',
       value: AutonomyState.AutonomyStop,
@@ -577,11 +577,15 @@ export default function Drill() {
             {autonomyStates.map((state) => (
               <Button
                 key={state.value}
-                className={
-                  state.value === AutonomyState.AutonomyStop
-                    ? `${styles['large-button']} ${styles['danger-button']}`
-                    : styles['large-button']
-                }
+                className={[
+                  styles['large-button'],
+                  state.value === AutonomyState.Stop ? styles['danger-button'] : '',
+                  state.value === AutonomyState.Stop && selectedAutonomy === state.value
+                    ? styles['danger-button-selected']
+                    : ''
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
                 active={selectedAutonomy === state.value}
                 tooltip={state.tooltip}
                 onClick={() => publishAutonomy(state.value)}

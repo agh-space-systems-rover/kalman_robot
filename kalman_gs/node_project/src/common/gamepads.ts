@@ -1,7 +1,6 @@
 import { GamepadInput, readGamepad } from './gamepad-compat';
 
 type GamepadMode = 'none' | 'wheels' | 'arm' | 'drill';
-const gamepadModes: GamepadMode[] = ['none', 'wheels', 'arm', 'drill'];
 
 type GamepadEntry = {
   pad: Gamepad;
@@ -42,8 +41,7 @@ const connectGamepads = () => {
     }
 
     if (readGamepad(pad, 'mode') && !oldModeButtonState.get(pad.id)) {
-      const nextIndex = (gamepadModes.indexOf(entry.mode) + 1) % gamepadModes.length;
-      entry.mode = gamepadModes[nextIndex];
+      entry.mode = 'drill';
     }
 
     oldModeButtonState.set(pad.id, readGamepad(pad, 'mode'));

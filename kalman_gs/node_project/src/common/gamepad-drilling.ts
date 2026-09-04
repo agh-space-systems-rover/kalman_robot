@@ -36,16 +36,22 @@ const WEIGHT_BUTTONS = [
 const clamp = (value: number, max: number) => Math.max(-max, Math.min(max, Math.round(value * max)));
 const isPressed = (value: number) => value > BUTTON_THRESHOLD;
 
-const readDpadAxis = (
-  positiveButton: 'dpad-up' | 'dpad-right',
-  negativeButton: 'dpad-down' | 'dpad-left',
-  max: number
-) => {
-  const positivePressed = readGamepads(positiveButton, 'drill') > 0;
-  const negativePressed = readGamepads(negativeButton, 'drill') > 0;
-
-  if (positivePressed === negativePressed) return undefined;
+const readDpadAxis = (positivePressed: boolean, negativePressed: boolean, max: number) => {
+  if (!positivePressed && !negativePressed) return undefined;
+  if (positivePressed && negativePressed) return 0;
   return positivePressed ? max : -max;
+};
+
+const readDpad = () => {
+  const up = isPressed(readGamepads('dpad-up', 'drill'));
+  const down = isPressed(readGamepads('dpad-down', 'drill'));
+  const left = isPressed(readGamepads('dpad-left', 'drill'));
+  const right = isPressed(readGamepads('dpad-right', 'drill'));
+
+  return {
+    rack: readDpadAxis(up, down, RACK_MAX_SPEED),
+    drill: readDpadAxis(right, left, DRILL_MAX_DUTY)
+  };
 };
 
 const dispatchDrillGamepadUpdate = (detail: DrillGamepadUpdate) => {
@@ -80,10 +86,9 @@ window.addEventListener('ros-connect', () => {
   const lastWeightButtonValues = new Map<(typeof WEIGHT_BUTTONS)[number]['input'], number>();
 
   window.setInterval(() => {
-    const rack =
-      readDpadAxis('dpad-up', 'dpad-down', RACK_MAX_SPEED) ?? clamp(readGamepads('left-y', 'drill'), RACK_MAX_SPEED);
-    const drill =
-      readDpadAxis('dpad-right', 'dpad-left', DRILL_MAX_DUTY) ?? clamp(readGamepads('left-x', 'drill'), DRILL_MAX_DUTY);
+    const dpad = readDpad();
+    const rack = dpad.rack ?? clamp(readGamepads('left-y', 'drill'), RACK_MAX_SPEED);
+    const drill = dpad.drill ?? clamp(readGamepads('right-x', 'drill'), DRILL_MAX_DUTY);
 
     if (rack !== lastRack) {
       rackTopic.publish({ data: rack });
