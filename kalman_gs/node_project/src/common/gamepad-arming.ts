@@ -1,4 +1,3 @@
-import { audioLoop } from '../indicators/interstellar';
 import { GamepadInput } from './gamepad-compat';
 import { readGamepads } from './gamepads';
 import { ros } from './ros';
@@ -109,7 +108,6 @@ function translateGamepadToCommand({ type, input, mapping }: JointBind) {
 }
 
 let previousArmButtons = new Map<GamepadInput, number>();
-let dpadLeftDown = false;
 
 export let armJointsLocks = {
   'joint_1': false,
@@ -181,11 +179,5 @@ window.addEventListener('ros-connect', () => {
 
     msg = resetLockedJoints(msg);
     fkTopic.publish(msg);
-
-    // Extra stupid feature for ARCh 2025
-    if (readGamepads('dpad-left', 'arm') == 1 && !dpadLeftDown) {
-      audioLoop.togglePlayback();
-    }
-    dpadLeftDown = readGamepads('dpad-left', 'arm') > 0.5;
   }, 1000 / RATE);
 });
