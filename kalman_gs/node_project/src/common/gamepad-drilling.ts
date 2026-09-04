@@ -1,10 +1,10 @@
-import { readGamepads } from './gamepads';
+import { readGamepad } from './gamepad-compat';
+import { getDrillGamepadSettings } from './gamepad-drilling-settings';
+import { gamepads, readGamepads } from './gamepads';
 import { ros } from './ros';
 import { Topic } from 'roslib';
 
 const RATE = 10;
-const RACK_MAX_SPEED = 20;
-const DRILL_MAX_DUTY = 100;
 const BUTTON_THRESHOLD = 0.5;
 
 enum AutonomyState {
@@ -42,15 +42,34 @@ const readDpadAxis = (positivePressed: boolean, negativePressed: boolean, max: n
   return positivePressed ? max : -max;
 };
 
-const readDpad = () => {
-  const up = isPressed(readGamepads('dpad-up', 'drill'));
-  const down = isPressed(readGamepads('dpad-down', 'drill'));
-  const left = isPressed(readGamepads('dpad-left', 'drill'));
-  const right = isPressed(readGamepads('dpad-right', 'drill'));
+const readDrillMovement = () => {
+  let rack = 0;
+  let drill = 0;
+  let drillGamepadsCount = 0;
+
+  for (const { pad, mode } of gamepads.values()) {
+    if (mode !== 'drill') continue;
+
+    const settings = getDrillGamepadSettings(pad.id);
+    const dpadRack = readDpadAxis(
+      isPressed(readGamepad(pad, 'dpad-up')),
+      isPressed(readGamepad(pad, 'dpad-down')),
+      settings.rackArrow
+    );
+    const dpadDrill = readDpadAxis(
+      isPressed(readGamepad(pad, 'dpad-right')),
+      isPressed(readGamepad(pad, 'dpad-left')),
+      settings.drillArrow
+    );
+
+    rack += dpadRack ?? clamp(readGamepad(pad, 'left-y'), settings.rackStick);
+    drill += dpadDrill ?? clamp(readGamepad(pad, 'right-x'), settings.drillStick);
+    drillGamepadsCount++;
+  }
 
   return {
-    rack: readDpadAxis(up, down, RACK_MAX_SPEED),
-    drill: readDpadAxis(right, left, DRILL_MAX_DUTY)
+    rack: Math.round(rack / Math.max(drillGamepadsCount, 1)),
+    drill: Math.round(drill / Math.max(drillGamepadsCount, 1))
   };
 };
 
@@ -86,9 +105,7 @@ window.addEventListener('ros-connect', () => {
   const lastWeightButtonValues = new Map<(typeof WEIGHT_BUTTONS)[number]['input'], number>();
 
   window.setInterval(() => {
-    const dpad = readDpad();
-    const rack = dpad.rack ?? clamp(readGamepads('left-y', 'drill'), RACK_MAX_SPEED);
-    const drill = dpad.drill ?? clamp(readGamepads('right-x', 'drill'), DRILL_MAX_DUTY);
+    const { rack, drill } = readDrillMovement();
 
     if (rack !== lastRack) {
       rackTopic.publish({ data: rack });

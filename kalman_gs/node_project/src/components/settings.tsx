@@ -1,6 +1,14 @@
 import styles from './settings.module.css';
 
 import { BackgroundImage, getBackgroundImagesLabel, setBackgroundImages } from '../common/background-images';
+import {
+  DEFAULT_DRILL_GAMEPAD_SETTINGS,
+  DrillGamepadSetting,
+  getDrillGamepadSettings,
+  resetDrillGamepadSetting,
+  setDrillGamepadSetting
+} from '../common/gamepad-drilling-settings';
+import { gamepads, getGamepadName } from '../common/gamepads';
 import { keybinds, resetAllKeybinds, resetKeybind, setKeybind } from '../common/keybinds';
 import { Theme, currentTheme, setTheme } from '../common/themes';
 import Button from './button';
@@ -10,7 +18,9 @@ import Input from './input';
 import { faRaspberryPi } from '@fortawesome/free-brands-svg-icons';
 import {
   faBan,
+  faCircleInfo,
   faCloudMoon,
+  faGamepad,
   faKeyboard,
   faPalette,
   faPhotoFilm,
@@ -19,7 +29,63 @@ import {
   faXmark
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Component } from 'react';
+import { Component, useState } from 'react';
+
+const GAMEPAD_SETTING_INPUTS: { setting: DrillGamepadSetting; tooltip: string }[] = [
+  { setting: 'rackStick', tooltip: 'Maximum rack value from the left stick.' },
+  { setting: 'drillStick', tooltip: 'Maximum drill value from the right stick.' },
+  { setting: 'rackArrow', tooltip: 'Maximum rack value from the up/down arrows.' },
+  { setting: 'drillArrow', tooltip: 'Maximum drill value from the left/right arrows.' }
+];
+
+function GamepadSettingInput({
+  gamepadId,
+  setting,
+  tooltip
+}: (typeof GAMEPAD_SETTING_INPUTS)[number] & {
+  gamepadId: string;
+}) {
+  const [value, setValue] = useState(() => String(getDrillGamepadSettings(gamepadId)[setting]));
+
+  const commit = () => {
+    setValue(String(setDrillGamepadSetting(gamepadId, setting, value)));
+  };
+
+  return (
+    <div className={styles['gamepad-setting']}>
+      <Button className={styles['gamepad-setting-button']} tooltip={tooltip}>
+        <FontAwesomeIcon icon={faCircleInfo} />
+      </Button>
+      <div className={styles['gamepad-setting-input']}>
+        <input
+          type='number'
+          min='0'
+          max={DEFAULT_DRILL_GAMEPAD_SETTINGS[setting]}
+          step='1'
+          value={value}
+          aria-label={tooltip}
+          onChange={(event) => setValue(event.currentTarget.value)}
+          onBlur={commit}
+          onKeyDown={(event) => {
+            event.stopPropagation();
+            if (event.key === 'Enter') event.currentTarget.blur();
+            if (event.key === 'Escape') {
+              setValue(String(getDrillGamepadSettings(gamepadId)[setting]));
+              event.currentTarget.blur();
+            }
+          }}
+        />
+      </div>
+      <Button
+        className={styles['gamepad-setting-button']}
+        tooltip='Reset value'
+        onClick={() => setValue(String(resetDrillGamepadSetting(gamepadId, setting)))}
+      >
+        <FontAwesomeIcon icon={faRefresh} />
+      </Button>
+    </div>
+  );
+}
 
 function keyCodeToName(code: string) {
   if (code === null) {
@@ -85,6 +151,7 @@ type State = {
   listeningForNewKeybind: string | null;
   searchTerm: string;
   backgroundImagesLabel: string | null;
+  connectedGamepadIds: string[];
 };
 
 export default class Settings extends Component<{}, State> {
@@ -92,9 +159,30 @@ export default class Settings extends Component<{}, State> {
     shown: false,
     listeningForNewKeybind: null,
     searchTerm: '',
-    backgroundImagesLabel: getBackgroundImagesLabel()
+    backgroundImagesLabel: getBackgroundImagesLabel(),
+    connectedGamepadIds: Array.from(gamepads.keys())
   };
   state = Settings.defaultState;
+
+  componentDidMount() {
+    window.addEventListener('gamepads-connect', this.gamepadsConnectHandler);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('gamepads-connect', this.gamepadsConnectHandler);
+    window.removeEventListener('keydown', this.escHandler);
+    window.removeEventListener('keydown', this.keyListener);
+    window.removeEventListener('mousedown', this.clickToStopListeningForNewKeybindListener);
+  }
+
+  gamepadsConnectHandler = () => {
+    const connectedGamepadIds = Array.from(gamepads.keys());
+    const idsChanged =
+      connectedGamepadIds.length !== this.state.connectedGamepadIds.length ||
+      connectedGamepadIds.some((id, index) => id !== this.state.connectedGamepadIds[index]);
+
+    if (idsChanged) this.setState({ connectedGamepadIds });
+  };
 
   escHandler = (e: KeyboardEvent) => {
     if (e.key === 'Escape') {
@@ -115,7 +203,8 @@ export default class Settings extends Component<{}, State> {
       shown: true,
       listeningForNewKeybind: null,
       searchTerm: '',
-      backgroundImagesLabel: getBackgroundImagesLabel()
+      backgroundImagesLabel: getBackgroundImagesLabel(),
+      connectedGamepadIds: Array.from(gamepads.keys())
     });
     window.addEventListener('keydown', this.escHandler);
     // Reset scroll in scrollable-options
@@ -231,6 +320,14 @@ export default class Settings extends Component<{}, State> {
       )
       .filter((e) => e); // filter() removes falsy (not searched for) values
 
+    const showGamepads =
+      this.state.connectedGamepadIds.length > 0 &&
+      this.isSearchedFor(
+        `gamepads controller max rack drill drilling stick arrow ${this.state.connectedGamepadIds
+          .map(getGamepadName)
+          .join(' ')}`
+      );
+
     return (
       <div
         className={styles['settings-bg'] + (this.state.shown ? ` ${styles['shown']}` : '')}
@@ -305,6 +402,28 @@ export default class Settings extends Component<{}, State> {
                 </>
               )}
               {searchedKeybinds}
+              {showGamepads && (
+                <>
+                  <h2>
+                    <FontAwesomeIcon icon={faGamepad} />
+                    &nbsp;&nbsp;Gamepads
+                  </h2>
+                  {this.state.connectedGamepadIds.map((gamepadId) => (
+                    <div className={styles['gamepad-settings']} key={gamepadId}>
+                      <div className={styles['gamepad-settings-row']}>
+                        <div className={styles['gamepad-name']} title={gamepadId}>
+                          {getGamepadName(gamepadId)}
+                        </div>
+                        <div className={styles['gamepad-settings-inputs']}>
+                          {GAMEPAD_SETTING_INPUTS.map((input) => (
+                            <GamepadSettingInput gamepadId={gamepadId} key={input.setting} {...input} />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </>
+              )}
               {this.isSearchedFor('background image anime') && (
                 <>
                   <h2>

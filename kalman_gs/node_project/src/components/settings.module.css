@@ -22,8 +22,8 @@
 }
 
 .settings {
-  width: 800px;
-  height: 500px;
+  width: min(800px, calc(100% - 40px));
+  height: min(500px, calc(100% - 40px));
   background-color: var(--background);
   border-radius: 10px;
   margin: 20px;
@@ -119,6 +119,114 @@
 .keybind-value-listening {
   background-color: var(--dark-active) !important;
   animation: blinker 1s linear infinite;
+}
+
+.gamepad-settings {
+  margin: -5px 0 5px;
+}
+
+.gamepad-settings-row {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.gamepad-name {
+  flex: 0 1 240px;
+  min-width: 0;
+  margin: 5px;
+  overflow: hidden;
+  color: var(--strong-foreground);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gamepad-settings-inputs {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.gamepad-setting {
+  display: flex;
+  min-width: 0;
+}
+
+.gamepad-setting-button {
+  flex: 0 0 calc(1em + 4px);
+}
+
+.gamepad-setting-input {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  height: calc(1em + 4px);
+  padding: 3px;
+  margin: 5px 0;
+  background-color: var(--dark-background);
+  border-right: 1px solid var(--background);
+}
+
+.gamepad-setting-input input {
+  width: 100%;
+  min-width: 0;
+  height: calc(100% - 6px);
+  padding: 2px 2px 4px;
+  color: var(--strong-foreground);
+  font-family: inherit;
+  text-align: center;
+  appearance: textfield;
+  background-color: transparent;
+  border: none;
+  outline: none;
+}
+
+.gamepad-setting-input input::-webkit-inner-spin-button,
+.gamepad-setting-input input::-webkit-outer-spin-button {
+  margin: 0;
+  appearance: none;
+}
+
+@media (max-width: 700px) {
+  .gamepad-settings-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .gamepad-name {
+    flex-basis: auto;
+  }
+
+  .gamepad-settings-inputs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 450px) {
+  .settings {
+    width: calc(100% - 20px);
+    height: calc(100% - 20px);
+    margin: 10px;
+  }
+
+  .content {
+    padding: 10px;
+    height: calc(100% - 20px);
+  }
+
+  .static-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-input-parent {
+    padding-left: 0;
+  }
+
+  .gamepad-settings-inputs {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 @keyframes blinker {

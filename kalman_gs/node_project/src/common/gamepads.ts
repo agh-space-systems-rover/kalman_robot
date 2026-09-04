@@ -79,4 +79,11 @@ function readGamepads(input: GamepadInput, padMode: GamepadMode): number {
   return value / Math.max(numPads, 1);
 }
 
-export { gamepads, GamepadMode, setGamepadMode, readGamepads };
+function getGamepadName(id: string) {
+  // Remove hex-hex- prefix (Firefox)
+  id = id.replace(/^[0-9a-f]{4}-[0-9a-f]{4}-/, '');
+  // Remove (...) suffix (Chromium)
+  return id.replace(/ \(.*\)$/, '');
+}
+
+export { gamepads, GamepadMode, getGamepadName, setGamepadMode, readGamepads };

@@ -1,6 +1,6 @@
 import styles from './gamepad-selector.module.css';
 
-import { GamepadMode, gamepads, setGamepadMode } from '../common/gamepads';
+import { GamepadMode, gamepads, getGamepadName, setGamepadMode } from '../common/gamepads';
 import {
   faGamepad,
   faProjectDiagram,
@@ -39,14 +39,6 @@ const modeAppearance: ModeAppearance = {
   }
 };
 
-function getPadName(id: string) {
-  // Remove hex-hex- prefix (Firefox)
-  id = id.replace(/^[0-9a-f]{4}-[0-9a-f]{4}-/, '');
-  // Remove (...) suffix (Chromium)
-  id = id.replace(/ \(.*\)$/, '');
-  return id;
-}
-
 export default function GamepadSelector() {
   const [_, setRerenderCount] = useState(0);
 
@@ -74,7 +66,7 @@ export default function GamepadSelector() {
           }))}
           openOnClick={true}
           className={styles['gamepad-selector']}
-          tooltip={getPadName(pad.id)}
+          tooltip={getGamepadName(pad.id)}
         >
           <FontAwesomeIcon icon={faGamepad} className={styles['gamepad-icon']} />
           <FontAwesomeIcon icon={modeAppearance[mode].icon} className={styles['mode-icon']} />
