@@ -6,17 +6,15 @@ import {
   faArrowDown,
   faArrowLeft,
   faArrowRight,
+  faArrowRotateRight,
   faArrowUp,
-  faBoxOpen,
-  faBroom,
-  faDoorClosed,
-  faDoorOpen,
   faHouse,
   faMinus,
   faPaperPlane,
+  faPlay,
   faPlus,
-  faScrewdriverWrench,
-  faStop
+  faStop,
+  faWeightHanging
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useEffect, useRef, useState } from 'react';
@@ -26,52 +24,96 @@ import Button from '../components/button';
 import Input from '../components/input';
 import Label from '../components/label';
 
-let drillBTopic: Topic<{ data: number }> | undefined;
-let drillCTopic: Topic<{ data: number }> | undefined;
-let drillStateTopic: Topic<{ data: number }> | undefined;
-let drillTelemetryTopic: Topic<DrillTelemetry> | undefined;
+const RACK_MIN = -20;
+const RACK_MAX = 20;
+const DRILL_MIN = -100;
+const DRILL_MAX = 100;
+const DRILL_TO_GROUND_CM = 35;
+const SERVO_MIN_ANGLE = 0;
+const SERVO_MAX_ANGLE = 270;
+const SERVO_CHANNELS = [0, 3, 5, 10, 12, 15] as const;
+type ServoChannel = (typeof SERVO_CHANNELS)[number];
 
-enum DrillState {
+const INITIAL_SERVO_ANGLES: Record<ServoChannel, number> = {
+  0: 0,
+  3: 0,
+  5: 0,
+  10: 0,
+  12: 0,
+  15: 0
+};
+
+let rackTopic: Topic<{ data: number }> | undefined;
+let drillTopic: Topic<{ data: number }> | undefined;
+let servoTopic: Topic<{ data: number[] }> | undefined;
+let weightCmdTopic: Topic<{ data: number }> | undefined;
+let autonomyTopic: Topic<{ data: number }> | undefined;
+let drillTelemetryTopic: Topic<DrillTelemetry> | undefined;
+let drillWeightTopic: Topic<{ data: number }> | undefined;
+
+const AUTONOMY_STATE_NAMES = [
+  'Idle',
+  'Homing',
+  'Lowering drill',
+  'Drilling',
+  'Stopping motor',
+  'Retracting',
+  'Measuring',
+  'Done',
+  'Error'
+] as const;
+
+enum AutonomyState {
   Stop = 0,
-  DrillingSite1 = 1,
-  DrillingSite2 = 2,
-  Home = 3,
-  ClosingTubesSite1 = 4,
-  ClosingTubesSite2 = 5,
-  CleaningDrill = 6,
-  OpeningTubesSite1 = 7,
-  OpeningTubesSite2 = 8,
-  OpeningTubesBothSites = 9
+  Start = 1,
+  AutonomyStop = 2,
+  Home = 3
 }
 
 type DrillGamepadUpdate = {
-  bridgeB?: number;
-  bridgeC?: number;
-  state?: DrillState;
+  rack?: number;
+  drill?: number;
+  autonomy?: AutonomyState;
+  weightCommand?: 0 | 1;
 };
 
 const ensureDrillTopics = () => {
   if (!ros.isConnected) return;
 
-  drillBTopic ??= new Topic({
+  rackTopic ??= new Topic({
     ros,
-    name: '/science/drill/b',
+    name: '/science/drill/rack',
     messageType: 'std_msgs/Int8'
   });
-  drillCTopic ??= new Topic({
+  drillTopic ??= new Topic({
     ros,
-    name: '/science/drill/c',
+    name: '/science/drill/drill',
     messageType: 'std_msgs/Int8'
   });
-  drillStateTopic ??= new Topic({
+  servoTopic ??= new Topic({
     ros,
-    name: '/science/drill/state',
+    name: '/science/drill/servo',
+    messageType: 'std_msgs/UInt16MultiArray'
+  });
+  weightCmdTopic ??= new Topic({
+    ros,
+    name: '/science/drill/weight/cmd',
+    messageType: 'std_msgs/UInt8'
+  });
+  autonomyTopic ??= new Topic({
+    ros,
+    name: '/science/drill/autonomy',
     messageType: 'std_msgs/UInt8'
   });
   drillTelemetryTopic ??= new Topic({
     ros,
     name: '/science/drill/telemetry',
     messageType: 'kalman_interfaces/DrillTelemetry'
+  });
+  drillWeightTopic ??= new Topic({
+    ros,
+    name: '/science/drill/weight',
+    messageType: 'std_msgs/Float32'
   });
 };
 
@@ -80,37 +122,52 @@ window.addEventListener('ros-connect', () => {
   window.dispatchEvent(new CustomEvent('drill-subscribed'));
 });
 
+const normalizeInteger = (value: unknown, min: number, max: number, fallback: number) => {
+  const parsedValue = typeof value === 'number' ? value : parseFloat(String(value));
+  if (!Number.isFinite(parsedValue)) return fallback;
+  return Math.max(min, Math.min(Math.round(parsedValue), max));
+};
+
 export default function Drill() {
-  const bInputRef = useRef<Input>(null);
-  const cInputRef = useRef<Input>(null);
-  const bSkipBlurRef = useRef(false);
-  const cSkipBlurRef = useRef(false);
-  const [bValue, setBValue] = useState(0);
-  const [cValue, setCValue] = useState(0);
-  const [selectedState, setSelectedState] = useState<DrillState | null>(null);
+  const rackInputRef = useRef<Input>(null);
+  const drillInputRef = useRef<Input>(null);
+  const servoInputRefs = useRef<Partial<Record<ServoChannel, Input | null>>>({});
+  const rackSkipBlurRef = useRef(false);
+  const drillSkipBlurRef = useRef(false);
+  const servoSkipBlurRefs = useRef<Partial<Record<ServoChannel, boolean>>>({});
+
+  const [rackValue, setRackValue] = useState(0);
+  const [drillValue, setDrillValue] = useState(0);
+  const [servoAngles, setServoAngles] = useState(INITIAL_SERVO_ANGLES);
+  const [selectedAutonomy, setSelectedAutonomy] = useState<AutonomyState | null>(null);
+  const [activeWeightCommand, setActiveWeightCommand] = useState<0 | 1 | null>(null);
   const [telemetry, setTelemetry] = useState<DrillTelemetry | null>(null);
+  const [weight, setWeight] = useState<number | null>(null);
   const [lastTelemetryAt, setLastTelemetryAt] = useState<number | null>(null);
-  const [secondsSinceTelemetry, setSecondsSinceTelemetry] = useState<number | null>(null);
+  const [lastWeightAt, setLastWeightAt] = useState<number | null>(null);
+  const [now, setNow] = useState(Date.now());
   const [rerenderCount, setRerenderCount] = useState(0);
 
   useEffect(() => {
-    const updateDrill = () => {
-      setRerenderCount((count) => count + 1);
-    };
+    const updateDrill = () => setRerenderCount((count) => count + 1);
     const updateFromGamepad = (event: Event) => {
       const detail = (event as CustomEvent<DrillGamepadUpdate>).detail;
-      if (detail.bridgeB !== undefined) {
-        setBValue(detail.bridgeB);
-        bInputRef.current?.setValue(detail.bridgeB);
+      if (detail.rack !== undefined) {
+        setRackValue(detail.rack);
+        rackInputRef.current?.setValue(detail.rack);
       }
-      if (detail.bridgeC !== undefined) {
-        setCValue(detail.bridgeC);
-        cInputRef.current?.setValue(detail.bridgeC);
+      if (detail.drill !== undefined) {
+        setDrillValue(detail.drill);
+        drillInputRef.current?.setValue(detail.drill);
       }
-      if (detail.state !== undefined) {
-        setSelectedState(detail.state);
+      if (detail.autonomy !== undefined) setSelectedAutonomy(detail.autonomy);
+      if (detail.weightCommand !== undefined) {
+        const command = detail.weightCommand;
+        setActiveWeightCommand(command);
+        window.setTimeout(() => setActiveWeightCommand((active) => (active === command ? null : active)), 200);
       }
     };
+
     ensureDrillTopics();
     window.addEventListener('drill-subscribed', updateDrill);
     window.addEventListener('drill-gamepad-update', updateFromGamepad);
@@ -124,178 +181,171 @@ export default function Drill() {
   useEffect(() => {
     setTelemetry(null);
     setLastTelemetryAt(null);
-    setSecondsSinceTelemetry(null);
-
     ensureDrillTopics();
-
-    const telemetryTopic = drillTelemetryTopic;
 
     const telemetryCb = (msg: DrillTelemetry) => {
       setTelemetry(msg);
       setLastTelemetryAt(Date.now());
-      setSecondsSinceTelemetry(0);
     };
 
-    telemetryTopic?.subscribe(telemetryCb);
+    drillTelemetryTopic?.subscribe(telemetryCb);
     return () => {
-      telemetryTopic?.unsubscribe(telemetryCb);
+      drillTelemetryTopic?.unsubscribe(telemetryCb);
     };
   }, [rerenderCount]);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setSecondsSinceTelemetry(lastTelemetryAt === null ? null : Math.floor((Date.now() - lastTelemetryAt) / 1000));
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [lastTelemetryAt]);
-
-  const site1States = [
-    {
-      label: 'Drill',
-      value: DrillState.DrillingSite1,
-      icon: faScrewdriverWrench,
-      tooltip: 'Start drilling at site 1'
-    },
-    { label: 'Close', value: DrillState.ClosingTubesSite1, icon: faDoorClosed, tooltip: 'Close tubes at site 1' },
-    { label: 'Open', value: DrillState.OpeningTubesSite1, icon: faDoorOpen, tooltip: 'Open tubes at site 1' }
-  ] as const;
-
-  const site2States = [
-    {
-      label: 'Drill',
-      value: DrillState.DrillingSite2,
-      icon: faScrewdriverWrench,
-      tooltip: 'Start drilling at site 2'
-    },
-    { label: 'Close', value: DrillState.ClosingTubesSite2, icon: faDoorClosed, tooltip: 'Close tubes at site 2' },
-    { label: 'Open', value: DrillState.OpeningTubesSite2, icon: faDoorOpen, tooltip: 'Open tubes at site 2' }
-  ] as const;
-
-  const generalStates = [
-    { label: 'Stop', value: DrillState.Stop, icon: faStop, tooltip: 'Stop the drill' },
-    { label: 'Home', value: DrillState.Home, icon: faHouse, tooltip: 'Home the drill' },
-    { label: 'Clean', value: DrillState.CleaningDrill, icon: faBroom, tooltip: 'Clean the drill' },
-    {
-      label: 'Open Both',
-      value: DrillState.OpeningTubesBothSites,
-      icon: faBoxOpen,
-      tooltip: 'Open tubes at both sites'
-    }
-  ] as const;
-
-  const normalizeInteger = (value: unknown, min: number, max: number, fallback: number) => {
-    const parsedValue = typeof value === 'number' ? value : parseFloat(String(value));
-    if (!Number.isFinite(parsedValue)) {
-      return fallback;
-    }
-    return Math.max(min, Math.min(Math.round(parsedValue), max));
-  };
-
-  const publishBridge = (getTopic: () => Topic<{ data: number }> | undefined, value: number) => {
+    setWeight(null);
+    setLastWeightAt(null);
     ensureDrillTopics();
-    getTopic()?.publish({ data: normalizeInteger(value, -100, 100, 0) });
-  };
 
-  const commitBridgeB = (rawValue?: unknown, skipBlur = false) => {
-    const nextValue = normalizeInteger(rawValue ?? bInputRef.current?.getValue(), -100, 100, bValue);
-    bSkipBlurRef.current = skipBlur;
-    setBValue(nextValue);
-    bInputRef.current?.setValue(nextValue);
-    publishBridge(() => drillBTopic, nextValue);
-  };
+    const weightCb = (msg: { data: number }) => {
+      setWeight(msg.data);
+      setLastWeightAt(Date.now());
+    };
 
-  const commitBridgeC = (rawValue?: unknown, skipBlur = false) => {
-    const nextValue = normalizeInteger(rawValue ?? cInputRef.current?.getValue(), -100, 100, cValue);
-    cSkipBlurRef.current = skipBlur;
-    setCValue(nextValue);
-    cInputRef.current?.setValue(nextValue);
-    publishBridge(() => drillCTopic, nextValue);
-  };
+    drillWeightTopic?.subscribe(weightCb);
+    return () => {
+      drillWeightTopic?.unsubscribe(weightCb);
+    };
+  }, [rerenderCount]);
 
-  const setBridgeBDirection = (positive: boolean) => {
-    const magnitude = Math.abs(normalizeInteger(bInputRef.current?.getValue(), -100, 100, bValue));
-    commitBridgeB(positive ? magnitude : -magnitude);
-  };
+  useEffect(() => {
+    const interval = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(interval);
+  }, []);
 
-  const setBridgeCDirection = (positive: boolean) => {
-    const magnitude = Math.abs(normalizeInteger(cInputRef.current?.getValue(), -100, 100, cValue));
-    commitBridgeC(positive ? magnitude : -magnitude);
-  };
-
-  const stopBridgeB = () => {
-    bSkipBlurRef.current = false;
-    setBValue(0);
-    bInputRef.current?.setValue(0);
-    publishBridge(() => drillBTopic, 0);
-  };
-
-  const stopBridgeC = () => {
-    cSkipBlurRef.current = false;
-    setCValue(0);
-    cInputRef.current?.setValue(0);
-    publishBridge(() => drillCTopic, 0);
-  };
-
-  const publishState = (rawValue: number) => {
-    const value = normalizeInteger(rawValue, 0, 9, 0) as DrillState;
-    setSelectedState(value);
+  const publishRack = (value: number) => {
     ensureDrillTopics();
-    drillStateTopic?.publish({ data: value });
+    rackTopic?.publish({ data: normalizeInteger(value, RACK_MIN, RACK_MAX, 0) });
   };
 
-  const formatNumber = (value: number | undefined, digits = 1) => {
-    return value !== undefined ? value.toFixed(digits) : '---';
+  const publishDrill = (value: number) => {
+    ensureDrillTopics();
+    drillTopic?.publish({ data: normalizeInteger(value, DRILL_MIN, DRILL_MAX, 0) });
   };
 
-  const getFlag = (bit: number) => {
-    if (telemetry?.flags === undefined) return undefined;
-    return Boolean(telemetry.flags & (1 << bit));
+  const commitRack = (rawValue?: unknown, skipBlur = false) => {
+    const value = normalizeInteger(rawValue ?? rackInputRef.current?.getValue(), RACK_MIN, RACK_MAX, rackValue);
+    rackSkipBlurRef.current = skipBlur;
+    setRackValue(value);
+    rackInputRef.current?.setValue(value);
+    publishRack(value);
   };
 
-  const getBooleanColor = (value: boolean | undefined) => {
-    if (value === undefined) return 'var(--dark-active)';
-    return value ? 'var(--green-background)' : 'var(--red-background)';
+  const commitDrill = (rawValue?: unknown, skipBlur = false) => {
+    const value = normalizeInteger(rawValue ?? drillInputRef.current?.getValue(), DRILL_MIN, DRILL_MAX, drillValue);
+    drillSkipBlurRef.current = skipBlur;
+    setDrillValue(value);
+    drillInputRef.current?.setValue(value);
+    publishDrill(value);
   };
+
+  const setServoInput = (channel: ServoChannel, rawValue: unknown) => {
+    const angle = normalizeInteger(rawValue, SERVO_MIN_ANGLE, SERVO_MAX_ANGLE, servoAngles[channel]);
+    setServoAngles((angles) => ({ ...angles, [channel]: angle }));
+    servoInputRefs.current[channel]?.setValue(angle);
+  };
+
+  const commitServo = (channel: ServoChannel, rawValue?: unknown, skipBlur = false) => {
+    const angle = normalizeInteger(
+      rawValue ?? servoInputRefs.current[channel]?.getValue(),
+      SERVO_MIN_ANGLE,
+      SERVO_MAX_ANGLE,
+      servoAngles[channel]
+    );
+    servoSkipBlurRefs.current[channel] = skipBlur;
+    setServoInput(channel, angle);
+    ensureDrillTopics();
+    servoTopic?.publish({ data: [channel, angle] });
+  };
+
+  const stopRack = () => {
+    setRackValue(0);
+    rackInputRef.current?.setValue(0);
+    publishRack(0);
+  };
+
+  const stopDrill = () => {
+    setDrillValue(0);
+    drillInputRef.current?.setValue(0);
+    publishDrill(0);
+  };
+
+  const zeroServo = (channel: ServoChannel) => {
+    setServoInput(channel, 0);
+    ensureDrillTopics();
+    servoTopic?.publish({ data: [channel, 0] });
+  };
+
+  const publishWeightCommand = (command: 0 | 1) => {
+    ensureDrillTopics();
+    weightCmdTopic?.publish({ data: command });
+    setActiveWeightCommand(command);
+    window.setTimeout(() => setActiveWeightCommand((active) => (active === command ? null : active)), 200);
+  };
+
+  const publishAutonomy = (state: AutonomyState) => {
+    ensureDrillTopics();
+    autonomyTopic?.publish({ data: state });
+    setSelectedAutonomy(state);
+  };
+
+  const setRackDirection = (positive: boolean) => {
+    const magnitude = Math.abs(normalizeInteger(rackInputRef.current?.getValue(), RACK_MIN, RACK_MAX, rackValue));
+    commitRack(positive ? magnitude : -magnitude);
+  };
+
+  const setDrillDirection = (positive: boolean) => {
+    const magnitude = Math.abs(normalizeInteger(drillInputRef.current?.getValue(), DRILL_MIN, DRILL_MAX, drillValue));
+    commitDrill(positive ? magnitude : -magnitude);
+  };
+
+  const formatAge = (timestamp: number | null) => {
+    if (timestamp === null) return 'Received ---';
+    return `Received ${Math.max(0, Math.floor((now - timestamp) / 1000))} s ago`;
+  };
+
+  const formatNumber = (value: number | undefined, digits: number, unit: string) =>
+    value === undefined ? '---' : `${value.toFixed(digits)} ${unit}`;
 
   const formatLimit = (value: boolean | undefined) => {
     if (value === undefined) return '---';
     return value ? 'Pressed' : 'Free';
   };
 
-  const formatDrillState = (value: number | undefined) => {
+  const formatBoolean = (value: boolean | undefined, trueText: string, falseText: string) => {
     if (value === undefined) return '---';
-    if (value === DrillState.Stop) return 'Stop';
-    if (value === DrillState.DrillingSite1) return 'Drilling — Site 1';
-    if (value === DrillState.DrillingSite2) return 'Drilling — Site 2';
-    if (value === DrillState.Home) return 'Home';
-    if (value === DrillState.ClosingTubesSite1) return 'Closing tubes — Site 1';
-    if (value === DrillState.ClosingTubesSite2) return 'Closing tubes — Site 2';
-    if (value === DrillState.CleaningDrill) return 'Cleaning drill';
-    if (value === DrillState.OpeningTubesSite1) return 'Opening tubes — Site 1';
-    if (value === DrillState.OpeningTubesSite2) return 'Opening tubes — Site 2';
-    if (value === DrillState.OpeningTubesBothSites) return 'Opening tubes — Both sites';
-    return `Unknown ${value}`;
+    return value ? trueText : falseText;
   };
 
-  const renderStateButton = (state: (typeof site1States | typeof site2States | typeof generalStates)[number]) => (
-    <Button
-      key={state.value}
-      className={styles['large-button']}
-      active={selectedState === state.value}
-      tooltip={state.tooltip}
-      onClick={() => publishState(state.value)}
-    >
-      <FontAwesomeIcon icon={state.icon} />
-      &nbsp;&nbsp;{state.label}
-    </Button>
-  );
+  const formatAutonomyState = (value: number | undefined) => {
+    if (value === undefined) return '---';
+    return AUTONOMY_STATE_NAMES[value] ?? `Unknown (${value})`;
+  };
 
-  const renderBooleanStatus = (label: string, value: boolean | undefined) => (
-    <Label color={getBooleanColor(value)} style={{ flex: 1 }}>
-      {label}
-    </Label>
-  );
+  const autonomyStates = [
+    { label: 'Stop', value: AutonomyState.Stop, icon: faStop, tooltip: 'Send stop command' },
+    { label: 'Autonomy', value: AutonomyState.Start, icon: faPlay, tooltip: 'Start autonomy' },
+    {
+      label: 'Autonomy Stop',
+      value: AutonomyState.AutonomyStop,
+      icon: faStop,
+      tooltip: 'Stop autonomy (type 0x02)'
+    },
+    { label: 'Home', value: AutonomyState.Home, icon: faHouse, tooltip: 'Start homing' }
+  ] as const;
+
+  const drillGroundOffsetCm =
+    telemetry?.depth_mm === undefined ? undefined : telemetry.depth_mm / 10 - DRILL_TO_GROUND_CM;
+  const isDrilling = drillGroundOffsetCm !== undefined && drillGroundOffsetCm > 0;
+  const drillHeightStatus = drillGroundOffsetCm === undefined ? 'No data' : isDrilling ? 'Drilling' : 'Lowering';
+  const drillHeightStatusColor =
+    drillGroundOffsetCm === undefined
+      ? 'var(--dark-active)'
+      : isDrilling
+        ? 'var(--red-background)'
+        : 'var(--green-background)';
 
   return (
     <div className={styles['drill-panel']}>
@@ -305,18 +355,18 @@ export default function Drill() {
           <div className={styles['button-row']}>
             <Button
               className={styles['large-button']}
-              active={bValue > 0}
+              active={rackValue < 0}
               tooltip='Move rack up'
-              onClick={() => setBridgeBDirection(true)}
+              onClick={() => setRackDirection(false)}
             >
               <FontAwesomeIcon icon={faArrowUp} />
               &nbsp;&nbsp;Up
             </Button>
             <Button
               className={styles['large-button']}
-              active={bValue < 0}
+              active={rackValue > 0}
               tooltip='Move rack down'
-              onClick={() => setBridgeBDirection(false)}
+              onClick={() => setRackDirection(true)}
             >
               <FontAwesomeIcon icon={faArrowDown} />
               &nbsp;&nbsp;Down
@@ -325,44 +375,43 @@ export default function Drill() {
           <div className={styles['input-row']}>
             <Button
               className={styles['step-button']}
-              tooltip='Decrease value by 1'
-              onClick={() => commitBridgeB(bValue - 1)}
+              tooltip='Decrease rack speed by 1 mm/sec'
+              onClick={() => commitRack(rackValue - 1)}
             >
               <FontAwesomeIcon icon={faMinus} />
             </Button>
             <Input
-              ref={bInputRef}
+              ref={rackInputRef}
               type='float'
               className={styles['speed-input']}
-              placeholder='Rack speed'
-              defaultValue={String(bValue)}
-              onChange={(text) => setBValue(normalizeInteger(text, -100, 100, bValue))}
-              onSubmit={(text) => commitBridgeB(text, true)}
+              defaultValue='0'
+              onChange={(text) => setRackValue(normalizeInteger(text, RACK_MIN, RACK_MAX, rackValue))}
+              onSubmit={(text) => commitRack(text, true)}
               onBlur={() => {
-                if (bSkipBlurRef.current) {
-                  bSkipBlurRef.current = false;
+                if (rackSkipBlurRef.current) {
+                  rackSkipBlurRef.current = false;
                   return;
                 }
-                commitBridgeB();
+                commitRack();
               }}
             />
             <Button
               className={styles['step-button']}
-              tooltip='Increase value by 1'
-              onClick={() => commitBridgeB(bValue + 1)}
+              tooltip='Increase rack speed by 1 mm/sec'
+              onClick={() => commitRack(rackValue + 1)}
             >
               <FontAwesomeIcon icon={faPlus} />
             </Button>
           </div>
           <div className={styles['button-row']}>
-            <Button className={styles['large-button']} tooltip='Send rack command' onClick={() => commitBridgeB()}>
+            <Button className={styles['large-button']} tooltip='Send rack command' onClick={() => commitRack()}>
               <FontAwesomeIcon icon={faPaperPlane} />
               &nbsp;&nbsp;Send
             </Button>
             <Button
-              className={styles['large-button'] + ' ' + styles['danger-button']}
+              className={`${styles['large-button']} ${styles['danger-button']}`}
               tooltip='Stop rack'
-              onClick={stopBridgeB}
+              onClick={stopRack}
             >
               <FontAwesomeIcon icon={faStop} />
               &nbsp;&nbsp;Stop
@@ -375,18 +424,18 @@ export default function Drill() {
           <div className={styles['button-row']}>
             <Button
               className={styles['large-button']}
-              active={cValue < 0}
+              active={drillValue < 0}
               tooltip='Rotate drill left'
-              onClick={() => setBridgeCDirection(false)}
+              onClick={() => setDrillDirection(false)}
             >
               <FontAwesomeIcon icon={faArrowLeft} />
               &nbsp;&nbsp;Left
             </Button>
             <Button
               className={styles['large-button']}
-              active={cValue > 0}
+              active={drillValue > 0}
               tooltip='Rotate drill right'
-              onClick={() => setBridgeCDirection(true)}
+              onClick={() => setDrillDirection(true)}
             >
               <FontAwesomeIcon icon={faArrowRight} />
               &nbsp;&nbsp;Right
@@ -395,44 +444,43 @@ export default function Drill() {
           <div className={styles['input-row']}>
             <Button
               className={styles['step-button']}
-              tooltip='Decrease value by 1'
-              onClick={() => commitBridgeC(cValue - 1)}
+              tooltip='Decrease drill duty by 1'
+              onClick={() => commitDrill(drillValue - 1)}
             >
               <FontAwesomeIcon icon={faMinus} />
             </Button>
             <Input
-              ref={cInputRef}
+              ref={drillInputRef}
               type='float'
               className={styles['speed-input']}
-              placeholder='Drill speed'
-              defaultValue={String(cValue)}
-              onChange={(text) => setCValue(normalizeInteger(text, -100, 100, cValue))}
-              onSubmit={(text) => commitBridgeC(text, true)}
+              defaultValue='0'
+              onChange={(text) => setDrillValue(normalizeInteger(text, DRILL_MIN, DRILL_MAX, drillValue))}
+              onSubmit={(text) => commitDrill(text, true)}
               onBlur={() => {
-                if (cSkipBlurRef.current) {
-                  cSkipBlurRef.current = false;
+                if (drillSkipBlurRef.current) {
+                  drillSkipBlurRef.current = false;
                   return;
                 }
-                commitBridgeC();
+                commitDrill();
               }}
             />
             <Button
               className={styles['step-button']}
-              tooltip='Increase value by 1'
-              onClick={() => commitBridgeC(cValue + 1)}
+              tooltip='Increase drill duty by 1'
+              onClick={() => commitDrill(drillValue + 1)}
             >
               <FontAwesomeIcon icon={faPlus} />
             </Button>
           </div>
           <div className={styles['button-row']}>
-            <Button className={styles['large-button']} tooltip='Send drill command' onClick={() => commitBridgeC()}>
+            <Button className={styles['large-button']} tooltip='Send drill command' onClick={() => commitDrill()}>
               <FontAwesomeIcon icon={faPaperPlane} />
               &nbsp;&nbsp;Send
             </Button>
             <Button
-              className={styles['large-button'] + ' ' + styles['danger-button']}
+              className={`${styles['large-button']} ${styles['danger-button']}`}
               tooltip='Stop drill'
-              onClick={stopBridgeC}
+              onClick={stopDrill}
             >
               <FontAwesomeIcon icon={faStop} />
               &nbsp;&nbsp;Stop
@@ -441,86 +489,220 @@ export default function Drill() {
         </div>
 
         <div className={styles['bridge-section']}>
-          <div className={styles['section-header']}>Site 1</div>
-          <div className={styles['button-row']}>{site1States.map(renderStateButton)}</div>
+          <div className={styles['section-header']}>Servo Set</div>
+          {SERVO_CHANNELS.map((channel) => (
+            <div className={styles['servo-row']} key={channel}>
+              <Label color='var(--cyan-background)' className={styles['servo-label']}>
+                {channel}
+              </Label>
+              <Input
+                ref={(input) => {
+                  servoInputRefs.current[channel] = input;
+                }}
+                type='float'
+                className={styles['speed-input']}
+                defaultValue='0'
+                onChange={(text) => {
+                  const angle = normalizeInteger(text, SERVO_MIN_ANGLE, SERVO_MAX_ANGLE, servoAngles[channel]);
+                  setServoAngles((angles) => ({ ...angles, [channel]: angle }));
+                }}
+                onSubmit={(text) => commitServo(channel, text, true)}
+                onBlur={() => {
+                  if (servoSkipBlurRefs.current[channel]) {
+                    servoSkipBlurRefs.current[channel] = false;
+                    return;
+                  }
+                  setServoInput(channel, servoInputRefs.current[channel]?.getValue());
+                }}
+              />
+              <Button
+                className={styles['step-button']}
+                tooltip={`Decrease servo ${channel} angle by 1°`}
+                onClick={() => setServoInput(channel, servoAngles[channel] - 1)}
+              >
+                <FontAwesomeIcon icon={faMinus} />
+              </Button>
+              <Button
+                className={styles['step-button']}
+                tooltip={`Increase servo ${channel} angle by 1°`}
+                onClick={() => setServoInput(channel, servoAngles[channel] + 1)}
+              >
+                <FontAwesomeIcon icon={faPlus} />
+              </Button>
+              <Button
+                className={styles['icon-button']}
+                tooltip={`Send servo ${channel} angle`}
+                onClick={() => commitServo(channel)}
+              >
+                <FontAwesomeIcon icon={faPaperPlane} />
+              </Button>
+              <Button
+                className={`${styles['icon-button']} ${styles['danger-button']}`}
+                tooltip={`Set servo ${channel} to 0°`}
+                onClick={() => zeroServo(channel)}
+              >
+                <FontAwesomeIcon icon={faStop} />
+              </Button>
+            </div>
+          ))}
         </div>
 
         <div className={styles['bridge-section']}>
-          <div className={styles['section-header']}>Site 2</div>
-          <div className={styles['button-row']}>{site2States.map(renderStateButton)}</div>
+          <div className={styles['section-header']}>Weight</div>
+          <div className={styles['button-row']}>
+            <Button
+              className={styles['large-button']}
+              active={activeWeightCommand === 0}
+              tooltip='Tare the scale'
+              onClick={() => publishWeightCommand(0)}
+            >
+              <FontAwesomeIcon icon={faWeightHanging} />
+              &nbsp;&nbsp;Tare
+            </Button>
+            <Button
+              className={styles['large-button']}
+              active={activeWeightCommand === 1}
+              tooltip='Request a weight measurement'
+              onClick={() => publishWeightCommand(1)}
+            >
+              <FontAwesomeIcon icon={faArrowRotateRight} />
+              &nbsp;&nbsp;Request
+            </Button>
+          </div>
         </div>
 
         <div className={styles['bridge-section']}>
-          <div className={styles['section-header']}>General</div>
-          <div className={styles['autonomy-grid']}>{generalStates.map(renderStateButton)}</div>
+          <div className={styles['section-header']}>Autonomy</div>
+          <div className={styles['autonomy-grid']}>
+            {autonomyStates.map((state) => (
+              <Button
+                key={state.value}
+                className={[
+                  styles['large-button'],
+                  state.value === AutonomyState.Stop ? styles['danger-button'] : '',
+                  state.value === AutonomyState.Stop && selectedAutonomy === state.value
+                    ? styles['danger-button-selected']
+                    : ''
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
+                active={selectedAutonomy === state.value}
+                tooltip={state.tooltip}
+                onClick={() => publishAutonomy(state.value)}
+              >
+                <FontAwesomeIcon icon={state.icon} />
+                &nbsp;&nbsp;{state.label}
+              </Button>
+            ))}
+          </div>
         </div>
       </div>
 
       <div className={styles['telemetry']}>
+        <div className={styles['section-header']}>Drilling Phase</div>
+        <div className={styles['drill-row']}>
+          <Label color={drillHeightStatusColor} className={styles['telemetry-label']}>
+            {drillHeightStatus}
+          </Label>
+          <div className={`${styles['disabled-input']} ${styles['selectable']}`}>
+            <input
+              value={formatNumber(
+                drillGroundOffsetCm === undefined ? undefined : Math.abs(drillGroundOffsetCm),
+                1,
+                'cm'
+              )}
+              disabled
+              readOnly
+            />
+          </div>
+        </div>
+        <div className={styles['received-text']}>{formatAge(lastTelemetryAt)}</div>
+
         <div className={styles['section-header']}>Telemetry</div>
         <div className={styles['drill-row']}>
           <Label color='var(--dark-active)' className={styles['telemetry-label']}>
-            Depth
+            Rack Position
           </Label>
-          <div className={styles['disabled-input'] + ' ' + styles['selectable']}>
-            <input value={`${formatNumber(telemetry?.depth_mm)} mm`} disabled readOnly />
+          <div className={`${styles['disabled-input']} ${styles['selectable']}`}>
+            <input value={formatNumber(telemetry?.depth_mm, 1, 'mm')} disabled readOnly />
           </div>
         </div>
         <div className={styles['drill-row']}>
           <Label color='var(--dark-active)' className={styles['telemetry-label']}>
-            Rack I
+            Rack Velocity
           </Label>
-          <div className={styles['disabled-input'] + ' ' + styles['selectable']}>
-            <input value={`${formatNumber(telemetry?.rack_current, 2)} A`} disabled readOnly />
+          <div className={`${styles['disabled-input']} ${styles['selectable']}`}>
+            <input value={formatNumber(telemetry?.rack_velocity_mmps, 2, 'mm/s')} disabled readOnly />
           </div>
         </div>
         <div className={styles['drill-row']}>
           <Label color='var(--dark-active)' className={styles['telemetry-label']}>
-            Drill I
+            Weight (cached)
           </Label>
-          <div className={styles['disabled-input'] + ' ' + styles['selectable']}>
-            <input value={`${formatNumber(telemetry?.drill_current, 2)} A`} disabled readOnly />
+          <div className={`${styles['disabled-input']} ${styles['selectable']}`}>
+            <input value={formatNumber(telemetry?.weight_g, 1, 'g')} disabled readOnly />
+          </div>
+        </div>
+        <div className={styles['drill-row']}>
+          <Label color='var(--dark-active)' className={styles['telemetry-label']}>
+            Rack Current
+          </Label>
+          <div className={`${styles['disabled-input']} ${styles['selectable']}`}>
+            <input value={formatNumber(telemetry?.rack_current_a, 3, 'A')} disabled readOnly />
+          </div>
+        </div>
+        <div className={styles['drill-row']}>
+          <Label color='var(--dark-active)' className={styles['telemetry-label']}>
+            Drill Current
+          </Label>
+          <div className={`${styles['disabled-input']} ${styles['selectable']}`}>
+            <input value={formatNumber(telemetry?.drill_current_a, 3, 'A')} disabled readOnly />
           </div>
         </div>
         <div className={styles['drill-row']}>
           <Label color='var(--dark-active)' className={styles['telemetry-label']}>
             Upper Limit
           </Label>
-          <div className={styles['disabled-input'] + ' ' + styles['selectable']}>
+          <div className={`${styles['disabled-input']} ${styles['selectable']}`}>
             <input value={formatLimit(telemetry?.upper_limit_pressed)} disabled readOnly />
           </div>
         </div>
         <div className={styles['drill-row']}>
           <Label color='var(--dark-active)' className={styles['telemetry-label']}>
-            Lower Limit
+            Autonomy
           </Label>
-          <div className={styles['disabled-input'] + ' ' + styles['selectable']}>
-            <input value={formatLimit(telemetry?.lower_limit_pressed)} disabled readOnly />
+          <div className={`${styles['disabled-input']} ${styles['selectable']}`}>
+            <input value={formatBoolean(telemetry?.autonomy_active, 'Active', 'Inactive')} disabled readOnly />
           </div>
         </div>
-        <div className={styles['button-row']}>
-          {renderBooleanStatus('Autonomy', telemetry?.autonomy_active)}
-          {renderBooleanStatus('Based', telemetry?.based)}
-        </div>
-        <div className={styles['button-row']}>
-          {renderBooleanStatus('1 Site I', getFlag(4))}
-          {renderBooleanStatus('1 Site II', getFlag(5))}
-        </div>
-        <div className={styles['button-row']}>
-          {renderBooleanStatus('2 Site I', getFlag(6))}
-          {renderBooleanStatus('2 Site II', getFlag(7))}
+        <div className={styles['drill-row']}>
+          <Label color='var(--dark-active)' className={styles['telemetry-label']}>
+            Base Detection
+          </Label>
+          <div className={`${styles['disabled-input']} ${styles['selectable']}`}>
+            <input value={formatBoolean(telemetry?.based, 'Based', 'Not based')} disabled readOnly />
+          </div>
         </div>
         <div className={styles['drill-row']}>
           <Label color='var(--dark-active)' className={styles['telemetry-label']}>
             State
           </Label>
-          <div className={styles['disabled-input'] + ' ' + styles['selectable']}>
-            <input value={formatDrillState(telemetry?.autonomy_state)} disabled readOnly />
+          <div className={`${styles['disabled-input']} ${styles['selectable']}`}>
+            <input value={formatAutonomyState(telemetry?.autonomy_state)} disabled readOnly />
           </div>
         </div>
-        <div className={styles['received-text']}>
-          {secondsSinceTelemetry === null ? 'Received ---' : `Received ${secondsSinceTelemetry} s ago`}
+        <div className={styles['received-text']}>{formatAge(lastTelemetryAt)}</div>
+
+        <div className={styles['section-header']}>Weight</div>
+        <div className={styles['drill-row']}>
+          <Label color='var(--dark-active)' className={styles['telemetry-label']}>
+            Weight
+          </Label>
+          <div className={`${styles['disabled-input']} ${styles['selectable']}`}>
+            <input value={weight === null ? '---' : `${weight.toFixed(1)} g`} disabled readOnly />
+          </div>
         </div>
+        <div className={styles['received-text']}>{formatAge(lastWeightAt)}</div>
       </div>
     </div>
   );

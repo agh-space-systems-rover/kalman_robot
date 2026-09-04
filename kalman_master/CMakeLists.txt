@@ -48,7 +48,6 @@ install(PROGRAMS
   scripts/feed_driver
   scripts/master_com
   scripts/master_loopback
-  scripts/ph_calib
   scripts/ph_driver
   scripts/ph_mock
   scripts/ros_link

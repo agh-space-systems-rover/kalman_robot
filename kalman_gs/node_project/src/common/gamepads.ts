@@ -1,7 +1,6 @@
 import { GamepadInput, readGamepad } from './gamepad-compat';
 
 type GamepadMode = 'none' | 'wheels' | 'arm' | 'drill';
-const gamepadModes: GamepadMode[] = ['none', 'wheels', 'arm', 'drill'];
 
 type GamepadEntry = {
   pad: Gamepad;
@@ -42,8 +41,7 @@ const connectGamepads = () => {
     }
 
     if (readGamepad(pad, 'mode') && !oldModeButtonState.get(pad.id)) {
-      const nextIndex = (gamepadModes.indexOf(entry.mode) + 1) % gamepadModes.length;
-      entry.mode = gamepadModes[nextIndex];
+      entry.mode = 'drill';
     }
 
     oldModeButtonState.set(pad.id, readGamepad(pad, 'mode'));
@@ -81,4 +79,11 @@ function readGamepads(input: GamepadInput, padMode: GamepadMode): number {
   return value / Math.max(numPads, 1);
 }
 
-export { gamepads, GamepadMode, setGamepadMode, readGamepads };
+function getGamepadName(id: string) {
+  // Remove hex-hex- prefix (Firefox)
+  id = id.replace(/^[0-9a-f]{4}-[0-9a-f]{4}-/, '');
+  // Remove (...) suffix (Chromium)
+  return id.replace(/ \(.*\)$/, '');
+}
+
+export { gamepads, GamepadMode, getGamepadName, setGamepadMode, readGamepads };

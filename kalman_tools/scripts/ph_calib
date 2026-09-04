@@ -1,0 +1,7 @@
+#!/usr/bin/env python3
+
+from kalman_tools.apps.ph_calib import main
+
+
+if __name__ == "__main__":
+    main()

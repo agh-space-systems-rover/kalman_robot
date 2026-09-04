@@ -264,9 +264,9 @@ class PHCalibApp(QtWidgets.QWidget):
                     self.update_datapoint_list()
                 # Plot calibration if scale/bias and datapoints are available
                 if (
-                    "scale" in calib_data
-                    and "bias" in calib_data
-                    and len(self.datapoints) >= 2
+                        "scale" in calib_data
+                        and "bias" in calib_data
+                        and len(self.datapoints) >= 2
                 ):
                     sems, phs = zip(*self.datapoints)
                     sems = np.array(sems)

@@ -1,9 +1,9 @@
 float32 depth_mm
-float32 rack_current
-float32 drill_current
-uint8 flags
+float32 rack_velocity_mmps
+float32 weight_g
+float32 rack_current_a
+float32 drill_current_a
 bool upper_limit_pressed
-bool lower_limit_pressed
 bool autonomy_active
 bool based
 uint8 autonomy_state

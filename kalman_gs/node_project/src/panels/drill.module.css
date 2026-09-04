@@ -6,7 +6,8 @@
   align-items: center;
   align-content: safe center;
   justify-content: center;
-  gap: 10px;
+  column-gap: 10px;
+  row-gap: 0;
   min-width: 250px;
   overflow: auto;
   user-select: none;
@@ -32,7 +33,7 @@
 .button-row,
 .input-row,
 .drill-row,
-.universal-row {
+.servo-row {
   display: flex;
   flex-direction: row;
   justify-content: stretch;
@@ -83,8 +84,12 @@
   flex: 0 0 120px;
 }
 
-.universal-label {
-  flex: 0 0 90px;
+.servo-label {
+  flex: 0 0 32px;
+}
+
+.icon-button {
+  flex: 0 0 calc(1em + 10px);
 }
 
 .disabled-input {
@@ -130,6 +135,10 @@
 }
 
 .danger-button:active {
+  background-color: var(--red-foreground) !important;
+}
+
+.danger-button-selected {
   background-color: var(--red-foreground) !important;
 }
 

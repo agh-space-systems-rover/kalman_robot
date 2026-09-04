@@ -176,4 +176,3 @@ station:
       max_rate: 2
       fields:
         - path: data
-

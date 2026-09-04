@@ -10,22 +10,22 @@ const defaultKeybinds = {
   // Feeds
   'Cycle Feed 1 Cameras Backwards': 'PageUp',
   'Cycle Feed 1 Cameras': 'PageDown',
-  'Show Camera 1 on Feed 1': 'Digit1',
-  'Show Camera 2 on Feed 1': 'Digit2',
-  'Show Camera 3 on Feed 1': 'Digit3',
-  'Show Camera 4 on Feed 1': 'Digit4',
-  'Show Camera 5 on Feed 1': 'Digit5',
-  'Show Camera 6 on Feed 1': 'Digit6',
-  'Show Camera 7 on Feed 1': 'Digit7',
-  'Show Camera 8 on Feed 1': 'Digit8',
-  'Show Camera 1 on Feed 2': 'KeyQ',
-  'Show Camera 2 on Feed 2': 'KeyW',
-  'Show Camera 3 on Feed 2': 'KeyE',
-  'Show Camera 4 on Feed 2': 'KeyR',
-  'Show Camera 5 on Feed 2': 'KeyT',
-  'Show Camera 6 on Feed 2': 'KeyY',
-  'Show Camera 7 on Feed 2': 'KeyU',
-  'Show Camera 8 on Feed 2': 'KeyI',
+  'Show Camera 1 on Feed 1': 'Digit8', // Changed due to ERC 2026 operators' request
+  'Show Camera 2 on Feed 1': 'Digit7', // Changed due to ERC 2026 operators' request
+  'Show Camera 3 on Feed 1': 'Digit6', // Changed due to ERC 2026 operators' request
+  'Show Camera 4 on Feed 1': 'Digit5', // Changed due to ERC 2026 operators' request
+  'Show Camera 5 on Feed 1': 'Digit4', // Changed due to ERC 2026 operators' request
+  'Show Camera 6 on Feed 1': 'Digit3', // Changed due to ERC 2026 operators' request
+  'Show Camera 7 on Feed 1': 'Digit2', // Changed due to ERC 2026 operators' request
+  'Show Camera 8 on Feed 1': 'Digit1', // Changed due to ERC 2026 operators' request
+  'Show Camera 1 on Feed 2': 'KeyI', // Changed due to ERC 2026 operators' request
+  'Show Camera 2 on Feed 2': 'KeyU', // Changed due to ERC 2026 operators' request
+  'Show Camera 3 on Feed 2': 'KeyY', // Changed due to ERC 2026 operators' request
+  'Show Camera 4 on Feed 2': 'KeyT', // Changed due to ERC 2026 operators' request
+  'Show Camera 5 on Feed 2': 'KeyR', // Changed due to ERC 2026 operators' request
+  'Show Camera 6 on Feed 2': 'KeyE', // Changed due to ERC 2026 operators' request
+  'Show Camera 7 on Feed 2': 'KeyW', // Changed due to ERC 2026 operators' request
+  'Show Camera 8 on Feed 2': 'KeyQ', // Changed due to ERC 2026 operators' request
   'Hold to Change Cameras on Feed 2 not 1': null,
   // Arm
   'Set SpaceMouse Linear Scale to Slow (0.1)': 'KeyV',
