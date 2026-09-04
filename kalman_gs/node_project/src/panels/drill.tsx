@@ -355,18 +355,18 @@ export default function Drill() {
           <div className={styles['button-row']}>
             <Button
               className={styles['large-button']}
-              active={rackValue > 0}
+              active={rackValue < 0}
               tooltip='Move rack up'
-              onClick={() => setRackDirection(true)}
+              onClick={() => setRackDirection(false)}
             >
               <FontAwesomeIcon icon={faArrowUp} />
               &nbsp;&nbsp;Up
             </Button>
             <Button
               className={styles['large-button']}
-              active={rackValue < 0}
+              active={rackValue > 0}
               tooltip='Move rack down'
-              onClick={() => setRackDirection(false)}
+              onClick={() => setRackDirection(true)}
             >
               <FontAwesomeIcon icon={faArrowDown} />
               &nbsp;&nbsp;Down
