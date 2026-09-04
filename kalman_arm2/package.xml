@@ -10,13 +10,21 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
   <buildtool_depend>ament_cmake_python</buildtool_depend>
 
+  <depend>ament_index_cpp</depend>
   <depend>rclcpp</depend>
+  <depend>rclcpp_action</depend>
   <depend>rclcpp_components</depend>
 
   <depend>sensor_msgs</depend>
+  <depend>cv_bridge</depend>
+  <depend>message_filters</depend>
 
   <depend>geometry_msgs</depend>
   <depend>std_msgs</depend>
+  <depend>std_srvs</depend>
+  <depend>vision_msgs</depend>
+  <exec_depend>python3-opencv</exec_depend>
+  <exec_depend>python3-numpy</exec_depend>
   <depend>urdf</depend>
   <depend>kdl_parser</depend>
   <depend>orocos_kdl_vendor</depend>
@@ -31,6 +39,9 @@
   
   <depend>kalman_interfaces</depend>
   <exec_depend>kalman_utils</exec_depend>
+  <exec_depend>kalman_aruco</exec_depend>
+  <exec_depend>kalman_yolo</exec_depend>
+  <exec_depend>kalman_arm</exec_depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

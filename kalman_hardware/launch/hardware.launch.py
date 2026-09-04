@@ -18,9 +18,9 @@ from kalman_utils.launch import (
 )
 
 REALSENSE_SERIAL_NUMBERS = {
-     "d455_front": "_242422301926",
-    #"d455_front": "_043422251512",
-    "d455_front_old": "_043422251512",
+    "d455_front": "_242422301926",
+    # "d455_front": "_043422251512",
+    "d455_arm_wheel": "_043422251512",
     "d455_back": "_241122302098",
     "d455_left": "_231622302763",
     "d455_right": "_231122300896",

@@ -2,9 +2,12 @@
 #include <behaviortree_cpp_v3/action_node.h>
 #include <behaviortree_cpp_v3/basic_types.h>
 #include <bitset>
+#include <chrono>
 #include <cstdlib>
 #include <kalman_interfaces/action/detail/arm_goto_joint_pose__struct.hpp>
 #include <memory>
+#include <rclcpp/duration.hpp>
+#include <rclcpp/logging.hpp>
 #include <rclcpp_action/create_client.hpp>
 #include <string>
 
@@ -17,7 +20,13 @@ ArmNavigateToPose::ArmNavigateToPose(
       action_node_{std::make_shared<rclcpp::Node>("action_node")},
       parent_{parent} {
 	client_ = rclcpp_action::create_client<
-	    kalman_interfaces::action::ArmGotoJointPose>(action_node_, "goto_pose");
+	    kalman_interfaces::action::ArmGotoJointPose>(
+	    parent_->get_node_base_interface(),
+	    parent_->get_node_graph_interface(),
+	    parent_->get_node_logging_interface(),
+	    parent_->get_node_waitables_interface(),
+	    "goto_pose"
+	);
 }
 
 BT::PortsList ArmNavigateToPose::providedPorts() {
@@ -34,6 +43,12 @@ BT::PortsList ArmNavigateToPose::providedPorts() {
 
 BT::NodeStatus ArmNavigateToPose::onStart() {
 	RCLCPP_INFO(parent_->get_logger(), "[ArmNavigateToPose] tick()");
+
+	{
+		std::lock_guard<std::mutex> lk(m_);
+		last_result_.reset();
+	}
+	cancelled_ = false;
 
 	if (!client_->wait_for_action_server(std::chrono::seconds(1))) {
 		RCLCPP_ERROR(parent_->get_logger(), "Nav action server not available");
@@ -62,6 +77,7 @@ BT::NodeStatus ArmNavigateToPose::onStart() {
 
 	kalman_interfaces::action::ArmGotoJointPose::Goal goal;
 	goal.target_pos.joints = target_joints;
+	goal.target_pos.jaw    = jaw;
 	goal.ignore_mask       = ignore_mask.to_ulong();
 
 	auto send_opts =
@@ -82,8 +98,6 @@ BT::NodeStatus ArmNavigateToPose::onStart() {
 }
 
 BT::NodeStatus ArmNavigateToPose::onRunning() {
-
-	RCLCPP_INFO(parent_->get_logger(), "[ArmNavigateToPose] onRunning()");
 	// If cancellation was requested via halt(), report SUCCESS so the Parallel
 	// can finish.
 	if (cancelled_) {
@@ -110,9 +124,25 @@ BT::NodeStatus ArmNavigateToPose::onRunning() {
 			return BT::NodeStatus::FAILURE;
 		}
 	}
-	RCLCPP_INFO(
+
+	if (goal_handle_future_.valid() &&
+	    goal_handle_future_.wait_for(std::chrono::milliseconds(0)) ==
+	        std::future_status::ready) {
+		auto goal_handle = goal_handle_future_.get();
+		if (!goal_handle) {
+			RCLCPP_ERROR(
+			    parent_->get_logger(),
+			    "[ArmNavigateToPose] goal was rejected by goto_pose server"
+			);
+			return BT::NodeStatus::FAILURE;
+		}
+	}
+
+	RCLCPP_INFO_THROTTLE(
 	    parent_->get_logger(),
-	    "[ArmNavigateToPose] onRunning() returning RUNNING"
+	    *parent_->get_clock(),
+	    static_cast<int64_t>(1000), // ms
+	    "[ArmNavigateToPose] returning RUNNING"
 	);
 	return BT::NodeStatus::RUNNING;
 }

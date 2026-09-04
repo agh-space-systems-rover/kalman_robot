@@ -5,7 +5,8 @@
 
     # marker_dict: 4X4_50 # Set in the launch file.
 
-    image_sub_compressed: true
+    # image_sub_compressed: true
+    image_sub_compressed: false
     image_sub_qos:
       reliability: 2 # 0 - system default, 1 - reliable, 2 - best effort
       durability: 2 # 0 - system default, 1 - transient local, 2 - volatile
@@ -18,9 +19,9 @@
     # https://docs.opencv.org/4.2.0/d5/dae/tutorial_aruco_detection.html
     aruco:
       adaptiveThreshWinSizeMin: 3
-      adaptiveThreshWinSizeMax: 23
-      adaptiveThreshWinSizeStep: 10
-      adaptiveThreshConstant: 7.0
+      adaptiveThreshWinSizeMax: 63
+      adaptiveThreshWinSizeStep: 4
+      adaptiveThreshConstant: 20.0
       minMarkerPerimeterRate: 0.03
       maxMarkerPerimeterRate: 4.0
       polygonalApproxAccuracyRate: 0.03
@@ -31,7 +32,7 @@
       perspectiveRemovePixelPerCell: 4
       perspectiveRemoveIgnoredMarginPerCell: 0.13
       maxErroneousBitsInBorderRate: 0.35
-      minOtsuStdDev: 5.0
+      minOtsuStdDev: 3.0
       errorCorrectionRate: 0.6
       cornerRefinementMethod: 2 # 0 - None, 1 - Subpix, 2 - Contour
       cornerRefinementWinSize: 5

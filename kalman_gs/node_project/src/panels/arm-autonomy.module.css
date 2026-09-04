@@ -1,0 +1,140 @@
+.arm-autonomy {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 0.75rem;
+  gap: 0.75rem;
+  overflow: hidden;
+}
+
+.viewport {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--background);
+  border: 1px solid var(--weak-foreground);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.image-frame {
+  position: relative;
+  max-width: 100%;
+  max-height: 100%;
+  line-height: 0;
+}
+
+.canvas {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+.overlay-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.bbox {
+  position: absolute;
+  border: 2px solid var(--detection-color, rgba(79, 156, 255, 0.85));
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
+.bbox-selected {
+  border-color: rgba(255, 196, 64, 0.95);
+  box-shadow: 0 0 0 1px rgba(255, 196, 64, 0.5);
+}
+
+.bbox-invalid {
+  border-style: dashed;
+  opacity: 0.55;
+}
+
+.bbox-label {
+  position: absolute;
+  top: -1.1rem;
+  left: 0;
+  font-size: 0.65rem;
+  line-height: 1.2;
+  font-weight: bold;
+  color: var(--foreground);
+  background: rgba(0, 0, 0, 0.55);
+  padding: 0.1rem 0.35rem;
+  border-radius: 3px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.hit-target {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--detection-color, rgba(79, 156, 255, 0.95));
+  background: var(--detection-fill, rgba(79, 156, 255, 0.2));
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.hit-target:hover {
+  background: var(--detection-hover-fill, rgba(79, 156, 255, 0.4));
+}
+
+.hit-target-selected {
+  border-color: rgba(255, 196, 64, 0.95);
+  background: rgba(255, 196, 64, 0.35);
+}
+
+.hit-target:disabled {
+  cursor: not-allowed;
+  opacity: 0.35;
+}
+
+.placeholder {
+  color: var(--weak-foreground);
+  font-size: 0.85rem;
+  text-align: center;
+  padding: 2rem;
+}
+
+.status-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  font-size: 0.75rem;
+  color: var(--weak-foreground);
+}
+
+.status-item strong {
+  color: var(--foreground);
+  font-weight: bold;
+}
+
+.status-ok {
+  color: #6fcf97;
+}
+
+.status-missing {
+  color: #eb5757;
+}
+
+.controls {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.control-button {
+  flex: 1;
+  text-align: center;
+}

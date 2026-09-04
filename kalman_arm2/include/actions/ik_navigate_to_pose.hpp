@@ -20,6 +20,7 @@
 #include <tf2_ros/static_transform_broadcaster.h>
 #include <tf2_ros/transform_listener.h>
 #include <thread>
+#include <visualization_msgs/msg/marker_array.hpp>
 
 class IKNavigateToPose : public BT::StatefulActionNode {
 public:
@@ -38,9 +39,25 @@ public:
 private:
 	rclcpp::Node                                                  *parent_;
 	rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr arm_pub_;
-	std::unique_ptr<tf2_ros::Buffer>                               tf_buffer_;
-	std::shared_ptr<tf2_ros::TransformListener>                    tf_listener_;
-	geometry_msgs::msg::Pose                                       pose;
+	rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr
+	    marker_pub_;
+	std::unique_ptr<tf2_ros::Buffer>            tf_buffer_;
+	std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
+	geometry_msgs::msg::Pose                    pose;
+	rclcpp::Time                                deadline_;
+	double                                      position_tolerance_sq_{1e-4};
+	double orientation_tolerance_rad_{0.15};
+	double linear_kp_{0.8};
+	double max_linear_speed_{0.12};
+	double min_linear_speed_{0.015};
+	double min_speed_activation_distance_{0.03};
 
 	std::shared_ptr<tf2_ros::StaticTransformBroadcaster> static_broadcaster_;
+
+	void publish_target_marker(uint8_t action);
+};
+
+class IKNavigateToPoseIterative : public IKNavigateToPose {
+  public:
+	using IKNavigateToPose::IKNavigateToPose;
 };

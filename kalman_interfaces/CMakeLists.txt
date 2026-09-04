@@ -9,7 +9,8 @@ find_package(geographic_msgs REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "action/ArmGotoJointPose.action"
-  "action/ArmMission.action"
+  "action/MoveToPanelPose.action"
+  "action/PoseIKNavigateToPose.action"
   "action/SupervisorGpsArUcoSearch.action"
   "action/SupervisorGpsGoal.action"
   "action/SupervisorGpsYoloSearch.action"
@@ -30,6 +31,9 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/DrillTelemetry.msg"
   "msg/Drive.msg"
   "msg/GeoPath.msg"
+  "msg/PixelPoint.msg"
+  "msg/InstanceContour.msg"
+  "msg/InstanceContourArray.msg"
   "msg/MasterMessage.msg"
   "msg/SupervisorMappingGoal.msg"
   "msg/WheelState.msg"

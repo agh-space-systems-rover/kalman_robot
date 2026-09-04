@@ -21,4 +21,51 @@
     <xacro:sensor_d455 name="d455_arm" parent="arm_link_6" use_nominal_extrinsics="true">
         <origin xyz="-0.1 0.0 0.035" rpy="0 -1.5708 0" />
     </xacro:sensor_d455>
+
+    <xacro:sensor_d455
+        name="d455_arm_wheel"
+        parent="swivel_fl_link"
+        use_nominal_extrinsics="true">
+        <origin xyz="0.100 -0.020 0.000" rpy="0.000 0.550 -0.584" />
+    </xacro:sensor_d455>
+
+    <!-- Aka marker 31 -->
+    <link name="aruco_under_j6">
+        <visual>
+            <geometry>
+                <box size="0.062 0.062 0.0056"/>
+            </geometry>
+            <material name="arm_mat"/>
+        </visual>
+    </link>
+    <joint name="aruco_joint" type="fixed">
+        <origin xyz="0.02 0.0 -0.06" rpy="1.57 0.0 -2.356" />
+        <parent link="arm_link_end" />
+        <child link="aruco_under_j6" />
+    </joint>
+
+    <!-- Aka marker 30 -->
+    <link name="aruco_left_of_j6">
+        <visual>
+            <geometry>
+                <box size="0.062 0.062 0.0056"/>
+            </geometry>
+            <material name="arm_mat"/>
+        </visual>
+    </link>
+
+    <joint name="aruco_left_joint" type="fixed">
+        <origin xyz="-0.052 0.075 0.149" rpy="0.790 0.759 -0.011" />
+        <parent link="aruco_under_j6" />
+        <child link="aruco_left_of_j6" />
+    </joint>
+
+
+    <link name="arm_link_gripper" />
+    <joint name="arm_joint_for_gripper_end" type="fixed">
+        <origin xyz="0.08 0.0 0.025" rpy="1.570 0.0 -1.570" />
+        <parent link="arm_link_end" />
+        <child link="arm_link_gripper" />
+    </joint>
+
 </robot>

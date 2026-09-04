@@ -1,8 +1,13 @@
+#include <array>
 #include <cmath>
+#include <limits>
+#include <vector>
+
 #include <geometry_msgs/msg/twist_stamped.hpp>
 #include <kalman_interfaces/action/arm_goto_joint_pose.hpp>
 #include <kalman_interfaces/msg/arm_values.hpp>
 #include <rclcpp/create_timer.hpp>
+#include <rclcpp/logging.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_action/create_server.hpp>
 #include <rclcpp_action/rclcpp_action.hpp>
@@ -12,6 +17,7 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
+#include <urdf/model.h>
 
 #include <std_msgs/msg/string.hpp>
 
@@ -49,9 +55,13 @@ public:
 	float  max_joint_vel;
 	double update_rate;
 	float  max_error;
+	std::vector<double> joint_limit_margins;
 
 	// State
 	kalman_interfaces::msg::ArmValues           current_pos;
+	std::array<double, 7> joint_lower_limits;
+	std::array<double, 7> joint_upper_limits;
+	bool joint_limits_ready = false;
 	std::shared_ptr<GoalHandleArmGotoJointPose> current_gh;
 
 	GotoJointPose(const rclcpp::NodeOptions &options)
@@ -60,9 +70,23 @@ public:
 		this->declare_parameter<float>("max_joint_vel", 0.5);
 		this->declare_parameter<double>("update_rate", 10.0);
 		this->declare_parameter<float>("max_error", 0.1);
+		this->declare_parameter<std::vector<double>>(
+		    "joint_limit_margins", std::vector<double>(6, 0.1)
+		);
 		this->get_parameter("max_joint_vel", max_joint_vel);
 		this->get_parameter("update_rate", update_rate);
 		this->get_parameter("max_error", max_error);
+		this->get_parameter("joint_limit_margins", joint_limit_margins);
+		if (joint_limit_margins.size() != 6) {
+			RCLCPP_WARN(
+			    get_logger(),
+			    "joint_limit_margins has %zu entries; expected 6. Using 0.1 rad.",
+			    joint_limit_margins.size()
+			);
+			joint_limit_margins.assign(6, 0.1);
+		}
+		joint_lower_limits.fill(-std::numeric_limits<double>::infinity());
+		joint_upper_limits.fill(std::numeric_limits<double>::infinity());
 
 		// Publishers & subscribers
 		joint_vel_pub = create_publisher<kalman_interfaces::msg::ArmValues>(
@@ -73,6 +97,19 @@ public:
 		    10,
 		    std::bind(
 		        &GotoJointPose::on_joint_positions, this, std::placeholders::_1
+		    )
+		);
+
+		rclcpp::QoS robot_description_qos(1);
+		robot_description_qos.transient_local();
+		robot_description_qos.reliable();
+		robot_description_sub = create_subscription<std_msgs::msg::String>(
+		    "/robot_description",
+		    robot_description_qos,
+		    std::bind(
+		        &GotoJointPose::on_robot_description,
+		        this,
+		        std::placeholders::_1
 		    )
 		);
 
@@ -96,14 +133,42 @@ public:
 	    const rclcpp_action::GoalUUID                &uuid,
 	    std::shared_ptr<const ArmGotoJointPose::Goal> goal
 	) {
-		RCLCPP_INFO(get_logger(), "Received goal request joints");
+		(void)uuid;
+		if (!joint_limits_ready) {
+			RCLCPP_WARN(
+			    get_logger(),
+			    "Rejecting goal: joint limits are not available yet"
+			);
+			return rclcpp_action::GoalResponse::REJECT;
+		}
+
+		for (size_t i = 0; i < 7; ++i) {
+			if ((goal->ignore_mask & (1 << i)) != 0) {
+				continue;
+			}
+			const double target = ith_joint_val(goal->target_pos, i);
+			if (!std::isfinite(target) || target < joint_lower_limits[i] ||
+			    target > joint_upper_limits[i]) {
+				RCLCPP_WARN(
+				    get_logger(),
+				    "Rejecting goal: joint %zu target %.3f is outside [%.3f, %.3f]",
+				    i + 1,
+				    target,
+				    joint_lower_limits[i],
+				    joint_upper_limits[i]
+				);
+				return rclcpp_action::GoalResponse::REJECT;
+			}
+		}
+
+		RCLCPP_INFO(get_logger(), "Accepted goal within joint limits");
 		return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
 	}
 	rclcpp_action::CancelResponse
 	handle_cancel(const std::shared_ptr<GoalHandleArmGotoJointPose> gh) {
 		RCLCPP_INFO(get_logger(), "Received request to cancel goal");
 		if (current_gh == gh) {
-			current_gh.reset();
+			publish_zero_velocity();
 			RCLCPP_INFO(get_logger(), "Goal cancelled");
 		} else {
 			RCLCPP_WARN(
@@ -118,13 +183,64 @@ public:
 		current_gh = gh;
 	}
 
+	void publish_zero_velocity() {
+		auto vel_msg         = kalman_interfaces::msg::ArmValues();
+		vel_msg.header.stamp = now();
+		vel_msg.joints.fill(0.0);
+		vel_msg.jaw = 0.0;
+		joint_vel_pub->publish(vel_msg);
+	}
+
 	void
 	on_joint_positions(const kalman_interfaces::msg::ArmValues::SharedPtr msg) {
 		current_pos = *msg;
 	}
 
+	void on_robot_description(const std_msgs::msg::String::SharedPtr msg) {
+		urdf::Model model;
+		if (!model.initString(msg->data)) {
+			RCLCPP_ERROR(get_logger(), "Failed to parse /robot_description");
+			return;
+		}
+
+		const std::array<std::string, 7> names = {
+		    "arm_joint_1", "arm_joint_2", "arm_joint_3", "arm_joint_4",
+		    "arm_joint_5", "arm_joint_6", "arm_joint_jaw"
+		};
+		for (size_t i = 0; i < names.size(); ++i) {
+			const auto joint = model.getJoint(names[i]);
+			if (!joint || !joint->limits) {
+				RCLCPP_ERROR(
+				    get_logger(), "No URDF limits found for %s", names[i].c_str()
+				);
+				return;
+			}
+			const double margin = i < 6 ? joint_limit_margins[i] : 0.0;
+			joint_lower_limits[i] = joint->limits->lower + margin;
+			joint_upper_limits[i] = joint->limits->upper - margin;
+			if (joint_lower_limits[i] > joint_upper_limits[i]) {
+				RCLCPP_ERROR(
+				    get_logger(),
+				    "Limit margin leaves no range for %s",
+				    names[i].c_str()
+				);
+				return;
+			}
+		}
+		joint_limits_ready = true;
+		RCLCPP_INFO(get_logger(), "Loaded joint limits from /robot_description");
+	}
+
 	void timer_cb() {
 		if (!current_gh) {
+			return;
+		}
+
+		if (current_gh->is_canceling()) {
+			publish_zero_velocity();
+			current_gh->canceled(std::make_shared<ArmGotoJointPose::Result>());
+			current_gh.reset();
+			RCLCPP_INFO(get_logger(), "Goal transitioned to canceled");
 			return;
 		}
 
@@ -161,6 +277,7 @@ public:
 
 		// Decide if done
 		if (all_done) {
+			publish_zero_velocity();
 			current_gh->succeed(std::make_shared<ArmGotoJointPose::Result>());
 			RCLCPP_INFO(get_logger(), "Goal succeeded");
 			current_gh.reset();

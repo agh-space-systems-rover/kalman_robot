@@ -1,0 +1,495 @@
+#include <aruco_opencv_msgs/msg/aruco_detection.hpp>
+#include <geometry_msgs/msg/pose_stamped.hpp>
+#include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
+#include <rclcpp/rclcpp.hpp>
+#include <rclcpp_components/register_node_macro.hpp>
+#include <tf2/LinearMath/Quaternion.hpp>
+#include <tf2/LinearMath/Transform.hpp>
+#include <tf2/LinearMath/Vector3.hpp>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
+#include <tf2_ros/buffer.h>
+#include <tf2_ros/transform_broadcaster.h>
+#include <tf2_ros/transform_listener.h>
+
+#include <algorithm>
+#include <array>
+#include <cmath>
+#include <optional>
+#include <string>
+#include <utility>
+#include <vector>
+
+namespace kalman_arm2 {
+
+class PanelTracker : public rclcpp::Node {
+  public:
+    PanelTracker(const rclcpp::NodeOptions &options)
+        : Node("panel_tracker", options) {
+        declare_parameter<std::string>("tracking_frame", "odom");
+        declare_parameter<std::string>("board_frame", "aruco_board");
+        declare_parameter<std::string>(
+            "detection_topic", "/d455_arm/aruco_detections"
+        );
+        declare_parameter<double>("ema_alpha", 0.2);
+        declare_parameter<int>("ee_marker_id", 31);
+        declare_parameter<std::string>("ee_marker_frame", "aruco_under_j6");
+        declare_parameter<int>("secondary_ee_marker_id", 30);
+        declare_parameter<std::string>(
+            "secondary_ee_marker_frame", "aruco_left_of_j6"
+        );
+        declare_parameter<std::string>("ee_frame", "arm_link_gripper");
+
+        get_parameter("tracking_frame", tracking_frame_);
+        get_parameter("board_frame", board_frame_);
+        get_parameter("detection_topic", detection_topic_);
+        get_parameter("ema_alpha", ema_alpha_);
+        get_parameter("ee_frame", ee_frame_);
+
+        EeMarker primary_ee_marker;
+        get_parameter("ee_marker_id", primary_ee_marker.id);
+        get_parameter("ee_marker_frame", primary_ee_marker.frame);
+        ee_markers_.push_back(std::move(primary_ee_marker));
+
+        EeMarker secondary_ee_marker;
+        get_parameter("secondary_ee_marker_id", secondary_ee_marker.id);
+        get_parameter(
+            "secondary_ee_marker_frame", secondary_ee_marker.frame
+        );
+        ee_markers_.push_back(std::move(secondary_ee_marker));
+
+        ema_alpha_ = std::clamp(ema_alpha_, 1e-6, 1.0);
+
+        tf_buffer_ = std::make_shared<tf2_ros::Buffer>(get_clock());
+        tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
+        tf_broadcaster_ =
+            std::make_shared<tf2_ros::TransformBroadcaster>(this);
+
+        pose_pub_ = create_publisher<
+            geometry_msgs::msg::PoseWithCovarianceStamped>("panel_pose", 10);
+        visual_ee_pub_ = create_publisher<geometry_msgs::msg::PoseStamped>(
+            "visual_ee_pose", 10
+        );
+
+        detection_sub_ =
+            create_subscription<aruco_opencv_msgs::msg::ArucoDetection>(
+                detection_topic_,
+                10,
+                std::bind(
+                    &PanelTracker::on_detection,
+                    this,
+                    std::placeholders::_1
+                )
+            );
+
+        RCLCPP_INFO(
+            get_logger(),
+            "PanelTracker tracking '%s' in frame '%s' and publishing '%s'",
+            detection_topic_.c_str(),
+            tracking_frame_.c_str(),
+            board_frame_.c_str()
+        );
+    }
+
+  private:
+    struct EeMarker {
+        int id{0};
+        std::string frame;
+        std::optional<tf2::Transform> cached_marker_to_ee;
+    };
+
+    struct MarkerLayout {
+        int id;
+        double u;
+        double v;
+    };
+
+    static constexpr std::array<MarkerLayout, 3> kMarkers{{
+        {13, 0.0, 0.0},
+        {14, 0.26, 0.0},
+        {15, 0.0, 0.383},
+    }};
+    static constexpr double kBoardWidth = 0.4;
+    static constexpr double kBoardHeight = 0.6;
+
+    std::string tracking_frame_;
+    std::string board_frame_;
+    std::string detection_topic_;
+    std::string ee_frame_;
+    std::vector<EeMarker> ee_markers_;
+    double ema_alpha_;
+    bool filter_initialized_{false};
+    tf2::Transform filtered_board_pose_;
+
+    rclcpp::Subscription<aruco_opencv_msgs::msg::ArucoDetection>::SharedPtr
+        detection_sub_;
+    rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr
+        pose_pub_;
+    rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr visual_ee_pub_;
+    std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
+    std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
+    std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
+
+    std::optional<tf2::Transform> board_to_marker_from_layout(int marker_id) const {
+        for (const auto &marker : kMarkers) {
+            if (marker.id != marker_id) {
+                continue;
+            }
+
+            tf2::Transform transform;
+            transform.setIdentity();
+            transform.setOrigin(
+                tf2::Vector3(
+                    marker.u - kBoardWidth * 0.5,
+                    -(marker.v - kBoardHeight * 0.5),
+                    0.0
+                )
+            );
+            return transform;
+        }
+
+        return std::nullopt;
+    }
+
+    tf2::Transform average_transforms(
+        const std::vector<tf2::Transform> &transforms
+    ) const {
+        tf2::Vector3 mean_translation(0.0, 0.0, 0.0);
+        tf2::Quaternion mean_rotation(
+            transforms.front().getRotation().x(),
+            transforms.front().getRotation().y(),
+            transforms.front().getRotation().z(),
+            transforms.front().getRotation().w()
+        );
+
+        for (const auto &transform : transforms) {
+            mean_translation += transform.getOrigin();
+        }
+        mean_translation /= static_cast<double>(transforms.size());
+
+        double qx = 0.0;
+        double qy = 0.0;
+        double qz = 0.0;
+        double qw = 0.0;
+        const tf2::Quaternion reference = transforms.front().getRotation();
+        for (const auto &transform : transforms) {
+            tf2::Quaternion q = transform.getRotation();
+            if (reference.dot(q) < 0.0) {
+                q = tf2::Quaternion(-q.x(), -q.y(), -q.z(), -q.w());
+            }
+            qx += q.x();
+            qy += q.y();
+            qz += q.z();
+            qw += q.w();
+        }
+
+        mean_rotation = tf2::Quaternion(qx, qy, qz, qw);
+        mean_rotation.normalize();
+
+        tf2::Transform averaged;
+        averaged.setOrigin(mean_translation);
+        averaged.setRotation(mean_rotation);
+        return averaged;
+    }
+
+    tf2::Transform apply_ema(const tf2::Transform &measurement) {
+        if (!filter_initialized_) {
+            filtered_board_pose_ = measurement;
+            filter_initialized_ = true;
+            return filtered_board_pose_;
+        }
+
+        const tf2::Vector3 translation =
+            (1.0 - ema_alpha_) * filtered_board_pose_.getOrigin() +
+            ema_alpha_ * measurement.getOrigin();
+
+        tf2::Quaternion current = filtered_board_pose_.getRotation();
+        tf2::Quaternion incoming = measurement.getRotation();
+        if (current.dot(incoming) < 0.0) {
+            incoming = tf2::Quaternion(
+                -incoming.x(),
+                -incoming.y(),
+                -incoming.z(),
+                -incoming.w()
+            );
+        }
+
+        tf2::Quaternion rotation = current.slerp(incoming, ema_alpha_);
+        rotation.normalize();
+
+        filtered_board_pose_.setOrigin(translation);
+        filtered_board_pose_.setRotation(rotation);
+        return filtered_board_pose_;
+    }
+
+    std::array<double, 36> estimate_covariance(
+        const std::vector<tf2::Transform> &board_estimates,
+        const tf2::Transform &mean_board_pose,
+        const std::vector<aruco_opencv_msgs::msg::MarkerPose> &used_markers
+    ) const {
+        std::array<double, 36> covariance{};
+        covariance.fill(0.0);
+
+        const size_t count = board_estimates.size();
+        const double marker_count_scale =
+            1.0 / std::sqrt(static_cast<double>(std::max<size_t>(1, count)));
+
+        double mean_distance = 0.0;
+        for (const auto &marker : used_markers) {
+            mean_distance += std::sqrt(
+                marker.pose.position.x * marker.pose.position.x +
+                marker.pose.position.y * marker.pose.position.y +
+                marker.pose.position.z * marker.pose.position.z
+            );
+        }
+        mean_distance /=
+            static_cast<double>(std::max<size_t>(1, used_markers.size()));
+        const double distance_scale = std::max(0.2, mean_distance);
+
+        double tx_var = 0.0;
+        double ty_var = 0.0;
+        double tz_var = 0.0;
+        double rx_var = 0.0;
+        double ry_var = 0.0;
+        double rz_var = 0.0;
+
+        for (const auto &estimate : board_estimates) {
+            const tf2::Vector3 dt =
+                estimate.getOrigin() - mean_board_pose.getOrigin();
+            tx_var += dt.x() * dt.x();
+            ty_var += dt.y() * dt.y();
+            tz_var += dt.z() * dt.z();
+
+            tf2::Quaternion q_err =
+                mean_board_pose.getRotation().inverse() * estimate.getRotation();
+            q_err.normalize();
+            if (q_err.getW() < 0.0) {
+                q_err = tf2::Quaternion(
+                    -q_err.x(), -q_err.y(), -q_err.z(), -q_err.w()
+                );
+            }
+
+            const double w =
+                std::clamp(static_cast<double>(q_err.getW()), -1.0, 1.0);
+            const double angle = 2.0 * std::acos(w);
+            const double s = std::sqrt(std::max(1e-16, 1.0 - w * w));
+            tf2::Vector3 axis(1.0, 0.0, 0.0);
+            if (s > 1e-8) {
+                axis = tf2::Vector3(
+                    q_err.getX() / s, q_err.getY() / s, q_err.getZ() / s
+                );
+            }
+            const tf2::Vector3 rotvec = axis * angle;
+            rx_var += rotvec.x() * rotvec.x();
+            ry_var += rotvec.y() * rotvec.y();
+            rz_var += rotvec.z() * rotvec.z();
+        }
+
+        const double denom = static_cast<double>(std::max<size_t>(1, count - 1));
+        tx_var /= denom;
+        ty_var /= denom;
+        tz_var /= denom;
+        rx_var /= denom;
+        ry_var /= denom;
+        rz_var /= denom;
+
+        const double pos_floor =
+            std::pow(0.005 * distance_scale * marker_count_scale, 2);
+        const double rot_floor =
+            std::pow(0.03 * distance_scale * marker_count_scale, 2);
+
+        covariance[0] = tx_var + pos_floor;
+        covariance[7] = ty_var + pos_floor;
+        covariance[14] = tz_var + pos_floor * 2.0;
+        covariance[21] = rx_var + rot_floor;
+        covariance[28] = ry_var + rot_floor;
+        covariance[35] = rz_var + rot_floor;
+        return covariance;
+    }
+
+    std::optional<tf2::Transform> marker_to_ee(EeMarker &marker) {
+        try {
+            const auto transform = tf_buffer_->lookupTransform(
+                marker.frame,
+                ee_frame_,
+                tf2::TimePointZero,
+                tf2::durationFromSec(0.1)
+            );
+            tf2::Transform current;
+            tf2::fromMsg(transform.transform, current);
+
+            if (marker.cached_marker_to_ee) {
+                const tf2::Transform delta =
+                    marker.cached_marker_to_ee->inverse() * current;
+                const double translation_change = delta.getOrigin().length();
+                tf2::Quaternion rotation_change = delta.getRotation();
+                rotation_change.normalize();
+                const double rotation_angle = 2.0 * std::acos(std::clamp(
+                    std::abs(static_cast<double>(rotation_change.w())), 0.0, 1.0
+                ));
+                if (translation_change > 1e-5 || rotation_angle > 1e-4) {
+                    RCLCPP_WARN_THROTTLE(
+                        get_logger(),
+                        *get_clock(),
+                        2000,
+                        "Transform %s -> %s is not static (delta %.6f m, %.6f rad)",
+                        marker.frame.c_str(),
+                        ee_frame_.c_str(),
+                        translation_change,
+                        rotation_angle
+                    );
+                }
+            } else {
+                marker.cached_marker_to_ee = current;
+            }
+            return current;
+        } catch (const tf2::TransformException &ex) {
+            RCLCPP_WARN_THROTTLE(
+                get_logger(),
+                *get_clock(),
+                1000,
+                "Could not resolve %s -> %s: %s",
+                marker.frame.c_str(),
+                ee_frame_.c_str(),
+                ex.what()
+            );
+            return std::nullopt;
+        }
+    }
+
+    void on_detection(
+        const aruco_opencv_msgs::msg::ArucoDetection::SharedPtr msg
+    ) {
+        if (msg->markers.empty()) {
+            return;
+        }
+
+        const rclcpp::Time stamp = msg->header.stamp;
+        const std::string camera_frame = msg->header.frame_id;
+
+        geometry_msgs::msg::TransformStamped tracking_to_camera;
+        try {
+            tracking_to_camera = tf_buffer_->lookupTransform(
+                tracking_frame_,
+                camera_frame,
+                stamp,
+                rclcpp::Duration::from_seconds(0.1)
+            );
+        } catch (const tf2::TransformException &ex) {
+            RCLCPP_WARN_THROTTLE(
+                get_logger(),
+                *get_clock(),
+                1000,
+                "Could not transform '%s' to '%s': %s",
+                camera_frame.c_str(),
+                tracking_frame_.c_str(),
+                ex.what()
+            );
+            return;
+        }
+
+        tf2::Transform t_tracking_camera;
+        tf2::fromMsg(tracking_to_camera.transform, t_tracking_camera);
+
+        std::vector<tf2::Transform> board_estimates;
+        std::vector<int> marker_ids;
+        std::vector<aruco_opencv_msgs::msg::MarkerPose> used_markers;
+        std::vector<tf2::Transform> camera_to_ee_estimates;
+        for (const auto &marker : msg->markers) {
+            geometry_msgs::msg::Transform marker_transform_msg;
+            marker_transform_msg.translation.x = marker.pose.position.x;
+            marker_transform_msg.translation.y = marker.pose.position.y;
+            marker_transform_msg.translation.z = marker.pose.position.z;
+            marker_transform_msg.rotation = marker.pose.orientation;
+
+            tf2::Transform t_camera_marker;
+            tf2::fromMsg(marker_transform_msg, t_camera_marker);
+
+            const auto ee_marker = std::find_if(
+                ee_markers_.begin(),
+                ee_markers_.end(),
+                [&marker](const EeMarker &candidate) {
+                    return candidate.id == marker.marker_id;
+                }
+            );
+            if (ee_marker != ee_markers_.end()) {
+                const auto marker_to_end_effector = marker_to_ee(*ee_marker);
+                if (marker_to_end_effector) {
+                    camera_to_ee_estimates.push_back(
+                        t_camera_marker * *marker_to_end_effector
+                    );
+                }
+            }
+
+            const auto board_to_marker =
+                board_to_marker_from_layout(marker.marker_id);
+            if (!board_to_marker.has_value()) {
+                continue;
+            }
+
+            board_estimates.push_back(
+                t_camera_marker * board_to_marker->inverse()
+            );
+            marker_ids.push_back(marker.marker_id);
+            used_markers.push_back(marker);
+        }
+
+        if (board_estimates.empty()) {
+            return;
+        }
+
+        const tf2::Transform averaged_measurement =
+            average_transforms(board_estimates);
+        const tf2::Transform filtered_measurement =
+            apply_ema(averaged_measurement);
+        const auto covariance =
+            estimate_covariance(board_estimates, averaged_measurement, used_markers);
+        const tf2::Transform filtered_tracking_board =
+            t_tracking_camera * filtered_measurement;
+
+        geometry_msgs::msg::TransformStamped board_tf;
+        board_tf.header.stamp = stamp;
+        board_tf.header.frame_id = tracking_frame_;
+        board_tf.child_frame_id = board_frame_;
+        board_tf.transform = tf2::toMsg(filtered_tracking_board);
+        tf_broadcaster_->sendTransform(board_tf);
+
+        geometry_msgs::msg::PoseWithCovarianceStamped pose_msg;
+        pose_msg.header = board_tf.header;
+        pose_msg.pose.pose.position.x = board_tf.transform.translation.x;
+        pose_msg.pose.pose.position.y = board_tf.transform.translation.y;
+        pose_msg.pose.pose.position.z = board_tf.transform.translation.z;
+        pose_msg.pose.pose.orientation = board_tf.transform.rotation;
+        pose_msg.pose.covariance = covariance;
+        pose_pub_->publish(pose_msg);
+
+        if (!camera_to_ee_estimates.empty()) {
+            const tf2::Transform camera_to_ee =
+                average_transforms(camera_to_ee_estimates);
+            const tf2::Transform panel_to_ee =
+                filtered_measurement.inverse() * camera_to_ee;
+            geometry_msgs::msg::PoseStamped visual_ee;
+            visual_ee.header.stamp = stamp;
+            visual_ee.header.frame_id = board_frame_;
+            visual_ee.pose.position.x = panel_to_ee.getOrigin().x();
+            visual_ee.pose.position.y = panel_to_ee.getOrigin().y();
+            visual_ee.pose.position.z = panel_to_ee.getOrigin().z();
+            visual_ee.pose.orientation = tf2::toMsg(
+                panel_to_ee.getRotation()
+            );
+            visual_ee_pub_->publish(visual_ee);
+        }
+
+        RCLCPP_DEBUG(
+            get_logger(),
+            "Updated board pose from %zu markers in '%s'; visual EE from %zu "
+            "marker(s)",
+            marker_ids.size(),
+            tracking_frame_.c_str(),
+            camera_to_ee_estimates.size()
+        );
+    }
+};
+
+} // namespace kalman_arm2
+
+RCLCPP_COMPONENTS_REGISTER_NODE(kalman_arm2::PanelTracker)
