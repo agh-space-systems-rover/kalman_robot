@@ -7,9 +7,6 @@
 [submodule "vendor/joy_linux"]
 	path = vendor/joy_linux
 	url = ../../agh-space-systems-rover/joy_linux.git
-[submodule "vendor/compressed_depth_image_transport"]
-	path = vendor/compressed_depth_image_transport
-	url = ../../agh-space-systems-rover/compressed_depth_image_transport.git
 [submodule "vendor/service_based_nav2_controller"]
 	path = vendor/service_based_nav2_controller
 	url = ../../agh-space-systems-rover/service_based_nav2_controller.git

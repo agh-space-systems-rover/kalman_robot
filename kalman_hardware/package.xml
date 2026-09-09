@@ -21,6 +21,7 @@
   <depend>cv_bridge</depend>
 
   <exec_depend>ros2launch</exec_depend>
+  <exec_depend>compressed_depth_image_transport</exec_depend>
   <exec_depend>realsense2_camera</exec_depend>
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>phidgets_spatial</exec_depend>
