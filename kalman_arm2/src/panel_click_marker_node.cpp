@@ -6,7 +6,11 @@
 #include <stdexcept>
 #include <string>
 
+#ifdef ROS_HUMBLE
 #include <cv_bridge/cv_bridge.h>
+#else
+#include <cv_bridge/cv_bridge.hpp>
+#endif
 #include <geometry_msgs/msg/point.hpp>
 #include <message_filters/subscriber.h>
 #include <message_filters/time_synchronizer.h>

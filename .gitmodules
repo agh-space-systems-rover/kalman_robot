@@ -23,3 +23,7 @@
 	path = vendor/bio_ik
 	url = ../../PickNikRobotics/bio_ik.git
 	branch = ros2
+[submodule "vendor/ros_tcp_endpoint"]
+	path = vendor/ros_tcp_endpoint
+	url = https://github.com/Unity-Technologies/ROS-TCP-Endpoint.git
+	branch = main-ros2
