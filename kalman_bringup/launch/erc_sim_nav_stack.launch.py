@@ -1,6 +1,7 @@
 from kalman_bringup import *
 
-RGBD_IDS = "d455_front"  # d455_back d455_left d455_right"
+RGBD_IDS = "d455_front d455_back d455_left d455_right"
+
 
 
 def generate_launch_description():
@@ -10,20 +11,20 @@ def generate_launch_description():
                 "selective_launch": "only_rs_pub",
             },
             "description": {
-                "layout": "autonomy",
+                "layout": "autonomy_90deg_cams_new",
             },
             "clouds": {
                 "rgbd_ids": RGBD_IDS,
             },
             "slam": {
                 "rgbd_ids": RGBD_IDS,
-                "gps_datum": "50.06622974 19.91320048",  # ERC2025 Marsyard S1, Kraków
-                "fiducials": "erc2025",
+                "gps_datum": "50.06614847 19.91317746",  # ERC 2026 Marsyard S1, Kraków
+                "fiducials": "erc2026",
                 "use_mag": "true",
             },
             "nav2": {
                 "rgbd_ids": RGBD_IDS,
-                "static_map": "erc2025",
+                "static_map": "erc2026",
             },
             "aruco": {
                 "rgbd_ids": RGBD_IDS,
@@ -32,5 +33,5 @@ def generate_launch_description():
             },
             "supervisor": {},
         },
-        composition="none",
+        composition="start_container",
     )
