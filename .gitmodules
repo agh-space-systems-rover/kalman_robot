@@ -24,3 +24,7 @@
 	path = vendor/ros_tcp_endpoint
 	url = https://github.com/Unity-Technologies/ROS-TCP-Endpoint.git
 	branch = main-ros2
+[submodule "vendor/livox_ros_driver2"]
+	path = vendor/livox_ros_driver2
+	url = git@github.com:tu-darmstadt-ros-pkg/livox_ros_driver2.git
+	branch = jazzy
