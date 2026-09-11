@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="kalman">
+    <!-- base Kalman links -->
+    <xacro:include filename="$(find kalman_description)/urdf/kalman.urdf.xacro" />
+    <xacro:kalman />
+
+    <!-- IMU -->
+    <link name="imu_link" />
+    <joint name="imu_joint" type="fixed">
+        <origin xyz="0.1 0.000 -0.015" rpy="0 0 -1.5708" />
+        <parent link="base_link" />
+        <child link="imu_link" />
+    </joint>
+
+    <!-- Altimeter -->
+    <link name="altimeter_link" />
+    <joint name="altimeter_joint" type="fixed">
+        <origin xyz="0.088 0.000 -0.015" />
+        <parent link="base_link" />
+        <child link="altimeter_link" />
+    </joint>
+
+    <!-- GPS -->
+    <link name="gps_link" />
+    <joint name="gps_joint" type="fixed">
+        <origin xyz="-0.560 -0.175 0.670" />
+        <parent link="base_link" />
+        <child link="gps_link" />
+    </joint>
+
+    <!-- Livox Mid-360s -->
+    <link name="livox_frame">
+        <visual>
+            <geometry>
+                <mesh filename="package://kalman_description/stl/MID360s.stl" />
+            </geometry>
+        </visual>
+    </link>
+
+    <joint name="livox_joint" type="fixed">
+        <origin xyz="-0.45 0 0.43" rpy="3.14 0 0" />
+        <parent link="base_link" />
+        <child link="livox_frame" />
+    </joint>
+    <!-- Livox IMU -->
+    <link name="livox_imu_link" />
+    <joint name="livox_imu_joint" type="fixed">
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <parent link="livox_frame" />
+        <child link="livox_imu_link" />
+    </joint>
+</robot>
