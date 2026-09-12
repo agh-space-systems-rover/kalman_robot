@@ -28,3 +28,10 @@
 	path = vendor/livox_ros_driver2
 	url = git@github.com:tu-darmstadt-ros-pkg/livox_ros_driver2.git
 	branch = jazzy
+[submodule "vendor/fast_lio"]
+	path = vendor/fast_lio
+	url = git@github.com:Ericsii/FAST_LIO_ROS2.git
+[submodule "vendor/Livox-SDK2"]
+	path = vendor/Livox-SDK2
+	url = https://github.com/tu-darmstadt-ros-pkg/Livox-SDK2
+	branch = jazzy
