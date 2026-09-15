@@ -35,3 +35,6 @@
 	path = vendor/Livox-SDK2
 	url = https://github.com/tu-darmstadt-ros-pkg/Livox-SDK2
 	branch = jazzy
+[submodule "vendor/FAST_LIO"]
+	path = vendor/FAST_LIO
+	url = git@github.com:agh-space-systems-rover/FAST_LIO_ROS2.git
