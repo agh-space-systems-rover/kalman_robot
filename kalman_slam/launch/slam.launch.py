@@ -1,56 +1,37 @@
 from ament_index_python import get_package_share_path
 from launch import LaunchDescription
-from launch_ros.actions import Node, LoadComposableNodes
-from launch.actions import (
-    DeclareLaunchArgument,
-    OpaqueFunction,
-)
+from launch_ros.actions import Node
+from launch.actions import DeclareLaunchArgument, OpaqueFunction, IncludeLaunchDescription
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
-from launch_ros.descriptions import ComposableNode
 import jinja2
+from rclpy import parameter
 import yaml
 import os
 
-from kalman_utils.launch import launch_node_or_load_component, load_standalone_config
-
-
 def load_ekf_config(name, **kwargs) -> str:
-    # Load EKF config template
     with open(
         str(get_package_share_path("kalman_slam") / "config" / f"{name}.yaml.j2"),
         "r",
     ) as f:
         ekf_config_template = jinja2.Template(f.read())
 
-    # Render EKF config with camera IDs
     ekf_config = ekf_config_template.render(**kwargs)
-
-    # Load EKF config
     ekf_params = yaml.load(ekf_config, Loader=yaml.FullLoader)
 
-    # Save EKF config to file
     ekf_params_path = f"/tmp/kalman/{name}." + str(os.getpid()) + ".yaml"
     os.makedirs(os.path.dirname(ekf_params_path), exist_ok=True)
     with open(ekf_params_path, "w") as f:
         yaml.dump(ekf_params, f)
 
-    # Return path to EKF config
     return ekf_params_path
-
 
 def find_available_fiducial_configs() -> set[str]:
     fiducials_dir = get_package_share_path("kalman_slam") / "fiducials"
     configs = [f.stem for f in fiducials_dir.glob("*.yaml")]
     return set(configs)
 
-
 def launch_setup(context):
-    component_container = LaunchConfiguration("component_container").perform(context)
-    rgbd_ids = [
-        x
-        for x in LaunchConfiguration("rgbd_ids").perform(context).split(" ")
-        if x != ""
-    ]
     gps_datum = [
         float(x)
         for x in LaunchConfiguration("gps_datum").perform(context).split(" ")
@@ -58,278 +39,116 @@ def launch_setup(context):
     ]
     fiducials = LaunchConfiguration("fiducials").perform(context)
     use_mag = LaunchConfiguration("use_mag").perform(context).lower() == "true"
-    slam_rgbd_ids = [
-        x
-        for x in LaunchConfiguration("slam_rgbd_ids").perform(context).split(" ")
-        if x != ""
-    ]
-
-    if len(rgbd_ids) == 0:
-        raise ValueError(
-            "At least one RGBD camera is required. Please specify rgbd_ids:='d455_front'."
-        )
-
+    
+    
     description = []
 
-    # visual odometry
-    if rgbd_ids:
-        for camera_id in rgbd_ids:
-            description += launch_node_or_load_component(
-                component_container=component_container,
-                package="rtabmap_odom",
-                executable="rgbd_odometry",
-                plugin="rtabmap_odom::RGBDOdometry",
-                namespace=camera_id,
-                parameters=[
-                    load_standalone_config("kalman_slam", "rgbd_odometry.yaml"),
-                    (
-                        {
-                            "rgb_transport": "compressed",
-                            "depth_transport": "compressedDepth",
-                        }
-                        if not component_container
-                        else {}
-                    ),
-                ],
-                remappings=[
-                    ("rgb/image", "color/image_raw"),
-                    ("depth/image", "depth/image_raw"),
-                    ("rgb/camera_info", "color/camera_info"),
-                ],
-                arguments=(
-                    ["--ros-args", "--log-level", "error"]
-                    if not component_container
-                    else None
-                ),
-            )
+    # Setup LIO 
+    # description += [
+    #     Node(
+    #         package="fast_lio",
+    #         executable="fastlio_mapping",
+    #         name="fastlio",
+    #         parameters=[
+    #             str(
+    #                 get_package_share_path("kalman_slam")
+    #                 / "config"
+    #                 / f"mid360s.yaml"
+    #             )
+    #         ],
+    #         remappings=[
+    #             ("Odometry", "odometry/lidar"),
+    #         ],
+    #         output="screen",
+    #     )
+    # ]
+    
+    # # Setup EKF and global odometry
+    # description += [
+    #     Node(
+    #         package="robot_localization",
+    #         executable="ekf_node",
+    #         name="ekf_filter_node_local",
+    #         parameters=[load_ekf_config("ekf_filter_node_local")],
+    #         remappings=[("odometry/filtered", "odometry/local")],
+    #     ),
+    #     Node(
+    #         package="robot_localization",
+    #         executable="ekf_node",
+    #         name="ekf_filter_node_global",
+    #         parameters=[load_ekf_config("ekf_filter_node_global", use_mag=use_mag)],
+    #         remappings=[("odometry/filtered", "odometry/global")],
+    #     ),
+    #     Node(
+    #         package="kalman_slam",
+    #         executable="gps_preprocessor",
+    #         remappings=[
+    #             ("fix", "gps/fix"),
+    #             ("fix/filtered", "gps/fix/filtered"),
+    #         ],
+    #     ),
+    #     Node(
+    #         package="kalman_slam",
+    #         executable="gps_spoofer",
+    #         remappings=[
+    #             ("spoof_gps", "spoof_gps"),
+    #             ("spoof_gps/look_at", "spoof_gps/look_at"),
+    #             ("imu", "imu/spoofed"),
+    #             ("fix/in", "gps/filtered"),
+    #             ("fix/out", "gps/fix"),
+    #         ],
+    #     ),
+    #     Node(
+    #         package="robot_localization",
+    #         executable="navsat_transform_node",
+    #         parameters=[
+    #             str(
+    #                 get_package_share_path("kalman_slam")
+    #                 / "config"
+    #                 / "navsat_transform_node.yaml"
+    #             ),
+    #             (
+    #                 {
+    #                     "datum": [gps_datum[0], gps_datum[1], 0.0],
+    #                     "wait_for_datum": True,
+    #                 }
+    #                 if gps_datum
+    #                 else {
+    #                     "wait_for_datum": False,
+    #                 }
+    #             ),
+    #         ],
+    #         remappings={
+    #             "imu": "imu/data",  # Phidget IMU topic
+    #             "gps/fix": "gps/fix/filtered",
+    #             "odometry/filtered": "odometry/global",
+    #         }.items(),
+    #     ),
+    # ]
 
-    if len(slam_rgbd_ids) == 0:
-        # Fuse odometry from multiple cameras.
-        description += [
-            # Local Kalman filter, publishes odom->base_link.
-            Node(
-                package="robot_localization",
-                executable="ekf_node",
-                name="ekf_filter_node_local",
-                parameters=[
-                    load_ekf_config("ekf_filter_node_local", camera_ids=rgbd_ids)
-                ],
-                remappings=[("odometry/filtered", "odometry/local")],
-            ),
-            # Global Kalman filter, publishes map->base_link.
-            Node(
-                package="robot_localization",
-                executable="ekf_node",
-                name="ekf_filter_node_global",
-                parameters=[load_ekf_config("ekf_filter_node_global", use_mag=use_mag)],
-                remappings=[("odometry/filtered", "odometry/global")],
-            ),
-            # navsat_transform_node will refuse to work on messages with NaN values, so a custom preprocessor is needed.
-            # This preprocessor will also set initial covariance to 0 to guarantee fast EKF convergence.
-            Node(
-                package="kalman_slam",
-                executable="gps_preprocessor",
-                remappings=[
-                    ("fix", "gps/fix"),
-                    ("fix/filtered", "gps/fix/filtered"),
-                ],
-            ),
-            # This node creates a service that can be used to send a fake GPS fix.
-            # This service is forwarded over RF to be used on the ground station.
-            # Why not send the GPS fix directly from the ground station?
-            # For now topics are not ACKed by ros_link (RF comms),
-            # so forwarding them instead of a service would be less reliable.
-            Node(
-                package="kalman_slam",
-                executable="gps_spoofer",
-                remappings=[
-                    ("spoof_gps", "spoof_gps"),
-                    ("spoof_gps/look_at", "spoof_gps/look_at"),
-                    ("imu", "imu/spoofed"),
-                    ("fix/in", "gps/filtered"),
-                    ("fix/out", "gps/fix"),
-                ],
-            ),
-            # Navsat transform listens to global odometry (map->base_link) from the second Kalman filter, ekf_filter_node_gps.
-            # The node listens for GPS fixes from the sensor (or gps_spoofer) and will use them to correct the global odometry for drift.
-            # The corrected global odometry will then be republished on a different topic and used by ekf_filter_node_global
-            # to apply the correction to global odometry.
-            # Additionally, the global odometry is converted to a GPS fix relative to a starting position (the datum).
-            # We use this fix to display the robot's position on the map when no GPS sensor is available.
-            # TODO: Might need to delay this node a bit so that global EKF converges before navsat_transform initialization.
-            Node(
-                package="robot_localization",
-                executable="navsat_transform_node",
-                parameters=[
-                    str(
-                        get_package_share_path("kalman_slam")
-                        / "config"
-                        / "navsat_transform_node.yaml"
-                    ),
-                    (
-                        {
-                            # Datum is the starting position of the robot.
-                            # Those GPS coordinates correspond to the location of the "map" frame in the real world.
-                            "datum": [gps_datum[0], gps_datum[1], 0.0],
-                            "wait_for_datum": True,  # Needs to be set to enable the datum.
-                        }
-                        if gps_datum
-                        else {
-                            "wait_for_datum": False,
-                        }
-                    ),
-                ],
-                remappings={
-                    # IMU is technically not needed here because navsat_transform_node has the heading from global odometry which is world-referenced because it uses absolute yaw readings from the IMU.
-                    # Global odometry can be used instead of the IMU sensor by setting a "use_odometry_yaw" parameter,
-                    # but this did not work reliably for some reason.
-                    "imu": "imu/data",  # the node subscribes to imu, not imu/data.
-                    # Those are the GPS sensor readings (filtered by gps_preprocessor).
-                    "gps/fix": "gps/fix/filtered",
-                    # This is the current global odometry state republished as a GPS fix.
-                    # "gps/filtered": "gps/filtered",
-                    # And this is the correctd global odometry as a nav_msgs/Odometry message.
-                    # "odometry/gps": "odometry/gps",
-                    # This is the current global odometry from ekf_filter_node_gps.
-                    # It has approximately the same value as the corrected global odometry,
-                    # but keep in mind that a separate topic is needed for the correction mechanism to work.
-                    "odometry/filtered": "odometry/global",
-                }.items(),
-            ),
-        ]
-
-    if fiducials != "":
-        # Fiducial odometry
-        description += [
-            Node(
-                package="kalman_slam",
-                executable="fiducial_odometry",
-                parameters=[
-                    str(
-                        get_package_share_path("kalman_slam")
-                        / "config"
-                        / "fiducial_odometry.yaml"
-                    ),
-                    {
-                        "fiducials_path": str(
-                            get_package_share_path("kalman_slam")
-                            / "fiducials"
-                            / f"{fiducials}.yaml"
-                        ),
-                    },
-                ],
-                remappings=[("odometry", "odometry/fiducial")],
-            ),
-        ]
-
-    # SLAM
-    if len(slam_rgbd_ids) > 1:
-        if not component_container:
-            raise ValueError("SLAM with multiple cameras requires a composition.")
-
-        description += [
-            LoadComposableNodes(
-                target_container=component_container,
-                composable_node_descriptions=[
-                    ComposableNode(
-                        package="rtabmap_sync",
-                        plugin="rtabmap_sync::RGBDSync",
-                        namespace=rgbd_id,
-                        remappings=[
-                            ("rgb/image", "color/image_raw"),
-                            ("depth/image", "depth/image_raw"),
-                            ("rgb/camera_info", "color/camera_info"),
-                        ],
-                        extra_arguments=[{"use_intra_process_comms": True}],
-                    )
-                    for rgbd_id in slam_rgbd_ids
-                ],
-            ),
-            LoadComposableNodes(
-                target_container=component_container,
-                composable_node_descriptions=[
-                    ComposableNode(
-                        package="rtabmap_sync",
-                        plugin="rtabmap_sync::RGBDXSync",
-                        namespace="rtabmap",
-                        parameters=[
-                            {
-                                "rgbd_cameras": len(slam_rgbd_ids),
-                            }
-                        ],
-                        remappings=[
-                            (f"rgbd_image{i}", f"/{rgbd_id}/rgbd_image/compressed")
-                            for i, rgbd_id in enumerate(slam_rgbd_ids)
-                        ],
-                        extra_arguments=[{"use_intra_process_comms": True}],
-                    )
-                ],
-            ),
-        ]
-
-    if len(slam_rgbd_ids) > 0:
-        description += [
-            Node(
-                package="kalman_slam",
-                executable="dead_reckoning",
-                parameters=[
-                    {
-                        "num_odoms": len(rgbd_ids),
-                        "sync_with_odom": (
-                            rgbd_ids.index(slam_rgbd_ids[0])
-                            if len(slam_rgbd_ids) == 1
-                            else -1
-                        ),
-                        "imu_correction_use_yaw": use_mag,
-                    }
-                ],
-                remappings=[
-                    ("odom", "odometry/local"),
-                    ("imu", "imu/data"),
-                ]
-                + [
-                    (f"odom{i}", f"/{rgbd_id}/odom")
-                    for i, rgbd_id in enumerate(rgbd_ids)
-                ],
-                # arguments=["--ros-args", "--log-level", "debug"],
-                # prefix=["gdbserver localhost:1234"],
-                # output="screen",
-            ),
-            Node(
-                namespace="rtabmap",
-                name="slam",
-                executable="rtabmap",
-                package="rtabmap_slam",
-                parameters=[
-                    str(
-                        get_package_share_path("kalman_slam")
-                        / "config"
-                        / (
-                            "rtabmap_slam.yaml"
-                            if len(slam_rgbd_ids) == 1
-                            else "rtabmap_slam_multicam.yaml"
-                        )
-                    )
-                ],
-                remappings={
-                    "odom": "/odometry/local",
-                    "imu": "/imu/data",
-                    "rgb/image": f"/{slam_rgbd_ids[0]}/color/image_raw",
-                    "depth/image": f"/{slam_rgbd_ids[0]}/depth/image_raw",
-                    "rgb/camera_info": f"/{slam_rgbd_ids[0]}/color/camera_info",
-                }.items(),
-                arguments=["-d", "--ros-args", "--log-level", "warn"],
-            ),
-            # # For development:
-            # Node(
-            #     namespace="rtabmap",
-            #     executable="rtabmap_viz",
-            #     package="rtabmap_viz",
-            #     remappings={
-            #         "odom": "/odometry/local",
-            #     }.items(),
-            # ),
-        ]
+    # # if fiducials != "":
+    # #     description += [
+    # #         Node(
+    # #             package="kalman_slam",
+    # #             executable="fiducial_odometry",
+    # #             parameters=[
+    # #                 str(
+    # #                     get_package_share_path("kalman_slam")
+    # #                     / "config"
+    # #                     / "fiducial_odometry.yaml"
+    # #                 ),
+    # #                 {
+    # #                     "fiducials_path": str(
+    # #                         get_package_share_path("kalman_slam")
+    # #                         / "fiducials"
+    # #                         / f"{fiducials}.yaml"
+    # #                     ),
+    # #                 },
+    # #             ],
+    # #             remappings=[("odometry", "odometry/fiducial")],
+    # #         ),
+    # #     ]
+    
 
     return description
 
@@ -337,16 +156,6 @@ def launch_setup(context):
 def generate_launch_description():
     return LaunchDescription(
         [
-            DeclareLaunchArgument(
-                "component_container",
-                default_value="",
-                description="Name of an existing component container to use. Empty to disable composition.",
-            ),
-            DeclareLaunchArgument(
-                "rgbd_ids",
-                default_value="",
-                description="Space-separated IDs of the depth cameras to use.",
-            ),
             DeclareLaunchArgument(
                 "gps_datum",
                 default_value="",
@@ -364,11 +173,7 @@ def generate_launch_description():
                 choices=["true", "false"],
                 description="Use IMU yaw readings for global EKF. If disabled, heading will drift over time.",
             ),
-            DeclareLaunchArgument(
-                "slam_rgbd_ids",
-                default_value="",
-                description="Space-separated IDs of the depth cameras to use for SLAM.",
-            ),
+
             OpaqueFunction(function=launch_setup),
         ]
     )
