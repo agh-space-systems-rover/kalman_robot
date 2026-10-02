@@ -257,7 +257,7 @@ function abortPose() {
 function buildJointStateMsg(pose: ArmPose): JointState {
   return {
     header: { stamp: { sec: 0, nanosec: 0 }, frame_id: '' },
-    name: [...ARM_JOINT_NAMES],
+    name: [],
     position: pose.joints.slice(0, 6),
     velocity: [],
     effort: []
