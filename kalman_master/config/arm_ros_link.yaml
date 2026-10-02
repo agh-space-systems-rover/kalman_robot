@@ -138,15 +138,6 @@ station:
       type: sensor_msgs/msg/JointState
       max_rate: 2
       fields:
-        - path: name
-          string_enum:
-            values:
-              - arm_joint_1
-              - arm_joint_2
-              - arm_joint_3
-              - arm_joint_4
-              - arm_joint_5
-              - arm_joint_6
         - path: position
           float_range:
             min: -6.4

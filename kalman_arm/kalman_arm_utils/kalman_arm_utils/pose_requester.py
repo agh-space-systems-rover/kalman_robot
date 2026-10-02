@@ -152,6 +152,9 @@ class PoseRequestSender(Node):
             self.get_logger().warn("Target rejected: No current joint positions (arm_state not yet received).")
             return
 
+        if len(msg.position) != 6:
+            # invalid number of joints
+            return
         if self._goal_handle:
             self.get_logger().info("Canceling previous goal")
             self._status_pub.publish(ArmGoalStatus(status=ArmGoalStatus.PREEMPTING))
@@ -173,52 +176,20 @@ class PoseRequestSender(Node):
 
     def build_goal_constraints(self, msg: JointState) -> Constraints:
         goal_constraints: Constraints = Constraints(name="pose")
-        joints_names = sorted(self.joints.keys(), key=lambda x: x)
-        joint_constraints: list[JointConstraint] = [JointConstraint(joint_name=name) for name in joints_names]
-
-        request_joint = dict(zip(msg.name, msg.position))
-        for i, constrain in enumerate(joint_constraints):
-            name = constrain.joint_name
-            if name in request_joint:
-                constrain.position = float(request_joint[name])
-            else:
-                constrain.position = float(self.joints[name])
-            constrain.tolerance_above = 0.01
-            constrain.tolerance_below = 0.01
-
+        joint_constraints: list[JointConstraint] = []
+        joints_names = [f"arm_joint_{i}" for i in range(1, 7)]
+        for name, pos in zip(joints_names, msg.position):
+            joint_constraints.append(
+                JointConstraint(
+                    joint_name=name,
+                    position=float(pos),
+                    tolerance_above=0.01,
+                    tolerance_below=0.01,
+                )
+            )
         goal_constraints.joint_constraints = joint_constraints
         return goal_constraints
     
-    # def check_joints_too_far(
-    #     self, request: MoveGroup.Goal, joints_to_check: list[str]
-    # ) -> bool:
-    #     goal_constraint: Constraints = request.request.goal_constraints[0]
-    #     joint_constraints: list[JointConstraint] = sorted(
-    #         goal_constraint.joint_constraints, key=lambda x: x.joint_name
-    #     )
-
-    #     close_enough = True
-    #     for i in range(6):
-    #         if (joint_constraints[i].joint_name in joints_to_check) and (
-    #             abs(
-    #                 self.joints[joint_constraints[i].joint_name]
-    #                 - joint_constraints[i].position
-    #             )
-    #             > MAX_DISTANCE_RAD
-    #         ):
-    #             close_enough = False
-
-    #     return close_enough
-
-    # def check_is_from_safe_previous_poses(self, pose: Pose) -> bool:
-    #     for safe_pose in pose.safe_previous_poses:
-    #         if safe_pose in PREDEFINED_POSES:
-    #             safe_pose = PREDEFINED_POSES[safe_pose]
-    #             if self.check_joints_too_far(
-    #                 self.get_request_from_file(safe_pose.path), safe_pose.joints_checked
-    #             ):
-    #                 return True
-    #     return False
     def send_request(self, request, check=True):
 
         self._action_client.wait_for_server()
