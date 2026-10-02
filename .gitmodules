@@ -36,3 +36,6 @@
 	path = vendor/Livox-SDK2
 	url = https://github.com/tu-darmstadt-ros-pkg/Livox-SDK2
 	branch = jazzy
+[submodule "vendor/KISS-Matcher"]
+	path = vendor/KISS-Matcher
+	url = git@github.com:MIT-SPARK/KISS-Matcher.git

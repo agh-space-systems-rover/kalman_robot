@@ -38,14 +38,14 @@
     </link>
 
     <joint name="livox_joint" type="fixed">
-        <origin xyz="-0.45 0 0.43" rpy="3.14 0 0" />
+        <origin xyz="-0.45 0 0.43" rpy="${pi} 0 0" />
         <parent link="base_link" />
         <child link="livox_frame" />
     </joint>
     <!-- Livox IMU -->
     <link name="livox_imu_link" />
     <joint name="livox_imu_joint" type="fixed">
-        <origin xyz="0 0 0" rpy="0 0 0" />
+        <origin xyz="0.011 0.02329 -0.04412" rpy="0 0 0" />
         <parent link="livox_frame" />
         <child link="livox_imu_link" />
     </joint>

@@ -17,7 +17,7 @@
                                         # This param will take effect no matter what time_sync_en is. So if the time offset is not known exactly, please set as 0.0
 
         preprocess:
-            lidar_type: 4                # 1 for Livox serials LiDAR, 2 for Velodyne LiDAR, 3 for ouster LiDAR, 4 for any other pointcloud input
+            lidar_type: 4                # Mid-360 PointCloud2
             scan_line:  4
             blind: 1.2
             timestamp_unit: 3
@@ -29,12 +29,12 @@
             b_acc_cov: 0.0001
             b_gyr_cov: 0.0001
             fov_degree:    360.0
-            det_range:     100.0
+            det_range:     40.0
             extrinsic_est_en:  false      # true: enable the online estimation of IMU-LiDAR extrinsic
             extrinsic_T: [ -0.011, -0.02329, 0.04412 ]
             extrinsic_R: [ 1., 0., 0.,
-                            0., -1., 0.,
-                            0., 0., -1.]
+                            0., 1., 0.,
+                            0., 0., 1.]
 
         publish:
             path_en: false                # true: publish Path

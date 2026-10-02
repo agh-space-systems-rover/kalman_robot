@@ -140,6 +140,8 @@ class Rviz(TypedDict):
 class Slam(TypedDict):
     component_container: str
     "Name of an existing component container to use. Empty to disable composition."
+    lio_config: str
+    "FAST-LIO configuration file from kalman_slam/config."
     rgbd_ids: str
     "Space-separated IDs of the depth cameras to use."
     gps_datum: str

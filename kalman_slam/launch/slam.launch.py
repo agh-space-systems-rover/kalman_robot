@@ -1,13 +1,23 @@
+from gc import enable
 from ament_index_python import get_package_share_path
 from launch import LaunchDescription
 from launch_ros.actions import Node
-from launch.actions import DeclareLaunchArgument, OpaqueFunction, IncludeLaunchDescription
-from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.actions import (
+    DeclareLaunchArgument,
+    OpaqueFunction,
+    IncludeLaunchDescription,
+)
+from launch.launch_description_sources import (
+    PythonLaunchDescriptionSource,
+    AnyLaunchDescriptionSource,
+)
+
 from launch.substitutions import LaunchConfiguration
 import jinja2
 from rclpy import parameter
 import yaml
 import os
+
 
 def load_ekf_config(name, **kwargs) -> str:
     with open(
@@ -26,12 +36,15 @@ def load_ekf_config(name, **kwargs) -> str:
 
     return ekf_params_path
 
+
 def find_available_fiducial_configs() -> set[str]:
     fiducials_dir = get_package_share_path("kalman_slam") / "fiducials"
     configs = [f.stem for f in fiducials_dir.glob("*.yaml")]
     return set(configs)
 
+
 def launch_setup(context):
+    lio_config = LaunchConfiguration("lio_config").perform(context)
     gps_datum = [
         float(x)
         for x in LaunchConfiguration("gps_datum").perform(context).split(" ")
@@ -39,30 +52,80 @@ def launch_setup(context):
     ]
     fiducials = LaunchConfiguration("fiducials").perform(context)
     use_mag = LaunchConfiguration("use_mag").perform(context).lower() == "true"
-    
-    
+    enable_loop_closures = (
+        LaunchConfiguration("enable_loop_closures").perform(context).lower() == "true"
+    )
+
     description = []
 
-    # Setup LIO 
-    # description += [
-    #     Node(
-    #         package="fast_lio",
-    #         executable="fastlio_mapping",
-    #         name="fastlio",
-    #         parameters=[
-    #             str(
-    #                 get_package_share_path("kalman_slam")
-    #                 / "config"
-    #                 / f"mid360s.yaml"
-    #             )
-    #         ],
-    #         remappings=[
-    #             ("Odometry", "odometry/lidar"),
-    #         ],
-    #         output="screen",
-    #     )
-    # ]
+    # Setup LIO
+    description += [
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(
+                str(get_package_share_path("fast_lio") / "launch" / "mapping.launch.py")
+            ),
+            launch_arguments={
+                "config_file": str(
+                    get_package_share_path("kalman_slam") / "config" / f"{lio_config}.yaml"
+                ),
+                "rviz": "true",
+            }.items(),
+        ),
+        # FAST-LIO estimates the raw built-in IMU pose in camera_init. Attach
+        # the upside-down sensor frames to the ROS odom/base_link tree.
+        Node(
+            package="tf2_ros",
+            executable="static_transform_publisher",
+            name="fast_lio_odom_to_camera_init",
+            arguments=[
+                "--x", "-0.439", "--y", "-0.02329", "--z", "0.47412",
+                "--qx", "1.0",
+                "--qy", "0.0",
+                "--qz", "0.0",
+                "--qw", "0.0",
+                "--frame-id", "odom",
+                "--child-frame-id", "camera_init",
+            ],
+        ),
+        Node(
+            package="tf2_ros",
+            executable="static_transform_publisher",
+            name="fast_lio_body_to_base_link",
+            arguments=[
+                "--x", "0.439",
+                "--y", "-0.02329",
+                "--z", "0.47412",
+                "--qx", "1.0",
+                "--qy", "0.0",
+                "--qz", "0.0",
+                "--qw", "0.0",
+                "--frame-id", "body",
+                "--child-frame-id", "base_link",
+            ],
+        ),
+    ]
+    # Setup KISS-Matcher loop closure detection (only for navigation without GNSS)
+    if enable_loop_closures:
+        description += [
+            IncludeLaunchDescription(
+                AnyLaunchDescriptionSource(
+                    str(
+                        get_package_share_path("kiss_matcher_ros")
+                        / "launch"
+                        / "run_kiss_matcher_sam.launch.yaml"
+                    )
+                ),
+                launch_arguments={
+                    "odom_topic": "/Odometry",
+                    "scan_topic": "/cloud_registered_body",
+                    "start_rviz": "true",
+                    "map_frame": "map",
+                    "base_frame": "base_link",
+                }.items(),
+            )
+        ]
     
+
     # # Setup EKF and global odometry
     # description += [
     #     Node(
@@ -148,7 +211,6 @@ def launch_setup(context):
     # #             remappings=[("odometry", "odometry/fiducial")],
     # #         ),
     # #     ]
-    
 
     return description
 
@@ -156,6 +218,11 @@ def launch_setup(context):
 def generate_launch_description():
     return LaunchDescription(
         [
+            DeclareLaunchArgument(
+                "lio_config",
+                default_value="mid360s.yaml",
+                description="FAST-LIO configuration file from kalman_slam/config.",
+            ),
             DeclareLaunchArgument(
                 "gps_datum",
                 default_value="",
@@ -173,7 +240,12 @@ def generate_launch_description():
                 choices=["true", "false"],
                 description="Use IMU yaw readings for global EKF. If disabled, heading will drift over time.",
             ),
-
+            DeclareLaunchArgument(
+                "enable_loop_closures",
+                default_value="false",
+                choices=["true", "false"],
+                description="Enable loop closure detection, needed when navigating without GNSS",
+            ),
             OpaqueFunction(function=launch_setup),
         ]
     )
