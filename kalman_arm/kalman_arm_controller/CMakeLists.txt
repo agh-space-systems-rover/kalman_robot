@@ -71,8 +71,15 @@ endforeach()
 
 
 # Component Nodes (Shared libraries) ############################
+
+# servo_publisher 
 set(SERVO_PUBLISHER servo_publisher)
-add_library(${SERVO_PUBLISHER} SHARED scripts/servo_publisher.cpp)
+
+if(DEFINED ENV{ROS_DISTRO} AND "$ENV{ROS_DISTRO}" STREQUAL "humble")
+  message(STATUS "Detected ROS Humble - enabling compatibility headers")
+  set(HUMBLE_COMPAT_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/humble_compat")
+endif()
+add_library(${SERVO_PUBLISHER} SHARED src/servo_publisher.cpp)
 target_compile_features(${SERVO_PUBLISHER} PUBLIC cxx_std_20)
 ament_target_dependencies(${SERVO_PUBLISHER} ${THIS_PACKAGE_INCLUDE_DEPENDS})
 if(DEFINED HUMBLE_COMPAT_INCLUDE_DIR)
@@ -156,7 +163,8 @@ install(
 )
 
 install(TARGETS servo_keyboard_input
-    DESTINATION lib/${PROJECT_NAME})
+    DESTINATION lib/${PROJECT_NAME}
+)
 
 # install(TARGETS monitor_planning_scene
 # DESTINATION lib/${PROJECT_NAME})

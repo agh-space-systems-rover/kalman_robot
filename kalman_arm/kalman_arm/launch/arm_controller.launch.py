@@ -106,19 +106,12 @@ def generate_launch_description():
             )
         )
     )
-    servo_publisher_node = Node(
-        package="kalman_arm_controller",
-        executable="servo_publisher",
-        name="servo_publisher",
-        output="screen",
-    )
 
     nodes = [
         control_node,
         robot_state_pub_node,
         joint_state_broadcaster_spawner,
         delay_robot_controller_spawner_after_joint_state_broadcaster_spawner,
-        servo_publisher_node,
     ]
 
     return LaunchDescription(nodes)
