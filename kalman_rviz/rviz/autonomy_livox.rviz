@@ -6,6 +6,7 @@ Panels:
       Expanded:
         - /Global Options1
         - /TF1
+        - /TF1/Frames1
         - /Map1/Topic1
         - /PointCloud21
       Splitter Ratio: 0.6088235378265381
@@ -69,10 +70,12 @@ Visualization Manager:
           Value: false
         base_link:
           Value: false
+        body:
+          Value: true
         body_link:
           Value: false
         camera_init:
-          Value: true
+          Value: false
         gps_link:
           Value: false
         imu_link:
@@ -81,6 +84,10 @@ Visualization Manager:
           Value: true
         livox_imu_link:
           Value: false
+        map:
+          Value: true
+        odom:
+          Value: true
         suspension_l_link:
           Value: false
         suspension_r_link:
@@ -93,6 +100,8 @@ Visualization Manager:
           Value: false
         swivel_fr_link:
           Value: false
+        utm:
+          Value: true
         wheel_bl_link:
           Value: false
         wheel_br_link:
@@ -107,35 +116,40 @@ Visualization Manager:
       Show Axes: true
       Show Names: true
       Tree:
-        base_link:
-          altimeter_link:
-            {}
-          base_footprint:
-            {}
-          body_link:
-            suspension_l_link:
-              swivel_bl_link:
-                wheel_bl_link:
-                  {}
-              swivel_fl_link:
-                wheel_fl_link:
-                  {}
-            suspension_r_link:
-              swivel_br_link:
-                wheel_br_link:
-                  {}
-              swivel_fr_link:
-                wheel_fr_link:
-                  {}
-          gps_link:
-            {}
-          imu_link:
-            {}
-          livox_frame:
-            camera_init:
+        body:
+          base_link:
+            altimeter_link:
               {}
-            livox_imu_link:
+            base_footprint:
               {}
+            body_link:
+              suspension_l_link:
+                swivel_bl_link:
+                  wheel_bl_link:
+                    {}
+                swivel_fl_link:
+                  wheel_fl_link:
+                    {}
+              suspension_r_link:
+                swivel_br_link:
+                  wheel_br_link:
+                    {}
+                swivel_fr_link:
+                  wheel_fr_link:
+                    {}
+            gps_link:
+              {}
+            imu_link:
+              {}
+            livox_frame:
+              livox_imu_link:
+                {}
+        map:
+          utm:
+            {}
+        odom:
+          camera_init:
+            {}
       Update Interval: 0
       Value: true
     - Alpha: 1
@@ -370,8 +384,8 @@ Visualization Manager:
     - Alpha: 0.30000001192092896
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
-        Max Value: 0.919510543346405
-        Min Value: -2.3104944229125977
+        Max Value: 0.9222346544265747
+        Min Value: -2.1639747619628906
         Value: true
       Axis: Z
       Channel Name: intensity
@@ -446,7 +460,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 6.180520057678223
+      Distance: 2.4420061111450195
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -461,10 +475,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.499798059463501
+      Pitch: 0.5797980427742004
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 0.8449579477310181
+      Yaw: 1.0749577283859253
     Saved: ~
 Window Geometry:
   Displays:

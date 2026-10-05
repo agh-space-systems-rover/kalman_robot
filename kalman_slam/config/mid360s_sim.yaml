@@ -2,9 +2,9 @@
     ros__parameters:
         feature_extract_enable: false
         point_filter_num: 3
-        max_iteration: 3
-        filter_size_surf: 0.5
-        filter_size_map: 0.5
+        max_iteration: 5
+        filter_size_surf: 0.3
+        filter_size_map: 0.3
         cube_side_length: 1000.0
         runtime_pos_log_enable: false
         map_file_path: "./test.pcd"
@@ -12,14 +12,13 @@
         common:
             lid_topic: "/livox/points"
             imu_topic: "/livox/imu"
-            # LiDAR and IMU use the same Unix-epoch simulation clock.
             time_sync_en: false
             time_offset_lidar_to_imu: 0.0
 
         preprocess:
             lidar_type: 5
             scan_line: 4
-            blind: 1.2
+            blind: 1.1
             timestamp_unit: 3
             scan_rate: 10
 
@@ -28,8 +27,8 @@
             # higher process noise so LiDAR corrections can reject them.
             acc_cov: 0.3
             gyr_cov: 0.3
-            b_acc_cov: 0.0001
-            b_gyr_cov: 0.0001
+            b_acc_cov: 0.001
+            b_gyr_cov: 0.001
             fov_degree: 360.0
             det_range: 40.0
             extrinsic_est_en: false

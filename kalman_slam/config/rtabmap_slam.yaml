@@ -1,21 +1,33 @@
 /**:
-    ros__parameters:
-        subscribe_rgb: True
-        subscribe_depth: True
-        subscribe_rgbd: False
-        subscribe_stereo: False
-        subscribe_scan: False
-        subscribe_scan_cloud: False
-        subscribe_user_data: False
-        subscribe_odom_info: False
+  ros__parameters:
+    subscribe_rgb: False
+    subscribe_depth: False
+    subscribe_rgbd: False
+    subscribe_stereo: False
+    subscribe_scan: False
+    subscribe_scan_cloud: True
+    subscribe_user_data: False
+    subscribe_odom_info: False
 
-        frame_id: base_link
-        map_frame_id: map
-        odom_frame_id: odom
-        publish_tf: True
+    frame_id: base_link
+    map_frame_id: rtabmap_map
+    odom_frame_id: odom      # odometry comes from TF (FAST-LIO via the static chain)
+    publish_tf: False
+    approx_sync: False
+    queue_size: 10
 
-        # RTAB-Map params
-
-        Rtabmap/DetectionRate: "3"  # update Hz
-        Rtabmap/LoopThr: "0.02"
-        # Grid/CellSize: "0.1"  # resolution of occupancy grid; default is 0.05
+    # RTAB-Map params
+    Rtabmap/DetectionRate: "3"      # update Hz
+    # Rtabmap/LoopThr: "0.02"   # only for visual loop closure
+    Reg/Strategy: "1"               # ICP
+    Reg/Force3DoF: "false"
+    Icp/VoxelSize: "0.2"
+    Icp/PointToPlane: "true"
+    Icp/MaxCorrespondenceDistance: "0.5"
+    Grid/Sensor: "0"                # build the grid from the scan cloud
+    Grid/CellSize: "0.1"
+    Grid/RangeMax: "20"
+    Grid/RangeMin: "1.0"
+    RGBD/ProximityBySpace: "true"   # loop closure by position, since there are no images
+    Mem/NotLinkedNodesKept: "false"
+    Mem/IncrementalMemory: "true"

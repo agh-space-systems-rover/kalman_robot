@@ -18,24 +18,39 @@
     base_link_frame: base_link
     world_frame: map
 
-    # Copy map->base_link from odom->base_link
-    odom0: odometry/local
-    odom0_config: [false, false, false,
-                   false, false, false,
-                   true, true, true,
-                   true, true, true,
-                   false, false, false]
-    odom0_differential: false
+    # FAST-LIO odometry converted from camera_init/body to odom/base_link.
+    # xyz, rpy, vx, vy, vz
+    odom0: /odometry/local
+    odom0_config: [true,  true,  true,
+                true,  true,  true,
+                false, false, false,
+                false, false, false,
+                false, false, false]
+    odom0_differential: true
     odom0_relative: false
     odom0_queue_size: 10
+
+    # Fuse rtabmap X Y when detecting loop closure, disabled when using GNSS
+{% if use_rtabmap %}
+    pose0: /rtabmap/localization_pose
+    pose0_config: [true, true, false,
+                false, false, false,
+                false, false, false,
+                false, false, false,
+                false, false, false]
+    pose0_differential: false
+    pose0_relative: false
+    pose0_queue_size: 10
+    pose0_rejection_threshold: 5.0
+{% endif %}
 
     # Apply world-referenced pitch and roll correction from the IMU.
     imu0: imu/data
     imu0_config: [false, false, false,
-                  true,  true,  false,
-                  false, false, false,
-                  false, false, false,
-                  false, false, false]
+                true, true, false,
+                false, false, false,
+                false, false, false,
+                false, false, false]
     imu0_differential: false
     imu0_relative: false
     imu0_queue_size: 10
@@ -67,15 +82,15 @@
     odom1_queue_size: 10
 
     # XY correction from detected fiducials.
-    odom2: odometry/fiducial
-    odom2_config: [true,  true,  false,
-                   false, false, false,
-                   false, false, false,
-                   false, false, false,
-                   false, false, false]
-    odom2_differential: false
-    odom2_relative: false
-    odom2_queue_size: 10
+    # odom2: odometry/fiducial
+    # odom2_config: [true,  true,  false,
+    #                false, false, false,
+    #                false, false, false,
+    #                false, false, false,
+    #                false, false, false]
+    # odom2_differential: false
+    # odom2_relative: false
+    # odom2_queue_size: 10
 
 #     # Yaw fix from the ground station.
 #     imu1: imu/spoofed # From the IMU

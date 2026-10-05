@@ -39,3 +39,6 @@
 [submodule "vendor/KISS-Matcher"]
 	path = vendor/KISS-Matcher
 	url = git@github.com:MIT-SPARK/KISS-Matcher.git
+[submodule "vendor/patchworkpp"]
+	path = vendor/patchworkpp
+	url = git@github.com:url-kaist/patchwork-plusplus.git

@@ -4,7 +4,7 @@
   <name>kalman_slam</name>
   <version>0.0.0</version>
   <description>configuration + launch files for robot_localization and RTAB-Map</description>
-  <maintainer email="63957587+rayferric@users.noreply.github.com">rayferric</maintainer>
+  <maintainer email="102436271+RafalS3@users.noreply.github.com">RafalS3</maintainer>
   <license>MIT</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>

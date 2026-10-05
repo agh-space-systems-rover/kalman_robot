@@ -15,12 +15,11 @@ def generate_launch_description():
                 "lio_config": "mid360s_sim",
                 "gps_datum": "50.06614847 19.91317746",  # ERC 2026 Marsyard S1, Kraków
                 "use_mag": "true",
-                "enable_loop_closures": "false",
+                "use_rtabmap": "false", # enable loop closure detection
             },
-        #     "nav2": {
-        #         "rgbd_ids": RGBD_IDS,
-        #         "static_map": "erc2026",
-        #     },
+            "nav2": {
+                # "static_map": "erc2026",
+            },
         #     "aruco": {
         #         "rgbd_ids": RGBD_IDS,
         #         "dict": "5X5_100",
@@ -28,8 +27,8 @@ def generate_launch_description():
         #     },
         #     "supervisor": {},
         # },
-        # composition="start_container",
-        }
+        },
+        composition="start_container",
     )
     desc.add_action(
         Node(

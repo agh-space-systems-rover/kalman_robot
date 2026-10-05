@@ -27,12 +27,28 @@ rclcpp_components_register_node(
   EXECUTABLE dead_reckoning
 )
 
+add_executable(odometry_frame_transformer
+  src/odometry_frame_transformer_node.cpp
+)
+ament_target_dependencies(
+  odometry_frame_transformer
+  rclcpp
+  nav_msgs
+  geometry_msgs
+  tf2_ros
+  tf2_geometry_msgs
+)
+
 ament_export_targets(kalman_slam-targets)
 install(TARGETS dead_reckoning_node
   EXPORT kalman_slam-targets
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
+)
+
+install(TARGETS odometry_frame_transformer
+  RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 
 ament_python_install_package(${PROJECT_NAME})
