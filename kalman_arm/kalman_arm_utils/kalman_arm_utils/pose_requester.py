@@ -95,11 +95,13 @@ class PoseRequestSender(Node):
         target_state = JointState()
         names = []
         positions = []
-        for joint_name, rule in pose_config.get("joints", {}).items():
-            if joint_name not in self.joints:
-                continue
+        
+        for joint_name in ["arm_joint_1", "arm_joint_2", "arm_joint_3", "arm_joint_4", "arm_joint_5", "arm_joint_6"]:
+            current_val = self.joints.get(joint_name, 0.0)
+            
+            rule = pose_config.get("joints", {}).get(joint_name, {"action": "hold"})
             action = rule.get("action", "hold")
-            current_val = self.joints[joint_name]
+            
             match action:
                 case "hold":
                     target_value = current_val
@@ -109,6 +111,7 @@ class PoseRequestSender(Node):
                     target_value = -current_val
                 case "offset":
                     target_value = current_val + rule.get("offset", 0.0)
+            
             names.append(joint_name)
             positions.append(target_value)
 
