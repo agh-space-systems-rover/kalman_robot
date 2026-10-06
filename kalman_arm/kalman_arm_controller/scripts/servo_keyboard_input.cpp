@@ -41,7 +41,7 @@
 #include <chrono>
 #include <control_msgs/msg/joint_jog.hpp>
 #include <geometry_msgs/msg/twist_stamped.hpp>
-#include <moveit_msgs/srv/servo_command_type.hpp>
+// #include <moveit_msgs/srv/servo_command_type.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <signal.h>
 #include <stdio.h>
@@ -123,9 +123,9 @@ private:
 
 	rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr twist_pub_;
 	rclcpp::Publisher<control_msgs::msg::JointJog>::SharedPtr      joint_pub_;
-	rclcpp::Client<moveit_msgs::srv::ServoCommandType>::SharedPtr switch_input_;
+	// rclcpp::Client<moveit_msgs::srv::ServoCommandType>::SharedPtr switch_input_;
 
-	std::shared_ptr<moveit_msgs::srv::ServoCommandType::Request> request_;
+	// std::shared_ptr<moveit_msgs::srv::ServoCommandType::Request> request_;
 	double                                                       joint_vel_cmd_;
 	std::string command_frame_id_;
 };
@@ -142,9 +142,9 @@ KeyboardServo::KeyboardServo()
 	);
 
 	// Client for switching input types
-	switch_input_ = nh_->create_client<moveit_msgs::srv::ServoCommandType>(
-	    "servo_node/switch_command_type"
-	);
+	// switch_input_ = nh_->create_client<moveit_msgs::srv::ServoCommandType>(
+	//     "servo_node/switch_command_type"
+	// );
 }
 
 KeyboardReader input;
@@ -301,44 +301,44 @@ int KeyboardServo::keyLoop() {
 			RCLCPP_DEBUG(nh_->get_logger(), "r");
 			joint_vel_cmd_ *= -1;
 			break;
-		case KEYCODE_J:
-			RCLCPP_DEBUG(nh_->get_logger(), "j");
-			request_ =
-			    std::make_shared<moveit_msgs::srv::ServoCommandType::Request>();
-			request_->command_type =
-			    moveit_msgs::srv::ServoCommandType::Request::JOINT_JOG;
-			if (switch_input_->wait_for_service(std::chrono::seconds(1))) {
-				auto result = switch_input_->async_send_request(request_);
-				if (result.get()->success) {
-					RCLCPP_INFO_STREAM(
-					    nh_->get_logger(), "Switched to input type: JointJog"
-					);
-				} else {
-					RCLCPP_WARN_STREAM(
-					    nh_->get_logger(), "Could not switch input to: JointJog"
-					);
-				}
-			}
-			break;
-		case KEYCODE_T:
-			RCLCPP_DEBUG(nh_->get_logger(), "t");
-			request_ =
-			    std::make_shared<moveit_msgs::srv::ServoCommandType::Request>();
-			request_->command_type =
-			    moveit_msgs::srv::ServoCommandType::Request::TWIST;
-			if (switch_input_->wait_for_service(std::chrono::seconds(1))) {
-				auto result = switch_input_->async_send_request(request_);
-				if (result.get()->success) {
-					RCLCPP_INFO_STREAM(
-					    nh_->get_logger(), "Switched to input type: Twist"
-					);
-				} else {
-					RCLCPP_WARN_STREAM(
-					    nh_->get_logger(), "Could not switch input to: Twist"
-					);
-				}
-			}
-			break;
+		// case KEYCODE_J:
+		// 	RCLCPP_DEBUG(nh_->get_logger(), "j");
+		// 	request_ =
+		// 	    std::make_shared<moveit_msgs::srv::ServoCommandType::Request>();
+		// 	request_->command_type =
+		// 	    moveit_msgs::srv::ServoCommandType::Request::JOINT_JOG;
+		// 	if (switch_input_->wait_for_service(std::chrono::seconds(1))) {
+		// 		auto result = switch_input_->async_send_request(request_);
+		// 		if (result.get()->success) {
+		// 			RCLCPP_INFO_STREAM(
+		// 			    nh_->get_logger(), "Switched to input type: JointJog"
+		// 			);
+		// 		} else {
+		// 			RCLCPP_WARN_STREAM(
+		// 			    nh_->get_logger(), "Could not switch input to: JointJog"
+		// 			);
+		// 		}
+		// 	}
+		// 	break;
+		// case KEYCODE_T:
+		// 	RCLCPP_DEBUG(nh_->get_logger(), "t");
+		// 	request_ =
+		// 	    std::make_shared<moveit_msgs::srv::ServoCommandType::Request>();
+		// 	request_->command_type =
+		// 	    moveit_msgs::srv::ServoCommandType::Request::TWIST;
+		// 	if (switch_input_->wait_for_service(std::chrono::seconds(1))) {
+		// 		auto result = switch_input_->async_send_request(request_);
+		// 		if (result.get()->success) {
+		// 			RCLCPP_INFO_STREAM(
+		// 			    nh_->get_logger(), "Switched to input type: Twist"
+		// 			);
+		// 		} else {
+		// 			RCLCPP_WARN_STREAM(
+		// 			    nh_->get_logger(), "Could not switch input to: Twist"
+		// 			);
+		// 		}
+		// 	}
+		// 	break;
 		case KEYCODE_W:
 			RCLCPP_DEBUG(nh_->get_logger(), "w");
 			RCLCPP_INFO_STREAM(
