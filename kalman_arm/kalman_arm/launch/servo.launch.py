@@ -36,9 +36,10 @@ def generate_launch_description():
 
     # Launch a standalone Servo node.
     # As opposed to a node component, this may be necessary (for example) if Servo is running on a different PC
+    servo_exec = "servo_node_main" if os.environ.get("ROS_DISTRO") == "humble" else "servo_node"
     servo_node = Node(
         package="moveit_servo",
-        executable="servo_node_main",
+        executable=servo_exec,
         parameters=[
             servo_params,
             moveit_config.robot_description,
