@@ -43,8 +43,7 @@ def generate_launch_description():
     master_uart_node = Node(
         package="kalman_master",
         executable="master_com",
-        parameters=[{"baud_rate": 2000000, "port": "/dev/ttyAMA2"}],
-        condition=UnlessCondition(use_sim),
+        parameters=[{"baud_rate": 2000000, "port": "/dev/ttyAMA1"}],
     )
 
     arm_state_publisher_node = Node(

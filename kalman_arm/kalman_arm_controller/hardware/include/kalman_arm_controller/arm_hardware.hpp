@@ -15,7 +15,6 @@
 #include "hardware_interface/hardware_info.hpp"
 #include "hardware_interface/system_interface.hpp"
 #include "hardware_interface/types/hardware_interface_return_values.hpp"
-#include "hardware_interface/visibility_control.h"
 
 using hardware_interface::return_type;
 
@@ -23,8 +22,7 @@ namespace kalman_arm_controller {
 using CallbackReturn =
     rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
 
-class HARDWARE_INTERFACE_PUBLIC ArmSystem
-    : public hardware_interface::SystemInterface {
+class ArmSystem : public hardware_interface::SystemInterface {
 public:
 	CallbackReturn
 	on_init(const hardware_interface::HardwareInfo &info) override;
@@ -35,10 +33,9 @@ public:
 	std::vector<hardware_interface::CommandInterface>
 	export_command_interfaces() override;
 
-	return_type
-	read(const rclcpp::Time &time, const rclcpp::Duration &period) override;
+	hardware_interface::return_type read(const rclcpp::Time &time, const rclcpp::Duration &period) override;
 
-	return_type write(
+	hardware_interface::return_type write(
 	    const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/
 	) override;
 
