@@ -9,6 +9,7 @@ const std::string CONTROL_TYPE_TOPIC = "/change_control_type";
 
 class ArmSimSystem : public ArmSystem {
 public:
+~ArmSimSystem() override {}
 
 hardware_interface::CallbackReturn on_init(const hardware_interface::HardwareInfo &info) override {
     if (hardware_interface::SystemInterface::on_init(info) !=

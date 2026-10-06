@@ -1,6 +1,18 @@
 cmake_minimum_required(VERSION 3.16)
 project(kalman_arm_controller)
 
+find_package(Boost REQUIRED COMPONENTS random)
+find_package(tl_expected QUIET)
+if(NOT TARGET tl::expected)
+  add_library(tl::expected INTERFACE IMPORTED)
+  find_path(TL_EXPECTED_INCLUDE_DIR NAMES tl/expected.hpp)
+  if(TL_EXPECTED_INCLUDE_DIR)
+    set_target_properties(tl::expected PROPERTIES
+      INTERFACE_INCLUDE_DIRECTORIES "${TL_EXPECTED_INCLUDE_DIR}"
+    )
+  endif()
+endif()
+
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
