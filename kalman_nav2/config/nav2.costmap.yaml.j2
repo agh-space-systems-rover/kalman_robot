@@ -66,10 +66,8 @@ plugins: [
   {% if static_map %}
   "static_layer",
   {% endif %}
-  {% if rgbd_ids %}
   "stvl",
-  {% endif %}
-  "yolo_cubes_cloud_stvl",
+  # "yolo_cubes_cloud_stvl",
   "inflation_layer"
 ]
 # default: ["static_layer", "obstacle_layer", "inflation_layer"]
@@ -97,7 +95,6 @@ static_layer:
   map_topic: "" # default: ""
 {% endif %}
 
-{% if rgbd_ids %}
 # Why use STVL:
 # - Standard voxel layer only clears obstacles when other obstacles are detected behind them.
 # - STVL on the other hand clears obstacles when they are not detected in the frustum anymore.
@@ -108,10 +105,9 @@ stvl:
 
   origin_z: 0.0                   # meters
   voxel_size: 0.1                 # meters
-  
-  voxel_decay: 30.0               # seconds if linear, e^n if exponential
+  voxel_decay: 5.0               # seconds if linear, e^n if exponential
   decay_model: 0                  # 0=linear, 1=exponential, -1=persistent
-  mark_threshold: 0               # voxel height
+  mark_threshold: 2               # voxel height
   track_unknown_space: true       # default space is unknown
   
   combination_method: 1           # 1=max, 0=override
@@ -124,29 +120,27 @@ stvl:
 
   # Multi-camera setup using Jinja2 templating:
   # List of sources of sensors as a string.
-  observation_sources: {{ rgbd_ids | join(' ') }}
-{% for rgbd_id in rgbd_ids %}
-  {{ rgbd_id }}:
+  observation_sources: lidar
+  lidar:
     data_type: PointCloud2
-    topic: /{{ rgbd_id }}/point_cloud/obstacles # must be absolute topic name
+    topic: /cloud/nonground
+    model_type: 1
 
     # Marking params:
     marking: true
-    obstacle_range: 5.0           # meters
-    min_obstacle_height: -10000.0 # default 0, meters
-    max_obstacle_height: 10000.0  # default 3, meters
+    obstacle_range: 15.0           # meters
+    min_obstacle_height: -0.30
+    max_obstacle_height: 2.0
     clear_after_reading: true     # default false, clear the buffer after the layer gets readings from it
     filter: ""                    # default passthrough, apply "voxel", "passthrough", or no filter to sensor data, recommended to have at one filter on
       
     # Clearing params:
     clearing: true
-    min_z: 0.5                  # default 0, meters
-    max_z: 5.0                  # default 10, meters
-    vertical_fov_angle: 1.025   # default 0.7, radians
-    horizontal_fov_angle: 1.571 # default 1.04, radians
-    decay_acceleration: 0.1     # default 0, 1/s^2. If laser scanner MUST be 0
-{% endfor %}
-{% endif %}
+    min_z: -10.0
+    max_z: 10.0
+    vertical_fov_angle: 1.03   # default 0.7, radians, Mid360 59deg
+    horizontal_fov_angle: 6.28 # default 1.04, radians
+    decay_acceleration: 0.0     # default 0, 1/s^2. If laser scanner MUST be 0
 
 yolo_cubes_cloud_stvl:
   plugin: "spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer"
@@ -154,14 +148,13 @@ yolo_cubes_cloud_stvl:
 
   origin_z: 0.0                   # meters
   voxel_size: 0.1                 # meters
-  
   voxel_decay: 4.0               # seconds if linear, e^n if exponential
   decay_model: 0                  # 0=linear, 1=exponential, -1=persistent
   mark_threshold: 0               # voxel height
   track_unknown_space: true       # default space is unknown
   
   combination_method: 1           # 1=max, 0=override
-  update_footprint_enabled: false # default off
+  update_footprint_enabled: true # default off
   transform_tolerance: 1.0        # seconds
 
   publish_voxel_map: false        # default off

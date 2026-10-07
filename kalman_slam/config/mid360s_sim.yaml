@@ -10,7 +10,7 @@
         map_file_path: "./test.pcd"
 
         common:
-            lid_topic: "/livox/points"
+            lid_topic: "/livox/points/cropped"
             imu_topic: "/livox/imu"
             time_sync_en: false
             time_offset_lidar_to_imu: 0.0
@@ -18,7 +18,7 @@
         preprocess:
             lidar_type: 5
             scan_line: 4
-            blind: 1.1
+            blind: 0.3
             timestamp_unit: 3
             scan_rate: 10
 

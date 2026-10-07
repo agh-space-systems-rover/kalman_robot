@@ -59,6 +59,30 @@ def launch_setup(context):
 
     description = []
 
+    # Crop the cloud
+    description += launch_node_or_load_component(
+        component_container=component_container,
+        package="pcl_ros",
+        executable="crop_box",
+        plugin="pcl_ros::CropBox",
+        name="crop_box_node",
+        parameters=[
+            {
+                "min_x": -0.3,
+                "max_x": 1.1,
+                "min_y": -0.5,
+                "max_y": 0.5,
+                "min_z": -0.3,
+                "max_z": 0.8,
+                "negative": True,
+            }
+        ],
+        remappings=[
+            ("input", "/livox/points"),
+            ("output", "/livox/points/cropped"),
+        ],
+    )
+
     # Setup LIO
     description += [
         IncludeLaunchDescription(

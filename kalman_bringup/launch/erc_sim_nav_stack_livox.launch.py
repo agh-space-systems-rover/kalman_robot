@@ -25,7 +25,7 @@ def generate_launch_description():
         #         "dict": "5X5_100",
         #         "size": "0.15",
         #     },
-        #     "supervisor": {},
+            "supervisor": {},
         # },
         },
         composition="start_container",

@@ -10,7 +10,7 @@
     subscribe_odom_info: False
 
     frame_id: base_link
-    map_frame_id: rtabmap_map
+    map_frame_id: map
     odom_frame_id: odom      # odometry comes from TF (FAST-LIO via the static chain)
     publish_tf: False
     approx_sync: False

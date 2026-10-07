@@ -46,18 +46,20 @@ def find_available_maps() -> set[str]:
     return set(maps)
 
 
-def render_nav2_config(rgbd_ids, static_map):
+def render_nav2_config(static_map):
     # Render core Nav2 params.
     nav2_params = render_jinja_config(
         str(get_package_share_path("kalman_nav2") / "config" / "nav2.yaml.j2"),
-        rgbd_ids=rgbd_ids,
         static_map=static_map,
     )
 
     # Render commons costmap params.
     costmap_params = render_jinja_config(
-        str(get_package_share_path("kalman_nav2") / "config" / "nav2.costmap.yaml.j2"),
-        rgbd_ids=rgbd_ids,
+        str(
+            get_package_share_path("kalman_nav2")
+            / "config"
+            / "nav2.costmap.yaml.j2"
+        ),
         static_map=static_map,
     )
 
@@ -91,37 +93,56 @@ def render_nav2_config(rgbd_ids, static_map):
 
 def launch_setup(context):
     component_container = LaunchConfiguration("component_container").perform(context)
-    rgbd_ids = [
-        x
-        for x in LaunchConfiguration("rgbd_ids").perform(context).split(" ")
-        if x != ""
-    ]
     static_map = LaunchConfiguration("static_map").perform(context)
     driving_mode = LaunchConfiguration("driving_mode").perform(context)
 
     actions = []
 
-    # obstacle detection
-    actions += sum(
-        (
-            launch_node_or_load_component(
-                component_container=component_container,
-                package="point_cloud_utils",
-                executable="obstacle_detection",
-                plugin="point_cloud_utils::ObstacleDetection",
-                namespace=camera_id,
-                parameters=[
-                    load_standalone_config("kalman_nav2", "obstacle_detection.yaml"),
-                ],
-                remappings=[
-                    ("input", "point_cloud"),
-                    ("output", "point_cloud/obstacles"),
-                ],
-                extra_arguments=[{"use_intra_process_comms": False}],
-            )
-            for camera_id in rgbd_ids
-        ),
-        [],
+    #Cloud downsampling
+    actions += launch_node_or_load_component(
+        component_container=component_container,
+        package="pcl_ros",
+        executable="filter_voxel_grid_node",
+        plugin="pcl_ros::VoxelGrid",
+        parameters=[{"leaf_size": 0.05, "use_sim_time": False}],
+        remappings=[
+            ("input", "/cloud_registered_body"),
+            ("output", "/cloud_registered_body/downsampled"),
+        ],
+    )
+    # Transform the cloud
+    actions += [
+        Node(
+            package="pcl_ros",
+            executable="filter_passthrough_node",
+            name="transform_pointcloud",
+            parameters=[
+                {
+                    "filter_field_name": "x",
+                    "filter_limit_min": -100000.0,
+                    "filter_limit_max": 100000.0,
+                    "output_frame": "base_link",
+                }
+            ],
+            remappings=[
+                ("input", "/cloud_registered_body/downsampled"),
+                ("output", "/cloud_registered_body/transformed"),
+            ],
+        )
+    ]
+    # Ground segmentation for obstacle detection
+    actions += launch_node_or_load_component(
+        component_container=component_container,
+        package="patchworkpp",
+        executable="patchworkpp_node",
+        plugin="patchworkpp_ros::GroundSegmentationServer",
+        parameters=[
+            load_standalone_config("kalman_nav2", "patchwork.yaml"),
+        ],
+        remappings=[
+            ("pointcloud_topic", "/cloud_registered_body/transformed"),
+            ("/patchworkpp/nonground", "/cloud/nonground"),
+        ],
     )
 
     # static map
@@ -154,7 +175,7 @@ def launch_setup(context):
             ),
         ]
 
-    nav2_params_path = render_nav2_config(rgbd_ids, static_map)
+    nav2_params_path = render_nav2_config(static_map)
     if component_container:
         # We need to spawn a separate container for Nav2.
         # It is not possible to load Nav2 parameters into an
@@ -229,11 +250,6 @@ def generate_launch_description():
                 "component_container",
                 default_value="",
                 description="Name of an existing component container to use. Empty by default to disable composition.",
-            ),
-            DeclareLaunchArgument(
-                "rgbd_ids",
-                default_value="",
-                description="Space-separated IDs of the depth cameras to use.",
             ),
             DeclareLaunchArgument(
                 "static_map",
