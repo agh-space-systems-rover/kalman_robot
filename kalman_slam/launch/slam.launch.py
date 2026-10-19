@@ -70,10 +70,10 @@ def launch_setup(context):
             {
                 "min_x": -0.3,
                 "max_x": 1.1,
-                "min_y": -0.5,
-                "max_y": 0.5,
+                "min_y": -0.7,
+                "max_y": 0.7,
                 "min_z": -0.3,
-                "max_z": 0.8,
+                "max_z": 1.0,
                 "negative": True,
             }
         ],
