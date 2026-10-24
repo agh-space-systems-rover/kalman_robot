@@ -1,0 +1,37 @@
+{
+  "name": "kalman-camera-2dof",
+  "displayName": "Kalman Camera 2DOF",
+  "description": "Foxglove panel for commanding the Kalman 2DOF camera (yaw/pitch).",
+  "publisher": "agh-space-systems",
+  "homepage": "",
+  "version": "0.0.1",
+  "license": "UNLICENSED",
+  "main": "./dist/extension.js",
+  "keywords": [],
+  "scripts": {
+    "build": "foxglove-extension build",
+    "foxglove:prepublish": "foxglove-extension build --mode production",
+    "lint": "eslint .",
+    "lint:ci": "eslint .",
+    "lint:fix": "eslint --fix .",
+    "local-install": "foxglove-extension install",
+    "package": "foxglove-extension package",
+    "pretest": "foxglove-extension pretest"
+  },
+  "devDependencies": {
+    "@foxglove/eslint-plugin": "2.1.2",
+    "@foxglove/extension": "2.59.0",
+    "@types/react": "18.3.31",
+    "@types/react-dom": "18.3.7",
+    "create-foxglove-extension": "^1.0.6",
+    "css-loader": "7.1.5",
+    "eslint": "9.39.5",
+    "globals": "17.13.0",
+    "prettier": "3.9.10",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "style-loader": "4.0.0",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.71.2"
+  }
+}

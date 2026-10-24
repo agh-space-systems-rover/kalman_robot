@@ -1,0 +1,194 @@
+.kalman-camera-2dof {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 1rem;
+  gap: 0.75rem;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  user-select: none;
+  color: var(--text-primary, #e0e0e0);
+  background: transparent;
+  font-family: system-ui, sans-serif;
+}
+
+.kalman-camera-2dof__status {
+  font-size: 0.75rem;
+  opacity: 0.85;
+  padding: 0.35rem 0.5rem;
+  border-radius: 6px;
+  background: rgba(255, 180, 0, 0.12);
+  border: 1px solid rgba(255, 180, 0, 0.35);
+}
+
+.kalman-camera-2dof__status[data-ok="true"] {
+  background: rgba(79, 156, 255, 0.12);
+  border-color: rgba(79, 156, 255, 0.35);
+}
+
+.kalman-camera-2dof__joystick-wrapper {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  container-type: size;
+}
+
+.kalman-camera-2dof__joystick-area {
+  position: relative;
+  width: min(100cqw, 100cqh);
+  height: min(100cqw, 100cqh);
+  min-width: 120px;
+  min-height: 120px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  cursor: crosshair;
+  overflow: hidden;
+  touch-action: none;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.kalman-camera-2dof__crosshair-h {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-color: currentColor;
+  opacity: 0.12;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.kalman-camera-2dof__crosshair-v {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background-color: currentColor;
+  opacity: 0.12;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.kalman-camera-2dof__thumb {
+  position: absolute;
+  width: 44px;
+  height: 28px;
+  border-radius: 10px;
+  background-color: #4f9cff;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  box-shadow: 0 0 12px rgba(79, 156, 255, 0.45);
+}
+
+.kalman-camera-2dof__values-row {
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+}
+
+.kalman-camera-2dof__value-entry {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+}
+
+.kalman-camera-2dof__value-label {
+  font-size: 0.65rem;
+  font-weight: bold;
+  letter-spacing: 0.05em;
+  opacity: 0.6;
+  text-transform: uppercase;
+}
+
+.kalman-camera-2dof__value-number {
+  font-size: 1.1rem;
+  font-weight: bold;
+  min-width: 3.5rem;
+  text-align: right;
+}
+
+.kalman-camera-2dof__divider {
+  width: 100%;
+  height: 1px;
+  background-color: currentColor;
+  opacity: 0.3;
+  flex-shrink: 0;
+}
+
+.kalman-camera-2dof__controls-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.kalman-camera-2dof__checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.kalman-camera-2dof__btn,
+.kalman-camera-2dof__send-button {
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(79, 156, 255, 0.2);
+  color: inherit;
+  border-radius: 8px;
+  padding: 0.45rem 0.85rem;
+  cursor: pointer;
+  font: inherit;
+}
+
+.kalman-camera-2dof__btn:hover,
+.kalman-camera-2dof__send-button:hover {
+  background: rgba(79, 156, 255, 0.35);
+}
+
+.kalman-camera-2dof__send-button {
+  width: 100%;
+  text-align: center;
+  font-weight: 600;
+}
+
+.kalman-camera-2dof__rate-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.kalman-camera-2dof__rate-label {
+  font-size: 0.75rem;
+  font-weight: bold;
+  opacity: 0.75;
+}
+
+.kalman-camera-2dof__slider-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.kalman-camera-2dof__slider {
+  width: 100%;
+  cursor: pointer;
+  accent-color: #4f9cff;
+}
+
+.kalman-camera-2dof__slider-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  opacity: 0.65;
+}
+
+.kalman-camera-2dof__slider-value {
+  font-weight: bold;
+  opacity: 1;
+}
