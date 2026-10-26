@@ -255,6 +255,11 @@ int CAN_driver::write_data(
 
 int CAN_driver::close(DriverVars_t *driver_vars) {
 	driver_vars->should_run = false;
-	driver_vars->reader.join();
+	if (driver_vars->reader.joinable()) {
+        driver_vars->reader.join();
+    }
+    if (driver_vars->sock >= 0) {
+        return (::close(driver_vars->sock) < 0);
+    }
 	return (::close(driver_vars->sock) < 0);
 }

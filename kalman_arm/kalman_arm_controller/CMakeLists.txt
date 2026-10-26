@@ -1,6 +1,18 @@
 cmake_minimum_required(VERSION 3.16)
 project(kalman_arm_controller)
 
+find_package(Boost REQUIRED COMPONENTS random)
+find_package(tl_expected QUIET)
+if(NOT TARGET tl::expected)
+  add_library(tl::expected INTERFACE IMPORTED)
+  find_path(TL_EXPECTED_INCLUDE_DIR NAMES tl/expected.hpp)
+  if(TL_EXPECTED_INCLUDE_DIR)
+    set_target_properties(tl::expected PROPERTIES
+      INTERFACE_INCLUDE_DIRECTORIES "${TL_EXPECTED_INCLUDE_DIR}"
+    )
+  endif()
+endif()
+
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
@@ -71,8 +83,15 @@ endforeach()
 
 
 # Component Nodes (Shared libraries) ############################
+
+# servo_publisher 
 set(SERVO_PUBLISHER servo_publisher)
-add_library(${SERVO_PUBLISHER} SHARED scripts/servo_publisher.cpp)
+
+if(DEFINED ENV{ROS_DISTRO} AND "$ENV{ROS_DISTRO}" STREQUAL "humble")
+  message(STATUS "Detected ROS Humble - enabling compatibility headers")
+  set(HUMBLE_COMPAT_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/humble_compat")
+endif()
+add_library(${SERVO_PUBLISHER} SHARED src/servo_publisher.cpp)
 target_compile_features(${SERVO_PUBLISHER} PUBLIC cxx_std_20)
 ament_target_dependencies(${SERVO_PUBLISHER} ${THIS_PACKAGE_INCLUDE_DEPENDS})
 if(DEFINED HUMBLE_COMPAT_INCLUDE_DIR)
@@ -124,6 +143,7 @@ add_library(
   kalman_arm_controller
   SHARED
   hardware/arm_hardware.cpp
+  hardware/arm_sim_hardware.cpp
   hardware/can_src/arm_config.cpp
   hardware/can_src/can_driver.cpp
   hardware/can_src/can_handlers.cpp
@@ -156,7 +176,8 @@ install(
 )
 
 install(TARGETS servo_keyboard_input
-    DESTINATION lib/${PROJECT_NAME})
+    DESTINATION lib/${PROJECT_NAME}
+)
 
 # install(TARGETS monitor_planning_scene
 # DESTINATION lib/${PROJECT_NAME})
