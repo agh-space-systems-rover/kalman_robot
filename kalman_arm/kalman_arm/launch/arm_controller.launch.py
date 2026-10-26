@@ -15,7 +15,7 @@
 import os
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, RegisterEventHandler
+from launch.actions import DeclareLaunchArgument, RegisterEventHandler, OpaqueFunction
 from launch.event_handlers import OnProcessExit
 from launch.substitutions import Command, FindExecutable, PathJoinSubstitution, LaunchConfiguration
 
@@ -23,7 +23,7 @@ from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
 
-def generate_launch_description():
+def launch_setup(context, *args, **kwargs):
     declared_arguments = [
         DeclareLaunchArgument(
             "use_sim",
@@ -31,6 +31,7 @@ def generate_launch_description():
             description="Whether to run in simulation mode without hardware interfaces",
         )
     ]
+    
     # Get URDF via xacro
     robot_description_content = Command(
         [
@@ -71,6 +72,7 @@ def generate_launch_description():
         output="both",
         namespace="arm_controllers",
     )
+    
     robot_state_pub_node = Node(
         package="robot_state_publisher",
         executable="robot_state_publisher",
@@ -124,4 +126,12 @@ def generate_launch_description():
         delay_robot_controller_spawner_after_joint_state_broadcaster_spawner,
     ]
 
-    return LaunchDescription(declared_arguments + nodes)
+    return declared_arguments + nodes
+
+
+def generate_launch_description():
+    return LaunchDescription(
+        [
+            OpaqueFunction(function=launch_setup)
+        ]
+    )
