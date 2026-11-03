@@ -4,7 +4,7 @@
 # Any parameters that are commented out with ##### here should be set in nav2.yaml.j2.
 
 # Reference frame.
-global_frame: map # default: map
+# global_frame: map # default: map
 # Robot base frame.
 robot_base_frame: base_footprint # default: base_link
 # Topic of map from map_server or SLAM.
@@ -105,9 +105,9 @@ stvl:
 
   origin_z: 0.0                   # meters
   voxel_size: 0.1                 # meters
-  voxel_decay: 5.0               # seconds if linear, e^n if exponential
+  voxel_decay: 1.0               # seconds if linear, e^n if exponential
   decay_model: 0                  # 0=linear, 1=exponential, -1=persistent
-  mark_threshold: 2               # voxel height
+  mark_threshold: 2              # voxel height
   track_unknown_space: true       # default space is unknown
   
   combination_method: 1           # 1=max, 0=override
@@ -128,16 +128,16 @@ stvl:
 
     # Marking params:
     marking: true
-    obstacle_range: 15.0           # meters
-    min_obstacle_height: -0.30
+    obstacle_range: 10.0           # meters
+    min_obstacle_height: -0.25
     max_obstacle_height: 2.0
     clear_after_reading: true     # default false, clear the buffer after the layer gets readings from it
     filter: ""                    # default passthrough, apply "voxel", "passthrough", or no filter to sensor data, recommended to have at one filter on
       
     # Clearing params:
     clearing: true
-    min_z: -10.0
-    max_z: 10.0
+    min_z: -0.25
+    max_z: 2.0
     vertical_fov_angle: 1.03   # default 0.7, radians, Mid360 59deg
     horizontal_fov_angle: 6.28 # default 1.04, radians
     decay_acceleration: 0.0     # default 0, 1/s^2. If laser scanner MUST be 0

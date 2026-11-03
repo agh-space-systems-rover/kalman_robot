@@ -30,15 +30,15 @@
 
     <!-- Livox Mid-360s -->
     <link name="livox_frame">
-        <visual>
+        <!-- <visual>
             <geometry>
                 <mesh filename="package://kalman_description/stl/MID360s.stl" />
             </geometry>
-        </visual>
+        </visual> -->
     </link>
 
     <joint name="livox_joint" type="fixed">
-        <origin xyz="-0.45 0 0.43" rpy="${pi} 0 0" />
+        <origin xyz="-0.30 0 0.40" rpy="${pi} 0 0" />
         <parent link="base_link" />
         <child link="livox_frame" />
     </joint>

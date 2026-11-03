@@ -41,7 +41,7 @@
     pose0_differential: false
     pose0_relative: false
     pose0_queue_size: 10
-    pose0_rejection_threshold: 5.0
+    pose0_rejection_threshold: 9.2 
 {% endif %}
 
     # Apply world-referenced pitch and roll correction from the IMU.
@@ -54,6 +54,7 @@
     imu0_differential: false
     imu0_relative: false
     imu0_queue_size: 10
+    # imu0_pose_rejection_threshold: 3.0
     imu0_remove_gravitational_acceleration: true
 
 {% if use_mag %}
@@ -103,6 +104,8 @@
 #     imu1_relative: false
 #     imu1_queue_size: 10
 #     imu1_remove_gravitational_acceleration: true
+
+# add noise cov matrix 
 
     # TODO: Yaw+XYZ correction from SLAM.
     

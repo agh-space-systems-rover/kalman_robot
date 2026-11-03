@@ -1,9 +1,12 @@
 /**:
   ros__parameters:
-    base_frame: "base_link"
+    base_frame: "base_link_level"
     use_sim_time: false
     sensor_height: 0.45
-    max_range: 80.0
-    min_range: 0.5
-    th_dist: 0.125
-    uprightness_thr: 0.819
+    max_range: 40.0
+    min_range: 0.3
+    num_iter: 3                # plane-fitting iterations per patch
+    num_lpr: 20                # lowest-point representatives used to seed the plane
+    num_min_pts: 5           # minimum points in a patch to attempt a fit
+    th_dist: 0.15              # point-to-plane distance counted as ground
+    uprightness_thr: 0.87    # cosine of the max plane tilt (30 deg)

@@ -98,53 +98,21 @@ def launch_setup(context):
 
     actions = []
 
-    #Cloud downsampling
-    actions += launch_node_or_load_component(
-        component_container=component_container,
-        package="pcl_ros",
-        executable="filter_voxel_grid_node",
-        plugin="pcl_ros::VoxelGrid",
-        parameters=[{"leaf_size": 0.05, "use_sim_time": False}],
-        remappings=[
-            ("input", "/cloud_registered_body"),
-            ("output", "/cloud_registered_body/downsampled"),
-        ],
-    )
-    # Transform the cloud
+    # obstacle detection pipeline
     actions += [
-        Node(
-            package="pcl_ros",
-            executable="filter_passthrough_node",
-            name="transform_pointcloud",
-            parameters=[
-                {
-                    "filter_field_name": "x",
-                    "filter_limit_min": -100000.0,
-                    "filter_limit_max": 100000.0,
-                    "output_frame": "base_link",
-                }
-            ],
-            remappings=[
-                ("input", "/cloud_registered_body/downsampled"),
-                ("output", "/cloud_registered_body/transformed"),
-            ],
-        )
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(
+                str(
+                    get_package_share_path("kalman_nav2")
+                    / "launch"
+                    / "ground_segmentation.launch.py"
+                )
+            ),
+            launch_arguments={
+                "container_name": NAV_CONTAINER_NAME,
+            }.items(),
+        ),
     ]
-    # Ground segmentation for obstacle detection
-    actions += launch_node_or_load_component(
-        component_container=component_container,
-        package="patchworkpp",
-        executable="patchworkpp_node",
-        plugin="patchworkpp_ros::GroundSegmentationServer",
-        parameters=[
-            load_standalone_config("kalman_nav2", "patchwork.yaml"),
-        ],
-        remappings=[
-            ("pointcloud_topic", "/cloud_registered_body/transformed"),
-            ("/patchworkpp/nonground", "/cloud/nonground"),
-        ],
-    )
-
     # static map
     if static_map:
         actions += [
