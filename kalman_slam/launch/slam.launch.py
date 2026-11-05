@@ -107,11 +107,11 @@ def launch_setup(context):
             name="fast_lio_odom_to_camera_init",
             arguments=[
                 "--x",
-                "-0.439",
+                "-0.289",
                 "--y",
                 "-0.02329",
                 "--z",
-                "0.47412",
+                "0.44412",
                 "--qx",
                 "1.0",
                 "--qy",
@@ -132,11 +132,11 @@ def launch_setup(context):
             name="fast_lio_body_to_base_link",
             arguments=[
                 "--x",
-                "0.439",
+                "0.289",
                 "--y",
                 "-0.02329",
                 "--z",
-                "0.47412",
+                "0.44412",
                 "--qx",
                 "1.0",
                 "--qy",
@@ -162,6 +162,28 @@ def launch_setup(context):
             package="kalman_slam",
             executable="odometry_frame_transformer",
             name="fast_lio_odometry_frame_transformer",
+            parameters=(
+                [
+                    {
+                        # The simulated FAST-LIO covariance is unrealistically
+                        # small and destabilizes differential pose fusion.
+                        # Real MID-360 runs preserve the covariance reported
+                        # by FAST-LIO and need separate empirical tuning.
+                        "pose_position_variance_floor": 0.02**2,
+                        "pose_orientation_variance_floor": (
+                            1.0 * 3.141592653589793 / 180.0
+                        )
+                        ** 2,
+                        "twist_linear_variance_floor": 0.03**2,
+                        "twist_angular_variance_floor": (
+                            1.0 * 3.141592653589793 / 180.0
+                        )
+                        ** 2,
+                    }
+                ]
+                if lio_config.endswith("_sim")
+                else []
+            ),
             remappings=[
                 ("odometry/raw", "/Odometry"),
                 ("odometry/transformed", "/odometry/local"),
