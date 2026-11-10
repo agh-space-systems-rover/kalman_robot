@@ -8,7 +8,7 @@ endif()
 find_package(ament_cmake REQUIRED)
 
 install(
-  DIRECTORY config launch predefined_poses predefined_trajectories
+  DIRECTORY config launch predefined_trajectories
   DESTINATION share/${PROJECT_NAME}
 )
 

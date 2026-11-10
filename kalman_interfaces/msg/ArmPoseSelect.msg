@@ -1,12 +1,4 @@
-uint8 COMPACT_HERMAN = 0
-uint8 RESET_4_AND_6 = 1
-uint8 BASE_FRONT = 2
-uint8 BASE_LEFT = 3
-uint8 BASE_RIGHT = 4
-uint8 BASED = 5
-uint8 SPECTRO_APPROACH = 6
-uint8 SAMPLE_STORAGE = 7
-uint8 ROCK_STORAGE = 8
+uint8 RESET_4_AND_6 = 0
 
-# pose number
+#pose number to execute
 uint8 pose_id

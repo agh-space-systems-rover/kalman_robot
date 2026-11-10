@@ -1,0 +1,20 @@
+# documentation for actions:
+# - **hold**: Keeps the joint at its current position (default fallback for unlisted joints).
+# - **fixed**: Sets the joint to a specific target angle (value: <float>).
+# - **reverse**: Inverts the joint's current position (-1.0 * current_position).
+# - **offset**: Shifts the joint relative to its current position (current_position + offset: <float>).
+#   - then use offset instead of value
+
+special_poses:
+  - id: 0
+    name: "Reset"
+    description: "Reset all joints 4 and 6, reverse joint 5"
+    joints:
+      arm_joint_4:
+        action: "fixed"
+        value: 0.0
+      arm_joint_5:
+        action: "reverse"
+      arm_joint_6:
+        action: "fixed"
+        value: 0.0
