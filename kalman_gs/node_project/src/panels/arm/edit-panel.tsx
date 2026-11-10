@@ -76,7 +76,7 @@ export function EditPanel({ pose, onChangePose }: EditPanelProps) {
 
     const handleUpdatePose = () => {
         modalRef.current?.showConfirm({
-        title: 'Update Pose Position',
+        title: 'Overwrite Pose Position',
         icon: faSave,
         message: 'Are you sure you want to capture the arm current position?',
         confirmText: 'Update',
@@ -142,7 +142,7 @@ export function EditPanel({ pose, onChangePose }: EditPanelProps) {
             Rename
             </div>
             <div onClick={handleUpdatePose} className={styles['edit-button']}>
-            <FontAwesomeIcon icon={faSave} /> Capture Pos
+            <FontAwesomeIcon icon={faSave} /> Overwrite Pos
             </div>
             <div onClick={handleDelete} className={styles['edit-button']}>
             <FontAwesomeIcon icon={faTrash} /> Delete
