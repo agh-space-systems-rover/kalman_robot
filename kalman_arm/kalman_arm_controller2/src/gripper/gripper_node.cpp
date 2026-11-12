@@ -7,7 +7,7 @@ namespace kalman_arm::gripper {
 
 GripperNode::GripperNode(std::unique_ptr<can::ICanInterface> can_iface)
 : Node("gripper_node"), can_(std::move(can_iface)) {
-  can_iface_name_         = declare_parameter<std::string>("can_interface", "vcan0");
+  can_iface_name_         = declare_parameter<std::string>("can_interface", "can0");
   joint_name_             = declare_parameter<std::string>("joint_name", "arm_joint_jaw");
   upper_min_deg_          = static_cast<int16_t>(declare_parameter<int>("upper_min_deg", 90));
   upper_max_deg_          = static_cast<int16_t>(declare_parameter<int>("upper_max_deg", 180));
