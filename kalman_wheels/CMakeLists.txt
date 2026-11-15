@@ -11,6 +11,8 @@ install(PROGRAMS
   scripts/gamepad_driving
   scripts/arduino_driving
   scripts/twist_controller
+  scripts/crsf_joy
+  scripts/elrs_driving
   DESTINATION lib/${PROJECT_NAME}
 )
 

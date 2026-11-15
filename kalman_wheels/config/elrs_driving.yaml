@@ -1,0 +1,12 @@
+/**:
+  ros__parameters:
+    rate: 30
+    deadband: 0.05
+    max_speed: 1.0
+    rotation_speed: 1.57
+    turn_radius: 0.75
+    joy_timeout: 0.3
+    steer_channel: 1   # right stick X
+    speed_channel: 2   # right stick Y
+    crab_channel: 4    # left stick X
+    rotate_channel: 6
