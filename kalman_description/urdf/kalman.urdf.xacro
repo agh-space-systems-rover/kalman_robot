@@ -43,7 +43,7 @@
             <link name="suspension_${y_side}_link">
                 <visual>
                     <geometry>
-                        <mesh filename="package://kalman_description/stl/base/suspension_r.stl"
+                        <mesh filename="package://kalman_description/stl/base/suspension.stl"
                             scale="1 ${y_scale} 1" />
                     </geometry>
                     <material name="white" />
@@ -67,8 +67,9 @@
         <xacro:macro name="swivel" params="x_side y_side y_scale xyz">
             <link name="swivel_${x_side}${y_side}_link">
                 <visual>
+                    <origin xyz="0 0 -0.195" rpy="0 0 0" />
                     <geometry>
-                        <mesh filename="package://kalman_description/stl/base/swivel_fr.stl"
+                        <mesh filename="package://kalman_description/stl/base/swivel.stl"
                             scale="1 ${y_scale} 1" />
                     </geometry>
                     <material name="white" />
