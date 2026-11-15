@@ -1,0 +1,27 @@
+# Headless ELRS driving
+x-ros: &ros
+  build:
+    context: ../..
+    dockerfile: docker/elrs/Dockerfile
+  image: kalman-elrs
+  network_mode: host
+  ipc: host
+  restart: unless-stopped
+  environment:
+    - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
+
+services:
+  master:
+    <<: *ros
+    privileged: true
+    volumes:
+      - /dev:/dev
+      - /run/udev:/run/udev:ro
+    command: ros2 launch kalman_master master.launch.py mode:=pc
+
+  wheels:
+    <<: *ros
+    privileged: true
+    volumes:
+      - /dev:/dev
+    command: ros2 launch kalman_wheels wheels.launch.py joy:=elrs

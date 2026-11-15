@@ -1,0 +1,5 @@
+*
+!kalman_interfaces
+!kalman_master
+!kalman_wheels
+**/__pycache__
