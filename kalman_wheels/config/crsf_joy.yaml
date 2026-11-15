@@ -1,0 +1,6 @@
+/**:
+  ros__parameters:
+    port: /dev/serial/by-id/usb-FTDI_FT232R_USB_UART_BG00ZX3D-if00-port0
+    baud: 420000
+    rate: 50
+    link_timeout: 0.25

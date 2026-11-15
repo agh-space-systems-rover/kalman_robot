@@ -67,6 +67,7 @@ def launch_setup(context):
             Node(
                 package="kalman_wheels",
                 executable="crsf_joy",
+                parameters=[get_yaml_params("crsf_joy")],
             ),
             Node(
                 package="kalman_wheels",

@@ -181,8 +181,8 @@ class UnitySim(TypedDict):
 
 
 class Wheels(TypedDict):
-    joy: Literal["", "arduino", "gamepad"]
-    "Joy device to use for headless driving. Choose 'gamepad' or 'arduino'. Empty disables headless teleop. Valid choices are: ['', 'gamepad', 'arduino']"
+    joy: Literal["", "arduino", "elrs", "gamepad"]
+    "Joy device to use for headless driving. Choose 'gamepad', 'arduino' or 'elrs'. Empty disables headless teleop. Valid choices are: ['', 'gamepad', 'arduino', 'elrs']"
 
 
 class Yolo(TypedDict):
