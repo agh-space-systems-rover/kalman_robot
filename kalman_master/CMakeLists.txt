@@ -68,6 +68,13 @@ install(DIRECTORY config launch
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   ament_lint_auto_find_test_dependencies()
+
+  # End-to-end ros_link test over master_loopback (no hardware needed).
+  find_package(launch_testing_ament_cmake REQUIRED)
+  add_launch_test(test/test_ros_link_loopback.py
+    TIMEOUT 600
+    ENV ROS_LOCALHOST_ONLY=1
+  )
 endif()
 
 ament_package()
