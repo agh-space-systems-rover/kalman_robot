@@ -8,9 +8,9 @@ from threading import Lock
 
 from kalman_interfaces.msg import MasterMessage
 
-from kalman_master.ros_link_topics import RosLinkTopics
-from kalman_master.ros_link_services import RosLinkServices
-from kalman_master.ros_link_actions import RosLinkActions
+from kalman_tunnel.ros_link_topics import RosLinkTopics
+from kalman_tunnel.ros_link_services import RosLinkServices
+from kalman_tunnel.ros_link_actions import RosLinkActions
 
 # Unique ID that allows to identify ROS link messages in FORWARD frames.
 FORWARD_ID = 47

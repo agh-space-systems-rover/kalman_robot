@@ -41,7 +41,7 @@ def generate_launch_description():
     )
 
     master_uart_node = Node(
-        package="kalman_master",
+        package="kalman_tunnel",
         executable="master_com",
         parameters=[{"baud_rate": 2000000, "port": "/dev/ttyAMA1"}],
         condition=UnlessCondition(use_sim),
@@ -54,12 +54,12 @@ def generate_launch_description():
     )
 
     ros_link_node = Node(
-        package="kalman_master",
+        package="kalman_tunnel",
         executable="ros_link",
         parameters=[
             {
                 "config_path": str(
-                    get_package_share_path("kalman_master") / "config/arm_ros_link.yaml"
+                    get_package_share_path("kalman_tunnel") / "config/arm_ros_link.yaml"
                 ),
                 "side": "rover",
                 "rover_endpoint": "arm",

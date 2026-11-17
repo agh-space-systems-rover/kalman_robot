@@ -7,20 +7,20 @@ def generate_launch_description():
     return LaunchDescription(
         [
             Node(
-                package="kalman_master",
+                package="kalman_tunnel",
                 executable="master_loopback",
                 parameters=[
                     {"loss_rate": 0.5},
                 ],
             ),
             Node(
-                package="kalman_master",
+                package="kalman_tunnel",
                 executable="ros_link",
                 name="ros_link_pc",
                 parameters=[
                     {
                         "config_path": str(
-                            get_package_share_path("kalman_master")
+                            get_package_share_path("kalman_tunnel")
                             / "config/pc_ros_link.yaml"
                         ),
                         "side": "rover",  # station or rover
@@ -32,13 +32,13 @@ def generate_launch_description():
                 output="screen",  # for debug print() statements
             ),
             Node(
-                package="kalman_master",
+                package="kalman_tunnel",
                 executable="ros_link",
                 name="ros_link_gs",
                 parameters=[
                     {
                         "config_path": str(
-                            get_package_share_path("kalman_master")
+                            get_package_share_path("kalman_tunnel")
                             / "config/pc_ros_link.yaml"
                         ),
                         "side": "station",

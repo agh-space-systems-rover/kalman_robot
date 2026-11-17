@@ -3,12 +3,12 @@ from __future__ import annotations
 import traceback
 import time
 
-from kalman_master.ros_link_serialization import serialize_message, deserialize_message
+from kalman_tunnel.ros_link_serialization import serialize_message, deserialize_message
 
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from kalman_master.ros_link_node import RosLink
+    from kalman_tunnel.ros_link_node import RosLink
 
 
 class RosLinkTopics:

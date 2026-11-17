@@ -20,16 +20,11 @@
   <exec_depend>rclpy</exec_depend>
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>std_srvs</exec_depend>
-  <exec_depend>python3-serial</exec_depend>
-  <exec_depend>python3-pyudev</exec_depend>
+  <!-- master_com and ros_link, started by launch/master.launch.py -->
+  <exec_depend>kalman_tunnel</exec_depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
-  <test_depend>launch_testing_ament_cmake</test_depend>
-  <test_depend>launch_testing</test_depend>
-  <test_depend>launch_ros</test_depend>
-  <test_depend>geographic_msgs</test_depend>
-  <test_depend>sensor_msgs</test_depend>
 
   <export>
     <build_type>ament_cmake</build_type>

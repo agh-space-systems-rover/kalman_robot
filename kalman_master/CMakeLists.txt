@@ -46,12 +46,9 @@ install(PROGRAMS
   scripts/laser_driver
   scripts/estop_driver
   scripts/feed_driver
-  scripts/master_com
-  scripts/master_loopback
   scripts/ph_calib
   scripts/ph_driver
   scripts/ph_mock
-  scripts/ros_link
   scripts/storage_driver
   scripts/storage_mock
   scripts/sand_storage_driver
@@ -61,20 +58,13 @@ install(PROGRAMS
   DESTINATION lib/${PROJECT_NAME}
 )
 
-install(DIRECTORY config launch
+install(DIRECTORY launch
   DESTINATION share/${PROJECT_NAME}
 )
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   ament_lint_auto_find_test_dependencies()
-
-  # End-to-end ros_link test over master_loopback (no hardware needed).
-  find_package(launch_testing_ament_cmake REQUIRED)
-  add_launch_test(test/test_ros_link_loopback.py
-    TIMEOUT 600
-    ENV ROS_LOCALHOST_ONLY=1
-  )
 endif()
 
 ament_package()

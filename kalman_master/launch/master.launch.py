@@ -22,12 +22,12 @@ def start_ros_link(side: str, rover_endpoint: str) -> Node:
             if side == "station"
             else rover_endpoint + "_to_gs"
         ),
-        package="kalman_master",
+        package="kalman_tunnel",
         executable="ros_link",
         parameters=[
             {
                 "config_path": str(
-                    get_package_share_path("kalman_master")
+                    get_package_share_path("kalman_tunnel")
                     / f"config/{rover_endpoint}_ros_link.yaml"
                 ),
                 "side": side,  # station or rover
@@ -49,7 +49,7 @@ def launch_setup(context):
 
     nodes = {
         "master_com": Node(
-            package="kalman_master",
+            package="kalman_tunnel",
             executable="master_com",
             parameters=[
                 {

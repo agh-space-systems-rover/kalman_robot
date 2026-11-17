@@ -43,7 +43,7 @@ from kalman_interfaces.action import SupervisorGpsGoal
 from kalman_interfaces.msg import ArmState
 from kalman_interfaces.srv import SpoofGps
 
-PACKAGE = "kalman_master"
+PACKAGE = "kalman_tunnel"
 TIMEOUT = 20.0  # seconds to wait for anything to cross a lossless link
 # With 50% loss a frame and its ACK both survive 1 in 4 tries at 1 retry/s,
 # and an action round trip needs several such exchanges.
