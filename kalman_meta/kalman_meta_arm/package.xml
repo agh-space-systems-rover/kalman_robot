@@ -17,6 +17,7 @@
   <depend>kalman_hardware</depend>
   <depend>kalman_interfaces</depend>
   <depend>kalman_master</depend>
+  <depend>kalman_tunnel</depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
