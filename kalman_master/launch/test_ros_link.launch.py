@@ -21,7 +21,7 @@ def generate_launch_description():
                     {
                         "config_path": str(
                             get_package_share_path("kalman_master")
-                            / "config/ros_link.yaml"
+                            / "config/pc_ros_link.yaml"
                         ),
                         "side": "rover",  # station or rover
                         "rover_endpoint": "pc",  # arm or pc
@@ -39,9 +39,10 @@ def generate_launch_description():
                     {
                         "config_path": str(
                             get_package_share_path("kalman_master")
-                            / "config/ros_link.yaml"
+                            / "config/pc_ros_link.yaml"
                         ),
                         "side": "station",
+                        "rover_endpoint": "pc",
                         "loopback_mangling": True,
                         "debug_info": False,
                     },
