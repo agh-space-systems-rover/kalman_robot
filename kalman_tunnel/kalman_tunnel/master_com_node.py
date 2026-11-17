@@ -169,6 +169,3 @@ def main():
         rclpy.shutdown()
     except KeyboardInterrupt:
         pass
-
-
-main()
