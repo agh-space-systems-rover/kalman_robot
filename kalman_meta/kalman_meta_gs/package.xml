@@ -20,6 +20,7 @@
   <depend>kalman_master</depend>
   <depend>kalman_rviz</depend>
   <depend>kalman_spacenav</depend>
+  <depend>kalman_tunnel</depend>
   <depend>kalman_wheels</depend>
 
   <test_depend>ament_lint_auto</test_depend>

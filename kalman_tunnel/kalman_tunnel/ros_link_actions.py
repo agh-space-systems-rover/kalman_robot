@@ -9,12 +9,12 @@ from action_msgs.srv import CancelGoal
 from action_msgs.msg import GoalInfo
 from unique_identifier_msgs.msg import UUID
 
-from kalman_master.ros_link_serialization import serialize_message, deserialize_message
+from kalman_tunnel.ros_link_serialization import serialize_message, deserialize_message
 
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from kalman_master.ros_link_node import RosLink
+    from kalman_tunnel.ros_link_node import RosLink
     from rclpy.action.server import ServerGoalHandle
 
 

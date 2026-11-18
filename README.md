@@ -59,6 +59,7 @@ Kalman's software stack is composed of multiple packages that are meant to be bu
 - `kalman_robot` - a metapackage that depends on all other `kalman_` packages
 - `kalman_slam` - configuration files for robot_localization and RTAB-Map
 - `kalman_supervisor` - Manages autonomous navigation missions.
+- `kalman_tunnel` - serial and radio transport between ROS and the Master device
 - `kalman_wheels` - a node that converts Twist messages on `/cmd_vel` and similar topics to the actual wheel state; Also includes safeguards that can limit the acceleration and velocity or stop the rover to adjust wheel rotation.
 - `kalman_yolo` - **PRIVATE** models and configs for `yolo_ros`
 

@@ -4,12 +4,12 @@ import traceback
 import time
 from threading import Lock, Condition
 
-from kalman_master.ros_link_serialization import serialize_message, deserialize_message
+from kalman_tunnel.ros_link_serialization import serialize_message, deserialize_message
 
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from kalman_master.ros_link_node import RosLink
+    from kalman_tunnel.ros_link_node import RosLink
     from rclpy.client import Client
 
 

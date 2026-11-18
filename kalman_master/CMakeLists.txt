@@ -46,12 +46,9 @@ install(PROGRAMS
   scripts/laser_driver
   scripts/estop_driver
   scripts/feed_driver
-  scripts/master_com
-  scripts/master_loopback
   scripts/ph_calib
   scripts/ph_driver
   scripts/ph_mock
-  scripts/ros_link
   scripts/storage_driver
   scripts/storage_mock
   scripts/sand_storage_driver
@@ -61,7 +58,7 @@ install(PROGRAMS
   DESTINATION lib/${PROJECT_NAME}
 )
 
-install(DIRECTORY config launch
+install(DIRECTORY launch
   DESTINATION share/${PROJECT_NAME}
 )
 

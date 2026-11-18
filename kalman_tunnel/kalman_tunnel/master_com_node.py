@@ -4,7 +4,7 @@ import pyudev
 import time
 from rclpy.node import Node
 from kalman_interfaces.msg import MasterMessage
-from kalman_master.serial_driver import SerialDriver, SerialMsg
+from kalman_tunnel.serial_driver import SerialDriver, SerialMsg
 from typing import List
 
 """
@@ -169,6 +169,3 @@ def main():
         rclpy.shutdown()
     except KeyboardInterrupt:
         pass
-
-
-main()
