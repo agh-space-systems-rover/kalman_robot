@@ -69,9 +69,11 @@ Visualization Manager:
         base_footprint:
           Value: false
         base_link:
+          Value: true
+        base_link_level:
           Value: false
         body:
-          Value: true
+          Value: false
         body_link:
           Value: false
         camera_init:
@@ -79,9 +81,9 @@ Visualization Manager:
         gps_link:
           Value: false
         imu_link:
-          Value: true
+          Value: false
         livox_frame:
-          Value: true
+          Value: false
         livox_imu_link:
           Value: false
         map:
@@ -116,38 +118,39 @@ Visualization Manager:
       Show Axes: true
       Show Names: true
       Tree:
-        body:
-          base_link:
-            altimeter_link:
-              {}
-            base_footprint:
-              {}
-            body_link:
-              suspension_l_link:
-                swivel_bl_link:
-                  wheel_bl_link:
-                    {}
-                swivel_fl_link:
-                  wheel_fl_link:
-                    {}
-              suspension_r_link:
-                swivel_br_link:
-                  wheel_br_link:
-                    {}
-                swivel_fr_link:
-                  wheel_fr_link:
-                    {}
-            gps_link:
-              {}
-            imu_link:
-              {}
-            livox_frame:
-              livox_imu_link:
-                {}
         map:
           odom:
-            camera_init:
+            base_link_level:
               {}
+            camera_init:
+              body:
+                base_link:
+                  altimeter_link:
+                    {}
+                  base_footprint:
+                    {}
+                  body_link:
+                    suspension_l_link:
+                      swivel_bl_link:
+                        wheel_bl_link:
+                          {}
+                      swivel_fl_link:
+                        wheel_fl_link:
+                          {}
+                    suspension_r_link:
+                      swivel_br_link:
+                        wheel_br_link:
+                          {}
+                      swivel_fr_link:
+                        wheel_fr_link:
+                          {}
+                  gps_link:
+                    {}
+                  imu_link:
+                    {}
+                  livox_frame:
+                    livox_imu_link:
+                      {}
           utm:
             {}
       Update Interval: 0
@@ -199,7 +202,6 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-          Value: true
         livox_imu_link:
           Alpha: 1
           Show Axes: false
@@ -384,8 +386,8 @@ Visualization Manager:
     - Alpha: 0.30000001192092896
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
-        Max Value: 0.710224986076355
-        Min Value: -0.9086672067642212
+        Max Value: 0.7765871286392212
+        Min Value: -2.4798483848571777
         Value: true
       Axis: Z
       Channel Name: intensity
@@ -417,7 +419,7 @@ Visualization Manager:
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
-    Fixed Frame: base_footprint
+    Fixed Frame: base_link
     Frame Rate: 60
   Name: root
   Tools:
@@ -460,25 +462,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 2.9815564155578613
+      Distance: 8.965365409851074
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.07621077448129654
-        Y: 0.07757385075092316
-        Z: 0.7006085515022278
+        X: -0.013087230734527111
+        Y: -0.24482527375221252
+        Z: 1.271271824836731
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.27479755878448486
+      Pitch: 0.3597973883152008
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 0.8549579381942749
+      Yaw: 3.273139238357544
     Saved: ~
 Window Geometry:
   Displays:

@@ -1,0 +1,99 @@
+/**:
+    ros__parameters:
+        feature_extract_enable: false
+        point_filter_num: 2
+        max_iteration: 5
+        filter_size_surf: 0.2
+        filter_size_map: 0.2
+        cube_side_length: 1000.0
+        runtime_pos_log_enable: false
+        map_file_path: "./test.pcd"
+
+        common:
+            lid_topic:  "/livox/points/cropped"
+            imu_topic:  "/livox/imu"
+            time_sync_en: false
+            time_offset_lidar_to_imu: 0.0 
+        voxel_filter_paprams:
+            odometrySurfLeafSize: 0.4                     # default: 0.4 - outdoor, 0.2 - indoor
+            mappingCornerLeafSize: 0.2                    # default: 0.2 - outdoor, 0.1 - indoor
+            mappingSurfLeafSize: 0.4                      # default: 0.4 - outdoor, 0.2 - indoor
+
+        # robot motion constraint (in case you are using a 2D robot)
+        robot_motion_constraint:
+            z_tollerance: 1000.0                            # meters
+            rotation_tollerance: 1000.0                     # radians
+
+        # CPU Params
+        cpu_params:
+            numberOfCores: 4                              # number of cores for mapping optimization
+            mappingProcessInterval: 0.15                  # seconds, regulate mapping frequency
+        
+        # Surrounding map, 控制关键帧保存
+        surrounding_map:
+            surroundingkeyframeAddingDistThreshold: 1.0   # meters, regulate keyframe adding threshold
+            surroundingkeyframeAddingAngleThreshold: 0.2  # radians, regulate keyframe adding threshold
+            surroundingKeyframeDensity: 2.0               # meters, downsample surrounding keyframe poses   
+            surroundingKeyframeSearchRadius: 50.0         # meters, within n meters scan-to-map optimization (when loop closure disabled)
+        
+        # 因子图优化
+        factor_graph:
+            factor_graph_en: true
+        # Loop closure
+        lc:
+            loopClosureEnableFlag: true                   # use loopclousre or not 
+            loopClosureFrequency: 3.0                     # Hz, regulate loop closure constraint add frequency
+            surroundingKeyframeSize: 50                   # submap size (when loop closure enabled)
+            historyKeyframeSearchRadius: 1.5             # meters, key frame that is within n meters from current pose will be considerd for loop closure
+            historyKeyframeSearchTimeDiff: 30.0           # seconds, key frame that is n seconds older will be considered for loop closure
+            historyKeyframeSearchNum: 20                  # number of hostory key frames will be fused into a submap for loop closure
+            historyKeyframeFitnessScore: 0.3              # icp threshold, the smaller the better alignment
+
+        # Visualization
+        visualize: 
+            globalMapVisualizationSearchRadius: 1000.0    # meters, global map visualization radius
+            globalMapVisualizationPoseDensity: 10.0      # meters, global map visualization keyframe density
+            globalMapVisualizationLeafSize: 1.0           # meters, global map visualization cloud density
+
+        iktree:
+            # visual iktree_map  
+            visulize_IkdtreeMap: false
+
+            # visual iktree_map  
+            recontructKdTree: false
+
+        preprocess:
+            lidar_type: 5
+            scan_line:  4
+            blind: 0.3
+            timestamp_unit: 3
+            scan_rate: 10
+
+        mapping:
+            # Same as mid360s_sim: Unity wheel contact needs a faster bias
+            # random walk, otherwise a bad bias keeps integrating while stopped.
+            acc_cov: 0.3
+            gyr_cov: 0.3
+            b_acc_cov: 0.001
+            b_gyr_cov: 0.001
+            fov_degree:    360.0
+            det_range:     40.0
+            extrinsic_est_en:  false     # true: enable the online estimation of IMU-LiDAR extrinsic
+            extrinsic_T: [ -0.011, -0.02329, 0.04412 ]
+            extrinsic_R: [ 1., 0., 0.,
+                            0., 1., 0.,
+                            0., 0., 1.]
+
+        publish:
+            path_en: false             # true: publish Path
+            effect_map_en: false         # true: publish Effects
+            map_en: false               # true: publish Map cloud
+            scan_publish_en:  true       # false: close all the point cloud output
+            dense_publish_en: false      # false: low down the points number in a global-frame point clouds scan.
+            scan_bodyframe_pub_en: true  # true: output the point cloud scans in IMU-body-frame
+
+        pcd_save:
+            pcd_save_en: false
+            interval: -1                 # how many LiDAR frames saved in each pcd file; 
+                                        # -1 : all frames will be saved in ONE pcd file, may lead to memory crash when having too much frames.
+                

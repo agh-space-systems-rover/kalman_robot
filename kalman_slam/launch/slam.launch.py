@@ -88,7 +88,7 @@ def launch_setup(context):
     description += [
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
-                str(get_package_share_path("fast_lio") / "launch" / "mapping.launch.py")
+                str(get_package_share_path("fast_lio_sam") / "launch" / "mapping.launch.py")
             ),
             launch_arguments={
                 "config_file": str(
@@ -229,7 +229,7 @@ def launch_setup(context):
     description += [
     # Setup EKF and global odometry
     TimerAction(
-        period=2.0,
+        period=2.5,
         actions=[
             # Global Kalman filter, publishes map->base_link.
             Node(

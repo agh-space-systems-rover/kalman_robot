@@ -12,21 +12,15 @@ def generate_launch_description():
                 "layout": "autonomy_livox",
             },
             "slam": {
-                "lio_config": "mid360s_sim",
+                "lio_config": "mid360s_sam_sim",
                 "gps_datum": "50.06614847 19.91317746",  # ERC 2026 Marsyard S1, Kraków
                 "use_mag": "true",
                 "use_rtabmap": "false", # enable loop closure detection
             },
             "nav2": {
-                # "static_map": "erc2026",
+                "static_map": "erc2026",
             },
-        #     "aruco": {
-        #         "rgbd_ids": RGBD_IDS,
-        #         "dict": "5X5_100",
-        #         "size": "0.15",
-        #     },
             "supervisor": {},
-        # },
         },
         composition="start_container",
     )
@@ -38,3 +32,4 @@ def generate_launch_description():
         )
     )
     return desc
+ # "gps_datum": "50.8780633 20.6424825", erc2023~

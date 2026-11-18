@@ -1,0 +1,54 @@
+#Tuning Tips:
+# 1) Keep groundInlierThreshold < cellSizeZPhase2
+#
+# 2) If small obstacles disappear → decrease groundInlierThreshold
+#
+# 3) If ground becomes fragmented on rough terrain → increase groundInlierThreshold slightly
+#
+# 4) If slopes are classified as obstacles → increase slopeThresholdDegrees
+#
+# 5) If ramps become ground too easily → decrease slopeThresholdDegrees
+#
+# 6) Large cellSizeX/Y → smoother but less detailed ground model
+#    Smaller cellSizeX/Y → higher detail but more noise
+#
+# 7) cellSizeZPhase2 controls vertical resolution:
+#    Smaller → better obstacle separation
+#    Larger → smoother ground but risk of vertical merging
+#
+# 8) If LiDAR noise is high → consider:
+#    - enabling downsample
+#    - slightly increasing groundInlierThreshold
+#
+# 9) If vehicle operates on steep terrain → consider enabling IMU
+#    use_imu_orientation: true
+
+# Note: Config used with SemanticKITTI. Please update based on your own dataset.
+ground_segmentation:
+  ros__parameters:
+    # pre/post processing
+    robot_frame: "base_link"
+    maxX:  100.0
+    minX: -100.0
+    maxY:  100.0
+    minY: -100.0
+    maxZ:  100.0
+    minZ: -100.0
+    downsample: false
+    downsample_resolution: 0.1
+    lidar_to_ground: -0.85
+    transform_tolerance: 0.1
+
+    ##ground detection
+    cellSizeX: 1.0
+    cellSizeY: 1.0
+    cellSizeZ: 10.0
+    cellSizeZPhase2: 1.0
+    slopeThresholdDegrees: 25.0
+    groundInlierThreshold: 0.2
+    centroidSearchRadius: 5.0
+    use_imu_orientation: true
+    maxGroundHeightDeviation: 0.1
+
+    #debug
+    show_benchmark: false

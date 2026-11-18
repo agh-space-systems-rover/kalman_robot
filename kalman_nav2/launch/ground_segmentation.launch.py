@@ -20,63 +20,69 @@ def launch_setup(context):
     component_container = LaunchConfiguration("component_container").perform(context)
 
     actions = []
-
-    # Cloud downsampling
-    # actions += launch_node_or_load_component(
-    #     component_container=component_container,
-    #     package="pcl_ros",
-    #     executable="filter_voxel_grid_node",
-    #     plugin="pcl_ros::VoxelGrid",
-    #     parameters=[{"leaf_size": 0.05, "use_sim_time": False}],
-    #     remappings=[
-    #         ("input", "/cloud_registered_body"),
-    #         ("output", "/cloud_registered_body/downsampled"),
-    #     ],
-    # )
-
-    # Transform the cloud
+    
+    # GSEG 3D for ground segmentation with IMU alligned check S
+    # This node does cloud transformation + downsampling + gravity aligment 
     actions += [
-     Node(
-        package="kalman_nav2",
-        executable="level_frame",
-        name="level_frame_node",
+        IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            str(
+                get_package_share_path("ground_segmentation_ros2")
+                / "launch"
+                / "ground_segmentation.launch.py"
+            )
+        ),
+        launch_arguments={
+            "params_file": str(
+                get_package_share_path("kalman_nav2")
+                / "config"
+                / "ground_seg.yaml"
+            ),
+            "pointcloud_topic": "/livox/points/cropped",
+            "imu_topic": "/livox/imu",
+            "use_sim_time": "false",
+        }.items(),
     ),
     ]
-    actions += [
-        Node(
-            package="pcl_ros",
-            executable="filter_passthrough_node",
-            name="filter_passthrough_node",
-            parameters=[
-                {
-                    "filter_field_name": "x",
-                    "filter_limit_min": -100000.0,
-                    "filter_limit_max": 100000.0,
-                    "output_frame": "base_link_level",
-                }
-            ],
-            remappings=[
-                ("input", "/cloud_registered_body"),
-                ("output", "/cloud_registered_body/transformed"),
-            ],
-        )
-    ]
-    # Ground segmentation for obstacle detection
-    actions += launch_node_or_load_component(
-        component_container=component_container,
-        package="patchworkpp",
-        executable="patchworkpp_node",
-        plugin="patchworkpp_ros::GroundSegmentationServer",
-        parameters=[
-            load_standalone_config("kalman_nav2", "patchwork.yaml"),
-        ],
-        remappings=[
-            ("pointcloud_topic", "/cloud_registered_body/transformed"),
-            ("/patchworkpp/nonground", "/cloud/nonground"),
-        ],
-    )
-
-
+    #  Node(
+    #     package="kalman_nav2",
+    #     executable="level_frame",
+    #     name="level_frame_node",
+    # ),
+    # ]
+    # actions += [
+    #     Node(
+    #         package="pcl_ros",
+    #         executable="filter_passthrough_node",
+    #         name="filter_passthrough_node",
+    #         parameters=[
+    #             {
+    #                 "filter_field_name": "x",
+    #                 "filter_limit_min": -100000.0,
+    #                 "filter_limit_max": 100000.0,
+    #                 "output_frame": "base_link_level",
+    #             }
+    #         ],
+    #         remappings=[
+    #             ("input", "/cloud_registered_body"),
+    #             ("output", "/cloud_registered_body/transformed"),
+    #         ],
+    #     )
+    # ]
+    # # Ground segmentation for obstacle detection
+    # actions += launch_node_or_load_component(
+    #     component_container=component_container,
+    #     package="patchworkpp",
+    #     executable="patchworkpp_node",
+    #     plugin="patchworkpp_ros::GroundSegmentationServer",
+    #     parameters=[
+    #         load_standalone_config("kalman_nav2", "patchwork.yaml"),
+    #     ],
+    #     remappings=[
+    #         ("pointcloud_topic", "/cloud_registered_body/transformed"),
+    #         ("/patchworkpp/nonground", "/cloud/nonground"),
+    #     ],
+    # )
     return actions
 
 

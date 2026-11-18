@@ -66,7 +66,7 @@ plugins: [
   {% if static_map %}
   "static_layer",
   {% endif %}
-  "stvl",
+  # "stvl",
   # "yolo_cubes_cloud_stvl",
   "inflation_layer"
 ]
@@ -123,13 +123,13 @@ stvl:
   observation_sources: lidar
   lidar:
     data_type: PointCloud2
-    topic: /cloud/nonground
+    topic: /ground_segmentation/obstacle_points
     model_type: 1
 
     # Marking params:
     marking: true
     obstacle_range: 10.0           # meters
-    min_obstacle_height: -0.25
+    min_obstacle_height: -0.15
     max_obstacle_height: 2.0
     clear_after_reading: true     # default false, clear the buffer after the layer gets readings from it
     filter: ""                    # default passthrough, apply "voxel", "passthrough", or no filter to sensor data, recommended to have at one filter on

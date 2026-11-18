@@ -42,3 +42,12 @@
 [submodule "vendor/patchworkpp"]
 	path = vendor/patchworkpp
 	url = git@github.com:url-kaist/patchwork-plusplus.git
+[submodule "vendor/fast_lio_sam"]
+	path = vendor/fast_lio_sam
+	url = git@github.com:JeunyuLi/FAST_LIO_SAM_ROS2.git
+[submodule "vendor/ground_segmentation_ros2"]
+	path = vendor/ground_segmentation_ros2
+	url = git@github.com:dfki-ric/ground_segmentation_ros2.git
+[submodule "vendor/ground_segmentation"]
+	path = vendor/ground_segmentation
+	url = git@github.com:dfki-ric/ground_segmentation.git
