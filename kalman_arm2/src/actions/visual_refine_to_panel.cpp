@@ -1,6 +1,7 @@
 #include "actions/visual_refine_to_panel.hpp"
 
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 
@@ -85,8 +86,12 @@ VisualRefineToPanel::VisualRefineToPanel(
             std::placeholders::_1
         )
     );
-    pose_pub_ = parent_->create_publisher<geometry_msgs::msg::PoseStamped>(
-        "target_pose", 10
+    action_client_ = rclcpp_action::create_client<Action>(
+        parent_->get_node_base_interface(),
+        parent_->get_node_graph_interface(),
+        parent_->get_node_logging_interface(),
+        parent_->get_node_waitables_interface(),
+        "pose_ik_navigate_to_pose"
     );
     tf_buffer_ = std::make_unique<tf2_ros::Buffer>(parent_->get_clock());
     tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
@@ -103,7 +108,6 @@ VisualRefineToPanel::VisualRefineToPanel(
 
     double max_rotation_step_deg = 5.0;
     double visual_orientation_tolerance_deg = 3.0;
-    double nominal_orientation_tolerance_deg = 5.0;
     parent_->get_parameter(
         "visual_refinement_max_rotation_step_deg", max_rotation_step_deg
     );
@@ -114,14 +118,6 @@ VisualRefineToPanel::VisualRefineToPanel(
         "visual_refinement_orientation_tolerance_deg",
         visual_orientation_tolerance_deg
     );
-    parent_->get_parameter(
-        "visual_refinement_nominal_position_tolerance",
-        nominal_position_tolerance_
-    );
-    parent_->get_parameter(
-        "visual_refinement_nominal_orientation_tolerance_deg",
-        nominal_orientation_tolerance_deg
-    );
     parent_->get_parameter("visual_refinement_base_frame", base_frame_);
     parent_->get_parameter("visual_refinement_ee_frame", ee_frame_);
     parent_->get_parameter("visual_refinement_panel_frame", panel_frame_);
@@ -129,8 +125,6 @@ VisualRefineToPanel::VisualRefineToPanel(
     max_rotation_step_rad_ = max_rotation_step_deg * M_PI / 180.0;
     visual_orientation_tolerance_rad_ =
         visual_orientation_tolerance_deg * M_PI / 180.0;
-    nominal_orientation_tolerance_rad_ =
-        nominal_orientation_tolerance_deg * M_PI / 180.0;
 }
 
 BT::PortsList VisualRefineToPanel::providedPorts() {
@@ -156,6 +150,23 @@ BT::NodeStatus VisualRefineToPanel::onStart() {
         return BT::NodeStatus::FAILURE;
     }
     desired_panel_pose_ = desired_pose.value();
+
+    if (!action_client_->wait_for_action_server(std::chrono::seconds(1))) {
+        RCLCPP_ERROR(
+            parent_->get_logger(),
+            "%s: pose IK navigation action server is unavailable",
+            name().c_str()
+        );
+        return BT::NodeStatus::FAILURE;
+    }
+
+    ++action_generation_;
+    correction_goal_active_ = false;
+    {
+        std::lock_guard<std::mutex> lock(action_result_mutex_);
+        action_result_.reset();
+        action_result_message_.clear();
+    }
 
     const auto timeout = getInput<double>("timeout_ms");
     const double timeout_ms = timeout ? timeout.value() : 15000.0;
@@ -317,7 +328,6 @@ BT::NodeStatus VisualRefineToPanel::begin_correction() {
             position_error,
             orientation_error * 180.0 / M_PI
         );
-        hold_current_pose();
         return BT::NodeStatus::FAILURE;
     }
 
@@ -335,38 +345,83 @@ BT::NodeStatus VisualRefineToPanel::begin_correction() {
     last_used_measurement_stamp_ = rclcpp::Time(visual_pose->header.stamp);
     ++correction_count_;
     state_ = State::MOVING;
-    publish_commanded_pose();
+    if (!send_commanded_pose()) {
+        return BT::NodeStatus::FAILURE;
+    }
     return BT::NodeStatus::RUNNING;
 }
 
-void VisualRefineToPanel::publish_commanded_pose() const {
-    geometry_msgs::msg::PoseStamped goal;
-    goal.header.stamp = parent_->now();
-    goal.header.frame_id = base_frame_;
+bool VisualRefineToPanel::send_commanded_pose() {
+    const double remaining_seconds = (deadline_ - parent_->now()).seconds();
+    if (remaining_seconds <= 0.0) {
+        return false;
+    }
+
+    Action::Goal goal;
     goal.pose.position.x = commanded_base_to_ee_.getOrigin().x();
     goal.pose.position.y = commanded_base_to_ee_.getOrigin().y();
     goal.pose.position.z = commanded_base_to_ee_.getOrigin().z();
     goal.pose.orientation = tf2::toMsg(commanded_base_to_ee_.getRotation());
-    pose_pub_->publish(goal);
-}
+    goal.base_frame = base_frame_;
+    goal.end_effector_link = ee_frame_;
+    goal.timeout_seconds = remaining_seconds;
 
-void VisualRefineToPanel::hold_current_pose() {
-    const auto current = current_base_to_ee();
-    if (!current) {
-        return;
+    const uint64_t generation = ++action_generation_;
+    {
+        std::lock_guard<std::mutex> lock(action_result_mutex_);
+        action_result_.reset();
+        action_result_message_.clear();
     }
-    commanded_base_to_ee_ = *current;
-    publish_commanded_pose();
-}
 
-bool VisualRefineToPanel::nominal_target_reached() const {
-    const auto current = current_base_to_ee();
-    if (!current) {
+    auto options = rclcpp_action::Client<Action>::SendGoalOptions{};
+    options.result_callback = [this, generation](
+        const GoalHandle::WrappedResult &result
+    ) {
+        if (generation != action_generation_.load()) {
+            return;
+        }
+        correction_goal_active_ = false;
+        std::lock_guard<std::mutex> lock(action_result_mutex_);
+        action_result_ = result.code;
+        if (result.result) {
+            action_result_message_ = result.result->message;
+        }
+    };
+    correction_goal_active_ = true;
+    try {
+        goal_handle_future_ = action_client_->async_send_goal(goal, options);
+    } catch (const std::exception &error) {
+        correction_goal_active_ = false;
+        RCLCPP_ERROR(
+            parent_->get_logger(),
+            "%s: failed to send pose IK correction goal: %s",
+            name().c_str(),
+            error.what()
+        );
         return false;
     }
-    const tf2::Transform error = current->inverse() * commanded_base_to_ee_;
-    return error.getOrigin().length() <= nominal_position_tolerance_ &&
-           rotationAngle(error.getRotation()) <= nominal_orientation_tolerance_rad_;
+    return true;
+}
+
+void VisualRefineToPanel::cancel_active_goal() {
+    if (!correction_goal_active_.exchange(false)) {
+        return;
+    }
+    ++action_generation_;
+    try {
+        if (goal_handle_future_.valid() &&
+            goal_handle_future_.wait_for(std::chrono::milliseconds(0)) ==
+                std::future_status::ready) {
+            const auto goal_handle = goal_handle_future_.get();
+            if (goal_handle) {
+                action_client_->async_cancel_goal(goal_handle);
+            }
+        } else {
+            action_client_->async_cancel_all_goals();
+        }
+    } catch (const rclcpp_action::exceptions::UnknownGoalHandleError &) {
+        // Goal reached a terminal state between our active check and cancel.
+    }
 }
 
 BT::NodeStatus VisualRefineToPanel::onRunning() {
@@ -393,23 +448,53 @@ BT::NodeStatus VisualRefineToPanel::onRunning() {
                 max_measurement_age_s_
             );
         }
-        hold_current_pose();
+        cancel_active_goal();
         return BT::NodeStatus::FAILURE;
     }
 
     switch (state_) {
     case State::WAITING_FOR_MEASUREMENT:
         return begin_correction();
-    case State::MOVING:
-        publish_commanded_pose();
-        if (nominal_target_reached()) {
-            settle_deadline_ = parent_->now() +
-                               rclcpp::Duration::from_seconds(settle_time_s_);
-            state_ = State::SETTLING;
+    case State::MOVING: {
+        if (goal_handle_future_.valid() &&
+            goal_handle_future_.wait_for(std::chrono::milliseconds(0)) ==
+                std::future_status::ready &&
+            !goal_handle_future_.get()) {
+            correction_goal_active_ = false;
+            RCLCPP_ERROR(
+                parent_->get_logger(),
+                "%s: pose IK correction goal was rejected",
+                name().c_str()
+            );
+            return BT::NodeStatus::FAILURE;
         }
+
+        std::optional<rclcpp_action::ResultCode> result;
+        std::string result_message;
+        {
+            std::lock_guard<std::mutex> lock(action_result_mutex_);
+            result = action_result_;
+            result_message = action_result_message_;
+        }
+        if (!result) {
+            return BT::NodeStatus::RUNNING;
+        }
+        if (*result != rclcpp_action::ResultCode::SUCCEEDED) {
+            RCLCPP_ERROR(
+                parent_->get_logger(),
+                "%s: pose IK correction failed: %s",
+                name().c_str(),
+                result_message.c_str()
+            );
+            return BT::NodeStatus::FAILURE;
+        }
+
+        settle_deadline_ = parent_->now() +
+                           rclcpp::Duration::from_seconds(settle_time_s_);
+        state_ = State::SETTLING;
         return BT::NodeStatus::RUNNING;
+    }
     case State::SETTLING:
-        publish_commanded_pose();
         if (parent_->now() >= settle_deadline_) {
             last_used_measurement_stamp_ = parent_->now();
             state_ = State::WAITING_FOR_MEASUREMENT;
@@ -421,5 +506,5 @@ BT::NodeStatus VisualRefineToPanel::onRunning() {
 }
 
 void VisualRefineToPanel::onHalted() {
-    hold_current_pose();
+    cancel_active_goal();
 }

@@ -55,6 +55,8 @@ def launch_setup(context):
         "min_linear_speed": 0.0,
         "fine_approach_angular_scale": 0.4,
         "max_linear_speed": 0.4,
+        "position_tolerance": 0.005,
+        "visual_refinement_position_tolerance": 0.005,
     }
 
     actions = []
@@ -95,11 +97,11 @@ def launch_setup(context):
         namespace="arm",
         remappings=[
             ("current_pos", "current_pos"),
-            ("target_pose", "target_pose"),
             ("target_vel", "target_vel/joints"),
         ],
         parameters=[twist_ik_params],
     )
+
 
     # Gamepad control node
     actions += [
@@ -133,18 +135,53 @@ def launch_setup(context):
         [FindPackageShare("kalman_arm2"), "config", "panel_layout.yaml"]
     )
 
-    tree_xml_file = PathJoinSubstitution(
-        [FindPackageShare("kalman_arm2"), "trees", "demo.xml"]
-    )
 
     panel_tracker_params = {
+        "layout_yaml": ParameterValue(panel_layout_file, value_type=str),
         "tracking_frame": LaunchConfiguration("panel_tracking_frame").perform(context),
         "board_frame": LaunchConfiguration("panel_board_frame").perform(context),
         "detection_topic": LaunchConfiguration("panel_detection_topic").perform(
             context
         ),
+        "depth_topic": LaunchConfiguration("panel_depth_topic").perform(context),
+        "camera_info_topic": LaunchConfiguration(
+            "panel_camera_info_topic"
+        ).perform(context),
         "ema_alpha": float(
             LaunchConfiguration("panel_tracker_ema_alpha").perform(context)
+        ),
+        "depth_refinement_enabled": yaml.safe_load(
+            LaunchConfiguration("panel_depth_refinement_enabled").perform(context)
+        ),
+        "depth_max_age_s": float(
+            LaunchConfiguration("panel_depth_max_age_s").perform(context)
+        ),
+        "plane_roi_margin_m": float(
+            LaunchConfiguration("panel_plane_roi_margin_m").perform(context)
+        ),
+        "plane_initial_distance_m": float(
+            LaunchConfiguration("panel_plane_initial_distance_m").perform(context)
+        ),
+        "plane_min_residual_threshold_m": float(
+            LaunchConfiguration("panel_plane_min_residual_threshold_m").perform(context)
+        ),
+        "plane_robust_sigma_multiplier": float(
+            LaunchConfiguration("panel_plane_robust_sigma_multiplier").perform(context)
+        ),
+        "plane_iterations": int(
+            LaunchConfiguration("panel_plane_iterations").perform(context)
+        ),
+        "plane_max_normal_update_deg": float(
+            LaunchConfiguration("panel_plane_max_normal_update_deg").perform(context)
+        ),
+        "plane_max_offset_update_m": float(
+            LaunchConfiguration("panel_plane_max_offset_update_m").perform(context)
+        ),
+        "plane_min_points": int(
+            LaunchConfiguration("panel_plane_min_points").perform(context)
+        ),
+        "plane_pixel_stride": int(
+            LaunchConfiguration("panel_plane_pixel_stride").perform(context)
         ),
     }
     panel_rectifier_params = {
@@ -201,8 +238,6 @@ def launch_setup(context):
             ],
             parameters=[
                 {"layout_yaml": ParameterValue(panel_layout_file, value_type=str)},
-                {"tree_xml": ParameterValue(tree_xml_file, value_type=str)},
-                {"auto_start": ParameterValue(False, value_type=bool)},
                 visual_refinement_params,
             ],
         )
@@ -428,6 +463,61 @@ def generate_launch_description():
                 description="EMA smoothing factor for panel pose tracking.",
             ),
             DeclareLaunchArgument(
+                "panel_depth_refinement_enabled",
+                default_value="true",
+                description="Refine marker panel pose with aligned depth plane fitting.",
+            ),
+            DeclareLaunchArgument(
+                "panel_depth_max_age_s",
+                default_value="0.1",
+                description="Maximum depth-to-ArUco timestamp difference.",
+            ),
+            DeclareLaunchArgument(
+                "panel_plane_roi_margin_m",
+                default_value="0.02",
+                description="Inward panel-bound margin used for plane candidates.",
+            ),
+            DeclareLaunchArgument(
+                "panel_plane_initial_distance_m",
+                default_value="0.02",
+                description="Initial depth slab around marker-estimated plane.",
+            ),
+            DeclareLaunchArgument(
+                "panel_plane_min_residual_threshold_m",
+                default_value="0.002",
+                description="Minimum MAD trimming threshold for plane inliers.",
+            ),
+            DeclareLaunchArgument(
+                "panel_plane_robust_sigma_multiplier",
+                default_value="3.0",
+                description="MAD multiplier used during iterative plane trimming.",
+            ),
+            DeclareLaunchArgument(
+                "panel_plane_iterations",
+                default_value="3",
+                description="Number of iterative plane fit and trim passes.",
+            ),
+            DeclareLaunchArgument(
+                "panel_plane_max_normal_update_deg",
+                default_value="5.0",
+                description="Maximum accepted depth correction of panel normal.",
+            ),
+            DeclareLaunchArgument(
+                "panel_plane_max_offset_update_m",
+                default_value="0.01",
+                description="Maximum accepted depth correction along panel normal.",
+            ),
+            DeclareLaunchArgument(
+                "panel_plane_min_points",
+                default_value="200",
+                description="Minimum depth points required for panel-plane fitting.",
+            ),
+            DeclareLaunchArgument(
+                "panel_plane_pixel_stride",
+                default_value="2",
+                description="Depth pixel subsampling stride used by plane fitting.",
+            ),
+            DeclareLaunchArgument(
                 "panel_image_topic",
                 default_value="/d455_arm_wheel/color/image_raw",
                 description="Raw panel camera image consumed by the rectifier.",
@@ -459,7 +549,7 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument(
                 "panel_left_border_m",
-                default_value="0.05",
+                default_value="0.15",
                 description="Extra view outside the YAML panel boundary on its left.",
             ),
             DeclareLaunchArgument(

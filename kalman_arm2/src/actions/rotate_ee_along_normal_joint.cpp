@@ -26,7 +26,7 @@ RotateEEAlongNormalJoint::RotateEEAlongNormalJoint(
 	parent_->get_parameter("rotate_ee_joint_kp", joint_kp_);
 	parent_->get_parameter("rotate_ee_joint_max_speed", max_joint_speed_);
 	parent_->get_parameter("rotate_ee_joint_min_speed", min_joint_speed_);
-	double tolerance_deg = 1.0;
+	double tolerance_deg = 3.0;
 	parent_->get_parameter("rotate_ee_tolerance_deg", tolerance_deg);
 	tolerance_rad_ = tolerance_deg * M_PI / 180.0;
 }

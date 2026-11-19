@@ -1,0 +1,54 @@
+<root main_tree_to_execute="MainTree">
+  <BehaviorTree ID="MainTree">
+    <Sequence name="PanelMissionSequence">
+      <ComputePanelTarget
+          panel_relative_pose="{requested_panel_pose}"
+          target_standoff="0.15"
+          orientation_mode="normal_to_panel"
+          target_pose="{coarse_pose}" />
+
+      <SetMissionFeedback text="Moving to coarse panel target" />
+      <IKNavigateToPose pose="{coarse_pose}" timeout_ms="30000" />
+
+      <Say message="Coarse goal reached" />
+
+      <TransformPose
+        pose="{requested_panel_pose}"
+        x="0.00"
+        y="-0.02"
+        z="0.07"
+        rz_deg="-90"
+        transformed_pose="{requested_panel_pose_offset}" />
+
+      <ForceSuccess>
+          <VisualRefineToPanel
+            pose="{requested_panel_pose_offset}"
+            timeout_ms="10000" />
+      </ForceSuccess>
+
+      <VisaulRefineToPanelTwist
+        pose="{requested_panel_pose_offset}"
+        timeout_ms="40000" />
+
+      <OpenGripper timeout_ms="5000" tolerance="0.20" />
+
+      <TransformPose
+        pose="{requested_panel_pose}"
+        x="0.00"
+        y="-0.02"
+        z="0.005"
+        rz_deg="-90"
+        transformed_pose="{under_breaker}" />
+
+      <TransformPose
+        pose="{under_breaker}"
+        rx_deg="-30"
+        transformed_pose="{under_breaker_45}" />
+
+      <VisaulRefineToPanelTwist
+        pose="{under_breaker_45}"
+        timeout_ms="40000" />
+
+    </Sequence>
+  </BehaviorTree>
+</root>

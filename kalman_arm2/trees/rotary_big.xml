@@ -1,0 +1,93 @@
+<root main_tree_to_execute="MainTree">
+  <BehaviorTree ID="MainTree">
+    <Sequence name="PanelMissionSequence">
+        <!-- This works assuming the rotary switch is in vertical position -->
+        <OpenGripper timeout_ms="5000" tolerance="0.20" />
+        <ArmNavigateToPose j0="0.0" j1="-0.4098" j2="2.567" j3="0" j4="-0.6277" j5="0.0" />
+
+        <ComputePanelTarget
+            panel_relative_pose="{requested_panel_pose}"
+            target_standoff="0.15"
+            orientation_mode="normal_to_panel"
+            target_pose="{coarse_pose}" />
+
+        <SetMissionFeedback text="Moving to coarse panel target" />
+        <IKNavigateToPose pose="{coarse_pose}" timeout_ms="30000" />
+
+        <Say message="Coarse goal reached" />
+
+        <!-- <OpenGripper timeout_ms="5000" tolerance="0.20" /> -->
+        <SetGripperAngle degrees="25.0" timeout_ms="5000" tolerance_deg="10.0" />
+
+        <TransformPose
+          pose="{requested_panel_pose}"
+          x="0.03"
+          y="0.00"
+          z="0.07"
+          transformed_pose="{requested_panel_pose_offset}" />
+
+        <ForceSuccess>
+            <VisualRefineToPanel
+              pose="{requested_panel_pose_offset}"
+              timeout_ms="10000" />
+        </ForceSuccess>
+
+        <VisaulRefineToPanelTwist
+          pose="{requested_panel_pose_offset}"
+          timeout_ms="40000" />
+
+        <TransformPose
+          pose="{requested_panel_pose}"
+          x="0.03"
+          y="0.01"
+          z="0.02"
+          transformed_pose="{requested_panel_pose_offset}" />
+
+        <VisaulRefineToPanelTwist
+          pose="{requested_panel_pose_offset}"
+          timeout_ms="40000" />
+
+        <TransformPose
+          pose="{requested_panel_pose}"
+          x="0.00"
+          y="0.01"
+          z="0.01"
+          transformed_pose="{requested_panel_pose_offset}" />
+
+        <VisaulRefineToPanelTwist
+          pose="{requested_panel_pose_offset}"
+          timeout_ms="40000" />
+
+        <RotateEEAlongNormalJoint degrees="-90.0" timeout_ms="20000"/>
+        <CloseGripper timeout_ms="5000" tolerance="0.20" />
+        <ForceSuccess>
+            <!-- It may be impossible to rotate the knob 90 deg -->
+            <RotateEEAlongNormalJoint degrees="90.0" timeout_ms="10000"/>
+        </ForceSuccess>
+
+        <SetGripperAngle degrees="30.0" timeout_ms="5000" tolerance_deg="10.0" />
+
+        <TransformPose
+          pose="{requested_panel_pose_offset}"
+          x="0.00"
+          y="0.00"
+          z="0.10"
+          transformed_pose="{pose_after_mission}" />
+
+        <VisaulRefineToPanelTwist
+          pose="{pose_after_mission}"
+          timeout_ms="40000" />
+
+        <!-- <TransformPose
+          pose="{requested_panel_pose_offset}"
+          z="0.15"
+          y="0.00"
+          transformed_pose="{pose_with_bar}" /> -->
+
+        <!-- <VisaulRefineToPanelTwist
+          pose="{pose_with_bar}"
+          timeout_ms="40000" /> -->
+
+    </Sequence>
+  </BehaviorTree>
+</root>

@@ -36,11 +36,12 @@ std::optional<PanelLayout> PanelLayout::read_yaml(
 		ret.board_height  = config["board_height"].as<double>();
 		YAML::Node m      = config["markers"];
 		// markers_.clear();
-		for (auto it : m) {
-			int        id = it.first.as<int>();
+		for (const auto &entry : m) {
+			const size_t id = entry.second["id"].as<size_t>();
 			MarkerInfo mi;
-			mi.u            = it.second["u"].as<double>();
-			mi.v            = it.second["v"].as<double>();
+			mi.u            = entry.second["u"].as<double>();
+			mi.v            = entry.second["v"].as<double>();
+			mi.id           = id;
 			ret.markers[id] = mi;
 		}
 		RCLCPP_INFO(

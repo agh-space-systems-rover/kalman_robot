@@ -3,6 +3,7 @@ import styles from './arm-autonomy.module.css';
 import {
   addArmAutonomyListener,
   applyHomography,
+  cancelArmAutonomyGoal,
   decodeRosImage,
   detectionCenter,
   detectionLabel,
@@ -12,7 +13,8 @@ import {
   getArmAutonomyHomography,
   getArmAutonomyImage,
   ImageXY,
-  publishArmAutonomyTarget,
+  inferPanelMarkerPositions,
+  sendArmAutonomyGoal,
   SendXY
 } from '../common/arm-autonomy';
 import { alertsRef } from '../common/refs';
@@ -22,6 +24,7 @@ import { CSSProperties, useCallback, useEffect, useRef, useState } from 'react';
 import Button from '../components/button';
 
 const LOG_PREFIX = '[arm-autonomy panel]';
+type MissionKind = 'approach' | 'interact' | 'compact_herman';
 
 function formatXY(xy: ImageXY | SendXY | null, decimalPlaces = 1): string {
   if (!xy) {
@@ -58,6 +61,21 @@ export default function ArmAutonomyPanel() {
   const [rosConnected, setRosConnected] = useState(false);
   const [decodeError, setDecodeError] = useState<string | null>(null);
   const [feedPaused, setFeedPaused] = useState(false);
+  const [activeMission, setActiveMission] = useState<MissionKind | null>(null);
+  const [calibrationActive, setCalibrationActive] = useState(false);
+  const [calibrationFeedback, setCalibrationFeedback] = useState('Ready');
+  const calibrationGenerationRef = useRef(0);
+  const [missionFeedback, setMissionFeedback] = useState<Record<MissionKind, string>>({
+    approach: 'Ready',
+    interact: 'Select a detection',
+    compact_herman: 'Ready'
+  });
+  const activeGoalRef = useRef<{ kind: MissionKind; id: string } | null>(null);
+  const missionGenerationRef = useRef<Record<MissionKind, number>>({
+    approach: 0,
+    interact: 0,
+    compact_herman: 0
+  });
 
   const drawImageData = useCallback((imageData: ImageData) => {
     const canvas = canvasRef.current;
@@ -145,27 +163,140 @@ export default function ArmAutonomyPanel() {
     });
   }
 
-  function handleSend() {
-    if (!sendXY || !imageXY) {
-      console.warn(`${LOG_PREFIX} SEND ignored — missing coordinates`);
+  function selectedClassId(): string | null {
+    if (selectedIndex === null) {
+      return null;
+    }
+    return detections[selectedIndex]?.results[0]?.hypothesis.class_id?.trim() || null;
+  }
+
+  function setFeedback(kind: MissionKind, feedback: string) {
+    setMissionFeedback((current) => ({ ...current, [kind]: feedback }));
+  }
+
+  function startMission(kind: MissionKind) {
+    if (activeGoalRef.current) {
       return;
     }
 
-    const label =
-      selectedIndex !== null && detections[selectedIndex]
-        ? detectionLabel(detections[selectedIndex])
-        : undefined;
+    const targetXY = kind === 'compact_herman' ? sendXY ?? { x: 0, y: 0 } : sendXY;
+    if (!targetXY) {
+      return;
+    }
 
-    const published = publishArmAutonomyTarget({ imageXY, sendXY, label });
-    console.log(`${LOG_PREFIX} SEND clicked`, { imageXY, sendXY, label, published });
+    const behaviorTree =
+      kind === 'interact' ? selectedClassId() : kind === 'approach' ? 'approach' : 'compact_herman';
+    if (!behaviorTree) {
+      setFeedback(kind, 'Select a detection first');
+      return;
+    }
 
-    if (published) {
-      alertsRef.current?.pushAlert(
-        `Sent panel target (${sendXY.x.toFixed(2)}, ${sendXY.y.toFixed(2)}) on /arm/panel/target`,
-        'success'
-      );
-    } else {
-      alertsRef.current?.pushAlert('Failed to send panel target — ROS disconnected.', 'error');
+    const generation = ++missionGenerationRef.current[kind];
+    setFeedback(kind, `Sending ${behaviorTree}…`);
+    const goalId = sendArmAutonomyGoal(targetXY, behaviorTree, {
+      onFeedback: (feedback) => {
+        if (missionGenerationRef.current[kind] === generation) {
+          setFeedback(kind, feedback.progress || 'Running…');
+        }
+      },
+      onResult: (result) => {
+        if (missionGenerationRef.current[kind] !== generation) {
+          return;
+        }
+        const outcome = result.result ? 'Succeeded' : 'Failed';
+        setFeedback(kind, result.message ? `${outcome}: ${result.message}` : outcome);
+        if (activeGoalRef.current?.kind === kind) {
+          activeGoalRef.current = null;
+          setActiveMission(null);
+        }
+        alertsRef.current?.pushAlert(
+          result.message || `${behaviorTree} mission ${result.result ? 'succeeded' : 'failed'}.`,
+          result.result ? 'success' : 'error'
+        );
+      },
+      onFailed: (error) => {
+        if (missionGenerationRef.current[kind] !== generation) {
+          return;
+        }
+        setFeedback(kind, `Action error: ${error}`);
+        if (activeGoalRef.current?.kind === kind) {
+          activeGoalRef.current = null;
+          setActiveMission(null);
+        }
+        alertsRef.current?.pushAlert(`Failed to run ${behaviorTree}: ${error}`, 'error');
+      }
+    });
+
+    if (!goalId) {
+      setFeedback(kind, 'Failed to send goal');
+      return;
+    }
+    activeGoalRef.current = { kind, id: goalId };
+    setActiveMission(kind);
+    console.log(`${LOG_PREFIX} action goal sent`, { kind, behaviorTree, targetXY, goalId });
+  }
+
+  function inferArucoPositions() {
+    if (calibrationActive || activeGoalRef.current) {
+      return;
+    }
+
+    const generation = ++calibrationGenerationRef.current;
+    setCalibrationActive(true);
+    setCalibrationFeedback('Starting inference…');
+    const goalId = inferPanelMarkerPositions({
+      onFeedback: (feedback) => {
+        if (calibrationGenerationRef.current === generation) {
+          setCalibrationFeedback(feedback.progress || `${feedback.confirmations}/5 frames`);
+        }
+      },
+      onResult: (result) => {
+        if (calibrationGenerationRef.current !== generation) {
+          return;
+        }
+        setCalibrationActive(false);
+        const assignment = result.marker_names
+          .map((name, index) => `${name}=${result.marker_ids[index]}`)
+          .join(', ');
+        setCalibrationFeedback(
+          `${result.result ? 'Succeeded' : 'Failed'}: ${result.message}${assignment ? ` (${assignment})` : ''}`
+        );
+        alertsRef.current?.pushAlert(
+          result.message || (result.result ? 'ArUco positions inferred.' : 'ArUco inference failed.'),
+          result.result ? 'success' : 'error'
+        );
+      },
+      onFailed: (error) => {
+        if (calibrationGenerationRef.current !== generation) {
+          return;
+        }
+        setCalibrationActive(false);
+        setCalibrationFeedback(`Action error: ${error}`);
+        alertsRef.current?.pushAlert(`Failed to infer ArUco positions: ${error}`, 'error');
+      }
+    });
+
+    if (!goalId) {
+      setCalibrationActive(false);
+      setCalibrationFeedback('Failed to send inference goal');
+    }
+  }
+
+  function abortMission(kind: MissionKind) {
+    const activeGoal = activeGoalRef.current;
+    if (!activeGoal || activeGoal.kind !== kind) {
+      return;
+    }
+    try {
+      if (cancelArmAutonomyGoal(activeGoal.id)) {
+        setFeedback(kind, 'Cancellation requested…');
+      } else {
+        setFeedback(kind, 'Failed to request cancellation');
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      setFeedback(kind, `Cancellation error: ${message}`);
+      alertsRef.current?.pushAlert(`Failed to abort mission: ${message}`, 'error');
     }
   }
 
@@ -173,6 +304,52 @@ export default function ArmAutonomyPanel() {
 
   return (
     <div className={styles['arm-autonomy']}>
+      <div className={`${styles['controls']} ${styles['utility-controls']}`}>
+        <div className={styles['action-control']}>
+          <div className={styles['action-buttons']}>
+            <Button
+              className={styles['control-button']}
+              disabled={activeMission !== null || calibrationActive}
+              onClick={() => startMission('compact_herman')}
+            >
+              SEND Compact Herman
+            </Button>
+            <Button
+              className={styles['control-button']}
+              disabled={activeMission !== 'compact_herman'}
+              onClick={() => abortMission('compact_herman')}
+            >
+              Abort Compact Herman
+            </Button>
+          </div>
+          <input
+            className={styles['feedback-field']}
+            value={missionFeedback.compact_herman}
+            readOnly
+            aria-label="Compact Herman action feedback"
+          />
+        </div>
+
+        <div className={styles['action-control']}>
+          <div className={styles['action-buttons']}>
+            <Button
+              className={styles['control-button']}
+              active={calibrationActive}
+              disabled={calibrationActive || activeMission !== null || !rosConnected}
+              onClick={inferArucoPositions}
+            >
+              Infer aruco positions
+            </Button>
+          </div>
+          <input
+            className={styles['feedback-field']}
+            value={calibrationFeedback}
+            readOnly
+            aria-label="ArUco position inference feedback"
+          />
+        </div>
+      </div>
+
       <div className={styles['viewport']}>
         <div
           className={styles['image-frame']}
@@ -252,16 +429,64 @@ export default function ArmAutonomyPanel() {
 
       <div className={styles['controls']}>
         <Button
-          className={styles['control-button']}
+          className={`${styles['control-button']} ${styles['live-button']}`}
           active={feedPaused}
           onClick={() => setFeedPaused((paused) => !paused)}
           tooltip={feedPaused ? 'Resume video and detections' : 'Pause video and detections'}
         >
           {feedPaused ? 'Paused' : 'Live'}
         </Button>
-        <Button className={styles['control-button']} disabled={!sendXY} onClick={handleSend}>
-          SEND
-        </Button>
+
+        <div className={styles['action-control']}>
+          <div className={styles['action-buttons']}>
+            <Button
+              className={styles['control-button']}
+              disabled={!sendXY || activeMission !== null || calibrationActive}
+              onClick={() => startMission('approach')}
+            >
+              SEND Approach
+            </Button>
+            <Button
+              className={styles['control-button']}
+              disabled={activeMission !== 'approach'}
+              onClick={() => abortMission('approach')}
+            >
+              Abort Approach
+            </Button>
+          </div>
+          <input
+            className={styles['feedback-field']}
+            value={missionFeedback.approach}
+            readOnly
+            aria-label="Approach action feedback"
+          />
+        </div>
+
+        <div className={styles['action-control']}>
+          <div className={styles['action-buttons']}>
+            <Button
+              className={styles['control-button']}
+              disabled={!sendXY || !selectedClassId() || activeMission !== null || calibrationActive}
+              onClick={() => startMission('interact')}
+            >
+              SEND Interact
+            </Button>
+            <Button
+              className={styles['control-button']}
+              disabled={activeMission !== 'interact'}
+              onClick={() => abortMission('interact')}
+            >
+              Abort Interact
+            </Button>
+          </div>
+          <input
+            className={styles['feedback-field']}
+            value={missionFeedback.interact}
+            readOnly
+            aria-label="Interact action feedback"
+          />
+        </div>
+
       </div>
     </div>
   );

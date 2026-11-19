@@ -121,10 +121,42 @@
 
 .controls {
   display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
   gap: 0.5rem;
+}
+
+.action-control {
+  flex: 1 1 14rem;
+  min-width: 12rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.35rem;
 }
 
 .control-button {
   flex: 1;
   text-align: center;
+}
+
+.live-button {
+  flex: 0 0 6rem;
+}
+
+.feedback-field {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  border: 1px solid var(--weak-foreground);
+  border-radius: 4px;
+  padding: 0.25rem 0.4rem;
+  color: var(--foreground);
+  background: var(--background);
+  font: inherit;
+  font-size: 0.7rem;
 }
