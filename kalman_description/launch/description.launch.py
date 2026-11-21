@@ -16,7 +16,7 @@ def launch_setup(context):
         return [item.strip().strip("'\"") for item in parts.split() if item.strip()]
 
     layouts_list = get_list("layouts")
-    normalized_layouts = " ".join(layouts_list) if layouts_list else "arm"
+    normalized_layouts = " ".join(layouts_list)
 
     main_xacro_path = str(
         get_package_share_path("kalman_description") / "urdf" / "kalman_main.urdf.xacro"
@@ -71,8 +71,8 @@ def generate_launch_description():
         [
             DeclareLaunchArgument(
                 "layouts",
-                default_value="arm",
-                description="Space- or comma-separated list of layouts, e.g. 'arm autonomy'.",
+                default_value="",
+                description="Space- or comma-separated list of layouts, e.g. 'arm autonomy'. Leave empty for base only.",
             ),
             DeclareLaunchArgument(
                 "joint_state_publisher_gui",
