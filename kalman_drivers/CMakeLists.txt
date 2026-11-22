@@ -65,6 +65,13 @@ install(DIRECTORY launch
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   ament_lint_auto_find_test_dependencies()
+
+  # drivers.launch.py in each mode, with the test standing in for master_com.
+  find_package(launch_testing_ament_cmake REQUIRED)
+  add_launch_test(test/test_drivers_launch.py
+    TIMEOUT 300
+    ENV ROS_LOCALHOST_ONLY=1
+  )
 endif()
 
 ament_package()
