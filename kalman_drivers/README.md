@@ -33,3 +33,11 @@ Nodes such as `feed_driver`, `ueuos_driver`, `wheel_driver`, expose a high-level
 
 Interprets linear and angular velocity inputs and translates them into Master's arm control frames.
 Used to steer the arm using a 3D Space Mouse.
+
+#### tunnel
+
+Ground-station node (executable `tunnel_client`) that asks the rover over the radio to reboot its PC or to start the ARCh stack/goal. Each call queues `GS_TO_PC` frames on `master_com/ros_to_master`. Services (`std_srvs/Empty`):
+
+- `/tunnel/reboot_pc`
+- `/tunnel/arch_launch_stack`
+- `/tunnel/arch_send_goal`

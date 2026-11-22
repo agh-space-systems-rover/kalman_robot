@@ -46,7 +46,7 @@ def launch_setup(context):
                 "arm/twist": "spacenav/twist",
             }.items(),
         ),
-        "tunnel_client": Node(
+        "tunnel": Node(
             package="kalman_drivers",
             executable="tunnel_client",
         ),
@@ -96,7 +96,7 @@ def launch_setup(context):
             "drill_driver",
             "estop_driver",
             "rfid_driver",
-            "tunnel_client",
+            "tunnel",
             "storage_driver",
             # "sand_storage_driver",
             "ph_driver",

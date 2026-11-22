@@ -12,7 +12,7 @@ ARCH_SEND_GOAL_ID = 48
 
 class TunnelClient(Node):
     def __init__(self):
-        super().__init__("tunnel_client")
+        super().__init__("tunnel")
         self.pub = self.create_publisher(MasterMessage, "master_com/ros_to_master", 10)
 
         self.create_service(Empty, "tunnel/reboot_pc", self.reboot_pc)
