@@ -2,7 +2,7 @@
 
 serial and radio transport between ROS and the Master device
 
-Carries raw frames between ROS and the Master over serial, and uses the Master's radio to connect the ground station and the rover. The device drivers that build on top of it live in [`kalman_master`](../kalman_master).
+Carries raw frames between ROS and the Master over serial, and uses the Master's radio to connect the ground station and the rover. The device drivers that build on top of it live in [`kalman_drivers`](../kalman_drivers).
 
 
 ## Usage

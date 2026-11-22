@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(kalman_master)
+project(kalman_drivers)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -11,13 +11,14 @@ find_package(ament_cmake_python REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
 find_package(kalman_interfaces REQUIRED)
 
 add_library(arm_twist_driver_node SHARED src/arm_twist_driver_node.cpp)
 ament_target_dependencies(arm_twist_driver_node rclcpp rclcpp_components geometry_msgs kalman_interfaces)
 rclcpp_components_register_node(
   arm_twist_driver_node
-  PLUGIN "kalman_master::ArmTwistDriver"
+  PLUGIN "kalman_drivers::ArmTwistDriver"
   EXECUTABLE arm_twist_driver
 )
 
@@ -25,13 +26,13 @@ add_library(rfid_driver_node SHARED src/rfid_driver_node.cpp)
 ament_target_dependencies(rfid_driver_node rclcpp rclcpp_components std_msgs kalman_interfaces)
 rclcpp_components_register_node(
   rfid_driver_node
-  PLUGIN "kalman_master::RfidDriver"
+  PLUGIN "kalman_drivers::RfidDriver"
   EXECUTABLE rfid_driver
 )
 
-ament_export_targets(kalman_master-targets)
+ament_export_targets(kalman_drivers-targets)
 install(TARGETS arm_twist_driver_node rfid_driver_node
-  EXPORT kalman_master-targets
+  EXPORT kalman_drivers-targets
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib

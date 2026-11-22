@@ -9,7 +9,7 @@ Those are the data structures used by APIs in the software stack.
 - `Arm*`: TODO
 - [Drill](./msg/Drill.msg): state of the drilling module
 - [Drive](./msg/Drive.msg): teleop control input
-- [MasterMessage](./msg/MasterMessage.msg): raw bytes sent to/from the [Master](../kalman_master)
+- [MasterMessage](./msg/MasterMessage.msg): raw bytes sent to/from the [Master](../kalman_tunnel)
 - [WheelState](./msg/WheelState.msg): state of a singular propulsion module (wheel speed + steering angle)
 - [WheelStates](./msg/WheelStates.msg): state of all 4 propulsion modules
 - [WheelTemperature](./msg/WheelTemperature.msg): temperature of a singular propulsion module (wheel + swivel)

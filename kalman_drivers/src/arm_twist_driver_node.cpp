@@ -9,7 +9,7 @@
 #include <kalman_interfaces/msg/arm_axes_locks.hpp>
 #include <kalman_interfaces/msg/master_message.hpp>
 
-namespace kalman_master {
+namespace kalman_drivers {
 
 class ArmTwistDriver : public rclcpp::Node {
 public:
@@ -137,6 +137,6 @@ private:
 	kalman_interfaces::msg::ArmAxesLocks::SharedPtr axes_locks_;
 };
 
-} // namespace kalman_master
+} // namespace kalman_drivers
 
-RCLCPP_COMPONENTS_REGISTER_NODE(kalman_master::ArmTwistDriver)
+RCLCPP_COMPONENTS_REGISTER_NODE(kalman_drivers::ArmTwistDriver)

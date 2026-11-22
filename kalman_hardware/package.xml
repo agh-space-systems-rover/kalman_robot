@@ -31,7 +31,7 @@
   <exec_depend>python3-matplotlib</exec_depend>
 
   <exec_depend>kalman_utils</exec_depend>
-  <exec_depend>kalman_master</exec_depend>
+  <exec_depend>kalman_drivers</exec_depend>
   <exec_depend>kalman_tunnel</exec_depend>
 
   <test_depend>ament_lint_auto</test_depend>

@@ -68,7 +68,7 @@ def launch_setup(context):
 
     if master != "":
         # Serial transport and radio link (kalman_tunnel), and the drivers
-        # on top of it (kalman_master), both for the same mode.
+        # on top of it (kalman_drivers), both for the same mode.
         actions += [
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
@@ -85,9 +85,9 @@ def launch_setup(context):
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
                     str(
-                        get_package_share_path("kalman_master")
+                        get_package_share_path("kalman_drivers")
                         / "launch"
-                        / "master.launch.py"
+                        / "drivers.launch.py"
                     )
                 ),
                 launch_arguments={
@@ -281,7 +281,7 @@ def generate_launch_description():
                 "master",
                 default_value="",
                 choices=["", "pc", "gs", "arm"],
-                description="Start the Master transport (kalman_tunnel) and drivers (kalman_master) in a given mode ('pc', 'gs' or 'arm'). Leave empty to disable.",
+                description="Start the Master transport (kalman_tunnel) and drivers (kalman_drivers) in a given mode ('pc', 'gs' or 'arm'). Leave empty to disable.",
             ),
             DeclareLaunchArgument(
                 "rgbd_ids",

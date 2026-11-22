@@ -34,7 +34,7 @@ struct Data {
 	}
 };
 
-namespace kalman_master {
+namespace kalman_drivers {
 
 class RfidDriver : public rclcpp::Node {
 	using MasterMessage = kalman_interfaces::msg::MasterMessage;
@@ -93,6 +93,6 @@ private:
 	    kalman_interfaces::msg::MasterMessage::ESP_TO_GS;
 };
 
-} // namespace kalman_master
+} // namespace kalman_drivers
 
-RCLCPP_COMPONENTS_REGISTER_NODE(kalman_master::RfidDriver)
+RCLCPP_COMPONENTS_REGISTER_NODE(kalman_drivers::RfidDriver)

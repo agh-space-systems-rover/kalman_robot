@@ -14,9 +14,9 @@
   <depend>kalman_arm_moveit_config</depend>
   <depend>kalman_arm_utils</depend>
   <depend>kalman_description</depend>
+  <depend>kalman_drivers</depend>
   <depend>kalman_hardware</depend>
   <depend>kalman_interfaces</depend>
-  <depend>kalman_master</depend>
   <depend>kalman_tunnel</depend>
 
   <test_depend>ament_lint_auto</test_depend>

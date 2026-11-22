@@ -20,62 +20,62 @@ def launch_setup(context):
 
     nodes = {
         "ueuos_driver": Node(
-            package="kalman_master",
+            package="kalman_drivers",
             executable="ueuos_driver",
         ),
         "feed_driver": Node(
-            package="kalman_master",
+            package="kalman_drivers",
             executable="feed_driver",
         ),
         "wheel_driver": Node(
-            package="kalman_master",
+            package="kalman_drivers",
             executable="wheel_driver",
         ),
         "autonomy_spammer": Node(
-            package="kalman_master",
+            package="kalman_drivers",
             executable="autonomy_switch_spam",
         ),
         "camera_2dof_driver": Node(
-            package="kalman_master",
+            package="kalman_drivers",
             executable="camera_2dof_driver",
         ),
         "arm_twist_driver": Node(
-            package="kalman_master",
+            package="kalman_drivers",
             executable="arm_twist_driver",
             remappings={
                 "arm/twist": "spacenav/twist",
             }.items(),
         ),
         "tunnel_client": Node(
-            package="kalman_master",
+            package="kalman_drivers",
             executable="tunnel_client",
         ),
         "laser_driver": Node(
-            package="kalman_master",
+            package="kalman_drivers",
             executable="laser_driver",
         ),
         "drill_driver": Node(
-            package="kalman_master",
+            package="kalman_drivers",
             executable="drill_driver",
         ),
         "estop_driver": Node(
-            package="kalman_master",
+            package="kalman_drivers",
             executable="estop_driver",
         ),
         "rfid_driver": Node(
-            package="kalman_master",
+            package="kalman_drivers",
             executable="rfid_driver",
         ),
         "storage_driver": Node(
-            package="kalman_master",
+            package="kalman_drivers",
             executable="storage_driver",
         ),
         "sand_storage_driver": Node(
-            package="kalman_master",
+            package="kalman_drivers",
             executable="sand_storage_driver",
         ),
         "ph_driver": Node(
-            package="kalman_master",
+            package="kalman_drivers",
             executable="ph_driver",
         ),
     }
