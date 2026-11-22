@@ -5,6 +5,23 @@ serial and radio transport between ROS and the Master device
 Carries raw frames between ROS and the Master over serial, and uses the Master's radio to connect the ground station and the rover. The device drivers that build on top of it live in [`kalman_master`](../kalman_master).
 
 
+## Usage
+
+```bash
+ros2 launch kalman_tunnel tunnel.launch.py mode:=gs  # or pc, arm
+```
+
+| Mode | `master_com` baud rate | `ros_link` sides |
+|---|---|---|
+| `gs` | 38400 | `ros_link_gs_to_pc`, `ros_link_gs_to_arm` (station) |
+| `pc` | 115200 | `ros_link_pc_to_gs` (rover) |
+| `arm` | 2000000 | `ros_link_arm_to_gs` (rover) |
+
+`port:=/dev/tty...` sets the serial port. By default the Master is found automatically by its USB model.
+
+The ROS interface into the rover is the `MasterMessage` bus: publish frames on `master_com/ros_to_master`; frames from the Master arrive on `master_com/master_to_ros/x<frame ID in hex>`.
+
+
 ## Nodes
 
 #### master_com
@@ -32,8 +49,10 @@ Alternative `master_com` implementation that allows to test nodes that use its t
 
 [`test/test_ros_link_loopback.py`](./test/test_ros_link_loopback.py) runs both sides of `ros_link` through `master_loopback` and checks that topics, services and actions cross the link. No hardware is needed:
 
+[`test/test_tunnel_launch.py`](./test/test_tunnel_launch.py) starts `tunnel.launch.py` in each mode with `master_com` on a virtual serial port, and checks the started nodes, their parameters and frames crossing the port.
+
 ```bash
-colcon test --packages-select kalman_tunnel --ctest-args -R test_ros_link_loopback
+colcon test --packages-select kalman_tunnel
 ```
 
 For manual experiments, [`launch/test_ros_link.launch.py`](./launch/test_ros_link.launch.py) starts the same setup with 50% frame loss.

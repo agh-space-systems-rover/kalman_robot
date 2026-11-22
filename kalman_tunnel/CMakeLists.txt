@@ -27,6 +27,12 @@ if(BUILD_TESTING)
     TIMEOUT 600
     ENV ROS_LOCALHOST_ONLY=1
   )
+
+  # tunnel.launch.py in each mode, with master_com on a virtual serial port.
+  add_launch_test(test/test_tunnel_launch.py
+    TIMEOUT 300
+    ENV ROS_LOCALHOST_ONLY=1
+  )
 endif()
 
 ament_package()
