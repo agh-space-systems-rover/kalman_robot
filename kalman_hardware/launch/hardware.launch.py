@@ -67,7 +67,21 @@ def launch_setup(context):
     actions = []
 
     if master != "":
+        # Serial transport and radio link (kalman_tunnel), and the drivers
+        # on top of it (kalman_master), both for the same mode.
         actions += [
+            IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(
+                    str(
+                        get_package_share_path("kalman_tunnel")
+                        / "launch"
+                        / "tunnel.launch.py"
+                    )
+                ),
+                launch_arguments={
+                    "mode": master,
+                }.items(),
+            ),
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
                     str(
@@ -79,7 +93,7 @@ def launch_setup(context):
                 launch_arguments={
                     "mode": master,
                 }.items(),
-            )
+            ),
         ]
 
     # RGBD cameras are togglable.
@@ -267,7 +281,7 @@ def generate_launch_description():
                 "master",
                 default_value="",
                 choices=["", "pc", "gs", "arm"],
-                description="Start the master driver in a given mode ('pc', 'gs' or 'arm'). Leave empty to disable.",
+                description="Start the Master transport (kalman_tunnel) and drivers (kalman_master) in a given mode ('pc', 'gs' or 'arm'). Leave empty to disable.",
             ),
             DeclareLaunchArgument(
                 "rgbd_ids",

@@ -1,9 +1,11 @@
+# Drivers for the Master's subsystems. They talk to the Master through the
+# master_com topics, so kalman_tunnel's tunnel.launch.py must run alongside
+# (kalman_hardware's hardware.launch.py master:=... starts both).
+
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction
-from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.actions import DeclareLaunchArgument, OpaqueFunction
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
-from ament_index_python import get_package_share_path
 
 
 def launch_setup(context):
@@ -15,14 +17,6 @@ def launch_setup(context):
         raise ValueError(
             f'\n\nInvalid Master mode: "{mode}". Please set mode:=... Choose one of: pc, gs, arm'
         )
-
-    # Serial transport (master_com) and radio link (ros_link) for this mode.
-    tunnel = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            str(get_package_share_path("kalman_tunnel") / "launch/tunnel.launch.py")
-        ),
-        launch_arguments={"mode": mode}.items(),
-    )
 
     nodes = {
         "ueuos_driver": Node(
@@ -112,7 +106,7 @@ def launch_setup(context):
         "arm": [],
     }
 
-    return [tunnel] + [nodes[node_name] for node_name in mode_configs[mode]]
+    return [nodes[node_name] for node_name in mode_configs[mode]]
 
 
 def generate_launch_description():

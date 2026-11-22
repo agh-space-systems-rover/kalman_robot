@@ -20,8 +20,6 @@
   <exec_depend>rclpy</exec_depend>
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>std_srvs</exec_depend>
-  <!-- master_com and ros_link, started by launch/master.launch.py -->
-  <exec_depend>kalman_tunnel</exec_depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

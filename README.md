@@ -75,7 +75,7 @@ Kalman's software stack is composed of multiple packages that are meant to be bu
 
 The `kalman_bringup` package contains main launch files that are meant to be the only ones used via `ros2 launch`. The whole stack is organized into self-contained `kalman_` modules. Each of them has a single launch file that can be run with arguments in order to use different runtime configurations. A module's ROS API may depend on the output of different modules, but those dependencies won't launch automatically. `kalman_bringup` is the way to manage different stack configurations, and it can include the needed modules if the `ros2 launch`-able main launch files request so. Here you can see how `kalman_bringup` is the root of the launch hierarchy, and how there's just a single level of nesting - Means that only `kalman_bringup` can include other modules:
 
-![](https://quickchart.io/graphviz?graph=digraph{kalman_bringup->kalman_description;kalman_bringup->kalman_hardware->kalman_master;kalman_bringup->kalman_slam;kalman_bringup->kalman_nav2;kalman_bringup->kalman_wheels;kalman_bringup->"...";})
+![](https://quickchart.io/graphviz?graph=digraph{kalman_bringup->kalman_description;kalman_bringup->kalman_hardware->kalman_master;kalman_hardware->kalman_tunnel;kalman_bringup->kalman_slam;kalman_bringup->kalman_nav2;kalman_bringup->kalman_wheels;kalman_bringup->"...";})
 
 ## Data Flow
 
