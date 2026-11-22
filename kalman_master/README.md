@@ -16,7 +16,7 @@ Communicates with the Master over serial and exposes its functionality as a ROS 
 
 ## Nodes
 
-The serial transport (`master_com`), the radio link (`ros_link`) and `master_loopback` live in [`kalman_tunnel`](../kalman_tunnel). `launch/master.launch.py` starts them together with the drivers below.
+The serial transport (`master_com`), the radio link (`ros_link`) and `master_loopback` live in [`kalman_tunnel`](../kalman_tunnel). `launch/master.launch.py` includes `kalman_tunnel`'s `tunnel.launch.py` for the given mode and starts the drivers below on top of it.
 
 #### Drivers
 

@@ -1,40 +1,9 @@
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, OpaqueFunction
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 from ament_index_python import get_package_share_path
-
-BAUD_RATES = {
-    "pc": 115200,
-    "gs": 38400,
-    "arm": 2000000,
-}
-
-# PORTS = {"pc": "/tmp/ttyV2"}
-PORTS = {}
-
-
-def start_ros_link(side: str, rover_endpoint: str) -> Node:
-    return Node(
-        name=f"ros_link_"
-        + (
-            "gs_to_" + rover_endpoint
-            if side == "station"
-            else rover_endpoint + "_to_gs"
-        ),
-        package="kalman_tunnel",
-        executable="ros_link",
-        parameters=[
-            {
-                "config_path": str(
-                    get_package_share_path("kalman_tunnel")
-                    / f"config/{rover_endpoint}_ros_link.yaml"
-                ),
-                "side": side,  # station or rover
-                "rover_endpoint": rover_endpoint,  # arm or pc
-            },
-        ],
-    )
 
 
 def launch_setup(context):
@@ -47,17 +16,15 @@ def launch_setup(context):
             f'\n\nInvalid Master mode: "{mode}". Please set mode:=... Choose one of: pc, gs, arm'
         )
 
-    nodes = {
-        "master_com": Node(
-            package="kalman_tunnel",
-            executable="master_com",
-            parameters=[
-                {
-                    "baud_rate": BAUD_RATES[get_str("mode")],
-                    "port": PORTS.get(get_str("mode"), ""),  # empty = auto
-                }
-            ],
+    # Serial transport (master_com) and radio link (ros_link) for this mode.
+    tunnel = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            str(get_package_share_path("kalman_tunnel") / "launch/tunnel.launch.py")
         ),
+        launch_arguments={"mode": mode}.items(),
+    )
+
+    nodes = {
         "ueuos_driver": Node(
             package="kalman_master",
             executable="ueuos_driver",
@@ -78,10 +45,6 @@ def launch_setup(context):
             package="kalman_master",
             executable="camera_2dof_driver",
         ),
-        "link_pc_to_gs": start_ros_link(side="rover", rover_endpoint="pc"),
-        "link_arm_to_gs": start_ros_link(side="rover", rover_endpoint="arm"),
-        "link_gs_to_pc": start_ros_link(side="station", rover_endpoint="pc"),
-        "link_gs_to_arm": start_ros_link(side="station", rover_endpoint="arm"),
         "arm_twist_driver": Node(
             package="kalman_master",
             executable="arm_twist_driver",
@@ -125,8 +88,6 @@ def launch_setup(context):
 
     mode_configs = {
         "pc": [
-            "master_com",
-            "link_pc_to_gs",
             "wheel_driver",
             "ueuos_driver",
             "autonomy_spammer",
@@ -134,9 +95,6 @@ def launch_setup(context):
             "sand_storage_driver"
         ],
         "gs": [
-            "master_com",
-            "link_gs_to_pc",
-            "link_gs_to_arm",
             "wheel_driver",
             "ueuos_driver",
             "feed_driver",
@@ -151,13 +109,10 @@ def launch_setup(context):
             "camera_2dof_driver",
             "laser_driver",
         ],
-        "arm": [
-            "master_com",
-            "link_arm_to_gs",
-        ],
+        "arm": [],
     }
 
-    return [nodes[node_name] for node_name in mode_configs[mode]]
+    return [tunnel] + [nodes[node_name] for node_name in mode_configs[mode]]
 
 
 def generate_launch_description():
