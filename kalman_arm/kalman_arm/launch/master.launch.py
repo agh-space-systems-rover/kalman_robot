@@ -1,6 +1,7 @@
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.conditions import UnlessCondition
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import ComposableNodeContainer, Node
 from launch_ros.descriptions import ComposableNode
@@ -40,10 +41,12 @@ def generate_launch_description():
         # arguments = ['--ros-args', '--log-level', 'DEBUG', '--log-level','rcl:=INFO'],
     )
 
-    master_uart_node = Node(
-        package="kalman_tunnel",
-        executable="master_com",
-        parameters=[{"baud_rate": 2000000, "port": "/dev/ttyAMA1"}],
+    # Serial transport (master_com) and radio link (ros_link) to the GS.
+    tunnel = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            str(get_package_share_path("kalman_tunnel") / "launch/tunnel.launch.py")
+        ),
+        launch_arguments={"mode": "arm", "port": "/dev/ttyAMA1"}.items(),
         condition=UnlessCondition(use_sim),
     )
 
@@ -53,26 +56,10 @@ def generate_launch_description():
         parameters=[{"rate": 5.0}],
     )
 
-    ros_link_node = Node(
-        package="kalman_tunnel",
-        executable="ros_link",
-        parameters=[
-            {
-                "config_path": str(
-                    get_package_share_path("kalman_tunnel") / "config/arm_ros_link.yaml"
-                ),
-                "side": "rover",
-                "rover_endpoint": "arm",
-            },
-        ],
-        condition=UnlessCondition(use_sim),
-    )
-
     return LaunchDescription(
         [
             argument_use_sim,
-            master_uart_node,
-            ros_link_node,
+            tunnel,
             arm_state_publisher_node,
             container,
         ]
