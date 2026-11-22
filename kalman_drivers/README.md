@@ -41,3 +41,7 @@ Ground-station node (executable `tunnel_client`) that asks the rover over the ra
 - `/tunnel/reboot_pc`
 - `/tunnel/arch_launch_stack`
 - `/tunnel/arch_send_goal`
+
+#### Dropped drivers
+
+The science, drill and camera_2dof features are no longer used, so `drivers.launch.py` does not start `drill_driver`, `storage_driver`, `sand_storage_driver`, `ph_driver` or `camera_2dof_driver` in any mode. They and their tools (`ph_calib`, `ph_mock`, `storage_mock`) are still installed and can be started by hand with `ros2 run kalman_drivers <executable>`.

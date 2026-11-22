@@ -18,6 +18,10 @@ def launch_setup(context):
             f'\n\nInvalid Master mode: "{mode}". Please set mode:=... Choose one of: pc, gs, arm'
         )
 
+    # Only the drivers kept on the ground station and the rover. The science,
+    # drill and camera_2dof drivers (drill_driver, storage_driver,
+    # sand_storage_driver, ph_driver, camera_2dof_driver) are no longer
+    # started in any mode; they are still installed for manual `ros2 run`.
     nodes = {
         "ueuos_driver": Node(
             package="kalman_drivers",
@@ -35,10 +39,6 @@ def launch_setup(context):
             package="kalman_drivers",
             executable="autonomy_switch_spam",
         ),
-        "camera_2dof_driver": Node(
-            package="kalman_drivers",
-            executable="camera_2dof_driver",
-        ),
         "arm_twist_driver": Node(
             package="kalman_drivers",
             executable="arm_twist_driver",
@@ -54,10 +54,6 @@ def launch_setup(context):
             package="kalman_drivers",
             executable="laser_driver",
         ),
-        "drill_driver": Node(
-            package="kalman_drivers",
-            executable="drill_driver",
-        ),
         "estop_driver": Node(
             package="kalman_drivers",
             executable="estop_driver",
@@ -65,18 +61,6 @@ def launch_setup(context):
         "rfid_driver": Node(
             package="kalman_drivers",
             executable="rfid_driver",
-        ),
-        "storage_driver": Node(
-            package="kalman_drivers",
-            executable="storage_driver",
-        ),
-        "sand_storage_driver": Node(
-            package="kalman_drivers",
-            executable="sand_storage_driver",
-        ),
-        "ph_driver": Node(
-            package="kalman_drivers",
-            executable="ph_driver",
         ),
     }
 
@@ -86,21 +70,15 @@ def launch_setup(context):
             "ueuos_driver",
             "autonomy_spammer",
             "laser_driver",
-            "sand_storage_driver"
         ],
         "gs": [
             "wheel_driver",
             "ueuos_driver",
             "feed_driver",
             "arm_twist_driver",
-            "drill_driver",
             "estop_driver",
             "rfid_driver",
             "tunnel",
-            "storage_driver",
-            # "sand_storage_driver",
-            "ph_driver",
-            "camera_2dof_driver",
             "laser_driver",
         ],
         "arm": [],
