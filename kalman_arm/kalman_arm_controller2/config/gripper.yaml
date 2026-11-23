@@ -1,0 +1,11 @@
+gripper_node:
+  ros__parameters:
+    can_interface: "can0"
+    joint_name: "arm_joint_jaw"
+    upper_min_deg: 90
+    upper_max_deg: 180
+    lower_min_deg: 90
+    lower_max_deg: 180
+    min_urdf_rad: -0.10
+    max_urdf_rad: 1.57
+    block_cmd_during_calib: true
