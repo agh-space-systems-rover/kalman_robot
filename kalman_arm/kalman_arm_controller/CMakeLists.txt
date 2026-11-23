@@ -84,7 +84,7 @@ endforeach()
 
 # Component Nodes (Shared libraries) ############################
 
-# servo_publisher 
+# servo_publisher
 set(SERVO_PUBLISHER servo_publisher)
 
 if(DEFINED ENV{ROS_DISTRO} AND "$ENV{ROS_DISTRO}" STREQUAL "humble")
@@ -96,30 +96,16 @@ target_compile_features(${SERVO_PUBLISHER} PUBLIC cxx_std_20)
 ament_target_dependencies(${SERVO_PUBLISHER} ${THIS_PACKAGE_INCLUDE_DEPENDS})
 if(DEFINED HUMBLE_COMPAT_INCLUDE_DIR)
   target_include_directories(${SERVO_PUBLISHER} BEFORE PRIVATE ${HUMBLE_COMPAT_INCLUDE_DIR})
-  target_sources(${SERVO_PUBLISHER} PRIVATE 
+  target_sources(${SERVO_PUBLISHER} PRIVATE
     ${HUMBLE_COMPAT_INCLUDE_DIR}/moveit_msgs/srv/servo_command_type.cpp)
 endif()
 rclcpp_components_register_nodes(${SERVO_PUBLISHER} "arm_master::MasterToServo")
-
-set(EXTRA_CAN extra_can)
-add_library(${EXTRA_CAN} SHARED 
-    scripts/extra_can_node.cpp
-    hardware/can_src/can_driver.cpp
-    hardware/can_src/arm_config.cpp
-    hardware/can_src/can_driver.cpp
-    hardware/can_src/can_handlers.cpp
-    hardware/can_src/can_vars.cpp
-)
-target_compile_features(${EXTRA_CAN} PUBLIC cxx_std_20)
-ament_target_dependencies(${EXTRA_CAN} ${THIS_PACKAGE_INCLUDE_DEPENDS})
-rclcpp_components_register_nodes(${EXTRA_CAN} "kalman_arm::ExtraCanNode")
-
 
 add_executable(servo_keyboard_input scripts/servo_keyboard_input.cpp)
 target_include_directories(servo_keyboard_input PUBLIC include)
 if(DEFINED HUMBLE_COMPAT_INCLUDE_DIR)
   target_include_directories(servo_keyboard_input BEFORE PRIVATE ${HUMBLE_COMPAT_INCLUDE_DIR})
-  target_sources(servo_keyboard_input PRIVATE 
+  target_sources(servo_keyboard_input PRIVATE
     ${HUMBLE_COMPAT_INCLUDE_DIR}/moveit_msgs/srv/servo_command_type.cpp)
 endif()
 ament_target_dependencies(servo_keyboard_input ${THIS_PACKAGE_INCLUDE_DEPENDS})
@@ -138,7 +124,6 @@ rclcpp_components_register_nodes(${CAN_BRIDGE} "configurable_can_bridge::CANBrid
 include_directories(hardware/include)
 include_directories(include)
 
-
 add_library(
   kalman_arm_controller
   SHARED
@@ -151,7 +136,6 @@ add_library(
 )
 
 target_compile_features(kalman_arm_controller PUBLIC cxx_std_20)
-target_compile_options(kalman_arm_controller PRIVATE -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_CXX_COMPILER=clang++)
 target_include_directories(kalman_arm_controller PUBLIC
 $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/hardware/include>
 $<INSTALL_INTERFACE:include/kalman_arm_controller>
@@ -160,7 +144,6 @@ ament_target_dependencies(
   kalman_arm_controller PUBLIC
   ${HW_IF_INCLUDE_DEPENDS}
 )
-
 
 # Causes the visibility macros to use dllexport rather than dllimport,
 # which is appropriate when building the dll but not consuming it.
@@ -184,14 +167,12 @@ install(TARGETS servo_keyboard_input
 
 install(TARGETS kalman_arm_controller
     ${SERVO_PUBLISHER}
-    ${EXTRA_CAN}
     ${CAN_BRIDGE}
   EXPORT export_kalman_arm_controller
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
 )
-
 
 ## EXPORTS
 ament_export_targets(export_kalman_arm_controller HAS_LIBRARY_TARGET)

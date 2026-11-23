@@ -105,21 +105,6 @@
         <state_interface name="velocity"/>
       </joint>
 
-      <joint name="arm_joint_jaw">
-        <command_interface name="position">
-          <param name="min">{-2*pi}</param>
-          <param name="max">{2*pi}</param>
-        </command_interface>
-        <command_interface name="velocity">
-          <param name="min">-3.2</param>
-          <param name="max">3.2</param>
-        </command_interface>
-        <state_interface name="position">
-          <param name="initial_value">0.0</param>
-        </state_interface>
-        <state_interface name="velocity"/>
-      </joint>
-
       <!-- <sensor name="tcp_fts_sensor">
         <state_interface name="force.x"/>
         <state_interface name="force.y"/>

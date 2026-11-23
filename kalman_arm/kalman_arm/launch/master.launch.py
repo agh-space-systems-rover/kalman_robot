@@ -26,15 +26,7 @@ def generate_launch_description():
                 package="kalman_arm_controller",
                 plugin="arm_master::MasterToServo",
                 name="master_to_servo_node",
-            ),
-            ComposableNode(
-                package="kalman_arm_controller",
-                plugin="kalman_arm::ExtraCanNode",
-                name="extra_can_node",
-                parameters=[
-                    {"max_gripper": 2600, "min_gripper": 1370, "start_pose": 2450}
-                ],
-            ),
+            )
         ],
         output="screen",
         # arguments = ['--ros-args', '--log-level', 'DEBUG', '--log-level','rcl:=INFO'],
