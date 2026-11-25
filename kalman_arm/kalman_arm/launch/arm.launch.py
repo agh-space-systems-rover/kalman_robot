@@ -16,6 +16,15 @@ def generate_launch_description():
         )
     )
 
+    new_gripper = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            [
+                os.path.join(get_package_share_directory("kalman_arm_controller2"), "launch"),
+                "/gripper.launch.py",
+            ]
+        )
+    )
+
     master = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             [
