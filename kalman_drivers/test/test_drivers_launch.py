@@ -3,7 +3,8 @@
 No master_com runs here: the test node stands in for it on the master_com
 topics. Checks that each mode starts exactly its keep-list of drivers (no
 dropped science/drill/camera_2dof drivers and no transport), and that the
-tunnel node serves /tunnel/* and sends its frames.
+tunnel node serves /tunnel/* and sends its frames. Also pins the master_com
+topic names the drivers use, written out by hand.
 """
 
 import time
@@ -45,6 +46,25 @@ KEEP_NODES = {
         "laser_driver_node",
     },
     "arm": set(),
+}
+
+# master_com topics each driver must use: node -> [(topic, "pub" or "sub")].
+MASTER_TOPICS = {
+    "wheel_driver": [
+        ("/master_com/ros_to_master", "pub"),
+        ("/master_com/master_to_ros/x4f", "sub"),  # MOTOR_GET_WHEELS
+        ("/master_com/master_to_ros/x42", "sub"),  # MOTOR_GET_TEMPERATURE
+    ],
+    "laser_driver_node": [
+        ("/master_com/master_to_ros/x5a", "sub"),  # LASER_DIST
+        ("/arc/laser_distance", "pub"),
+    ],
+    "rfid_driver": [("/master_com/master_to_ros/x85", "sub")],  # ESP_TO_GS
+    "arm_twist_driver": [("/master_com/ros_to_master", "pub")],
+    "ueuos_driver": [("/master_com/ros_to_master", "pub")],
+    "feed_driver": [("/master_com/ros_to_master", "pub")],
+    "tunnel": [("/master_com/ros_to_master", "pub")],
+    "autonomy_switch_spam": [("/master_com/ros_to_master", "pub")],
 }
 
 TUNNEL_SERVICES = [
@@ -113,6 +133,26 @@ class TestDriversLaunch(unittest.TestCase):
         # Give any extra node a chance to show up before comparing.
         self.spin_until(lambda: False, timeout=SETTLE)
         self.assertEqual(self.launched_nodes(), expected)
+
+    def test_master_topics(self, mode):
+        def endpoints(topic, kind):
+            infos = (
+                self.node.get_publishers_info_by_topic(topic)
+                if kind == "pub"
+                else self.node.get_subscriptions_info_by_topic(topic)
+            )
+            return {info.node_name for info in infos}
+
+        expected = [
+            (topic, node, kind)
+            for node in KEEP_NODES[mode]
+            for topic, kind in MASTER_TOPICS[node]
+        ]
+        self.spin_until(
+            lambda: all(node in endpoints(topic, kind) for topic, node, kind in expected)
+        )
+        for topic, node, kind in expected:
+            self.assertIn(node, endpoints(topic, kind), f"{node} {kind} {topic}")
 
     def test_tunnel_services(self, mode):
         if mode != "gs":
