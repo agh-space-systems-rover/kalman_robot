@@ -78,7 +78,9 @@ class WheelDriver(Node):
             np.clip(np.rad2deg(msg.back_left.angle), -90, 90),
             -np.clip(np.rad2deg(msg.front_left.angle), -90, 90),
         ]
-        data = [int(x) for x in data]
+        # The Master takes int8 values. Clamp them, so that a too high or NaN
+        # value cannot make pack() raise and kill the driver.
+        data = [int(np.clip(np.nan_to_num(x), -127, 127)) for x in data]
         data = list(pack("b" * len(data), *data))
         self.master_pub.publish(
             MasterMessage(cmd=MasterMessage.MOTOR_SET_WHEELS, data=data)
