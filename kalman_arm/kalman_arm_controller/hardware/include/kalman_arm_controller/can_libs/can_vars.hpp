@@ -12,7 +12,7 @@ namespace CAN_vars {
  * This includes status, setpoint in CAN and readable units. Joint numbered from
  * 0 to 5.
  */
-extern jointStatus_t joints[6];
+extern ArmState joints;
 
 /**
  * @brief armConfig_t representing the configuration of the arm.
@@ -20,20 +20,22 @@ extern jointStatus_t joints[6];
  *
  * NOTE! Joint numbering starts from 1, so joint[0] is not used.
  */
-extern armConfig_t arm_config;
+extern const armConfig_t arm_config;
 
-extern "C" {
-extern uint16_t gripper_position;
-};
-
-extern bool received_joint_status[6];
-
+// Feedback entry points acquire joints.m_read; joint indices are zero-based.
 void update_joint_status();
 void update_joint_setpoint();
 
 void update_single_joint_status(uint8_t joint_id);
 void calculate_status(uint8_t joint_id);
 void calculate_status_diff(uint8_t joint_id, uint8_t diff_id);
+
+// Caller must hold joints.m_read throughout these conversion operations.
+// joint_id is zero-based; diff_id is one-based. Indices must be valid.
+void update_joint_status_locked();
+void update_single_joint_status_locked(uint8_t joint_id);
+void calculate_status_locked(uint8_t joint_id);
+void calculate_status_diff_locked(uint8_t joint_id, uint8_t diff_id);
 void update_single_joint_setpoint(uint8_t joint_id);
 void calculate_diff_setpoints();
 void calculate_single_diff_setpoint(uint8_t joint_id, uint8_t diff_id);

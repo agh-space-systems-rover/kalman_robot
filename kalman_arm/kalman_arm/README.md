@@ -2,6 +2,30 @@
 
 configuration and launch files for the arm
 
+## MoveIt and RViz with the CAN simulator
+
+Prepare an active virtual CAN interface named `can0` separately (see the
+`kalman_arm_controller` README). The launch file does not create or configure
+network interfaces. Do not use a physical arm CAN bus for this simulation.
+
+Inside the `kalman_ws` distrobox, source ROS and the workspace, then run:
+
+```bash
+source /opt/ros/humble/setup.bash
+source install/setup.bash
+ros2 launch kalman_arm arm_can_sim.launch.py
+```
+
+This starts the CAN simulator, the real CAN-backed ros2_control hardware plugin,
+robot-state publisher, joint-state broadcaster, trajectory and velocity
+controllers, MoveIt move_group, and RViz with the MotionPlanning plugin. It waits
+for a control-mode subscriber and publishes position mode before starting MoveIt.
+Master/UART communications and Servo are intentionally not launched.
+
+Use `rviz:=false` for headless operation. The CAN interface is `can0`, matching
+the current hardware driver. Stop with Ctrl+C; the virtual interface is left
+untouched.
+
 ## Description
 
 ```

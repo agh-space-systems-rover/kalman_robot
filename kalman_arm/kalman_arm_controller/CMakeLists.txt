@@ -14,14 +14,13 @@ if(NOT TARGET tl::expected)
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  add_compile_options(-Wall -Wextra -Wpedantic)
+  # add_compile_options(-Wall -Wextra -Wpedantic -Werror -Wold-style-cast -Wconversion -Wsign-conversion -Wshadow -Wcast-qual)
+  # add_compile_options(-Wall -Wextra -Wpedantic -Wold-style-cast -Wconversion -Wsign-conversion -Wshadow -Wcast-qual -fsanitize=thread)
+  add_compile_options(-Wall -Wextra -Wpedantic -Wold-style-cast -Wconversion -Wsign-conversion -Wshadow -Wcast-qual)
+  # add_link_options(-fsanitize=thread)
 endif()
 
-# Check ROS distro and set up humble compatibility
-if(DEFINED ENV{ROS_DISTRO} AND "$ENV{ROS_DISTRO}" STREQUAL "humble")
-  message(STATUS "Detected ROS Humble - enabling compatibility headers")
-  set(HUMBLE_COMPAT_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/humble_compat")
-endif()
+
 
 # find dependencies
 set(HW_IF_INCLUDE_DEPENDS
@@ -87,26 +86,18 @@ endforeach()
 # servo_publisher 
 set(SERVO_PUBLISHER servo_publisher)
 
-if(DEFINED ENV{ROS_DISTRO} AND "$ENV{ROS_DISTRO}" STREQUAL "humble")
-  message(STATUS "Detected ROS Humble - enabling compatibility headers")
-  set(HUMBLE_COMPAT_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/humble_compat")
-endif()
+
 add_library(${SERVO_PUBLISHER} SHARED src/servo_publisher.cpp)
 target_compile_features(${SERVO_PUBLISHER} PUBLIC cxx_std_20)
 ament_target_dependencies(${SERVO_PUBLISHER} ${THIS_PACKAGE_INCLUDE_DEPENDS})
-if(DEFINED HUMBLE_COMPAT_INCLUDE_DIR)
-  target_include_directories(${SERVO_PUBLISHER} BEFORE PRIVATE ${HUMBLE_COMPAT_INCLUDE_DIR})
-  target_sources(${SERVO_PUBLISHER} PRIVATE 
-    ${HUMBLE_COMPAT_INCLUDE_DIR}/moveit_msgs/srv/servo_command_type.cpp)
-endif()
 rclcpp_components_register_nodes(${SERVO_PUBLISHER} "arm_master::MasterToServo")
 
 set(EXTRA_CAN extra_can)
-add_library(${EXTRA_CAN} SHARED 
+add_library(${EXTRA_CAN} SHARED
     scripts/extra_can_node.cpp
     hardware/can_src/can_driver.cpp
     hardware/can_src/arm_config.cpp
-    hardware/can_src/can_driver.cpp
+    hardware/can_src/new_can_driver.cpp
     hardware/can_src/can_handlers.cpp
     hardware/can_src/can_vars.cpp
 )
@@ -114,14 +105,12 @@ target_compile_features(${EXTRA_CAN} PUBLIC cxx_std_20)
 ament_target_dependencies(${EXTRA_CAN} ${THIS_PACKAGE_INCLUDE_DEPENDS})
 rclcpp_components_register_nodes(${EXTRA_CAN} "kalman_arm::ExtraCanNode")
 
+add_executable(arm_can_simulator hardware/simulator/arm_can_simulator.cpp)
+target_compile_features(arm_can_simulator PUBLIC cxx_std_20)
+target_include_directories(arm_can_simulator PRIVATE hardware/include)
 
 add_executable(servo_keyboard_input scripts/servo_keyboard_input.cpp)
 target_include_directories(servo_keyboard_input PUBLIC include)
-if(DEFINED HUMBLE_COMPAT_INCLUDE_DIR)
-  target_include_directories(servo_keyboard_input BEFORE PRIVATE ${HUMBLE_COMPAT_INCLUDE_DIR})
-  target_sources(servo_keyboard_input PRIVATE 
-    ${HUMBLE_COMPAT_INCLUDE_DIR}/moveit_msgs/srv/servo_command_type.cpp)
-endif()
 ament_target_dependencies(servo_keyboard_input ${THIS_PACKAGE_INCLUDE_DEPENDS})
 
 set(CAN_BRIDGE can_bridge)
@@ -148,6 +137,7 @@ add_library(
   hardware/can_src/can_driver.cpp
   hardware/can_src/can_handlers.cpp
   hardware/can_src/can_vars.cpp
+  hardware/can_src/new_can_driver.cpp
 )
 
 target_compile_features(kalman_arm_controller PUBLIC cxx_std_20)
@@ -175,7 +165,7 @@ install(
   DESTINATION include/kalman_arm_controller
 )
 
-install(TARGETS servo_keyboard_input
+install(TARGETS servo_keyboard_input arm_can_simulator
     DESTINATION lib/${PROJECT_NAME}
 )
 
@@ -196,4 +186,13 @@ install(TARGETS kalman_arm_controller
 ## EXPORTS
 ament_export_targets(export_kalman_arm_controller HAS_LIBRARY_TARGET)
 ament_export_dependencies(${HW_IF_INCLUDE_DEPENDS} ${THIS_PACKAGE_INCLUDE_DEPENDS})
+
+if(BUILD_TESTING)
+  find_package(ament_cmake_gtest REQUIRED)
+  ament_add_gtest(test_can_feedback test/test_can_feedback.cpp TIMEOUT 20)
+  target_link_libraries(test_can_feedback kalman_arm_controller)
+  ament_add_gtest(test_arm_sim test/test_arm_sim.cpp TIMEOUT 20)
+  target_link_libraries(test_arm_sim kalman_arm_controller)
+endif()
+
 ament_package()

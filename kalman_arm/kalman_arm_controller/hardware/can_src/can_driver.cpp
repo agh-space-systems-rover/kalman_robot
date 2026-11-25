@@ -5,31 +5,22 @@
 #include "kalman_arm_controller/can_libs/can_vars.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include <cerrno>
+#include <cstdint>
+#include <cstdio>
 #include <cstring>
+#include <linux/can.h>
 #include <mutex>
 #include <poll.h>
 
-#define BUFFER_SIZE 1024
-#define TIMEOUT_MS  1 // 5 seconds
-
-CAN_driver::DriverVars_t CAN_driver::arm_driver = {};
-
-/**
- * @brief Initialize the CAN driver.
- *
- * Initializes the CAN driver and binds the socket to the can0 interface
- *
- * @return int 0 on success, 1 on failure
- */
-extern "C" {
-int CAN_driver::init(DriverVars_t *driver_vars, const char *can_interface) {
-	printf("In CAN_driver::init\r\n");
+int CanDriver::init(const char *can_interface) {
+	printf("In init\r\n");
 
 	// Load default configuration
-	arm_config::load_default_config();
+	// arm_config::load_default_config();
 
 	// Get socket connection
-	if ((driver_vars->sock = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0) {
+	sock = socket(PF_CAN, SOCK_RAW, CAN_RAW);
+	if (sock < 0) {
 		perror("Socket");
 		return 1;
 	}
@@ -37,7 +28,7 @@ int CAN_driver::init(DriverVars_t *driver_vars, const char *can_interface) {
 	// Enable FD frames
 	int enable_fd_frames = 1;
 	setsockopt(
-	    driver_vars->sock,
+	    sock,
 	    SOL_CAN_RAW,
 	    CAN_RAW_FD_FRAMES,
 	    &enable_fd_frames,
@@ -45,17 +36,17 @@ int CAN_driver::init(DriverVars_t *driver_vars, const char *can_interface) {
 	);
 
 	// Set up the can interface
-	strcpy(driver_vars->ifr.ifr_name, can_interface);
-	ioctl(driver_vars->sock, SIOCGIFINDEX, &driver_vars->ifr);
+	strcpy(ifr.ifr_name, can_interface);
+	ioctl(sock, SIOCGIFINDEX, &ifr);
 
-	driver_vars->addr.can_family  = AF_CAN;
-	driver_vars->addr.can_ifindex = driver_vars->ifr.ifr_ifindex;
+	addr.can_family  = AF_CAN;
+	addr.can_ifindex = ifr.ifr_ifindex;
 
 	// Bind the socket
 	if (bind(
-	        driver_vars->sock,
-	        (struct sockaddr *)&driver_vars->addr,
-	        sizeof(driver_vars->addr)
+	        sock,
+	        reinterpret_cast<struct sockaddr *>(&addr),
+	        sizeof(addr)
 	    ) < 0) {
 		perror("Bind");
 		return 1;
@@ -66,71 +57,70 @@ int CAN_driver::init(DriverVars_t *driver_vars, const char *can_interface) {
 	tv.tv_sec  = 0;
 	tv.tv_usec = 1;
 	setsockopt(
-	    driver_vars->sock, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof tv
+	    sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof tv
 	);
 
 	printf("Finished CAN init! \r\n");
 	return 0;
 }
-}
-int CAN_driver::startArmRead() {
-	arm_driver.reader = std::thread(CAN_driver::armRead);
+
+int CanDriver::startArmRead() {
+	should_run.store(true);
+	reader = std::thread(&CanDriver::armRead, this);
 	return 0;
 }
 
-int CAN_driver::armRead() {
-	char buffer[BUFFER_SIZE];
-	while (arm_driver.should_run) {
+int CanDriver::armRead() {
+	while (should_run) {
+		canfd_frame frame{};
 		ssize_t num_bytes =
-		    recv(arm_driver.sock, buffer, BUFFER_SIZE, MSG_DONTWAIT);
+		    recv(sock, &frame, sizeof(frame), MSG_DONTWAIT | MSG_TRUNC);
 
 		if (num_bytes < 0) {
 			if (errno == EAGAIN || errno == EWOULDBLOCK) {
 				// there was nothing to read (recv MSG_DONTWAIT flag docs)
 				std::this_thread::sleep_for(std::chrono::milliseconds{1});
 				continue;
-			} else {
-				RCLCPP_FATAL(
-				    rclcpp::get_logger("my_logger"),
-				    "CAN_driver::armRead: recv failed due to: %s\r\n",
-				    std::strerror(errno)
-				);
-				exit(EXIT_FAILURE);
 			}
+			RCLCPP_FATAL(
+			    rclcpp::get_logger("my_logger"),
+			    "armRead: recv failed due to: %s\r\n",
+			    std::strerror(errno)
+			);
+			exit(EXIT_FAILURE);
 		}
 
-		buffer[num_bytes] = '\0'; // Null-terminate the received data
-		struct canfd_frame frame;
-
-		frame = *((struct canfd_frame *)buffer);
-
-		// We don't need to lock the recv invocation
-		std::lock_guard<std::mutex> lock(arm_driver.m_read); // Yay for RAII
+		if (num_bytes == CAN_MTU) {
+			if (frame.len > CAN_MAX_DLEN) {
+				continue;
+			}
+			// This byte is padding in Classical CAN, not CAN FD flags.
+			frame.flags = 0;
+		} else if (num_bytes != CANFD_MTU) {
+			continue;
+		}
 		handle_frame(frame, &CAN_handlers::HANDLES);
-
-		CAN_vars::update_joint_status();
 	}
 	return 0;
 }
 
-/**
- * @brief Handle a received frame.
- *
- * Decodes the frame and calls the appropriate handler function.
- *
- * @param frame The frame to handle
- * @return int 0 on success, 1 on failure
- */
-int CAN_driver::handle_frame(
+int CanDriver::handle_frame(
     canfd_frame                                         frame,
     const std::unordered_map<uint8_t, canCmdHandler_t> *handles
 ) {
-	// Decode the frame
-	uint8_t joint_id = frame.can_id >> 7;
-	uint8_t command  = frame.can_id - (joint_id << 7);
+	if (handles == nullptr || (frame.can_id & ~CAN_SFF_MASK) != 0 ||
+	    frame.len > CANFD_MAX_DLEN ||
+	    (frame.flags & ~(CANFD_BRS | CANFD_ESI | CANFD_FDF)) != 0) {
+		return 1;
+	}
+	const uint8_t command = static_cast<uint8_t>(frame.can_id & 0x7fU);
 	try {
-		if (handles->find(command) != handles->end()) {
-			(*handles).at(command).func(frame.can_id, frame.data, frame.len);
+		const auto handler = handles->find(command);
+		if (handler != handles->end()) {
+			if (frame.len != handler->second.len || handler->second.func == nullptr) {
+				return 1;
+			}
+			return handler->second.func(frame.can_id, frame.data, frame.len);
 		}
 	} catch (const std::exception &e) {
 		RCLCPP_INFO(
@@ -143,15 +133,13 @@ int CAN_driver::handle_frame(
 	return 0;
 }
 
-int CAN_driver::arm_write(ControlType controlType) {
-	std::lock_guard<std::mutex> lock(CAN_driver::arm_driver.m_write);
-
+int CanDriver::arm_write(ControlType controlType) {
 	CAN_vars::update_joint_setpoint();
 	write_control_type(controlType);
 	std::this_thread::sleep_for(std::chrono::microseconds(1000));
 
 	// Write data from global joints
-	for (int i = 0; i < 6; i++) {
+	for (uint8_t i = 0; i < 6; i++) {
 		switch (controlType) {
 		case ControlType::position:
 			write_joint_setpoint(i);
@@ -167,7 +155,7 @@ int CAN_driver::arm_write(ControlType controlType) {
 	return 0;
 }
 
-int CAN_driver::write_control_type(ControlType controlType) {
+int CanDriver::write_control_type(ControlType controlType) {
 	jointCmdControlType_t data;
 	switch (controlType) {
 	case ControlType::position:
@@ -177,89 +165,85 @@ int CAN_driver::write_control_type(ControlType controlType) {
 	case ControlType::posvel:
 		data.controlMode = controlMode_t::CONTROL_MODE_LEGACY;
 		break;
+
+	default:
+		return 0;
 	}
 
 	uint16_t can_id = CMD_CONTROL_TYPE;
-	return write_data(
-	    &arm_driver, can_id, (uint8_t *)&data, LEN_CMD_CONTROL_TYPE
-	);
+	return write_data(can_id, data);
 }
 
-int CAN_driver::write_joint_setpoint(uint8_t joint_id) {
+int CanDriver::write_joint_setpoint(uint8_t joint_id) {
 	// Write data from a single joint
 	joint_id += 1;
 
-	uint16_t can_id = (joint_id << 7) + CMD_SETPOINT;
 	if (1 <= joint_id && joint_id <= 6) {
-		return write_data(
-		    &arm_driver,
-		    can_id,
-		    (uint8_t *)&CAN_vars::joints[joint_id - 1].setpoint,
-		    sizeof(jointCmdSetpoint_t)
-		);
+		const auto can_id = static_cast<uint16_t>((joint_id << 7) + CMD_SETPOINT);
+		std::lock_guard<std::mutex> lock(CAN_vars::joints.m_write);
+		return write_data(can_id, CAN_vars::joints.jointCmd[joint_id - 1].setpoint);
 	}
 	return 1;
 }
 
-int CAN_driver::write_joint_posvel(uint8_t joint_id) {
+int CanDriver::write_joint_posvel(uint8_t joint_id) {
 	joint_id += 1;
 
-	uint16_t can_id = (joint_id << 7) + CMD_VELOCITY;
 	if (1 <= joint_id && joint_id <= 6) {
-		return write_data(
-		    &arm_driver,
-		    can_id,
-		    (uint8_t *)&CAN_vars::joints[joint_id - 1].velSetpoint,
-		    sizeof(jointCmdVelocity_t)
-		);
+		const auto can_id = static_cast<uint16_t>((joint_id << 7) + CMD_VELOCITY);
+		std::lock_guard<std::mutex> lock(CAN_vars::joints.m_write);
+		return write_data(can_id, CAN_vars::joints.jointCmd[joint_id - 1].velSetpoint);
 	}
 	return 1;
 }
 
-extern "C" {
-int CAN_driver::write_gripper_position(
-    DriverVars_t *driver_vars, uint16_t position
-) {
+int CanDriver::write_gripper_position(uint16_t position) {
 	cmdSetGripper_t data;
 	data.gripperPosition = position;
 	uint16_t can_id      = CMD_SET_GRIPPER;
-	return write_data(
-	    driver_vars, can_id, (uint8_t *)&data, LEN_CMD_SET_GRIPPER
-	);
+	return write_data(can_id, data);
 }
 
-int CAN_driver::write_fastclick(DriverVars_t *driver_vars, uint8_t position) {
+int CanDriver::write_fastclick(uint8_t position) {
 	cmdSetFastclick_t data;
 	data.position   = position;
 	uint16_t can_id = CMD_SET_FASTCLICK;
-	return write_data(
-	    driver_vars, can_id, (uint8_t *)&data, LEN_CMD_SET_FASTCLICK
-	);
-}
+	return write_data(can_id, data);
 }
 
-int CAN_driver::write_data(
-    DriverVars_t *driver_vars, uint16_t can_id, uint8_t *data, uint8_t len
-) {
+int CanDriver::write_data(uint16_t can_id, uint8_t *data, uint8_t len) const {
 	struct canfd_frame frame;
 	frame.can_id = can_id;
 	frame.len    = len;
 	frame.flags  = 0;
 	memcpy(frame.data, data, len);
-	if (::write(driver_vars->sock, &frame, sizeof(frame)) < 0) {
+	if (::write(sock, &frame, sizeof(frame)) < 0) {
 		perror("Write");
 		return 1;
 	}
 	return 0;
 }
 
-int CAN_driver::close(DriverVars_t *driver_vars) {
-	driver_vars->should_run = false;
-	if (driver_vars->reader.joinable()) {
-        driver_vars->reader.join();
-    }
-    if (driver_vars->sock >= 0) {
-        return (::close(driver_vars->sock) < 0);
-    }
-	return (::close(driver_vars->sock) < 0);
+int CanDriver::close() {
+	should_run.store(false);
+
+	if (reader.joinable()) {
+		reader.join();
+	}
+
+	if (sock < 0) {
+		return 0;
+	}
+
+	const int socket = sock;
+	sock             = -1;
+	if (::close(socket) < 0) {
+		perror("Close");
+		return 1;
+	}
+	return 0;
+}
+
+CanDriver::~CanDriver() {
+	close();
 }

@@ -2,7 +2,13 @@
 #include <control_msgs/msg/joint_jog.hpp>
 #include <geometry_msgs/msg/twist_stamped.hpp>
 #include <moveit_msgs/msg/planning_scene.hpp>
+// MoveIt Servo on Humble does not provide the command-type switching service.
+#if __has_include(<moveit_msgs/srv/servo_command_type.hpp>)
+#define KALMAN_ARM_HAS_SERVO_COMMAND_TYPE 1
 #include <moveit_msgs/srv/servo_command_type.hpp>
+#else
+#define KALMAN_ARM_HAS_SERVO_COMMAND_TYPE 0
+#endif
 #include <rclcpp/client.hpp>
 #include <rclcpp/experimental/buffers/intra_process_buffer.hpp>
 #include <rclcpp/node.hpp>
@@ -94,9 +100,11 @@ public:
 		    std::make_shared<std_srvs::srv::Trigger::Request>()
 		);
 
+#if KALMAN_ARM_HAS_SERVO_COMMAND_TYPE
 		switch_input_ = this->create_client<moveit_msgs::srv::ServoCommandType>(
 		    "/servo_node/switch_command_type"
 		);
+#endif
 	}
 
 	~MasterToServo() override {}
@@ -109,12 +117,14 @@ public:
 		pose_abort_pub_->publish(
 		    std::make_unique<example_interfaces::msg::Empty>()
 		);
+#if KALMAN_ARM_HAS_SERVO_COMMAND_TYPE
 		if (current_command_type_ !=
 		    moveit_msgs::srv::ServoCommandType::Request::JOINT_JOG) {
 			setCommandType(
 			    moveit_msgs::srv::ServoCommandType::Request::JOINT_JOG
 			);
 		}
+#endif
 		// Create the messages we might publish
 		auto joint_msg = std::make_unique<control_msgs::msg::JointJog>();
 
@@ -152,10 +162,12 @@ public:
 		    std::make_unique<example_interfaces::msg::Empty>()
 		);
 		// Create the messages we might publish
+#if KALMAN_ARM_HAS_SERVO_COMMAND_TYPE
 		if (current_command_type_ !=
 		    moveit_msgs::srv::ServoCommandType::Request::TWIST) {
 			setCommandType(moveit_msgs::srv::ServoCommandType::Request::TWIST);
 		}
+#endif
 
 		auto twist_msg = std::make_unique<geometry_msgs::msg::TwistStamped>();
 
@@ -171,6 +183,7 @@ public:
 		twist_pub_->publish(std::move(twist_msg));
 	}
 
+#if KALMAN_ARM_HAS_SERVO_COMMAND_TYPE
 	void setCommandType(
 	    moveit_msgs::srv::ServoCommandType::Request::_command_type_type
 	        command_type
@@ -186,6 +199,7 @@ public:
 			current_command_type_ = command_type;
 		}
 	}
+#endif
 
 	double convert_data_to_spacenav(int data) {
 		return (double(data) / 100) - 1.0;
@@ -206,10 +220,12 @@ private:
 	                                                  trajectory_abort_pub_;
 	rclcpp::Client<std_srvs::srv::Trigger>::SharedPtr servo_start_client_;
 
+#if KALMAN_ARM_HAS_SERVO_COMMAND_TYPE
 	rclcpp::Client<moveit_msgs::srv::ServoCommandType>::SharedPtr switch_input_;
 	std::shared_ptr<moveit_msgs::srv::ServoCommandType::Request>  request_;
 	moveit_msgs::srv::ServoCommandType::Request::_command_type_type
 	    current_command_type_ = -1;
+#endif
 }; // class MasterToServo
 
 } // namespace arm_master

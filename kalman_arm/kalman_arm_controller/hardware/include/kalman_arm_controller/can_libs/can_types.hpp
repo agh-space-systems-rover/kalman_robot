@@ -8,7 +8,9 @@
 #define KALMAN_ARM_CONTROLLER__HARDWARE__CAN_TYPES_HPP_
 
 #include "can_messages.hpp"
+#include <array>
 #include <cstdint>
+#include <mutex>
 
 /**
  * @brief Structure representing a CAN message handler.
@@ -19,38 +21,35 @@
  * @param len uint8_t Length of the data
  * @param func Function pointer to the handler
  */
-typedef struct {
+struct canCmdHandler_t{
 	uint16_t can_id;
 	uint8_t  len;
 	int (*func)(uint32_t identifier, uint8_t *data, uint8_t len);
-} canCmdHandler_t;
+};
 
 /**
  * @brief Structure representing the status of a joint motor laready calculated
  * to normal, humanreadable and supported by moveit format.
  */
-typedef struct {
+struct jointMoveStatus_t {
 	float velocity_deg_s;
 	float position_deg;
-} jointMoveStatus_t;
+};
 
-typedef struct {
+struct jointMoveSetpoint_t {
 	float torque_Nm;
 	float velocity_deg_s;
 	float position_deg;
 	float acceleration_deg_ss;
-} jointMoveSetpoint_t;
+};
 
 /**
- * @brief Structure representing the status of a joint motor and its setpoint.
- *
- * This structure combines the joint motor status and the joint setpoint.
+ * @brief Structure representing the status of a joint motor.
  *
  * @param status jointMotorStatus_t Received joint motor status
- * @param setpoint jointCmdSetpoint_t Joint setpoint to send
  */
-typedef struct __attribute__((__packed__)) {
-	/**
+struct JointFeedback {
+    /**
 	 * @brief Structure representing the status of a joint motor received from
 	 * CAN.
 	 */
@@ -63,19 +62,24 @@ typedef struct __attribute__((__packed__)) {
 	jointMotorFastStatus_t fastStatus;
 
 	/**
+	 * @brief Structure representing the received status of a joint motor
+	 * already calculated to normal, humanreadable and supported by moveit
+	 * format.
+	 */
+	jointMoveStatus_t moveStatus;
+
+	bool received{};
+
+};
+
+struct JointCommand {
+    /**
 	 * @brief Structure representing the setpoint of a joint motor to send via
 	 * CAN.
 	 */
 	jointCmdSetpoint_t setpoint;
 
 	jointCmdVelocity_t velSetpoint;
-
-	/**
-	 * @brief Structure representing the received status of a joint motor
-	 * already calculated to normal, humanreadable and supported by moveit
-	 * format.
-	 */
-	jointMoveStatus_t moveStatus;
 
 	/**
 	 * @brief Structure representing the setpoint of a joint motor already
@@ -88,7 +92,18 @@ typedef struct __attribute__((__packed__)) {
 	 * (later converted to `moveSetpoint`).
 	 */
 	jointMoveSetpoint_t moveSetpointDiff;
-} jointStatus_t;
+};
+
+struct ArmState {
+    std::array<JointFeedback, 6> jointFeedback;
+    std::array<JointCommand, 6> jointCmd;
+
+    // TODO: rename the following two variables:
+    std::mutex m_read;  // guards jointFeedback
+    std::mutex m_write;  // guards jointCmd
+
+    uint16_t gripper_position = 0;
+};
 
 /**
  * @brief Structure representing the configuration of a joint motor.
@@ -96,8 +111,7 @@ typedef struct __attribute__((__packed__)) {
  * This structure is used to store the configuration of a joint motors in
  * arm_config file.
  */
-typedef struct {
-
+struct jointConfig_t {
 	float maxVelocity_deg_s;
 	float maxAcceleration_deg_ss;
 	float maxTorque_Nm;
@@ -112,14 +126,13 @@ typedef struct {
 
 	float gearRatio;
 
-	uint8_t  invertDirection;
+	bool  invertDirection;
 	uint8_t  requirePositioning;
 	uint8_t  positioningOrder;
 	float    positioningVelocity;
 	uint16_t positioningTimeout;
 	uint8_t  differential;
-
-} jointConfig_t;
+};
 
 /**
  * @brief Structure representing the configuration of the arm.
@@ -127,15 +140,14 @@ typedef struct {
  * This structure is used to store the configuration of the arm (every joint) in
  * arm_config file.
  */
-typedef struct {
+struct armConfig_t {
 	uint8_t jointNumber;
 
 	jointConfig_t joint[16];
 	uint16_t      jointCommandRefreshTime_ms;
 	uint16_t      jointCommunicationTimeout;
 	uint16_t      canRoverStatusSendPeriod_ms;
-
-} armConfig_t;
+};
 
 enum ControlType { position, posvel };
 
