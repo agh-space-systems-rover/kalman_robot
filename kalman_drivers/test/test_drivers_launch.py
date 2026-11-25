@@ -2,11 +2,13 @@
 
 No master_com runs here: the test node stands in for it on the master_com
 topics. Checks that each mode starts exactly its keep-list of drivers (no
-dropped science/drill/camera_2dof drivers and no transport), and that the
-tunnel node serves /tunnel/* and sends its frames. Also pins the master_com
-topic names the drivers use, written out by hand.
+dropped science/drill/camera_2dof drivers and no transport), that the
+tunnel node serves /tunnel/* and sends its frames, and that the wheel and arm
+twist drivers clamp out-of-range commands instead of crashing or wrapping.
+Also pins the master_com topic names the drivers use, written out by hand.
 """
 
+import math
 import time
 import unittest
 
@@ -18,11 +20,12 @@ import pytest
 import rclpy
 from ament_index_python import get_package_share_path
 from launch.actions import IncludeLaunchDescription, TimerAction
+from geometry_msgs.msg import Twist
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from rclpy.node import Node
 from std_srvs.srv import Empty
 
-from kalman_interfaces.msg import MasterMessage
+from kalman_interfaces.msg import MasterMessage, WheelState, WheelStates
 
 TIMEOUT = 20.0
 # How long to keep watching for extra nodes once the expected ones are up.
@@ -76,6 +79,25 @@ TUNNEL_SERVICES = [
 # UNIQUE_TUNNEL_FORWARD_ID, ARCH_LAUNCH_STACK_ID.
 ARCH_LAUNCH_STACK_FRAME = MasterMessage(cmd=MasterMessage.GS_TO_PC, data=[73, 47])
 
+# Out-of-range wheel velocities (m/s) and the int8 bytes they must clamp to:
+# 5.0 -> 127, -5.0 -> -127 (0x81), NaN -> 0, 0.5 -> 50. All angles are 0.
+WHEEL_STATES = WheelStates(
+    front_right=WheelState(velocity=5.0),
+    back_right=WheelState(velocity=-5.0),
+    back_left=WheelState(velocity=math.nan),
+    front_left=WheelState(velocity=0.5),
+)
+WHEEL_FRAME_DATA = [127, 0x81, 0, 50, 0, 0, 0, 0]
+
+# Out-of-range space mouse input and the bytes it must clamp to:
+# -2.0 -> 0, 2.0 -> 200, NaN -> 100 (neutral), 0.5 -> 150, 0.0 -> 100.
+ARM_TWIST = Twist()
+ARM_TWIST.linear.x = -2.0
+ARM_TWIST.linear.y = 2.0
+ARM_TWIST.linear.z = math.nan
+ARM_TWIST.angular.x = 0.5
+ARM_TWIST_FRAME_DATA = [0, 200, 100, 150, 100, 100]
+
 
 @pytest.mark.launch_test
 @launch_testing.parametrize("mode", ["gs", "pc", "arm"])
@@ -117,6 +139,23 @@ class TestDriversLaunch(unittest.TestCase):
             if predicate():
                 return True
         return False
+
+    def frame_after_publishing(self, cmd, msg_type, topic, msg):
+        """Publish msg on topic until a frame with cmd reaches the Master."""
+        frames = []
+        sub = self.node.create_subscription(
+            MasterMessage,
+            "master_com/ros_to_master",
+            lambda frame: frames.append(frame) if frame.cmd == cmd else None,
+            10,
+        )
+        pub = self.node.create_publisher(msg_type, topic, 10)
+        try:
+            self.spin_until(lambda: frames, every=lambda: pub.publish(msg))
+            return list(frames[0].data) if frames else None
+        finally:
+            self.node.destroy_publisher(pub)
+            self.node.destroy_subscription(sub)
 
     def launched_nodes(self):
         # Hidden nodes (e.g. a ros2 CLI daemon) start with an underscore.
@@ -186,6 +225,24 @@ class TestDriversLaunch(unittest.TestCase):
         finally:
             self.node.destroy_client(client)
             self.node.destroy_subscription(sub)
+
+    def test_wheel_driver_clamps(self, mode):
+        if mode == "arm":
+            self.skipTest("wheel_driver does not run in arm mode")
+
+        data = self.frame_after_publishing(
+            MasterMessage.MOTOR_SET_WHEELS, WheelStates, "wheel_states", WHEEL_STATES
+        )
+        self.assertEqual(data, WHEEL_FRAME_DATA)
+
+    def test_arm_twist_driver_clamps(self, mode):
+        if mode != "gs":
+            self.skipTest("arm_twist_driver only runs in gs mode")
+
+        data = self.frame_after_publishing(
+            MasterMessage.ARM_SEND_SPACEMOUSE, Twist, "spacenav/twist", ARM_TWIST
+        )
+        self.assertEqual(data, ARM_TWIST_FRAME_DATA)
 
 
 @launch_testing.post_shutdown_test()
