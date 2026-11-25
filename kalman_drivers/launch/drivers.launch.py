@@ -54,10 +54,6 @@ def launch_setup(context):
             package="kalman_drivers",
             executable="laser_driver",
         ),
-        "estop_driver": Node(
-            package="kalman_drivers",
-            executable="estop_driver",
-        ),
         "rfid_driver": Node(
             package="kalman_drivers",
             executable="rfid_driver",
@@ -76,7 +72,6 @@ def launch_setup(context):
             "ueuos_driver",
             "feed_driver",
             "arm_twist_driver",
-            "estop_driver",
             "rfid_driver",
             "tunnel",
             "laser_driver",

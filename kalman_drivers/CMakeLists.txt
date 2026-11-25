@@ -45,7 +45,6 @@ install(PROGRAMS
   scripts/camera_2dof_driver
   scripts/drill_driver
   scripts/laser_driver
-  scripts/estop_driver
   scripts/feed_driver
   scripts/ph_calib
   scripts/ph_driver
