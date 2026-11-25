@@ -21,11 +21,11 @@ namespace configurable_can_bridge {
 class CANMapping {
 public:
 	CANMapping(
-	    uint32_t    can_id,
-	    std::string ros_topic,
-	    std::string ros_type,
-	    float       max_rate,
-	    std::string conversion_type
+	    uint32_t    can_id_value,
+	    std::string ros_topic_value,
+	    std::string ros_type_value,
+	    float       max_rate_value,
+	    std::string conversion_type_value
 	);
 
 	uint32_t    can_id;

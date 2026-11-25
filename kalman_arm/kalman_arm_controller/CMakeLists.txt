@@ -186,4 +186,13 @@ install(TARGETS kalman_arm_controller
 ## EXPORTS
 ament_export_targets(export_kalman_arm_controller HAS_LIBRARY_TARGET)
 ament_export_dependencies(${HW_IF_INCLUDE_DEPENDS} ${THIS_PACKAGE_INCLUDE_DEPENDS})
+
+if(BUILD_TESTING)
+  find_package(ament_cmake_gtest REQUIRED)
+  ament_add_gtest(test_can_feedback test/test_can_feedback.cpp TIMEOUT 20)
+  target_link_libraries(test_can_feedback kalman_arm_controller)
+  ament_add_gtest(test_arm_sim test/test_arm_sim.cpp TIMEOUT 20)
+  target_link_libraries(test_arm_sim kalman_arm_controller)
+endif()
+
 ament_package()

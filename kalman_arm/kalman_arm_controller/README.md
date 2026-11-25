@@ -34,10 +34,8 @@ sudo ip link set up can0
 Build and run simulator inside `kalman_ws` distrobox:
 
 ```sh
-distrobox enter kalman_ws -- bash -lc \
-  'source /opt/ros/humble/setup.bash && colcon build --packages-select kalman_arm_controller'
-distrobox enter kalman_ws -- bash -lc \
-  'source /opt/ros/humble/setup.bash && source install/setup.bash && ros2 run kalman_arm_controller arm_can_simulator can0'
+colcon build --packages-select kalman_arm_controller
+ros2 run kalman_arm_controller arm_can_simulator can0
 ```
 
 Start regular arm controller in another terminal. Simulator models position mode

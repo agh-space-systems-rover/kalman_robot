@@ -13,8 +13,28 @@ constexpr armConfig_t arm_config = arm_config::load_default_config();
  * message to human readable units.
  */
 void CAN_vars::update_joint_status() {
+	std::lock_guard<std::mutex> lock(joints.m_read);
+	update_joint_status_locked();
+}
+
+void CAN_vars::update_single_joint_status(uint8_t joint_id) {
+	std::lock_guard<std::mutex> lock(joints.m_read);
+	update_single_joint_status_locked(joint_id);
+}
+
+void CAN_vars::calculate_status(uint8_t joint_id) {
+	std::lock_guard<std::mutex> lock(joints.m_read);
+	calculate_status_locked(joint_id);
+}
+
+void CAN_vars::calculate_status_diff(uint8_t joint_id, uint8_t diff_id) {
+	std::lock_guard<std::mutex> lock(joints.m_read);
+	calculate_status_diff_locked(joint_id, diff_id);
+}
+
+void CAN_vars::update_joint_status_locked() {
 	for (uint8_t i = 0; i < arm_config.jointNumber; i++) {
-		update_single_joint_status(i);
+		update_single_joint_status_locked(i);
 	}
 }
 
@@ -36,12 +56,12 @@ void CAN_vars::update_joint_setpoint() {
  *
  * @param joint_id - from 0 to 5
  */
-void CAN_vars::update_single_joint_status(uint8_t joint_id) {
+void CAN_vars::update_single_joint_status_locked(uint8_t joint_id) {
 	const jointConfig_t &config = CAN_vars::arm_config.joint[joint_id + 1];
 	if (config.differential) {
-		calculate_status_diff(joint_id, config.differential);
+		calculate_status_diff_locked(joint_id, config.differential);
 	} else {
-		calculate_status(joint_id);
+		calculate_status_locked(joint_id);
 	}
 }
 
@@ -51,12 +71,11 @@ void CAN_vars::update_single_joint_status(uint8_t joint_id) {
  *
  * @param joint_id - from 0 to 5
  */
-void CAN_vars::calculate_status(uint8_t joint_id) {
+void CAN_vars::calculate_status_locked(uint8_t joint_id) {
 	const jointConfig_t &config = CAN_vars::arm_config.joint[joint_id + 1];
 	const jointMotorFastStatus_t &jointStatus =
 	    CAN_vars::joints.jointFeedback[joint_id].fastStatus;
 
-	std::lock_guard<std::mutex> lock(CAN_vars::joints.m_read);
 	float gearRatio = config.gearRatio;
 	float direction = config.invertDirection ? -1.0f : 1.0f;
 
@@ -72,7 +91,7 @@ void CAN_vars::calculate_status(uint8_t joint_id) {
  * @param joint_id - from 0 to 5
  * @param diff_id - differential joint id (from 1 to 6)
  */
-void CAN_vars::calculate_status_diff(uint8_t joint_id, uint8_t diff_id) {
+void CAN_vars::calculate_status_diff_locked(uint8_t joint_id, uint8_t diff_id) {
 	uint8_t                 difNbr[2];
 	const jointConfig_t    *difConfig[2];
 	jointMotorFastStatus_t *difStatus[2];
@@ -90,7 +109,6 @@ void CAN_vars::calculate_status_diff(uint8_t joint_id, uint8_t diff_id) {
 	difConfig[0] = &CAN_vars::arm_config.joint[difNbr[0]];
 	difConfig[1] = &CAN_vars::arm_config.joint[difNbr[1]];
 
-	std::lock_guard<std::mutex> lock(CAN_vars::joints.m_read);
 	difStatus[0] = &CAN_vars::joints.jointFeedback[difNbr[0] - 1].fastStatus;
 	difStatus[1] = &CAN_vars::joints.jointFeedback[difNbr[1] - 1].fastStatus;
 
@@ -127,9 +145,9 @@ void CAN_vars::update_single_joint_setpoint(uint8_t joint_id) {
 	std::lock_guard<std::mutex> lock(CAN_vars::joints.m_write);
 	float temp = (100.0f / gearRatio) * joints.jointCmd[joint_id].moveSetpoint.position_deg *
 	       direction;
-	if (temp >= INT32_MAX) {
+	if (static_cast<double>(temp) >= INT32_MAX) {
 		data.position_0deg01 = INT32_MAX;
-	} else if (temp <= INT32_MIN) {
+	} else if (static_cast<double>(temp) <= INT32_MIN) {
 		data.position_0deg01 = INT32_MIN;
 	} else {
 		data.position_0deg01 = static_cast<int32_t>(temp);

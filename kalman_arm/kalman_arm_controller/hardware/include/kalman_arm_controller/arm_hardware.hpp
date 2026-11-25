@@ -40,7 +40,7 @@ public:
 	    const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/
 	) override;
 
-	~ArmSystem() override = default;
+	~ArmSystem() override;
 
 protected:
 	/// The size of this vector is (standard_interfaces_.size() x nr_joints)
@@ -57,7 +57,6 @@ protected:
 
 	std::future<void> writer;
 
-	std::future<void> node_future_;
 
 	ControlType current_control_type = ControlType::posvel;
 

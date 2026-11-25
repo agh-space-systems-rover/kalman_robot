@@ -85,14 +85,14 @@ public:
 		tcgetattr(file_descriptor_, &cooked_);
 		struct termios raw;
 		memcpy(&raw, &cooked_, sizeof(struct termios));
-		raw.c_lflag &= ~(ICANON | ECHO);
+		raw.c_lflag &= ~(static_cast<tcflag_t>(ICANON) | static_cast<tcflag_t>(ECHO));
 		// Setting a new line, then end of file
 		raw.c_cc[VEOL] = 1;
 		raw.c_cc[VEOF] = 2;
 		tcsetattr(file_descriptor_, TCSANOW, &raw);
 	}
 	void readOne(char *c) {
-		int rc = read(file_descriptor_, c, 1);
+		const ssize_t rc = read(file_descriptor_, c, 1);
 		if (rc < 0) {
 			throw std::runtime_error("read failed");
 		}

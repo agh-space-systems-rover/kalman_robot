@@ -21,11 +21,24 @@ ArmSystem::on_init(const hardware_interface::HardwareInfo &info) {
 		return CallbackReturn::ERROR;
 	}
 
-	// robot has 6 joints and 2 interfaces
-	joint_position_.assign(6, 0);
-	joint_velocities_.assign(6, 0);
-	joint_position_command_.assign(6, 0);
-	joint_velocities_command_.assign(6, 0);
+	const size_t joint_count = info_.joints.size();
+	if (joint_count != 6 && joint_count != 7) {
+		return CallbackReturn::ERROR;
+	}
+	for (size_t i = 0; i < 6; ++i) {
+		if (info_.joints[i].name != "arm_joint_" + std::to_string(i + 1)) {
+			return CallbackReturn::ERROR;
+		}
+	}
+	if (joint_count == 7 && info_.joints[6].name != "arm_joint_jaw") {
+		return CallbackReturn::ERROR;
+	}
+
+	// The optional jaw is controlled through a separate CAN path; its state stays zero.
+	joint_position_.assign(joint_count, 0);
+	joint_velocities_.assign(joint_count, 0);
+	joint_position_command_.assign(joint_count, 0);
+	joint_velocities_command_.assign(joint_count, 0);
 
 	for (const auto &joint : info_.joints) {
 		for (const auto &interface : joint.state_interfaces) {
@@ -33,8 +46,9 @@ ArmSystem::on_init(const hardware_interface::HardwareInfo &info) {
 		}
 	}
 
-	can_driver.init(CAN_INTERFACE);
-	can_driver.startArmRead();
+	if (can_driver.init(CAN_INTERFACE) != 0 || can_driver.startArmRead() != 0) {
+		return CallbackReturn::ERROR;
+	}
 
 	node_ = rclcpp::Node::make_shared("arm_hardware_node");
 
@@ -53,11 +67,15 @@ ArmSystem::on_init(const hardware_interface::HardwareInfo &info) {
 	    }
 	);
 
-	node_future_ = std::async([&]() {
-		rclcpp::spin(node_);
-	});
 
 	return CallbackReturn::SUCCESS;
+}
+
+ArmSystem::~ArmSystem() {
+	// The worker uses can_driver, which is destroyed before the future member.
+	if (writer.valid()) {
+		writer.wait();
+	}
 }
 
 std::vector<hardware_interface::StateInterface>
@@ -104,6 +122,7 @@ ArmSystem::export_command_interfaces() {
 
 return_type
 ArmSystem::read(const rclcpp::Time & /*time*/, const rclcpp::Duration & /* period */) {
+	rclcpp::spin_some(node_);
 	return read_joint_states();
 	// if (current_control_type == ControlType::posvel)
 	// {
@@ -171,18 +190,18 @@ return_type ArmSystem::write_joint_commands() {
 				std::lock_guard<std::mutex> lock(CAN_vars::joints.m_write);
 				for (size_t i = 0; i < 4; i++) {
 					CAN_vars::joints.jointCmd[i].moveSetpoint.position_deg =
-					    joint_position_command_[i] * 180.0f / M_PI;
+					    static_cast<float>(joint_position_command_[i] * 180.0 / M_PI);
 					CAN_vars::joints.jointCmd[i].moveSetpoint.velocity_deg_s =
-					    joint_velocities_command_[i] * 180.0f / M_PI;
+					    static_cast<float>(joint_velocities_command_[i] * 180.0 / M_PI);
 					CAN_vars::joints.jointCmd[i].moveSetpoint.torque_Nm = 0x02fa;
 					CAN_vars::joints.jointCmd[i].moveSetpoint.acceleration_deg_ss =
 					    0xffff;
 				}
-				for (int i = 4; i < 6; i++) {
+				for (size_t i = 4; i < 6; i++) {
 					CAN_vars::joints.jointCmd[i].moveSetpointDiff.position_deg =
-					    joint_position_command_[i] * 180.0f / M_PI;
+					    static_cast<float>(joint_position_command_[i] * 180.0 / M_PI);
 					CAN_vars::joints.jointCmd[i].moveSetpointDiff.velocity_deg_s =
-					    joint_velocities_command_[i] * 180.0f / M_PI;
+					    static_cast<float>(joint_velocities_command_[i] * 180.0 / M_PI);
 					CAN_vars::joints.jointCmd[i].moveSetpointDiff.torque_Nm = 0x02fa;
 					CAN_vars::joints.jointCmd[i].moveSetpointDiff.acceleration_deg_ss =
 					    0xffff;
@@ -196,9 +215,8 @@ return_type ArmSystem::write_joint_commands() {
 				CAN_vars::joints.jointCmd[0].moveSetpoint.velocity_deg_s = -temp_vel;
 
 				// Run write in a separate thread
-				writer = std::async(std::launch::async, [&] {
-					// CAN_driver::arm_write(current_control_type);
-					can_driver.arm_write(current_control_type);
+				writer = std::async(std::launch::async, [this, control_type = current_control_type] {
+					can_driver.arm_write(control_type);
 				});
 			}
 		}

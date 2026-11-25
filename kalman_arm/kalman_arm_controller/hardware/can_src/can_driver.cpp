@@ -71,10 +71,10 @@ int CanDriver::startArmRead() {
 }
 
 int CanDriver::armRead() {
-	canfd_frame frame;
 	while (should_run) {
+		canfd_frame frame{};
 		ssize_t num_bytes =
-		    recv(sock, &frame, sizeof(frame), MSG_DONTWAIT);
+		    recv(sock, &frame, sizeof(frame), MSG_DONTWAIT | MSG_TRUNC);
 
 		if (num_bytes < 0) {
 			if (errno == EAGAIN || errno == EWOULDBLOCK) {
@@ -90,11 +90,16 @@ int CanDriver::armRead() {
 			exit(EXIT_FAILURE);
 		}
 
-		// We don't need to lock the recv invocation
-		// Locking happens when shared data is modified, no need to lock here
+		if (num_bytes == CAN_MTU) {
+			if (frame.len > CAN_MAX_DLEN) {
+				continue;
+			}
+			// This byte is padding in Classical CAN, not CAN FD flags.
+			frame.flags = 0;
+		} else if (num_bytes != CANFD_MTU) {
+			continue;
+		}
 		handle_frame(frame, &CAN_handlers::HANDLES);
-
-		CAN_vars::update_joint_status();
 	}
 	return 0;
 }
@@ -103,12 +108,19 @@ int CanDriver::handle_frame(
     canfd_frame                                         frame,
     const std::unordered_map<uint8_t, canCmdHandler_t> *handles
 ) {
-	// Decode the frame
-	uint8_t joint_id = frame.can_id >> 7;
-	uint8_t command  = frame.can_id - (joint_id << 7);
+	if (handles == nullptr || (frame.can_id & ~CAN_SFF_MASK) != 0 ||
+	    frame.len > CANFD_MAX_DLEN ||
+	    (frame.flags & ~(CANFD_BRS | CANFD_ESI | CANFD_FDF)) != 0) {
+		return 1;
+	}
+	const uint8_t command = static_cast<uint8_t>(frame.can_id & 0x7fU);
 	try {
-		if (handles->contains(command)) {
-			(*handles).at(command).func(frame.can_id, frame.data, frame.len);
+		const auto handler = handles->find(command);
+		if (handler != handles->end()) {
+			if (frame.len != handler->second.len || handler->second.func == nullptr) {
+				return 1;
+			}
+			return handler->second.func(frame.can_id, frame.data, frame.len);
 		}
 	} catch (const std::exception &e) {
 		RCLCPP_INFO(
@@ -166,9 +178,9 @@ int CanDriver::write_joint_setpoint(uint8_t joint_id) {
 	// Write data from a single joint
 	joint_id += 1;
 
-	uint16_t can_id = (joint_id << 7) + CMD_SETPOINT;
 	if (1 <= joint_id && joint_id <= 6) {
-	    std::lock_guard<std::mutex> lock(CAN_vars::joints.m_write);
+		const auto can_id = static_cast<uint16_t>((joint_id << 7) + CMD_SETPOINT);
+		std::lock_guard<std::mutex> lock(CAN_vars::joints.m_write);
 		return write_data(can_id, CAN_vars::joints.jointCmd[joint_id - 1].setpoint);
 	}
 	return 1;
@@ -177,9 +189,9 @@ int CanDriver::write_joint_setpoint(uint8_t joint_id) {
 int CanDriver::write_joint_posvel(uint8_t joint_id) {
 	joint_id += 1;
 
-	uint16_t can_id = (joint_id << 7) + CMD_VELOCITY;
 	if (1 <= joint_id && joint_id <= 6) {
-        std::lock_guard<std::mutex> lock(CAN_vars::joints.m_write);
+		const auto can_id = static_cast<uint16_t>((joint_id << 7) + CMD_VELOCITY);
+		std::lock_guard<std::mutex> lock(CAN_vars::joints.m_write);
 		return write_data(can_id, CAN_vars::joints.jointCmd[joint_id - 1].velSetpoint);
 	}
 	return 1;

@@ -50,11 +50,13 @@ private:
 	}
 
 	uint16_t calculate_gripper_position(int8_t position) {
-		gripper_position_ += position;
-		if (gripper_position_ > max_gripper_) {
+		const int32_t target = static_cast<int32_t>(gripper_position_) + position;
+		if (target > max_gripper_) {
 			gripper_position_ = max_gripper_;
-		} else if (gripper_position_ < min_gripper_) {
+		} else if (target < min_gripper_) {
 			gripper_position_ = min_gripper_;
+		} else {
+			gripper_position_ = static_cast<uint16_t>(target);
 		}
 		return gripper_position_;
 	}

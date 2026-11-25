@@ -176,7 +176,7 @@ private:
     }
 
     const uint32_t identifier = frame.can_id & kCanIdMask;
-    const uint8_t joint = identifier >> 7;
+    const uint32_t joint = identifier >> 7;
     const uint8_t command = identifier & 0x7f;
     if (joint >= 1 && joint <= kJointCount) {
       if (command == CMD_JOINT_STATUS || command == CMD_JOINT_FAST_STATUS) {

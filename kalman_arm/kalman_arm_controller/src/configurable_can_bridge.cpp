@@ -22,15 +22,15 @@ using namespace std::chrono_literals;
 namespace configurable_can_bridge {
 
 CANMapping::CANMapping(
-    uint32_t    can_id,
-    std::string ros_topic,
-    std::string ros_type,
-    float       max_rate,
-    std::string conversion_type
+    uint32_t    can_id_value,
+    std::string ros_topic_value,
+    std::string ros_type_value,
+    float       max_rate_value,
+    std::string conversion_type_value
 )
-    : can_id(can_id), ros_topic(ros_topic), ros_type(ros_type),
-      max_rate(max_rate), conversion_type(conversion_type),
-      extended_id(can_id > 0x7FF) {}
+    : can_id(can_id_value), ros_topic(ros_topic_value), ros_type(ros_type_value),
+      max_rate(max_rate_value), conversion_type(conversion_type_value),
+      extended_id(can_id_value > 0x7FF) {}
 
 CANBridge::CANBridge(const rclcpp::NodeOptions &options)
     : Node("configurable_can_bridge", options), can_socket_(-1) {
@@ -187,7 +187,7 @@ bool CANBridge::initializeCANSocket() {
 	addr.can_family  = AF_CAN;
 	addr.can_ifindex = ifr.ifr_ifindex;
 
-	if (bind(can_socket_, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+	if (bind(can_socket_, reinterpret_cast<struct sockaddr *>(&addr), sizeof(addr)) < 0) {
 		RCLCPP_ERROR(
 		    get_logger(), "Error binding CAN socket: %s", strerror(errno)
 		);
@@ -201,7 +201,7 @@ bool CANBridge::initializeCANSocket() {
 	tv.tv_sec  = 0;
 	tv.tv_usec = 1;
 	setsockopt(
-	    can_socket_, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof tv
+	    can_socket_, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof tv
 	);
 
 	RCLCPP_INFO(
@@ -432,7 +432,7 @@ void CANBridge::handleROStoCAN(
 		frame.data[0] = msg->data ? 1 : 0;
 	} else if constexpr (std::is_same_v<T, std_msgs::msg::UInt8MultiArray>) {
 		size_t length = std::min(msg->data.size(), static_cast<size_t>(8));
-		frame.len     = length;
+		frame.len     = static_cast<uint8_t>(length);
 		for (size_t i = 0; i < length; i++) {
 			frame.data[i] = msg->data[i];
 		}
@@ -441,8 +441,8 @@ void CANBridge::handleROStoCAN(
 		frame.data[0] = msg->data;
 	} else if constexpr (std::is_same_v<T, std_msgs::msg::UInt16>) {
 		frame.len     = 2;
-		frame.data[0] = msg->data & 0xFF;
-		frame.data[1] = (msg->data >> 8) & 0xFF;
+		frame.data[0] = static_cast<uint8_t>(msg->data & 0xFF);
+		frame.data[1] = static_cast<uint8_t>((msg->data >> 8) & 0xFF);
 	} else {
 		RCLCPP_WARN(get_logger(), "Unsupported type for ROS to CAN conversion");
 		return;
