@@ -1,4 +1,6 @@
+#include <algorithm>
 #include <chrono>
+#include <cmath>
 
 #include <builtin_interfaces/msg/time.hpp>
 #include <geometry_msgs/msg/twist.hpp>
@@ -85,6 +87,12 @@ private:
 	}
 
 	uint8_t convert_twist_data(double twist_data) const {
+		// Map [-1, 1] to [0, 200]. Clamp first: casting a negative or too
+		// large double to uint8_t is undefined behaviour.
+		if (std::isnan(twist_data)) {
+			twist_data = 0.0;
+		}
+		twist_data = std::clamp(twist_data, -1.0, 1.0);
 		return uint8_t((twist_data + 1.0) / 2.0 * 200 + 0.5);
 	}
 
