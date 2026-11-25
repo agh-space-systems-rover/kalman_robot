@@ -11,10 +11,10 @@ class LaserDriverNode(Node):
     def __init__(self):
         super().__init__("laser_driver_node")
 
-        self.laser_dist_out = self.create_publisher(Float32, "/arc/laser_distance", 10)
+        self.laser_dist_out = self.create_publisher(Float32, "arc/laser_distance", 10)
         self.laser_dist_in = self.create_subscription(
             MasterMessage,
-            f"/master_com/master_to_ros/{hex(MasterMessage.LASER_DIST)[1:]}",
+            f"master_com/master_to_ros/{hex(MasterMessage.LASER_DIST)[1:]}",
             self.laser_dist_in_callback,
             10,
         )
