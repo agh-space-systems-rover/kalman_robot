@@ -3,6 +3,7 @@ from rclpy.node import Node
 from std_srvs.srv import Empty
 
 from kalman_interfaces.msg import MasterMessage
+from kalman_drivers.master_topics import ROS_TO_MASTER
 
 UNIQUE_TUNNEL_FORWARD_ID = 73
 REBOOT_PC_ID = 46
@@ -13,7 +14,7 @@ ARCH_SEND_GOAL_ID = 48
 class TunnelClient(Node):
     def __init__(self):
         super().__init__("tunnel")
-        self.pub = self.create_publisher(MasterMessage, "master_com/ros_to_master", 10)
+        self.pub = self.create_publisher(MasterMessage, ROS_TO_MASTER, 10)
 
         self.create_service(Empty, "tunnel/reboot_pc", self.reboot_pc)
         self.create_service(Empty, "tunnel/arch_launch_stack", self.arch_launch_stack)

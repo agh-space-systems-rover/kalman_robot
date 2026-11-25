@@ -5,6 +5,7 @@ from rclpy.node import Node
 
 from kalman_interfaces.srv import SetUeuosColor, SetUeuosEffect, SetUeuosState
 from kalman_interfaces.msg import MasterMessage
+from kalman_drivers.master_topics import ROS_TO_MASTER
 
 NUMBER_OF_RETRIES_PER_CALL = 10
 RETRY_DT = 0.5
@@ -16,7 +17,7 @@ class UeuosDriver(Node):
 
         # Init master publisher.
         self.ueuos_pub = self.create_publisher(
-            MasterMessage, "master_com/ros_to_master", 10
+            MasterMessage, ROS_TO_MASTER, 10
         )
 
         # Init services.

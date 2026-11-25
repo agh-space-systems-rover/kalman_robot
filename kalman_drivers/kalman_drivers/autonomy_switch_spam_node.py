@@ -2,6 +2,7 @@ import rclpy
 from rclpy.node import Node
 
 from kalman_interfaces.msg import MasterMessage
+from kalman_drivers.master_topics import ROS_TO_MASTER
 
 RATE = 0.2
 
@@ -9,7 +10,7 @@ RATE = 0.2
 class AutonomySwitchSpam(Node):
     def __init__(self):
         super().__init__("autonomy_switch_spam")
-        self.pub = self.create_publisher(MasterMessage, "master_com/ros_to_master", 10)
+        self.pub = self.create_publisher(MasterMessage, ROS_TO_MASTER, 10)
 
         self.timer = self.create_timer(1 / RATE, self.timer_callback)
 

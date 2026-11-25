@@ -21,6 +21,8 @@ The drivers never touch the serial port. They exchange [`MasterMessage`](../kalm
 - `master_com/ros_to_master`: frames to send to the Master
 - `master_com/master_to_ros/x<id>`: frames received from the Master, one topic per frame ID (lowercase hex, e.g. `x5a`)
 
+Build these names with `kalman_drivers.master_topics` (Python) or `kalman_drivers/master_topics.hpp` (C++) instead of by hand.
+
 Those topics and `kalman_interfaces` are the whole contract, so this package does not depend on `kalman_tunnel`. `launch/drivers.launch.py` only starts the drivers, so `kalman_tunnel`'s `tunnel.launch.py` must run alongside it. `kalman_hardware`'s `hardware.launch.py master:=...` starts both.
 
 ## Nodes

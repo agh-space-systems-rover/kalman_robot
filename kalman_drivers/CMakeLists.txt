@@ -15,6 +15,7 @@ find_package(std_msgs REQUIRED)
 find_package(kalman_interfaces REQUIRED)
 
 add_library(arm_twist_driver_node SHARED src/arm_twist_driver_node.cpp)
+target_include_directories(arm_twist_driver_node PRIVATE include)
 ament_target_dependencies(arm_twist_driver_node rclcpp rclcpp_components geometry_msgs kalman_interfaces)
 rclcpp_components_register_node(
   arm_twist_driver_node
@@ -23,6 +24,7 @@ rclcpp_components_register_node(
 )
 
 add_library(rfid_driver_node SHARED src/rfid_driver_node.cpp)
+target_include_directories(rfid_driver_node PRIVATE include)
 ament_target_dependencies(rfid_driver_node rclcpp rclcpp_components std_msgs kalman_interfaces)
 rclcpp_components_register_node(
   rfid_driver_node

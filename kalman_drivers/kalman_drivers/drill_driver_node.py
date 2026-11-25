@@ -2,6 +2,7 @@ import struct
 import rclpy
 from rclpy.node import Node
 from kalman_interfaces.msg import DrillTelemetry, MasterMessage
+from kalman_drivers.master_topics import ROS_TO_MASTER, master_to_ros
 from std_msgs.msg import Int8, UInt8
 
 MIN_BRIDGE_VALUE = -100
@@ -18,11 +19,11 @@ class DrillDriver(Node):
         super().__init__("drill_driver")
 
         self.master_pub = self.create_publisher(
-            MasterMessage, "master_com/ros_to_master", 10
+            MasterMessage, ROS_TO_MASTER, 10
         )
         self.master_sub = self.create_subscription(
             MasterMessage,
-            f"master_com/master_to_ros/{hex(MasterMessage.DRILL_TELEMETRY)[1:]}",
+            master_to_ros(MasterMessage.DRILL_TELEMETRY),
             self.master_res_cb,
             10,
         )

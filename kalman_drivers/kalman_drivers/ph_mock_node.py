@@ -3,6 +3,7 @@ import struct
 import random
 from rclpy.node import Node
 from kalman_interfaces.msg import MasterMessage
+from kalman_drivers.master_topics import ROS_TO_MASTER, master_to_ros
 
 BOARD_ID = 0
 CHANNEL_ID = 0
@@ -12,11 +13,11 @@ class PHMockNode(Node):
     def __init__(self):
         super().__init__("ph_mock_node")
         self.req_sub = self.create_subscription(
-            MasterMessage, "master_com/ros_to_master", self.cb_req, 10
+            MasterMessage, ROS_TO_MASTER, self.cb_req, 10
         )
         self.res_pub = self.create_publisher(
             MasterMessage,
-            f"master_com/master_to_ros/{hex(MasterMessage.PH_RES)[1:]}",
+            master_to_ros(MasterMessage.PH_RES),
             10,
         )
 

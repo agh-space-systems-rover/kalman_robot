@@ -8,6 +8,8 @@
 #include <rclcpp/logging.hpp>
 #include <std_msgs/msg/string.hpp>
 
+#include "kalman_drivers/master_topics.hpp"
+
 struct Data {
 	std::array<std::string, 64> arr;
 
@@ -43,7 +45,7 @@ public:
 	RfidDriver(const rclcpp::NodeOptions &options)
 	    : Node("rfid_driver", options) {
 		master_sub_ = this->create_subscription<MasterMessage>(
-		    "master_com/master_to_ros/x85",
+		    master_topics::master_to_ros(FRAME_ID),
 		    10,
 		    std::bind(&RfidDriver::master_callback, this, std::placeholders::_1)
 		);

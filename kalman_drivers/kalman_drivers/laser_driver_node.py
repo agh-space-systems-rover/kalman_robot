@@ -4,6 +4,7 @@ import rclpy
 from rclpy.node import Node
 
 from kalman_interfaces.msg import MasterMessage
+from kalman_drivers.master_topics import master_to_ros
 from std_msgs.msg import Float32
 
 
@@ -14,7 +15,7 @@ class LaserDriverNode(Node):
         self.laser_dist_out = self.create_publisher(Float32, "arc/laser_distance", 10)
         self.laser_dist_in = self.create_subscription(
             MasterMessage,
-            f"master_com/master_to_ros/{hex(MasterMessage.LASER_DIST)[1:]}",
+            master_to_ros(MasterMessage.LASER_DIST),
             self.laser_dist_in_callback,
             10,
         )

@@ -4,6 +4,7 @@ from rclpy.node import Node
 
 from kalman_interfaces.srv import SetFeed
 from kalman_interfaces.msg import MasterMessage
+from kalman_drivers.master_topics import ROS_TO_MASTER
 
 NUMBER_OF_RETRIES_PER_CALL = 1
 PUBLISH_RATE = 10  # NOTE: only published when there are messages to send
@@ -16,7 +17,7 @@ class FeedDriver(Node):
 
         # Init master publisher.
         self.master_pub = self.create_publisher(
-            MasterMessage, "master_com/ros_to_master", 10
+            MasterMessage, ROS_TO_MASTER, 10
         )
 
         # Init services.

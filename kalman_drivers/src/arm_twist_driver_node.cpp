@@ -9,6 +9,8 @@
 #include <kalman_interfaces/msg/arm_axes_locks.hpp>
 #include <kalman_interfaces/msg/master_message.hpp>
 
+#include "kalman_drivers/master_topics.hpp"
+
 namespace kalman_drivers {
 
 class ArmTwistDriver : public rclcpp::Node {
@@ -22,7 +24,7 @@ public:
 
 		publisher_ =
 		    this->create_publisher<kalman_interfaces::msg::MasterMessage>(
-		        "master_com/ros_to_master", 10
+		        master_topics::ROS_TO_MASTER, 10
 		    );
 
 		subscription_ = this->create_subscription<geometry_msgs::msg::Twist>(

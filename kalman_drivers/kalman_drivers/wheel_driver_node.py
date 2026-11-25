@@ -11,6 +11,7 @@ from kalman_interfaces.msg import (
     WheelTemperatures,
     WheelTemperature,
 )
+from kalman_drivers.master_topics import ROS_TO_MASTER, master_to_ros
 
 METRIC_VELOCITY_TO_MOTOR_VALUE_FACTOR = 100
 MAX_RATE = 10
@@ -26,19 +27,19 @@ class WheelDriver(Node):
     def __init__(self):
         super().__init__("wheel_driver")
         self.master_pub = self.create_publisher(
-            MasterMessage, "master_com/ros_to_master", 10
+            MasterMessage, ROS_TO_MASTER, 10
         )
 
         self.create_subscription(WheelStates, "wheel_states", self.states_received, 1)
         self.create_subscription(
             MasterMessage,
-            f"master_com/master_to_ros/{hex(MasterMessage.MOTOR_GET_WHEELS)[1:]}",
+            master_to_ros(MasterMessage.MOTOR_GET_WHEELS),
             self.return_received,
             10,
         )
         self.create_subscription(
             MasterMessage,
-            f"master_com/master_to_ros/{hex(MasterMessage.MOTOR_GET_TEMPERATURE)[1:]}",
+            master_to_ros(MasterMessage.MOTOR_GET_TEMPERATURE),
             self.temps_received,
             10,
         )

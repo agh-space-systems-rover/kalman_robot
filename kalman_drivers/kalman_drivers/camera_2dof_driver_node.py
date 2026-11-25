@@ -1,6 +1,7 @@
 import rclpy
 from rclpy.node import Node
 from kalman_interfaces.msg import Camera2Dof, MasterMessage
+from kalman_drivers.master_topics import ROS_TO_MASTER
 
 
 def angle_to_uint8(angle: float, angle_min: float, angle_max: float) -> int:
@@ -37,7 +38,7 @@ class Camera2DofDriver(Node):
         self.pitch_max = self.get_parameter("pitch_max").value
 
         self.master_pub = self.create_publisher(
-            MasterMessage, "master_com/ros_to_master", 10
+            MasterMessage, ROS_TO_MASTER, 10
         )
         self.cmd_sub = self.create_subscription(
             Camera2Dof, "camera_2dof/cmd", self.camera_cmd_cb, 1

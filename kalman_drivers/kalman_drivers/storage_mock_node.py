@@ -3,17 +3,18 @@ import struct
 import random
 from rclpy.node import Node
 from kalman_interfaces.msg import MasterMessage
+from kalman_drivers.master_topics import ROS_TO_MASTER, master_to_ros
 
 
 class StorageMockNode(Node):
     def __init__(self):
         super().__init__("storage_mock_node")
         self.req_sub = self.create_subscription(
-            MasterMessage, "master_com/ros_to_master", self.cb_req, 10
+            MasterMessage, ROS_TO_MASTER, self.cb_req, 10
         )
         self.scale_res_pub = self.create_publisher(
             MasterMessage,
-            f"master_com/master_to_ros/{hex(MasterMessage.SCALE_RES)[1:]}",
+            master_to_ros(MasterMessage.SCALE_RES),
             10,
         )
 

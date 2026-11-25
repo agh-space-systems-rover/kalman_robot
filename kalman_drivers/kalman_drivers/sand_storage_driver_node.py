@@ -2,6 +2,7 @@ import rclpy
 from rclpy.node import Node
 import numpy as np
 from kalman_interfaces.msg import MasterMessage
+from kalman_drivers.master_topics import ROS_TO_MASTER
 from std_msgs.msg import Float32, Empty
 
 VALUE_LIMIT = 50
@@ -12,7 +13,7 @@ class SandStorageDriver(Node):
         super().__init__("sand_storage_driver")
 
         self.master_pub = self.create_publisher(
-            MasterMessage, "master_com/ros_to_master", 10
+            MasterMessage, ROS_TO_MASTER, 10
         )
 
         self.cmd_sub = self.create_subscription(
