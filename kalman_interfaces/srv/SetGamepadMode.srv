@@ -1,0 +1,4 @@
+string id # GamepadState.id
+uint8 mode # GamepadState.MODE_*
+---
+bool success # false if there is no such gamepad or the mode is invalid

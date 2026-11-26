@@ -12,8 +12,8 @@ def get_yaml_params(name: str) -> str:
 def launch_setup(context):
     joy = LaunchConfiguration("joy").perform(context).lower()
 
-    if joy != "" and joy != "gamepad" and joy != "arduino":
-        raise RuntimeError("Invalid joy. Choose 'gamepad' or 'arduino'.")
+    if joy != "" and joy != "arduino":
+        raise RuntimeError("Invalid joy. Choose 'arduino'.")
 
     description = [
         Node(
@@ -28,24 +28,7 @@ def launch_setup(context):
         ),
     ]
 
-    if joy == "gamepad":
-        description += [
-            Node(
-                package="joy_linux",
-                executable="joy_linux_node",
-                parameters=[
-                    {
-                        "dev_name": "Logitech Gamepad",
-                    }
-                ],
-            ),
-            Node(
-                package="kalman_wheels",
-                executable="gamepad_driving",
-                parameters=[get_yaml_params("gamepad_driving")],
-            ),
-        ]
-    elif joy == "arduino":
+    if joy == "arduino":
         description += [
             Node(
                 package="joy_linux",
@@ -72,8 +55,8 @@ def generate_launch_description():
             DeclareLaunchArgument(
                 "joy",
                 default_value="",
-                choices=["", "gamepad", "arduino"],
-                description="Joy device to use for headless driving. Choose 'gamepad' or 'arduino'. Empty disables headless teleop.",
+                choices=["", "arduino"],
+                description="Joy device to use for headless driving. Choose 'arduino'. Empty disables headless teleop. Gamepads are handled by kalman_gamepad.",
             ),
             OpaqueFunction(function=launch_setup),
         ]

@@ -44,12 +44,6 @@ enum DrillState {
   OpeningTubesBothSites = 9
 }
 
-type DrillGamepadUpdate = {
-  bridgeB?: number;
-  bridgeC?: number;
-  state?: DrillState;
-};
-
 const ensureDrillTopics = () => {
   if (!ros.isConnected) return;
 
@@ -97,27 +91,11 @@ export default function Drill() {
     const updateDrill = () => {
       setRerenderCount((count) => count + 1);
     };
-    const updateFromGamepad = (event: Event) => {
-      const detail = (event as CustomEvent<DrillGamepadUpdate>).detail;
-      if (detail.bridgeB !== undefined) {
-        setBValue(detail.bridgeB);
-        bInputRef.current?.setValue(detail.bridgeB);
-      }
-      if (detail.bridgeC !== undefined) {
-        setCValue(detail.bridgeC);
-        cInputRef.current?.setValue(detail.bridgeC);
-      }
-      if (detail.state !== undefined) {
-        setSelectedState(detail.state);
-      }
-    };
     ensureDrillTopics();
     window.addEventListener('drill-subscribed', updateDrill);
-    window.addEventListener('drill-gamepad-update', updateFromGamepad);
     window.dispatchEvent(new CustomEvent('drill-subscribed'));
     return () => {
       window.removeEventListener('drill-subscribed', updateDrill);
-      window.removeEventListener('drill-gamepad-update', updateFromGamepad);
     };
   }, []);
 
@@ -129,6 +107,9 @@ export default function Drill() {
     ensureDrillTopics();
 
     const telemetryTopic = drillTelemetryTopic;
+    const bTopic = drillBTopic;
+    const cTopic = drillCTopic;
+    const stateTopic = drillStateTopic;
 
     const telemetryCb = (msg: DrillTelemetry) => {
       setTelemetry(msg);
@@ -136,9 +117,28 @@ export default function Drill() {
       setSecondsSinceTelemetry(0);
     };
 
+    // Also shows commands sent by kalman_gamepad.
+    const bCb = (msg: { data: number }) => {
+      setBValue(msg.data);
+      bInputRef.current?.setValue(msg.data);
+    };
+    const cCb = (msg: { data: number }) => {
+      setCValue(msg.data);
+      cInputRef.current?.setValue(msg.data);
+    };
+    const stateCb = (msg: { data: number }) => {
+      setSelectedState(msg.data);
+    };
+
     telemetryTopic?.subscribe(telemetryCb);
+    bTopic?.subscribe(bCb);
+    cTopic?.subscribe(cCb);
+    stateTopic?.subscribe(stateCb);
     return () => {
       telemetryTopic?.unsubscribe(telemetryCb);
+      bTopic?.unsubscribe(bCb);
+      cTopic?.unsubscribe(cCb);
+      stateTopic?.unsubscribe(stateCb);
     };
   }, [rerenderCount]);
 

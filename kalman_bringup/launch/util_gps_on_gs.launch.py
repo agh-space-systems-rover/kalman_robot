@@ -8,5 +8,6 @@ def generate_launch_description():
                 "gps": "true",
             },
             "gs": {},
+            "gamepad": {},
         }
     )

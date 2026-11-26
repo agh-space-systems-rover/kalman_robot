@@ -1,51 +1,40 @@
 import styles from './gamepad-selector.module.css';
 
-import { GamepadMode, gamepads, setGamepadMode } from '../common/gamepads';
+import { GamepadMode, gamepads, GamepadType, setGamepadMode } from '../common/gamepads';
 import {
-  faGamepad,
-  faProjectDiagram,
-  faGear,
-  IconDefinition,
   faBan,
-  faOilWell
+  faComputerMouse,
+  faGamepad,
+  faGear,
+  faMicrochip,
+  faOilWell,
+  faProjectDiagram,
+  faTriangleExclamation,
+  IconDefinition
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useCallback, useEffect, useState } from 'react';
 
 import ContextMenu from '../components/context-menu';
+import Tooltip from '../components/tooltip';
 
-export type ModeAppearance = {
-  [mode in GamepadMode]: {
-    name: string;
-    icon: IconDefinition;
-  };
-};
-const modeAppearance: ModeAppearance = {
-  'wheels': {
-    name: 'Wheels',
-    icon: faGear
-  },
-  'arm': {
-    name: 'Arm',
-    icon: faProjectDiagram
-  },
-  'drill': {
-    name: 'Drill',
-    icon: faOilWell
-  },
-  'none': {
-    name: 'Unassigned',
-    icon: faBan
+const MODES = [
+  { mode: GamepadMode.Wheels, name: 'Wheels', icon: faGear },
+  { mode: GamepadMode.Arm, name: 'Arm', icon: faProjectDiagram },
+  { mode: GamepadMode.Drill, name: 'Drill', icon: faOilWell },
+  { mode: GamepadMode.None, name: 'Unassigned', icon: faBan }
+];
+
+// Devices that are only displayed.
+const DEVICES: { [type: number]: { icon: IconDefinition; overlay?: IconDefinition; description: string } } = {
+  [GamepadType.Custom]: { icon: faGamepad, overlay: faMicrochip, description: 'Custom controller' },
+  [GamepadType.SpaceMouse]: { icon: faComputerMouse, description: 'SpaceMouse' },
+  [GamepadType.Unsupported]: {
+    icon: faGamepad,
+    overlay: faTriangleExclamation,
+    description: 'Not supported. If it is a gamepad, switch it to XInput mode.'
   }
 };
-
-function getPadName(id: string) {
-  // Remove hex-hex- prefix (Firefox)
-  id = id.replace(/^[0-9a-f]{4}-[0-9a-f]{4}-/, '');
-  // Remove (...) suffix (Chromium)
-  id = id.replace(/ \(.*\)$/, '');
-  return id;
-}
 
 export default function GamepadSelector() {
   const [_, setRerenderCount] = useState(0);
@@ -55,31 +44,47 @@ export default function GamepadSelector() {
   }, []);
 
   useEffect(() => {
-    window.addEventListener('gamepads-connect', rerender);
-    return () => window.removeEventListener('gamepads-connect', rerender);
+    window.addEventListener('gamepads-update', rerender);
+    return () => window.removeEventListener('gamepads-update', rerender);
   }, [rerender]);
 
   return (
     <>
-      {Array.from(gamepads.values()).map(({ pad, mode }) => (
-        <ContextMenu
-          key={pad.id}
-          items={Object.entries(modeAppearance).map(([mode, { name, icon }]) => ({
-            icon,
-            text: name,
-            onClick: () => {
-              setGamepadMode(pad, mode as GamepadMode);
-              rerender();
-            }
-          }))}
-          openOnClick={true}
-          className={styles['gamepad-selector']}
-          tooltip={getPadName(pad.id)}
-        >
-          <FontAwesomeIcon icon={faGamepad} className={styles['gamepad-icon']} />
-          <FontAwesomeIcon icon={modeAppearance[mode].icon} className={styles['mode-icon']} />
-        </ContextMenu>
-      ))}
+      {gamepads.map((pad) => {
+        if (pad.type !== GamepadType.Gamepad) {
+          const { icon, overlay, description } = DEVICES[pad.type] ?? DEVICES[GamepadType.Unsupported];
+          return (
+            <Tooltip
+              key={pad.id}
+              text={`${pad.name}\\n${description}`}
+              className={styles['gamepad-selector'] + ' ' + styles['display-only']}
+            >
+              <FontAwesomeIcon icon={icon} className={styles['gamepad-icon']} />
+              {overlay && <FontAwesomeIcon icon={overlay} className={styles['mode-icon']} />}
+            </Tooltip>
+          );
+        }
+
+        return (
+          <ContextMenu
+            key={pad.id}
+            items={MODES.map(({ mode, name, icon }) => ({
+              icon,
+              text: name,
+              onClick: () => setGamepadMode(pad.id, mode)
+            }))}
+            openOnClick={true}
+            className={styles['gamepad-selector']}
+            tooltip={pad.name}
+          >
+            <FontAwesomeIcon icon={faGamepad} className={styles['gamepad-icon']} />
+            <FontAwesomeIcon
+              icon={MODES.find(({ mode }) => mode === pad.mode)?.icon ?? faBan}
+              className={styles['mode-icon']}
+            />
+          </ContextMenu>
+        );
+      })}
     </>
   );
 }

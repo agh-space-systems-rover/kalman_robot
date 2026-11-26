@@ -12,9 +12,8 @@ def generate_launch_description():
                 "configs": "rtabmap",
             },
             "gs": {},
-            "wheels": {
-                "joy": "gamepad",
-            },
+            "gamepad": {},
+            "wheels": {},
             "description": {
                 "layout": "autonomy",
             },

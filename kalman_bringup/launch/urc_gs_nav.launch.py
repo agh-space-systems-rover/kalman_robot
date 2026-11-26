@@ -8,6 +8,7 @@ def generate_launch_description():
                 "master": "gs",
             },
             "gs": {},
+            "gamepad": {},
             "wheels": {},
         }
     )

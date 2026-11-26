@@ -1,8 +1,6 @@
 import './css/index.css';
 
-import './common/gamepad-arming';
-import './common/gamepad-drilling';
-import './common/gamepad-driving';
+import './common/gamepads';
 import './common/keyboard-driving';
 import { splashRef, alertsRef, settingsRef, modalRef } from './common/refs';
 import { currentTheme } from './common/themes';

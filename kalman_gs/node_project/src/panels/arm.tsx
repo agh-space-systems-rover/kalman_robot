@@ -14,9 +14,11 @@ import {
   abortTrajectory,
   lastStatusTrajectory,
   toggleArmAxisLock,
-  armAxesLocks
+  armAxesLocks,
+  armJointsLocks,
+  currentAxisLockFocus,
+  toggleArmJointLock
 } from '../common/arm';
-import { armJointsLocks, currentAxisLockFocus, toggleArmJointLock } from '../common/gamepad-arming';
 import predefinedPoses from '../common/predefined-arm-poses';
 import '../common/predefined-arm-trajectories';
 import predefinedArmTrajectories from '../common/predefined-arm-trajectories';

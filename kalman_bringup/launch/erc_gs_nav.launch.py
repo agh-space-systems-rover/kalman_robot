@@ -5,6 +5,7 @@ def generate_launch_description():
     return gen_launch(
         {
             "gs": {},
+            "gamepad": {},
             "rviz": {
                 "configs": "autonomy",
             },

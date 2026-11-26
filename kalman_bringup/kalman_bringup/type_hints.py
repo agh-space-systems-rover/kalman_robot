@@ -93,6 +93,10 @@ class Description(TypedDict):
     "Start the joint state publisher in GUI mode. Valid choices are: ['true', 'false']"
 
 
+class Gamepad(TypedDict):
+    pass
+
+
 class Gs(TypedDict):
     pass
 
@@ -181,8 +185,8 @@ class UnitySim(TypedDict):
 
 
 class Wheels(TypedDict):
-    joy: Literal["", "arduino", "gamepad"]
-    "Joy device to use for headless driving. Choose 'gamepad' or 'arduino'. Empty disables headless teleop. Valid choices are: ['', 'gamepad', 'arduino']"
+    joy: Literal["", "arduino"]
+    "Joy device to use for headless driving. Choose 'arduino'. Empty disables headless teleop. Gamepads are handled by kalman_gamepad. Valid choices are: ['', 'arduino']"
 
 
 class Yolo(TypedDict):
@@ -209,6 +213,8 @@ class BringupConfig(TypedDict):
     "point cloud generation and filtering"
     description: Description
     "Xacro / URDF descriptions + models for the rover"
+    gamepad: Gamepad
+    "gamepad control of the wheels, arm and drill that works without the ground station"
     gs: Gs
     "ReactJS-based GUI for the rover"
     hardware: Hardware

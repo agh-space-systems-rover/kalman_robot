@@ -6,6 +6,7 @@ def generate_launch_description():
         {
             "hardware": {"master": "pc"},
             "gs": {},
+            "gamepad": {},
             "wheels": {},
         }
     )

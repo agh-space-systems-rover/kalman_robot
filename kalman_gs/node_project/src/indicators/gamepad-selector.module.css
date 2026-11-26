@@ -16,6 +16,10 @@
   background-color: var(--background);
 }
 
+.display-only {
+  cursor: default;
+}
+
 .gamepad-icon {
   width: 100%;
   height: 100%;

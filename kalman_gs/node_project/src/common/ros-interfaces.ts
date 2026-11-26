@@ -216,6 +216,24 @@ export type Drive = {
   rotation?: number;
 };
 
+export type GamepadState = {
+  id?: string;
+  name?: string;
+  type?: number;
+  mode?: number;
+};
+export type GamepadStates = {
+  gamepads?: GamepadState[];
+};
+
+export type SetGamepadModeRequest = {
+  id?: string;
+  mode?: number;
+};
+export type SetGamepadModeResponse = {
+  success?: boolean;
+};
+
 export type DrillTelemetry = {
   depth_mm?: number;
   rack_current?: number;

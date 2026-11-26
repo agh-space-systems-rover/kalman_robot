@@ -12,6 +12,7 @@ def generate_launch_description():
                 "configs": "arc_sim_dev",
             },
             "gs": {},
+            "gamepad": {},
             "wheels": {},
         }
     )

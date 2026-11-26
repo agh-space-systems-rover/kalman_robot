@@ -37,9 +37,8 @@ def generate_launch_description():
                 "rgbd_ids": RGBD_IDS,
                 "config": "arch2025",
             },
-            "wheels": {
-                # "joy": "gamepad",
-            },
+            "wheels": {},
+            # "gamepad": {},
         },
         composition="start_container",
     )

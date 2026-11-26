@@ -1,6 +1,6 @@
 import { alertsRef, settingsRef } from '../common/refs';
 import { ros } from '../common/ros';
-import { ArmAxesLocks, SetFeedRequest } from '../common/ros-interfaces';
+import { ArmAxesLocks, SetFeedRequest, UInt8 } from '../common/ros-interfaces';
 import { getKeybind } from './keybinds';
 import { Service, Topic } from 'roslib';
 
@@ -18,6 +18,7 @@ let keepAliveTrajectoryTopic: Topic<unknown> | null = null;
 let statusTrajectoryTopic: Topic<unknown> | null = null;
 
 let armAxesLocksTopic: Topic<ArmAxesLocks> | null = null;
+let armJointsLocksTopic: Topic<UInt8> | null = null;
 
 let lastServoLinearScale: number | null = 0.5;
 let lastServoRotationalScale: number | null = 0.5;
@@ -34,6 +35,19 @@ export let armAxesLocks: ArmAxesLocks = {
   pitch: false,
   yaw: false
 };
+
+// Joints that kalman_gamepad does not move.
+export let armJointsLocks = {
+  'joint_1': false,
+  'joint_2': false,
+  'joint_3': false,
+  'joint_4': false,
+  'joint_5': false,
+  'joint_6': false
+};
+
+// Joint highlighted by kalman_gamepad.
+export let currentAxisLockFocus = 1;
 
 const ARM_STATUSES = {
   0: 'SUCCESS',
@@ -120,6 +134,24 @@ window.addEventListener('ros-connect', () => {
     messageType: 'kalman_interfaces/ArmAxesLocks'
   });
 
+  armJointsLocksTopic = new Topic({
+    ros: ros,
+    name: '/station/arm/joint_locks',
+    messageType: 'std_msgs/UInt8',
+    latch: true
+  });
+
+  const jointLockFocusTopic = new Topic<UInt8>({
+    ros: ros,
+    name: '/station/arm/joint_lock_focus',
+    messageType: 'std_msgs/UInt8'
+  });
+
+  jointLockFocusTopic.subscribe((msg) => {
+    currentAxisLockFocus = msg.data;
+    window.dispatchEvent(new CustomEvent('arm-joint-lock-update'));
+  });
+
   setLinearScale.subscribe((msg: { data: number }) => {
     lastServoLinearScale = msg.data;
     window.dispatchEvent(new CustomEvent('servo-linear-scale'));
@@ -143,6 +175,7 @@ window.addEventListener('ros-connect', () => {
   setLinearScaleTo(lastServoLinearScale);
   setRotationalScaleTo(lastServoRotationalScale);
   armAxesLocksTopic?.publish(armAxesLocks);
+  publishArmJointsLocks();
 });
 
 function setLinearScaleTo(value: number) {
@@ -199,6 +232,22 @@ export function toggleArmAxisLock(axis: string) {
   armAxesLocks[axis] = !armAxesLocks[axis];
   armAxesLocksTopic?.publish(armAxesLocks);
   window.dispatchEvent(new CustomEvent('arm-axis-lock-update'));
+}
+
+function publishArmJointsLocks() {
+  let mask = 0;
+  for (let i = 0; i < 6; i++) {
+    if (armJointsLocks[`joint_${i + 1}`]) {
+      mask |= 1 << i;
+    }
+  }
+  armJointsLocksTopic?.publish({ data: mask });
+}
+
+export function toggleArmJointLock(joint: string) {
+  armJointsLocks[joint] = !armJointsLocks[joint];
+  publishArmJointsLocks();
+  window.dispatchEvent(new CustomEvent('arm-joint-lock-update'));
 }
 
 window.addEventListener('keydown', (event) => {

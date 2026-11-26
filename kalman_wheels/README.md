@@ -6,7 +6,7 @@ Provides an abstraction layer over low-level wheel hardware/simulation drivers.
 
 While the hardware driver or the simulation allow to set the speed and rotation of each wheel independently, the high-level API can interpret either the twist of the robot or human driving input.
 
-As an extra, there are two headless input controllers that can be used to control the robot without access to the ground station interface.
+As an extra, there is a headless input controller for our custom Arduino controller. Gamepads are handled by [`kalman_gamepad`](../kalman_gamepad), which also works without the ground station interface.
 
 ## Controllers
 
@@ -36,10 +36,6 @@ In this case, acceleration is not constrained to allow the human operator to exe
 - Source: [`drive_controller_node.py`](./kalman_wheels/drive_controller_node.py)
 
 ## Headless Input
-
-#### [Gamepad](./kalman_wheels/gamepad_driving_node.py)
-
-Handles gamepad input and publishes `Drive` messages. This node is a headless alternative to gamepad handling in `kalman_gs`. Only one gamepad can be used.
 
 #### [Arduino](./kalman_wheels/arduino_driving_node.py)
 

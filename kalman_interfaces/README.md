@@ -9,6 +9,8 @@ Those are the data structures used by APIs in the software stack.
 - `Arm*`: TODO
 - [Drill](./msg/Drill.msg): state of the drilling module
 - [Drive](./msg/Drive.msg): teleop control input
+- [GamepadState](./msg/GamepadState.msg): input device seen by [kalman_gamepad](../kalman_gamepad) and its mode
+- [GamepadStates](./msg/GamepadStates.msg): all input devices seen by [kalman_gamepad](../kalman_gamepad)
 - [MasterMessage](./msg/MasterMessage.msg): raw bytes sent to/from the [Master](../kalman_master)
 - [WheelState](./msg/WheelState.msg): state of a singular propulsion module (wheel speed + steering angle)
 - [WheelStates](./msg/WheelStates.msg): state of all 4 propulsion modules
@@ -18,6 +20,7 @@ Those are the data structures used by APIs in the software stack.
 ## Services
 
 - [SetFeed](./srv/SetFeed.srv): video feed config update command
+- [SetGamepadMode](./srv/SetGamepadMode.srv): change what a gamepad controls
 - [SetUeuosColor](./srv/SetUeuosColor.srv): change status signalization light (any color)
 - [SetUeuosEffect](./srv/SetUeuosEffect.srv): change status signalization light (hardware flashing patterns)
 - [SetUeuosState](./srv/SetUeuosState.srv): change status signalization light (predefined colors)

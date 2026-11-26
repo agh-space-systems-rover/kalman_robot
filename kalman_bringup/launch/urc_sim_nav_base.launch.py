@@ -11,6 +11,7 @@ def generate_launch_description():
                 "configs": "autonomy",
             },
             "gs": {},
+            "gamepad": {},
             "wheels": {},
         }
     )

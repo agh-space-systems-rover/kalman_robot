@@ -52,6 +52,7 @@ Kalman's software stack is composed of multiple packages that are meant to be bu
 - `kalman_bringup` - launch files for the rover and the ground station
 - `kalman_clouds` - point cloud generation and filtering
 - `kalman_description` - Xacro / URDF descriptions + models for the rover
+- `kalman_gamepad` - gamepad control of the wheels, arm and drill that works without the ground station
 - `kalman_hardware` - drivers, tools and launch scripts for the physical hardware onboard; Only to be run separately from the simulation on a physical robot.
 - `kalman_interfaces` - ROS 2 messages, services and actions used by the other `kalman_` packages
 - `kalman_master` - drivers for our custom Master device

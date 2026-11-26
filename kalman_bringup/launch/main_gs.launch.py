@@ -14,6 +14,7 @@ def generate_launch_description():
                 "joy": "arduino",
             },
             "gs": {},
+            "gamepad": {},
             "rviz": {
                 "configs": "arm1 arm2 arm3",
             },
