@@ -1,17 +1,128 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="kalman">
+    <xacro:macro name="cylinder_inertial" params="radius length mass *origin">
+        <inertial>
+            <mass value="${mass}" />
+            <xacro:insert_block name="origin" />
+            <inertia ixx="${0.0833333 * mass * (3 * radius * radius + length * length)}" ixy="0.0" ixz="0.0"
+                iyy="${0.0833333 * mass * (3 * radius * radius + length * length)}" iyz="0.0"
+                izz="${0.5 * mass * radius * radius}" />
+        </inertial>
+    </xacro:macro>
+
     <xacro:macro name="kalman">
-        <!-- https://www.ros.org/reps/rep-0120.html -->
+        <!-- base -->
         <link name="base_link" />
         <link name="base_footprint" />
+        
         <joint name="base_footprint_joint" type="fixed">
             <origin xyz="-0.11 0 -0.45" />
             <parent link="base_link" />
             <child link="base_footprint" />
         </joint>
 
-        <!-- additional robot model -->
-        <xacro:include filename="$(find kalman_description)/urdf/visual_model.urdf.xacro" />
-        <xacro:visual_model base_link="base_link" />
+        <material name="white">
+            <color rgba="0.8 0.8 0.8 1" />
+        </material>
+
+        <link name="body_link">
+            <visual>
+                <geometry>
+                    <mesh filename="package://kalman_description/stl/base/body.stl" />
+                </geometry>
+                <material name="white" />
+            </visual>
+        </link>
+        <joint name="body_joint" type="fixed">
+            <parent link="base_link" />
+            <child link="body_link" />
+        </joint>
+
+        <!-- suspensions -->
+        <xacro:macro name="suspension" params="y_side y_scale">
+            <link name="suspension_${y_side}_link">
+                <visual>
+                    <geometry>
+                        <mesh filename="package://kalman_description/stl/base/suspension.stl"
+                            scale="1 ${y_scale} 1" />
+                    </geometry>
+                    <material name="white" />
+                </visual>
+                <xacro:cylinder_inertial radius="0.1" length="1" mass="1">
+                    <origin rpy="1.5708 0 0" />
+                </xacro:cylinder_inertial>
+            </link>
+            <joint name="suspension_${y_side}_joint" type="fixed">
+                <origin xyz="0.009 0 -0.06" />
+                <axis xyz="0 1 0" />
+                <parent link="body_link" />
+                <child link="suspension_${y_side}_link" />
+            </joint>
+        </xacro:macro>
+        
+        <xacro:suspension y_side="r" y_scale="1" />
+        <xacro:suspension y_side="l" y_scale="-1" />
+
+        <!-- swivels -->
+        <xacro:macro name="swivel" params="x_side y_side y_scale xyz">
+            <link name="swivel_${x_side}${y_side}_link">
+                <visual>
+                    <origin xyz="0 0 -0.195" rpy="0 0 0" />
+                    <geometry>
+                        <mesh filename="package://kalman_description/stl/base/swivel.stl"
+                            scale="1 ${y_scale} 1" />
+                    </geometry>
+                    <material name="white" />
+                </visual>
+                <xacro:cylinder_inertial radius="0.08" length="0.35" mass="2.25">
+                    <origin xyz="0 0 -0.25" />
+                </xacro:cylinder_inertial>
+            </link>
+            <joint name="swivel_${x_side}${y_side}_joint" type="continuous">
+                <origin xyz="${xyz}" />
+                <axis xyz="0 0 1" />
+                <parent link="suspension_${y_side}_link" />
+                <child link="swivel_${x_side}${y_side}_link" />
+            </joint>
+        </xacro:macro>
+        
+        <xacro:swivel x_side="f" y_side="r" y_scale="1" xyz="0.295 -0.333 0.06" />
+        <xacro:swivel x_side="f" y_side="l" y_scale="-1" xyz="0.295 0.333 0.06" />
+        <xacro:swivel x_side="b" y_side="r" y_scale="1" xyz="-0.497 -0.333 0.06" />
+        <xacro:swivel x_side="b" y_side="l" y_scale="-1" xyz="-0.497 0.333 0.06" />
+
+        <!-- wheels -->
+        <xacro:macro name="wheel" params="x_side y_side y_scale xyz">
+            <link name="wheel_${x_side}${y_side}_link">
+                <visual>
+                    <geometry>
+                        <mesh filename="package://kalman_description/stl/base/wheel_fr.stl"
+                            scale="1 ${y_scale} 1" />
+                    </geometry>
+                    <material name="white" />
+                </visual>
+                <collision>
+                    <origin rpy="1.5708 0 0" xyz="0 0 0" />
+                    <geometry>
+                        <cylinder radius="0.12" length="0.15" />
+                    </geometry>
+                </collision>
+                <xacro:cylinder_inertial radius="0.12" length="0.15" mass="3.3">
+                    <origin rpy="1.5708 0 0" xyz="0 0 0" />
+                </xacro:cylinder_inertial>
+            </link>
+            <joint name="wheel_${x_side}${y_side}_joint" type="continuous">
+                <origin xyz="${xyz}" />
+                <axis xyz="0 1 0" />
+                <parent link="swivel_${x_side}${y_side}_link" />
+                <child link="wheel_${x_side}${y_side}_link" />
+            </joint>
+        </xacro:macro>
+        
+        <xacro:wheel x_side="f" y_side="r" y_scale="1" xyz="0 0 -0.363" />
+        <xacro:wheel x_side="f" y_side="l" y_scale="-1" xyz="0 0 -0.363" />
+        <xacro:wheel x_side="b" y_side="r" y_scale="1" xyz="0 0 -0.363" />
+        <xacro:wheel x_side="b" y_side="l" y_scale="-1" xyz="0 0 -0.363" />
+
     </xacro:macro>
 </robot>

@@ -2,48 +2,27 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="arm">
     <xacro:macro name="arm" params="base_link">
         <material name="arm_mat">
-            <color rgba="0.8 0.8 0.8 1" />
+            <color rgba="0.75 0.75 0.75 1" />
         </material>
-
-        <link name="skirt_module">
-            <visual>
-                <geometry>
-                    <mesh filename="package://kalman_description/stl/skirt.stl" />
-                </geometry>
-                <material name="arm_mat" />
-            </visual>
-        </link>
 
         <link name="arm_link">
             <visual>
                 <geometry>
-                    <mesh filename="package://kalman_description/stl/arm0_base.stl" />
+                    <mesh filename="package://kalman_description/stl/arm/arm0_base.stl" />
                 </geometry>
                 <material name="arm_mat" />
             </visual>
         </link>
-            <!-- <collision>
-                <geometry>
-                    <cylinder length="0.1" radius="0.1" />
-                </geometry>
-                <origin rpy="0 0 0" xyz="0 0 0" />
-            </collision> -->
-        <joint name="skirt_joint" type="fixed">
-            <parent link="${base_link}" />
-            <child link="skirt_module" />
-            <origin xyz="0.35 -0.333 0.15"/>
-        </joint>
-`
         <joint name="arm_joint" type="fixed">
             <parent link="${base_link}" />
             <child link="arm_link" />
-            <origin xyz="0.143 0 0" />
+            <origin xyz="0.145 0 0" />
         </joint>
 
         <link name="arm_link_1">
             <visual>
                 <geometry>
-                    <mesh filename="package://kalman_description/stl/arm1.stl" />
+                    <mesh filename="package://kalman_description/stl/arm/arm1.stl" />
                 </geometry>
                 <material name="arm_mat" />
             </visual>
@@ -59,7 +38,7 @@
         <link name="arm_link_2">
             <visual>
                 <geometry>
-                    <mesh filename="package://kalman_description/stl/arm2.stl" />
+                    <mesh filename="package://kalman_description/stl/arm/arm2.stl" />
                 </geometry>
                 <material name="arm_mat" />
             </visual>
@@ -75,7 +54,7 @@
         <link name="arm_link_3">
             <visual>
                 <geometry>
-                    <mesh filename="package://kalman_description/stl/arm3.stl" />
+                    <mesh filename="package://kalman_description/stl/arm/arm3.stl" />
                 </geometry>
                 <material name="arm_mat" />
             </visual>
@@ -91,7 +70,7 @@
         <link name="arm_link_4">
             <visual>
                 <geometry>
-                    <mesh filename="package://kalman_description/stl/arm4.stl" />
+                    <mesh filename="package://kalman_description/stl/arm/arm4.stl" />
                 </geometry>
                 <material name="arm_mat" />
             </visual>
@@ -107,7 +86,7 @@
         <link name="arm_link_5">
             <visual>
                 <geometry>
-                    <mesh filename="package://kalman_description/stl/arm5.stl" />
+                    <mesh filename="package://kalman_description/stl/arm/arm5.stl" />
                 </geometry>
                 <material name="arm_mat" />
             </visual>
@@ -123,7 +102,7 @@
         <link name="arm_link_6">
             <visual>
                 <geometry>
-                    <mesh filename="package://kalman_description/stl/arm6.stl" />
+                    <mesh filename="package://kalman_description/stl/arm/arm6.stl" />
                 </geometry>
                 <material name="arm_mat" />
             </visual>
@@ -139,7 +118,7 @@
         <link name="arm_link_jaw">
             <visual>
                 <geometry>
-                    <mesh filename="package://kalman_description/stl/arm7_jaw.stl" />
+                    <mesh filename="package://kalman_description/stl/arm/arm7_jaw.stl" />
                 </geometry>
                 <material name="arm_mat" />
             </visual>
